@@ -136,7 +136,7 @@ function DashboardPage() {
             </div>
             <div className="h-64">
               <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
-                {() => (
+                <>
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={weekData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 255)" />
@@ -159,7 +159,7 @@ function DashboardPage() {
                       />
                     </LineChart>
                   </ResponsiveContainer>
-                )}
+                </>
               </ClientOnly>
             </div>
           </div>

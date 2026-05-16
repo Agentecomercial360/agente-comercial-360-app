@@ -135,28 +135,32 @@ function DashboardPage() {
               </div>
             </div>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={weekData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 255)" />
-                  <XAxis dataKey="day" stroke="oklch(0.55 0.04 257)" fontSize={12} />
-                  <YAxis stroke="oklch(0.55 0.04 257)" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: 12,
-                      border: "1px solid oklch(0.92 0.01 255)",
-                      fontSize: 12,
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="oklch(0.55 0.22 258)"
-                    strokeWidth={3}
-                    dot={{ r: 4, fill: "oklch(0.55 0.22 258)" }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
+                {() => (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={weekData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 255)" />
+                      <XAxis dataKey="day" stroke="oklch(0.55 0.04 257)" fontSize={12} />
+                      <YAxis stroke="oklch(0.55 0.04 257)" fontSize={12} />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: 12,
+                          border: "1px solid oklch(0.92 0.01 255)",
+                          fontSize: 12,
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="oklch(0.55 0.22 258)"
+                        strokeWidth={3}
+                        dot={{ r: 4, fill: "oklch(0.55 0.22 258)" }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </ClientOnly>
             </div>
           </div>
 

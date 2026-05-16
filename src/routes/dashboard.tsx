@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, ClientOnly } from "@tanstack/react-router";
 import {
   Headphones,
   UserPlus,
@@ -135,28 +135,32 @@ function DashboardPage() {
               </div>
             </div>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={weekData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 255)" />
-                  <XAxis dataKey="day" stroke="oklch(0.55 0.04 257)" fontSize={12} />
-                  <YAxis stroke="oklch(0.55 0.04 257)" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: 12,
-                      border: "1px solid oklch(0.92 0.01 255)",
-                      fontSize: 12,
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="value"
-                    stroke="oklch(0.55 0.22 258)"
-                    strokeWidth={3}
-                    dot={{ r: 4, fill: "oklch(0.55 0.22 258)" }}
-                    activeDot={{ r: 6 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
+                <>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={weekData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 255)" />
+                      <XAxis dataKey="day" stroke="oklch(0.55 0.04 257)" fontSize={12} />
+                      <YAxis stroke="oklch(0.55 0.04 257)" fontSize={12} />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: 12,
+                          border: "1px solid oklch(0.92 0.01 255)",
+                          fontSize: 12,
+                        }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="oklch(0.55 0.22 258)"
+                        strokeWidth={3}
+                        dot={{ r: 4, fill: "oklch(0.55 0.22 258)" }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </>
+              </ClientOnly>
             </div>
           </div>
 
@@ -164,16 +168,18 @@ function DashboardPage() {
             <h3 className="text-base font-semibold text-foreground">Leads por temperatura</h3>
             <p className="text-xs text-muted-foreground mb-4">Distribuição atual</p>
             <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={tempData} dataKey="value" innerRadius={50} outerRadius={80} paddingAngle={3}>
-                    {tempData.map((d, i) => (
-                      <Cell key={i} fill={d.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
-                </PieChart>
-              </ResponsiveContainer>
+              <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={tempData} dataKey="value" innerRadius={50} outerRadius={80} paddingAngle={3}>
+                      {tempData.map((d, i) => (
+                        <Cell key={i} fill={d.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ClientOnly>
             </div>
             <div className="space-y-1.5 mt-2">
               {tempData.map((d) => (
@@ -194,15 +200,17 @@ function DashboardPage() {
             <h3 className="text-base font-semibold text-foreground">Atendimentos por setor</h3>
             <p className="text-xs text-muted-foreground mb-4">Volume por área da operação</p>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={sectorData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 255)" />
-                  <XAxis dataKey="name" stroke="oklch(0.55 0.04 257)" fontSize={12} />
-                  <YAxis stroke="oklch(0.55 0.04 257)" fontSize={12} />
-                  <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
-                  <Bar dataKey="value" fill="oklch(0.55 0.22 258)" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={sectorData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 255)" />
+                    <XAxis dataKey="name" stroke="oklch(0.55 0.04 257)" fontSize={12} />
+                    <YAxis stroke="oklch(0.55 0.04 257)" fontSize={12} />
+                    <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                    <Bar dataKey="value" fill="oklch(0.55 0.22 258)" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ClientOnly>
             </div>
           </div>
 

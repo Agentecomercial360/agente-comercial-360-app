@@ -168,16 +168,18 @@ function DashboardPage() {
             <h3 className="text-base font-semibold text-foreground">Leads por temperatura</h3>
             <p className="text-xs text-muted-foreground mb-4">Distribuição atual</p>
             <div className="h-48">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={tempData} dataKey="value" innerRadius={50} outerRadius={80} paddingAngle={3}>
-                    {tempData.map((d, i) => (
-                      <Cell key={i} fill={d.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
-                </PieChart>
-              </ResponsiveContainer>
+              <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={tempData} dataKey="value" innerRadius={50} outerRadius={80} paddingAngle={3}>
+                      {tempData.map((d, i) => (
+                        <Cell key={i} fill={d.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ClientOnly>
             </div>
             <div className="space-y-1.5 mt-2">
               {tempData.map((d) => (

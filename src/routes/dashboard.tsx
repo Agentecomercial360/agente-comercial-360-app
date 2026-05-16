@@ -200,15 +200,17 @@ function DashboardPage() {
             <h3 className="text-base font-semibold text-foreground">Atendimentos por setor</h3>
             <p className="text-xs text-muted-foreground mb-4">Volume por área da operação</p>
             <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={sectorData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 255)" />
-                  <XAxis dataKey="name" stroke="oklch(0.55 0.04 257)" fontSize={12} />
-                  <YAxis stroke="oklch(0.55 0.04 257)" fontSize={12} />
-                  <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
-                  <Bar dataKey="value" fill="oklch(0.55 0.22 258)" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={sectorData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 255)" />
+                    <XAxis dataKey="name" stroke="oklch(0.55 0.04 257)" fontSize={12} />
+                    <YAxis stroke="oklch(0.55 0.04 257)" fontSize={12} />
+                    <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
+                    <Bar dataKey="value" fill="oklch(0.55 0.22 258)" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ClientOnly>
             </div>
           </div>
 

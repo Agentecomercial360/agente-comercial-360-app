@@ -36,7 +36,7 @@ export function Placeholder({
             {message}
           </h2>
           <p className="mt-2 max-w-md text-sm text-muted-foreground">
-            Esta área será conectada ao Lovable Cloud futuramente para exibir
+            Esta área será conectada ao Supabase futuramente para exibir
             dados reais.
           </p>
         </div>

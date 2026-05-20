@@ -73,11 +73,14 @@ function RelatoriosPage() {
   const maxSemana = Math.max(...semana.map((s) => s.valor));
 
   return (
-    <DashboardLayout
-      title="Relatórios"
-      subtitle="Acompanhe indicadores, resumo executivo e recomendações da IA para a operação comercial."
-    >
+    <DashboardLayout>
       <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">Relatórios</h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Acompanhe indicadores, resumo executivo e recomendações da IA para a operação comercial.
+          </p>
+        </div>
         {/* Cabeçalho do relatório */}
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">

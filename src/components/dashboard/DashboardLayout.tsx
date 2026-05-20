@@ -48,14 +48,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         }}
       >
         <div
-          className="flex items-center justify-center px-4 py-4 border-b"
+          className="flex items-center justify-center px-4 py-3 border-b"
           style={{ borderColor: "var(--sidebar-brand-border)" }}
         >
-          <div className="bg-white/95 rounded-xl px-4 py-2.5 w-full flex items-center justify-center shadow-sm shadow-black/10" style={{ maxHeight: "100px" }}>
+          <div className="bg-white/95 rounded-xl px-2 py-2 w-full flex items-center justify-center shadow-sm shadow-black/10" style={{ maxHeight: "104px" }}>
             <img
               src={acLogo}
               alt="Agente Comercial 360"
-              className="w-full max-w-[200px] h-auto max-h-[84px] object-contain"
+              className="w-full max-w-[220px] h-auto max-h-[88px] object-contain"
             />
           </div>
         </div>

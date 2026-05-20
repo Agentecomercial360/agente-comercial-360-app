@@ -17,16 +17,16 @@ import { type ReactNode } from "react";
 import acLogo from "@/assets/ac-logo-full.png";
 
 const navItems = [
-  { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard, enabled: true },
-  { label: "Atendimentos", to: "/dashboard", icon: Headphones },
-  { label: "Leads", to: "/dashboard", icon: Users },
-  { label: "Conversas", to: "/dashboard", icon: MessageSquare },
-  { label: "Responsáveis", to: "/dashboard", icon: UserCog },
-  { label: "Base de Conhecimento", to: "/dashboard", icon: BookOpen },
-  { label: "IA", to: "/dashboard", icon: Sparkles },
-  { label: "Relatórios", to: "/dashboard", icon: BarChart3 },
-  { label: "Configurações", to: "/dashboard", icon: Settings },
-];
+  { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
+  { label: "Atendimentos", to: "/atendimentos", icon: Headphones },
+  { label: "Leads", to: "/leads", icon: Users },
+  { label: "Conversas", to: "/conversas", icon: MessageSquare },
+  { label: "Responsáveis", to: "/responsaveis", icon: UserCog },
+  { label: "Base de Conhecimento", to: "/base-conhecimento", icon: BookOpen },
+  { label: "IA", to: "/ia", icon: Sparkles },
+  { label: "Relatórios", to: "/relatorios", icon: BarChart3 },
+  { label: "Configurações", to: "/configuracoes", icon: Settings },
+] as const;
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -61,7 +61,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-1">
           {navItems.map((item, i) => {
-            const active = item.enabled && path === item.to;
+            const active = path === item.to;
             const Icon = item.icon;
             return (
               <Link

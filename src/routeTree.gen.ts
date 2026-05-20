@@ -9,18 +9,66 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ResponsaveisRouteImport } from './routes/responsaveis'
+import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LeadsRouteImport } from './routes/leads'
+import { Route as IaRouteImport } from './routes/ia'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ConversasRouteImport } from './routes/conversas'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as BaseConhecimentoRouteImport } from './routes/base-conhecimento'
+import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as IndexRouteImport } from './routes/index'
 
+const ResponsaveisRoute = ResponsaveisRouteImport.update({
+  id: '/responsaveis',
+  path: '/responsaveis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelatoriosRoute = RelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LeadsRoute = LeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IaRoute = IaRouteImport.update({
+  id: '/ia',
+  path: '/ia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConversasRoute = ConversasRouteImport.update({
+  id: '/conversas',
+  path: '/conversas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BaseConhecimentoRoute = BaseConhecimentoRouteImport.update({
+  id: '/base-conhecimento',
+  path: '/base-conhecimento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtendimentosRoute = AtendimentosRouteImport.update({
+  id: '/atendimentos',
+  path: '/atendimentos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -31,36 +79,116 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/atendimentos': typeof AtendimentosRoute
+  '/base-conhecimento': typeof BaseConhecimentoRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/conversas': typeof ConversasRoute
   '/dashboard': typeof DashboardRoute
+  '/ia': typeof IaRoute
+  '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/responsaveis': typeof ResponsaveisRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/atendimentos': typeof AtendimentosRoute
+  '/base-conhecimento': typeof BaseConhecimentoRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/conversas': typeof ConversasRoute
   '/dashboard': typeof DashboardRoute
+  '/ia': typeof IaRoute
+  '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/responsaveis': typeof ResponsaveisRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/atendimentos': typeof AtendimentosRoute
+  '/base-conhecimento': typeof BaseConhecimentoRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/conversas': typeof ConversasRoute
   '/dashboard': typeof DashboardRoute
+  '/ia': typeof IaRoute
+  '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/responsaveis': typeof ResponsaveisRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/login'
+  fullPaths:
+    | '/'
+    | '/atendimentos'
+    | '/base-conhecimento'
+    | '/configuracoes'
+    | '/conversas'
+    | '/dashboard'
+    | '/ia'
+    | '/leads'
+    | '/login'
+    | '/relatorios'
+    | '/responsaveis'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/login'
-  id: '__root__' | '/' | '/dashboard' | '/login'
+  to:
+    | '/'
+    | '/atendimentos'
+    | '/base-conhecimento'
+    | '/configuracoes'
+    | '/conversas'
+    | '/dashboard'
+    | '/ia'
+    | '/leads'
+    | '/login'
+    | '/relatorios'
+    | '/responsaveis'
+  id:
+    | '__root__'
+    | '/'
+    | '/atendimentos'
+    | '/base-conhecimento'
+    | '/configuracoes'
+    | '/conversas'
+    | '/dashboard'
+    | '/ia'
+    | '/leads'
+    | '/login'
+    | '/relatorios'
+    | '/responsaveis'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AtendimentosRoute: typeof AtendimentosRoute
+  BaseConhecimentoRoute: typeof BaseConhecimentoRoute
+  ConfiguracoesRoute: typeof ConfiguracoesRoute
+  ConversasRoute: typeof ConversasRoute
   DashboardRoute: typeof DashboardRoute
+  IaRoute: typeof IaRoute
+  LeadsRoute: typeof LeadsRoute
   LoginRoute: typeof LoginRoute
+  RelatoriosRoute: typeof RelatoriosRoute
+  ResponsaveisRoute: typeof ResponsaveisRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/responsaveis': {
+      id: '/responsaveis'
+      path: '/responsaveis'
+      fullPath: '/responsaveis'
+      preLoaderRoute: typeof ResponsaveisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/relatorios': {
+      id: '/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -68,11 +196,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/leads': {
+      id: '/leads'
+      path: '/leads'
+      fullPath: '/leads'
+      preLoaderRoute: typeof LeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ia': {
+      id: '/ia'
+      path: '/ia'
+      fullPath: '/ia'
+      preLoaderRoute: typeof IaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conversas': {
+      id: '/conversas'
+      path: '/conversas'
+      fullPath: '/conversas'
+      preLoaderRoute: typeof ConversasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/base-conhecimento': {
+      id: '/base-conhecimento'
+      path: '/base-conhecimento'
+      fullPath: '/base-conhecimento'
+      preLoaderRoute: typeof BaseConhecimentoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/atendimentos': {
+      id: '/atendimentos'
+      path: '/atendimentos'
+      fullPath: '/atendimentos'
+      preLoaderRoute: typeof AtendimentosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -87,8 +257,16 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AtendimentosRoute: AtendimentosRoute,
+  BaseConhecimentoRoute: BaseConhecimentoRoute,
+  ConfiguracoesRoute: ConfiguracoesRoute,
+  ConversasRoute: ConversasRoute,
   DashboardRoute: DashboardRoute,
+  IaRoute: IaRoute,
+  LeadsRoute: LeadsRoute,
   LoginRoute: LoginRoute,
+  RelatoriosRoute: RelatoriosRoute,
+  ResponsaveisRoute: ResponsaveisRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

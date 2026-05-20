@@ -41,13 +41,13 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen bg-background">
       {/* Sidebar */}
       <aside className="hidden md:flex md:w-64 lg:w-72 flex-col bg-[oklch(0.18_0.06_262)] text-white sticky top-0 h-screen">
-        <div className="flex items-center gap-3 px-6 py-6 border-b border-white/10">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[oklch(0.65_0.2_258)] to-[oklch(0.45_0.2_262)] font-bold text-white shadow-lg">
-            AC
-          </div>
-          <div className="leading-tight">
-            <div className="text-sm font-semibold">Agente Comercial</div>
-            <div className="text-xs text-white/60">360</div>
+        <div className="flex items-center justify-center px-6 py-5 border-b border-white/10">
+          <div className="bg-white rounded-xl p-3 shadow-md w-full flex items-center justify-center">
+            <img
+              src={acLogo}
+              alt="Agente Comercial 360"
+              className="h-16 w-auto object-contain"
+            />
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">

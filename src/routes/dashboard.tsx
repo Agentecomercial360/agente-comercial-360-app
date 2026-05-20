@@ -118,7 +118,7 @@ function DashboardPage() {
                     {k.delta}
                   </span>
                 </div>
-                <div className="mt-4 text-3xl font-bold tracking-tight text-foreground">{k.value}</div>
+                <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">{k.value}</div>
                 <div className="mt-1 text-xs text-muted-foreground">{k.label}</div>
               </div>
             );

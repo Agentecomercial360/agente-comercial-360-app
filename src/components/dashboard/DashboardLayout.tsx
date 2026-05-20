@@ -14,7 +14,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { type ReactNode } from "react";
-import acLogo from "@/assets/ac-logo.png";
+import acLogo from "@/assets/ac-logo-full.png";
 
 const navItems = [
   { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard, enabled: true },
@@ -48,19 +48,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         }}
       >
         <div
-          className="flex flex-col items-center gap-2 px-6 py-6 border-b"
+          className="flex items-center justify-center px-5 py-5 border-b"
           style={{ borderColor: "var(--sidebar-brand-border)" }}
         >
-          <div className="bg-white rounded-xl p-3 shadow-md w-full flex items-center justify-center">
+          <div className="bg-white rounded-lg px-3 py-2 w-full flex items-center justify-center">
             <img
               src={acLogo}
               alt="Agente Comercial 360"
-              className="h-14 w-auto object-contain"
+              className="w-full max-w-[200px] h-auto object-contain"
             />
           </div>
-          <p className="font-display text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70">
-            Agente Comercial 360
-          </p>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-1">
           {navItems.map((item, i) => {

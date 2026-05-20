@@ -66,11 +66,29 @@
   --background: oklch(0.985 0.003 240);
   --foreground: oklch(0.18 0.04 260);
   --brand-blue: oklch(0.55 0.22 258);
+  --brand-blue-strong: oklch(0.5 0.23 260);
   --brand-navy: oklch(0.28 0.14 262);
   --brand-blue-soft: oklch(0.95 0.03 258);
   --gradient-brand: linear-gradient(135deg, oklch(0.55 0.22 258), oklch(0.28 0.14 262));
   --shadow-card: 0 10px 40px -12px oklch(0.28 0.14 262 / 0.18);
   --shadow-soft: 0 4px 20px -8px oklch(0.28 0.14 262 / 0.12);
+  --shadow-premium: 0 20px 50px -20px oklch(0.28 0.14 262 / 0.25);
+
+  /* Sidebar (brand / dark) tokens */
+  --sidebar-brand: oklch(0.18 0.06 262);
+  --sidebar-brand-foreground: oklch(0.985 0.003 240);
+  --sidebar-brand-muted: oklch(0.985 0.003 240 / 0.65);
+  --sidebar-brand-border: oklch(1 0 0 / 0.08);
+  --sidebar-brand-active: linear-gradient(135deg, oklch(0.55 0.22 258), oklch(0.45 0.2 262));
+
+  /* Surface + topbar */
+  --surface: oklch(1 0 0);
+  --topbar: oklch(1 0 0 / 0.85);
+  --border-premium: oklch(0.92 0.012 255);
+
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-display: "Inter Tight", "Inter", system-ui, sans-serif;
+
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
@@ -143,8 +161,19 @@
     border-color: var(--color-border);
   }
 
+  html, body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
   }
 }

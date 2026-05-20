@@ -14,6 +14,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { type ReactNode } from "react";
+import acLogo from "@/assets/ac-logo.png";
 
 const navItems = [
   { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard, enabled: true },

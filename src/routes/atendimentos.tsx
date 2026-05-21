@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { toast, Toaster } from "sonner";
 import {
   Headphones,
   Clock,
@@ -8,6 +9,9 @@ import {
   Search,
   Sparkles,
   Target,
+  X,
+  CheckCheck,
+  UserPlus,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
@@ -15,6 +19,7 @@ export const Route = createFileRoute("/atendimentos")({
   component: AtendimentosPage,
   head: () => ({ meta: [{ title: "Atendimentos | Agente Comercial 360" }] }),
 });
+
 
 const cards = [
   { label: "Atendimentos hoje", value: 128, icon: Headphones },

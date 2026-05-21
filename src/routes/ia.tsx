@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Activity,
   Building2,
@@ -10,23 +10,22 @@ import {
   AlertTriangle,
   Save,
   RotateCcw,
+  X,
 } from "lucide-react";
-
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/ia")({
   component: IAPage,
   head: () => ({ meta: [{ title: "Configuração da IA | Agente Comercial 360" }] }),
 });
 
-const summary = [
-  { label: "Status da IA", value: "Ativa", icon: Activity },
-  { label: "Empresa vinculada", value: "União Auto Peças", icon: Building2 },
-  { label: "Regras principais", value: 6, icon: ShieldCheck },
-  { label: "Encaminhamento humano", value: "Habilitado", icon: UserCheck },
-];
+const defaultAssistantName = "Assistente Virtual";
+const defaultCompany = "União Auto Peças";
+const defaultPrompt =
+  "Você é a assistente virtual da União Auto Peças. Seu papel é atender clientes de forma educada, objetiva e profissional. Você deve identificar o setor correto, coletar informações essenciais e encaminhar oportunidades para os responsáveis certos. Você não deve enviar preços finais sem validação humana.";
 
-const rules = [
+const defaultRules = [
   { label: "Pode enviar preço?", value: false },
   { label: "Pode criar orçamento?", value: false },
   { label: "Pode encaminhar para humano?", value: true },
@@ -35,7 +34,7 @@ const rules = [
   { label: "Pode agir fora do horário?", value: false },
 ];
 
-const criterios = [
+const criteriosIniciais = [
   "Quando o cliente pedir preço final",
   "Quando for necessário gerar orçamento",
   "Quando houver dúvida financeira específica",
@@ -50,9 +49,11 @@ const setores = [
   { label: "Relatórios", badge: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200" },
 ];
 
-function Toggle({ enabled }: { enabled: boolean }) {
+function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
   return (
-    <div
+    <button
+      type="button"
+      onClick={onToggle}
       className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
         enabled ? "bg-primary" : "bg-muted-foreground/30"
       }`}
@@ -62,18 +63,106 @@ function Toggle({ enabled }: { enabled: boolean }) {
           enabled ? "translate-x-6" : "translate-x-1"
         }`}
       />
-    </div>
+    </button>
   );
 }
 
 function IAPage() {
+  const [assistantName, setAssistantName] = useState(defaultAssistantName);
+  const [company, setCompany] = useState(defaultCompany);
+  const [prompt, setPrompt] = useState(defaultPrompt);
+  const [rules, setRules] = useState(defaultRules);
+  const [saved, setSaved] = useState(true);
   const [search, setSearch] = useState("");
-  const [assistantName, setAssistantName] = useState("Assistente Virtual");
-  const [company, setCompany] = useState("União Auto Peças");
-  const [prompt, setPrompt] = useState(
-    `Você é a assistente virtual da União Auto Peças. Seu papel é atender clientes de forma educada, objetiva e profissional. Você deve identificar o setor correto, coletar informações essenciais e encaminhar oportunidades para os responsáveis certos. Você não deve enviar preços finais sem validação humana.`
-  );
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
+  const hasChanges = useMemo(() => {
+    if (assistantName !== defaultAssistantName) return true;
+    if (company !== defaultCompany) return true;
+    if (prompt !== defaultPrompt) return true;
+    return rules.some((r, i) => r.value !== defaultRules[i].value);
+  }, [assistantName, company, prompt, rules]);
+
+  const summary = [
+    {
+      label: "Status da IA",
+      value: "Ativa",
+      icon: Activity,
+    },
+    {
+      label: "Empresa vinculada",
+      value: company || "—",
+      icon: Building2,
+    },
+    {
+      label: "Regras principais",
+      value: rules.length,
+      icon: ShieldCheck,
+    },
+    {
+      label: "Encaminhamento humano",
+      value: rules.find((r) => r.label === "Pode encaminhar para humano?")?.value ? "Habilitado" : "Desabilitado",
+      icon: UserCheck,
+    },
+  ];
+
+  const criterios = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return criteriosIniciais;
+    return criteriosIniciais.filter((c) => c.toLowerCase().includes(term));
+  }, [search]);
+
+  const resumoText = useMemo(() => {
+    const podePreco = rules.find((r) => r.label === "Pode enviar preço?")?.value;
+    const podeOrcamento = rules.find((r) => r.label === "Pode criar orçamento?")?.value;
+    const podeHumano = rules.find((r) => r.label === "Pode encaminhar para humano?")?.value;
+    const podeAdm = rules.find((r) => r.label === "Pode responder dúvidas administrativas?")?.value;
+    const podeFin = rules.find((r) => r.label === "Pode responder dúvidas financeiras?")?.value;
+
+    const partes: string[] = [];
+    if (podePreco) partes.push("A IA está autorizada a enviar preços finais.");
+    else partes.push("A IA não está autorizada a enviar preços finais sem validação humana.");
+
+    if (podeOrcamento) partes.push("Pode gerar orçamentos.");
+    else partes.push("Não pode gerar orçamentos sem validação humana.");
+
+    if (podeHumano) partes.push("Está habilitada para encaminhar para atendimento humano.");
+    else partes.push("O encaminhamento humano está desabilitado.");
+
+    if (podeAdm && podeFin) partes.push("Pode responder dúvidas administrativas e financeiras.");
+    else if (podeAdm) partes.push("Pode responder dúvidas administrativas.");
+    else if (podeFin) partes.push("Pode responder dúvidas financeiras.");
+
+    return partes.join(" ");
+  }, [rules]);
+
+  const toggleRule = (index: number) => {
+    setRules((prev) =>
+      prev.map((r, i) => (i === index ? { ...r, value: !r.value } : r))
+    );
+    setSaved(false);
+  };
+
+  const handleSave = () => {
+    setSaved(true);
+    toast.success("Configurações da IA salvas localmente.", {
+      description: "Alterações salvas apenas nesta sessão visual.",
+    });
+  };
+
+  const openRestore = () => {
+    setConfirmOpen(true);
+  };
+
+  const confirmRestore = () => {
+    setAssistantName(defaultAssistantName);
+    setCompany(defaultCompany);
+    setPrompt(defaultPrompt);
+    setRules(defaultRules);
+    setSaved(true);
+    setConfirmOpen(false);
+    toast.success("Configurações padrão restauradas.");
+  };
 
   return (
     <DashboardLayout>
@@ -108,6 +197,14 @@ function IAPage() {
           })}
         </div>
 
+        {/* Dirty indicator */}
+        {hasChanges && !saved && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800 flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            Alterações locais não salvas
+          </div>
+        )}
+
         {/* Main config + side cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-4">
@@ -124,7 +221,10 @@ function IAPage() {
                   <input
                     type="text"
                     value={assistantName}
-                    onChange={(e) => setAssistantName(e.target.value)}
+                    onChange={(e) => {
+                      setAssistantName(e.target.value);
+                      setSaved(false);
+                    }}
                     className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
                   />
                 </div>
@@ -135,7 +235,10 @@ function IAPage() {
                   <input
                     type="text"
                     value={company}
-                    onChange={(e) => setCompany(e.target.value)}
+                    onChange={(e) => {
+                      setCompany(e.target.value);
+                      setSaved(false);
+                    }}
                     className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
                   />
                 </div>
@@ -143,7 +246,6 @@ function IAPage() {
                   <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                     Status da IA
                   </label>
-
                   <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700">
                     <span className="h-2 w-2 rounded-full bg-emerald-500" />
                     Ativa
@@ -157,12 +259,14 @@ function IAPage() {
                 </label>
                 <textarea
                   value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
+                  onChange={(e) => {
+                    setPrompt(e.target.value);
+                    setSaved(false);
+                  }}
                   rows={6}
                   className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition resize-y"
                 />
                 <p className="mt-1.5 text-xs text-muted-foreground">{prompt.length} caracteres</p>
-
               </div>
             </div>
 
@@ -172,13 +276,10 @@ function IAPage() {
                 Regras operacionais
               </h3>
               <div className="divide-y divide-border">
-                {rules.map((r) => (
-                  <div
-                    key={r.label}
-                    className="flex items-center justify-between py-3"
-                  >
+                {rules.map((r, index) => (
+                  <div key={r.label} className="flex items-center justify-between py-3">
                     <span className="text-sm text-foreground">{r.label}</span>
-                    <Toggle enabled={r.value} />
+                    <Toggle enabled={r.value} onToggle={() => toggleRule(index)} />
                   </div>
                 ))}
               </div>
@@ -186,11 +287,17 @@ function IAPage() {
 
             {/* Action buttons */}
             <div className="flex flex-wrap items-center gap-3">
-              <button className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm">
+              <button
+                onClick={handleSave}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+              >
                 <Save className="h-4 w-4" />
                 Salvar configurações
               </button>
-              <button className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition shadow-sm">
+              <button
+                onClick={openRestore}
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition shadow-sm"
+              >
                 <RotateCcw className="h-4 w-4" />
                 Restaurar padrão
               </button>
@@ -204,6 +311,16 @@ function IAPage() {
               <h3 className="text-base font-semibold text-foreground mb-4">
                 Quando chamar humano
               </h3>
+              <div className="relative mb-4">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar critérios..."
+                  className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                />
+              </div>
               <ul className="space-y-3 text-sm">
                 {criterios.map((c) => (
                   <li key={c} className="flex items-start gap-2">
@@ -211,6 +328,11 @@ function IAPage() {
                     <span className="text-muted-foreground">{c}</span>
                   </li>
                 ))}
+                {criterios.length === 0 && (
+                  <li className="text-sm text-muted-foreground text-center py-2">
+                    Nenhum critério encontrado.
+                  </li>
+                )}
               </ul>
             </div>
 
@@ -240,7 +362,7 @@ function IAPage() {
                 <h3 className="text-base font-semibold text-foreground">Resumo da configuração</h3>
               </div>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                A assistente virtual está configurada para atender de forma administrativa e comercial, identificar o setor correto e encaminhar casos sensíveis ou estratégicos para atendimento humano.
+                {resumoText}
               </p>
             </div>
 
@@ -257,6 +379,42 @@ function IAPage() {
           </div>
         </div>
       </div>
+
+      {/* Restore confirmation modal */}
+      {confirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-card border border-border shadow-[var(--shadow-card)] p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">
+                Restaurar configurações padrão?
+              </h2>
+              <button
+                onClick={() => setConfirmOpen(false)}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Essa ação irá restaurar os valores mockados iniciais desta tela. Nenhuma alteração real será feita no Supabase.
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-1">
+              <button
+                onClick={() => setConfirmOpen(false)}
+                className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmRestore}
+                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+              >
+                Restaurar padrão
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

@@ -1,18 +1,82 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Users, Briefcase, ArrowRightLeft, UserX, Search, Sparkles, Pencil, Power } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Users, Briefcase, ArrowRightLeft, UserX, Search, Sparkles, Pencil, Power, X } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/responsaveis")({
   component: ResponsaveisPage,
   head: () => ({ meta: [{ title: "Responsáveis | Agente Comercial 360" }] }),
 });
 
-const summary = [
-  { label: "Responsáveis ativos", value: 6, icon: Users },
-  { label: "Setores cobertos", value: 4, icon: Briefcase },
-  { label: "Atendimentos encaminhados hoje", value: 37, icon: ArrowRightLeft },
-  { label: "Sem responsável definido", value: 3, icon: UserX },
+type Setor = "Vendas" | "Financeiro" | "Administrativo" | "Gestão";
+type Status = "Ativo" | "Inativo";
+
+type Responsavel = {
+  id: string;
+  nome: string;
+  setor: Setor;
+  funcao: string;
+  telefone: string;
+  status: Status;
+  atendimentosHoje: number;
+};
+
+const initialResponsaveis: Responsavel[] = [
+  {
+    id: "1",
+    nome: "Amanda",
+    setor: "Vendas",
+    funcao: "Atendimento comercial",
+    telefone: "(15) 99608-3076",
+    status: "Ativo",
+    atendimentosHoje: 12,
+  },
+  {
+    id: "2",
+    nome: "Thaís",
+    setor: "Vendas",
+    funcao: "Orçamentos e follow-up",
+    telefone: "(15) 99777-1122",
+    status: "Ativo",
+    atendimentosHoje: 8,
+  },
+  {
+    id: "3",
+    nome: "Lorenzzo",
+    setor: "Administrativo",
+    funcao: "Solicitações internas",
+    telefone: "(15) 99888-2233",
+    status: "Ativo",
+    atendimentosHoje: 5,
+  },
+  {
+    id: "4",
+    nome: "Vinicius",
+    setor: "Financeiro",
+    funcao: "Cobranças e pendências",
+    telefone: "(15) 99999-3344",
+    status: "Ativo",
+    atendimentosHoje: 7,
+  },
+  {
+    id: "5",
+    nome: "Vitor",
+    setor: "Vendas",
+    funcao: "Peças e estoque",
+    telefone: "(15) 99111-4455",
+    status: "Ativo",
+    atendimentosHoje: 5,
+  },
+  {
+    id: "6",
+    nome: "Ivan",
+    setor: "Gestão",
+    funcao: "Dono / gestor",
+    telefone: "(15) 99222-5566",
+    status: "Ativo",
+    atendimentosHoje: 0,
+  },
 ];
 
 const filters = [
@@ -23,69 +87,6 @@ const filters = [
   "Gestão",
   "Ativos",
   "Inativos",
-];
-
-type Setor = "Vendas" | "Financeiro" | "Administrativo" | "Gestão";
-type Status = "Ativo" | "Inativo";
-
-type Responsavel = {
-  nome: string;
-  setor: Setor;
-  funcao: string;
-  telefone: string;
-  status: Status;
-  atendimentosHoje: number;
-};
-
-const responsaveis: Responsavel[] = [
-  {
-    nome: "Amanda",
-    setor: "Vendas",
-    funcao: "Atendimento comercial",
-    telefone: "(15) 99608-3076",
-    status: "Ativo",
-    atendimentosHoje: 12,
-  },
-  {
-    nome: "Thaís",
-    setor: "Vendas",
-    funcao: "Orçamentos e follow-up",
-    telefone: "(15) 99777-1122",
-    status: "Ativo",
-    atendimentosHoje: 8,
-  },
-  {
-    nome: "Lorenzzo",
-    setor: "Administrativo",
-    funcao: "Solicitações internas",
-    telefone: "(15) 99888-2233",
-    status: "Ativo",
-    atendimentosHoje: 5,
-  },
-  {
-    nome: "Vinicius",
-    setor: "Financeiro",
-    funcao: "Cobranças e pendências",
-    telefone: "(15) 99999-3344",
-    status: "Ativo",
-    atendimentosHoje: 7,
-  },
-  {
-    nome: "Vitor",
-    setor: "Vendas",
-    funcao: "Peças e estoque",
-    telefone: "(15) 99111-4455",
-    status: "Ativo",
-    atendimentosHoje: 5,
-  },
-  {
-    nome: "Ivan",
-    setor: "Gestão",
-    funcao: "Dono / gestor",
-    telefone: "(15) 99222-5566",
-    status: "Ativo",
-    atendimentosHoje: 0,
-  },
 ];
 
 const setorBadge: Record<Setor, string> = {
@@ -100,8 +101,141 @@ const statusBadge: Record<Status, string> = {
   Inativo: "bg-slate-100 text-slate-700 ring-1 ring-slate-200",
 };
 
+const setores: Setor[] = ["Vendas", "Financeiro", "Administrativo", "Gestão"];
+
 function ResponsaveisPage() {
+  const [items, setItems] = useState<Responsavel[]>(initialResponsaveis);
   const [activeFilter, setActiveFilter] = useState("Todos");
+  const [search, setSearch] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<{
+    nome: string;
+    setor: Setor;
+    funcao: string;
+    telefone: string;
+    status: Status;
+  }>({
+    nome: "",
+    setor: "Vendas",
+    funcao: "",
+    telefone: "",
+    status: "Ativo",
+  });
+
+  const ativosCount = useMemo(
+    () => items.filter((r) => r.status === "Ativo").length,
+    [items]
+  );
+  const inativosCount = useMemo(
+    () => items.filter((r) => r.status === "Inativo").length,
+    [items]
+  );
+  const setoresCobertos = useMemo(
+    () => new Set(items.map((r) => r.setor)).size,
+    [items]
+  );
+  const encaminhadosHoje = useMemo(
+    () => items.reduce((sum, r) => sum + r.atendimentosHoje, 0),
+    [items]
+  );
+
+  const summary = [
+    { label: "Responsáveis ativos", value: ativosCount, icon: Users },
+    { label: "Setores cobertos", value: setoresCobertos, icon: Briefcase },
+    { label: "Atendimentos encaminhados hoje", value: encaminhadosHoje, icon: ArrowRightLeft },
+    { label: "Sem responsável definido", value: inativosCount, icon: UserX },
+  ];
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    return items.filter((r) => {
+      if (activeFilter === "Ativos" && r.status !== "Ativo") return false;
+      if (activeFilter === "Inativos" && r.status !== "Inativo") return false;
+      if (
+        activeFilter !== "Todos" &&
+        activeFilter !== "Ativos" &&
+        activeFilter !== "Inativos" &&
+        r.setor !== activeFilter
+      )
+        return false;
+
+      if (!term) return true;
+      return (
+        r.nome.toLowerCase().includes(term) ||
+        r.setor.toLowerCase().includes(term) ||
+        r.funcao.toLowerCase().includes(term) ||
+        r.telefone.toLowerCase().includes(term) ||
+        r.status.toLowerCase().includes(term)
+      );
+    });
+  }, [items, activeFilter, search]);
+
+  const openAdd = () => {
+    setEditingId(null);
+    setForm({ nome: "", setor: "Vendas", funcao: "", telefone: "", status: "Ativo" });
+    setModalOpen(true);
+  };
+
+  const openEdit = (r: Responsavel) => {
+    setEditingId(r.id);
+    setForm({
+      nome: r.nome,
+      setor: r.setor,
+      funcao: r.funcao,
+      telefone: r.telefone,
+      status: r.status,
+    });
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setEditingId(null);
+  };
+
+  const saveResponsavel = () => {
+    if (!form.nome.trim() || !form.funcao.trim() || !form.telefone.trim()) {
+      toast.error("Preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    if (editingId) {
+      setItems((prev) =>
+        prev.map((r) =>
+          r.id === editingId
+            ? { ...r, nome: form.nome.trim(), setor: form.setor, funcao: form.funcao.trim(), telefone: form.telefone.trim(), status: form.status }
+            : r
+        )
+      );
+      toast.success("Responsável atualizado com sucesso.");
+    } else {
+      const newId = String(Date.now());
+      setItems((prev) => [
+        ...prev,
+        {
+          id: newId,
+          nome: form.nome.trim(),
+          setor: form.setor,
+          funcao: form.funcao.trim(),
+          telefone: form.telefone.trim(),
+          status: form.status,
+          atendimentosHoje: 0,
+        },
+      ]);
+      toast.success("Responsável adicionado com sucesso.");
+    }
+    closeModal();
+  };
+
+  const toggleStatus = (id: string) => {
+    setItems((prev) =>
+      prev.map((r) =>
+        r.id === id ? { ...r, status: r.status === "Ativo" ? "Inativo" : "Ativo" } : r
+      )
+    );
+    toast.success("Status do responsável atualizado.");
+  };
 
   return (
     <DashboardLayout>
@@ -154,7 +288,10 @@ function ResponsaveisPage() {
                 </button>
               ))}
             </div>
-            <button className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm">
+            <button
+              onClick={openAdd}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+            >
               Adicionar responsável
             </button>
           </div>
@@ -162,6 +299,8 @@ function ResponsaveisPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar responsável por nome, setor ou telefone..."
               className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
             />
@@ -171,77 +310,93 @@ function ResponsaveisPage() {
         {/* Table + AI summary + routing */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/40 text-left">
-                    {[
-                      "Nome",
-                      "Setor",
-                      "Função",
-                      "Telefone",
-                      "Status",
-                      "Atendimentos hoje",
-                      "Ação",
-                    ].map((h) => (
-                      <th
-                        key={h}
-                        className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap"
-                      >
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {responsaveis.map((r) => (
-                    <tr
-                      key={r.nome}
-                      className="border-b border-border last:border-0 hover:bg-muted/30 transition"
-                    >
-                      <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">
-                        {r.nome}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${setorBadge[r.setor]}`}
+            {filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <Users className="h-10 w-10 text-muted-foreground/40 mb-3" />
+                <p className="text-base font-semibold text-foreground">Nenhum responsável encontrado</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Revise os filtros ou tente outro termo de busca.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-muted/40 text-left">
+                      {[
+                        "Nome",
+                        "Setor",
+                        "Função",
+                        "Telefone",
+                        "Status",
+                        "Atendimentos hoje",
+                        "Ação",
+                      ].map((h) => (
+                        <th
+                          key={h}
+                          className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap"
                         >
-                          {r.setor}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                        {r.funcao}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                        {r.telefone}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadge[r.status]}`}
-                        >
-                          {r.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 font-display font-bold text-foreground">
-                        {r.atendimentosHoje}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <button className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1">
-                            <Pencil className="h-3 w-3" />
-                            Editar
-                          </button>
-                          <button className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1">
-                            <Power className="h-3 w-3" />
-                            Ativar/Desativar
-                          </button>
-                        </div>
-                      </td>
+                          {h}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filtered.map((r) => (
+                      <tr
+                        key={r.id}
+                        className="border-b border-border last:border-0 hover:bg-muted/30 transition"
+                      >
+                        <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                          {r.nome}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${setorBadge[r.setor]}`}
+                          >
+                            {r.setor}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                          {r.funcao}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                          {r.telefone}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadge[r.status]}`}
+                          >
+                            {r.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-display font-bold text-foreground">
+                          {r.atendimentosHoje}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openEdit(r)}
+                              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1"
+                            >
+                              <Pencil className="h-3 w-3" />
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => toggleStatus(r.id)}
+                              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1"
+                            >
+                              <Power className="h-3 w-3" />
+                              Ativar/Desativar
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Side cards */}
@@ -294,6 +449,96 @@ function ResponsaveisPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-[var(--shadow-card)] p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">
+                {editingId ? "Editar responsável" : "Adicionar responsável"}
+              </h2>
+              <button
+                onClick={closeModal}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Nome</label>
+                <input
+                  type="text"
+                  value={form.nome}
+                  onChange={(e) => setForm((f) => ({ ...f, nome: e.target.value }))}
+                  placeholder="Ex: Amanda"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Setor</label>
+                <select
+                  value={form.setor}
+                  onChange={(e) => setForm((f) => ({ ...f, setor: e.target.value as Setor }))}
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition appearance-none"
+                >
+                  {setores.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Função</label>
+                <input
+                  type="text"
+                  value={form.funcao}
+                  onChange={(e) => setForm((f) => ({ ...f, funcao: e.target.value }))}
+                  placeholder="Ex: Atendimento comercial"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Telefone</label>
+                <input
+                  type="text"
+                  value={form.telefone}
+                  onChange={(e) => setForm((f) => ({ ...f, telefone: e.target.value }))}
+                  placeholder="Ex: (15) 99608-3076"
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Status</label>
+                <select
+                  value={form.status}
+                  onChange={(e) => setForm((f) => ({ ...f, status: e.target.value as Status }))}
+                  className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition appearance-none"
+                >
+                  <option value="Ativo">Ativo</option>
+                  <option value="Inativo">Inativo</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-3 pt-1">
+              <button
+                onClick={closeModal}
+                className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={saveResponsavel}
+                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+              >
+                {editingId ? "Salvar alterações" : "Salvar responsável"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

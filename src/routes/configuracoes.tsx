@@ -88,14 +88,16 @@ function ConfiguracoesPage() {
     try {
       const { data, error } = await supabase
         .from("companies")
-        .select("id, name, segment, phone, city, status")
+        .select("*")
         .limit(1);
       if (error) {
         setTestResult({ kind: "error", message: error.message });
       } else if (!data || data.length === 0) {
         setTestResult({ kind: "ok-empty" });
       } else {
-        setTestResult({ kind: "ok-found", name: (data[0] as { name?: string }).name ?? "(sem nome)" });
+        const row = data[0] as Record<string, unknown>;
+        const name = typeof row.name === "string" ? row.name : "(sem nome)";
+        setTestResult({ kind: "ok-found", name, columns: Object.keys(row) });
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro desconhecido";

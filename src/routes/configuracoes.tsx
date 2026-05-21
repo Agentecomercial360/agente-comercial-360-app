@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/configuracoes")({
   component: ConfiguracoesPage,
@@ -71,6 +72,38 @@ function ConfiguracoesPage() {
   const [saved, setSaved] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
+
+  // Teste temporário de conexão Supabase (apenas SELECT, somente no clique)
+  const [testLoading, setTestLoading] = useState(false);
+  const [testResult, setTestResult] = useState<
+    | { kind: "ok-found"; name: string }
+    | { kind: "ok-empty" }
+    | { kind: "error"; message: string }
+    | null
+  >(null);
+
+  const handleTestConnection = async () => {
+    setTestLoading(true);
+    setTestResult(null);
+    try {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("id, name, segment, phone, city, status")
+        .limit(1);
+      if (error) {
+        setTestResult({ kind: "error", message: error.message });
+      } else if (!data || data.length === 0) {
+        setTestResult({ kind: "ok-empty" });
+      } else {
+        setTestResult({ kind: "ok-found", name: (data[0] as { name?: string }).name ?? "(sem nome)" });
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erro desconhecido";
+      setTestResult({ kind: "error", message: msg });
+    } finally {
+      setTestLoading(false);
+    }
+  };
 
   const hasChanges = useMemo(() => {
     return (
@@ -289,6 +322,46 @@ function ConfiguracoesPage() {
                 </span>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* Teste temporário de conexão Supabase */}
+        <div className="rounded-2xl border border-dashed border-border bg-card/60 p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
+              <Database className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-foreground">Teste de conexão Supabase</h3>
+              <p className="text-xs text-muted-foreground">
+                Área temporária — apenas SELECT na tabela <span className="font-medium">companies</span>.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleTestConnection}
+              disabled={testLoading}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {testLoading ? "Testando..." : "Testar conexão"}
+            </button>
+            {testResult && (
+              <div
+                className={`text-sm rounded-lg px-3 py-2 ${
+                  testResult.kind === "error"
+                    ? "bg-red-50 text-red-700 ring-1 ring-red-200"
+                    : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                }`}
+              >
+                {testResult.kind === "ok-found" &&
+                  `Conexão Supabase OK — empresa encontrada: ${testResult.name}`}
+                {testResult.kind === "ok-empty" &&
+                  "Conexão Supabase OK — nenhuma empresa encontrada."}
+                {testResult.kind === "error" &&
+                  `Erro ao conectar Supabase: ${testResult.message}`}
+              </div>
+            )}
           </div>
         </div>
 

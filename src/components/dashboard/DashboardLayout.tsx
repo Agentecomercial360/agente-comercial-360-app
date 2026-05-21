@@ -13,7 +13,7 @@ import {
   Bot,
   Calendar,
 } from "lucide-react";
-import { type ReactNode } from "react";
+import { type ReactNode, useState, useEffect } from "react";
 import acLogo from "@/assets/ac-logo-full.png";
 
 const navGroups = [

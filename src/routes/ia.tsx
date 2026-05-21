@@ -155,9 +155,14 @@ function IAPage() {
                 <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                   Prompt de comportamento
                 </label>
-                <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground leading-relaxed whitespace-pre-line">
-                  {`Você é a assistente virtual da União Auto Peças. Seu papel é atender clientes de forma educada, objetiva e profissional. Você deve identificar o setor correto, coletar informações essenciais e encaminhar oportunidades para os responsáveis certos. Você não deve enviar preços finais sem validação humana.`}
-                </div>
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  rows={6}
+                  className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition resize-y"
+                />
+                <p className="mt-1.5 text-xs text-muted-foreground">{prompt.length} caracteres</p>
+
               </div>
             </div>
 

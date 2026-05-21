@@ -13,7 +13,7 @@ import {
   Bot,
   Calendar,
 } from "lucide-react";
-import { type ReactNode } from "react";
+import { type ReactNode, useState, useEffect } from "react";
 import acLogo from "@/assets/ac-logo-full.png";
 
 const navGroups = [
@@ -45,12 +45,17 @@ const navGroups = [
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const today = new Intl.DateTimeFormat("pt-BR", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(new Date());
+  const [today, setToday] = useState("");
+  useEffect(() => {
+    setToday(
+      new Intl.DateTimeFormat("pt-BR", {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      }).format(new Date())
+    );
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-background">

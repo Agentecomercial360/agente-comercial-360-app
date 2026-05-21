@@ -11,6 +11,7 @@ import {
   Save,
   RotateCcw,
 } from "lucide-react";
+
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 export const Route = createFileRoute("/ia")({

@@ -356,8 +356,14 @@ function ConfiguracoesPage() {
                     : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
                 }`}
               >
-                {testResult.kind === "ok-found" &&
-                  `Conexão Supabase OK — empresa encontrada: ${testResult.name}`}
+                {testResult.kind === "ok-found" && (
+                  <div className="space-y-1">
+                    <div>{`Conexão Supabase OK — empresa encontrada: ${testResult.name}`}</div>
+                    <div className="text-xs text-emerald-700/70 font-mono break-all">
+                      colunas: {testResult.columns.join(", ")}
+                    </div>
+                  </div>
+                )}
                 {testResult.kind === "ok-empty" &&
                   "Conexão Supabase OK — nenhuma empresa encontrada."}
                 {testResult.kind === "error" &&

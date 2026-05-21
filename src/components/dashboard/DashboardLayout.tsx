@@ -16,16 +16,31 @@ import {
 import { type ReactNode } from "react";
 import acLogo from "@/assets/ac-logo-full.png";
 
-const navItems = [
-  { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
-  { label: "Atendimentos", to: "/atendimentos", icon: Headphones },
-  { label: "Leads", to: "/leads", icon: Users },
-  { label: "Conversas", to: "/conversas", icon: MessageSquare },
-  { label: "Responsáveis", to: "/responsaveis", icon: UserCog },
-  { label: "Base de Conhecimento", to: "/base-conhecimento", icon: BookOpen },
-  { label: "IA", to: "/ia", icon: Sparkles },
-  { label: "Relatórios", to: "/relatorios", icon: BarChart3 },
-  { label: "Configurações", to: "/configuracoes", icon: Settings },
+const navGroups = [
+  {
+    title: "OPERAÇÃO",
+    items: [
+      { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
+      { label: "Atendimentos", to: "/atendimentos", icon: Headphones },
+      { label: "Conversas", to: "/conversas", icon: MessageSquare },
+      { label: "Leads", to: "/leads", icon: Users },
+    ],
+  },
+  {
+    title: "INTELIGÊNCIA",
+    items: [
+      { label: "IA", to: "/ia", icon: Sparkles },
+      { label: "Base de Conhecimento", to: "/base-conhecimento", icon: BookOpen },
+    ],
+  },
+  {
+    title: "GESTÃO",
+    items: [
+      { label: "Responsáveis", to: "/responsaveis", icon: UserCog },
+      { label: "Relatórios", to: "/relatorios", icon: BarChart3 },
+      { label: "Configurações", to: "/configuracoes", icon: Settings },
+    ],
+  },
 ] as const;
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
@@ -59,30 +74,48 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
             />
           </div>
         </div>
-        <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-1">
-          {navItems.map((item, i) => {
-            const active = path === item.to;
-            const Icon = item.icon;
-            return (
-              <Link
-                key={i}
-                to={item.to}
-                className={`flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${
-                  active
-                    ? "text-white shadow-lg shadow-blue-900/30"
-                    : "text-white/65 hover:bg-white/[0.06] hover:text-white"
-                }`}
-                style={
-                  active
-                    ? { background: "var(--sidebar-brand-active)" }
-                    : undefined
-                }
-              >
-                <Icon className="h-4.5 w-4.5 shrink-0" size={18} />
-                <span className="truncate">{item.label}</span>
-              </Link>
-            );
-          })}
+        <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-5">
+          {navGroups.map((group, gi) => (
+            <div key={gi}>
+              <div className="px-3.5 mb-2 text-[10px] font-semibold uppercase tracking-widest text-white/40">
+                {group.title}
+              </div>
+              <div className="space-y-0.5">
+                {group.items.map((item, i) => {
+                  const active = path === item.to;
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={i}
+                      to={item.to}
+                      className={`relative flex items-center gap-3 rounded-lg px-3.5 py-2 text-sm font-medium transition ${
+                        active
+                          ? "text-white shadow-lg shadow-blue-900/30"
+                          : "text-white/65 hover:bg-white/[0.06] hover:text-white"
+                      }`}
+                      style={
+                        active
+                          ? { background: "var(--sidebar-brand-active)" }
+                          : undefined
+                      }
+                    >
+                      {active && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-[3px] rounded-r-full bg-blue-300" />
+                      )}
+                      <Icon className="h-4 w-4 shrink-0" size={16} />
+                      <span className="truncate">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+              {gi < navGroups.length - 1 && (
+                <div
+                  className="mx-3.5 mt-3 h-px"
+                  style={{ background: "var(--sidebar-brand-border)" }}
+                />
+              )}
+            </div>
+          ))}
         </nav>
         <div
           className="px-6 py-4 border-t text-[11px] tracking-wide text-white/45"

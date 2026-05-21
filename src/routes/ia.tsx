@@ -121,22 +121,29 @@ function IAPage() {
                   <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                     Nome da assistente
                   </label>
-                  <div className="rounded-xl border border-border bg-muted/40 px-4 py-2.5 text-sm text-foreground">
-                    Assistente Virtual
-                  </div>
+                  <input
+                    type="text"
+                    value={assistantName}
+                    onChange={(e) => setAssistantName(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                     Empresa vinculada
                   </label>
-                  <div className="rounded-xl border border-border bg-muted/40 px-4 py-2.5 text-sm text-foreground">
-                    União Auto Peças
-                  </div>
+                  <input
+                    type="text"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                     Status da IA
                   </label>
+
                   <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700">
                     <span className="h-2 w-2 rounded-full bg-emerald-500" />
                     Ativa

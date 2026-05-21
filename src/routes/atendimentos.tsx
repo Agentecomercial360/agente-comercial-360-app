@@ -40,62 +40,26 @@ const filtros = [
   "Sem resposta",
 ];
 
-const atendimentos = [
-  {
-    cliente: "João Martins",
-    telefone: "(15) 99999-1020",
-    mensagem: "Preciso de orçamento do kit embreagem.",
-    setor: "Vendas",
-    status: "Em andamento",
-    responsavel: "Amanda",
-    horario: "09:41",
-  },
-  {
-    cliente: "Carlos Souza",
-    telefone: "(15) 98888-2211",
-    mensagem: "Vocês têm pastilha de freio do Onix?",
-    setor: "Vendas",
-    status: "Aguardando resposta",
-    responsavel: "Vinicius",
-    horario: "10:12",
-  },
-  {
-    cliente: "Fernanda Lima",
-    telefone: "(15) 97777-3344",
-    mensagem: "Quero saber se tem bateria 60Ah.",
-    setor: "Vendas",
-    status: "Aberto",
-    responsavel: "Thaís",
-    horario: "11:05",
-  },
-  {
-    cliente: "Roberto Alves",
-    telefone: "(15) 96666-4455",
-    mensagem: "Tenho uma cobrança em aberto?",
-    setor: "Financeiro",
-    status: "Encaminhado",
-    responsavel: "Vinicius",
-    horario: "11:48",
-  },
-  {
-    cliente: "Mariana Costa",
-    telefone: "(15) 95555-7788",
-    mensagem: "Qual horário de funcionamento?",
-    setor: "Administrativo",
-    status: "Finalizado",
-    responsavel: "Lorenzzo",
-    horario: "12:20",
-  },
-  {
-    cliente: "Pedro Henrique",
-    telefone: "(15) 94444-8899",
-    mensagem: "Preciso de amortecedor dianteiro.",
-    setor: "Orçamentos",
-    status: "Sem resposta",
-    responsavel: "Vitor",
-    horario: "13:02",
-  },
+type Atendimento = {
+  id: number;
+  cliente: string;
+  telefone: string;
+  mensagem: string;
+  setor: string;
+  status: string;
+  responsavel: string;
+  horario: string;
+};
+
+const atendimentosMock: Atendimento[] = [
+  { id: 1, cliente: "João Martins", telefone: "(15) 99999-1020", mensagem: "Preciso de orçamento do kit embreagem.", setor: "Vendas", status: "Em andamento", responsavel: "Amanda", horario: "09:41" },
+  { id: 2, cliente: "Carlos Souza", telefone: "(15) 98888-2211", mensagem: "Vocês têm pastilha de freio do Onix?", setor: "Vendas", status: "Sem resposta", responsavel: "Vinicius", horario: "10:12" },
+  { id: 3, cliente: "Fernanda Lima", telefone: "(15) 97777-3344", mensagem: "Quero saber se tem bateria 60Ah.", setor: "Vendas", status: "Aberto", responsavel: "Thaís", horario: "11:05" },
+  { id: 4, cliente: "Roberto Alves", telefone: "(15) 96666-4455", mensagem: "Tenho uma cobrança em aberto?", setor: "Financeiro", status: "Em andamento", responsavel: "Vinicius", horario: "11:48" },
+  { id: 5, cliente: "Mariana Costa", telefone: "(15) 95555-7788", mensagem: "Qual horário de funcionamento?", setor: "Administrativo", status: "Finalizado", responsavel: "Lorenzzo", horario: "12:20" },
+  { id: 6, cliente: "Pedro Henrique", telefone: "(15) 94444-8899", mensagem: "Preciso de amortecedor dianteiro.", setor: "Orçamentos", status: "Sem resposta", responsavel: "Vitor", horario: "13:02" },
 ];
+
 
 const setorBadge: Record<string, string> = {
   Vendas: "bg-blue-50 text-blue-700 ring-blue-200",

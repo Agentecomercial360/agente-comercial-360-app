@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState, useMemo } from "react";
 import {
   Building2,
   Tag,
@@ -13,46 +14,41 @@ import {
   FileBarChart,
   ShieldCheck,
   Lock,
-  Users,
   Database,
   Sparkles,
   Save,
   RotateCcw,
   Eye,
+  X,
+  AlertTriangle,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/configuracoes")({
   component: ConfiguracoesPage,
   head: () => ({ meta: [{ title: "Configurações | Agente Comercial 360" }] }),
 });
 
-const summary = [
-  { label: "Empresa ativa", value: "União Auto Peças", icon: Building2 },
-  { label: "Segmento", value: "Autopeças", icon: Tag },
-  { label: "Status", value: "Ativa", icon: Activity },
-  { label: "Integrações", value: "3 preparadas", icon: Puzzle },
-];
+const defaultEmpresa = {
+  nome: "União Auto Peças",
+  segmento: "Autopeças",
+  tipoNegocio: "Comércio de peças automotivas",
+  telefone: "5515996083076",
+  cidade: "Capão Bonito - SP",
+  endereco: "Endereço comercial da empresa",
+  horario: "08:00 às 18:00",
+  status: "Ativa",
+};
 
-const dadosEmpresa = [
-  { label: "Nome da empresa", value: "União Auto Peças", icon: Building2 },
-  { label: "Segmento", value: "Autopeças", icon: Tag },
-  { label: "Tipo de negócio", value: "Comércio de peças automotivas", icon: Puzzle },
-  { label: "Telefone principal", value: "5515996083076", icon: Phone },
-  { label: "Cidade", value: "Capão Bonito - SP", icon: MapPin },
-  { label: "Endereço", value: "Endereço comercial da empresa", icon: MapPin },
-  { label: "Horário de atendimento", value: "08:00 às 18:00", icon: Clock },
-  { label: "Status", value: "Ativa", icon: Activity },
-];
-
-const preferencias = [
-  { label: "Empresa padrão", value: "União Auto Peças", icon: Building2 },
-  { label: "Idioma", value: "Português Brasil", icon: Globe },
-  { label: "Fuso horário", value: "São Paulo / Brasil", icon: Clock },
-  { label: "Tema visual", value: "Claro premium", icon: Paintbrush },
-  { label: "Notificações internas", value: "Ativas", icon: Bell },
-  { label: "Relatórios gerenciais", value: "Ativos", icon: FileBarChart },
-];
+const defaultPreferencias = {
+  empresaPadrao: "União Auto Peças",
+  idioma: "Português Brasil",
+  fusoHorario: "São Paulo / Brasil",
+  temaVisual: "Claro premium",
+  notificacoes: "Ativas",
+  relatorios: "Ativos",
+};
 
 const integracoes = [
   { nome: "Supabase", status: "Preparado para conexão futura", cor: "bg-blue-100 text-blue-700 ring-1 ring-blue-200" },
@@ -70,6 +66,77 @@ const seguranca = [
 ];
 
 function ConfiguracoesPage() {
+  const [empresa, setEmpresa] = useState(defaultEmpresa);
+  const [preferencias, setPreferencias] = useState(defaultPreferencias);
+  const [saved, setSaved] = useState(true);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [viewOpen, setViewOpen] = useState(false);
+
+  const hasChanges = useMemo(() => {
+    return (
+      empresa.nome !== defaultEmpresa.nome ||
+      empresa.segmento !== defaultEmpresa.segmento ||
+      empresa.tipoNegocio !== defaultEmpresa.tipoNegocio ||
+      empresa.telefone !== defaultEmpresa.telefone ||
+      empresa.cidade !== defaultEmpresa.cidade ||
+      empresa.endereco !== defaultEmpresa.endereco ||
+      empresa.horario !== defaultEmpresa.horario ||
+      empresa.status !== defaultEmpresa.status ||
+      preferencias.empresaPadrao !== defaultPreferencias.empresaPadrao ||
+      preferencias.idioma !== defaultPreferencias.idioma ||
+      preferencias.fusoHorario !== defaultPreferencias.fusoHorario ||
+      preferencias.temaVisual !== defaultPreferencias.temaVisual ||
+      preferencias.notificacoes !== defaultPreferencias.notificacoes ||
+      preferencias.relatorios !== defaultPreferencias.relatorios
+    );
+  }, [empresa, preferencias]);
+
+  const summary = [
+    { label: "Empresa ativa", value: empresa.nome || "—", icon: Building2 },
+    { label: "Segmento", value: empresa.segmento || "—", icon: Tag },
+    { label: "Status", value: empresa.status || "—", icon: Activity },
+    { label: "Integrações", value: "3 preparadas", icon: Puzzle },
+  ];
+
+  const handleSave = () => {
+    setSaved(true);
+    toast.success("Configurações salvas localmente.", {
+      description: "Alterações salvas apenas nesta sessão visual.",
+    });
+  };
+
+  const openRestore = () => {
+    setConfirmOpen(true);
+  };
+
+  const confirmRestore = () => {
+    setEmpresa(defaultEmpresa);
+    setPreferencias(defaultPreferencias);
+    setSaved(true);
+    setConfirmOpen(false);
+    toast.success("Configurações padrão restauradas.");
+  };
+
+  const empresaFields: { key: keyof typeof empresa; label: string; icon: React.ElementType }[] = [
+    { key: "nome", label: "Nome da empresa", icon: Building2 },
+    { key: "segmento", label: "Segmento", icon: Tag },
+    { key: "tipoNegocio", label: "Tipo de negócio", icon: Puzzle },
+    { key: "telefone", label: "Telefone principal", icon: Phone },
+    { key: "cidade", label: "Cidade", icon: MapPin },
+    { key: "endereco", label: "Endereço", icon: MapPin },
+    { key: "horario", label: "Horário de atendimento", icon: Clock },
+    { key: "status", label: "Status", icon: Activity },
+  ];
+
+  const prefFields: { key: keyof typeof preferencias; label: string; icon: React.ElementType }[] = [
+    { key: "empresaPadrao", label: "Empresa padrão", icon: Building2 },
+    { key: "idioma", label: "Idioma", icon: Globe },
+    { key: "fusoHorario", label: "Fuso horário", icon: Clock },
+    { key: "temaVisual", label: "Tema visual", icon: Paintbrush },
+    { key: "notificacoes", label: "Notificações internas", icon: Bell },
+    { key: "relatorios", label: "Relatórios gerenciais", icon: FileBarChart },
+  ];
+
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-7xl space-y-8">
@@ -104,9 +171,17 @@ function ConfiguracoesPage() {
           })}
         </div>
 
+        {/* Dirty indicator */}
+        {hasChanges && !saved && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm text-amber-800 flex items-center gap-2">
+            <AlertTriangle className="h-4 w-4 shrink-0" />
+            Alterações locais não salvas
+          </div>
+        )}
+
         {/* Main content grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Dados da empresa - full width on mobile, 2 cols on lg */}
+          {/* Dados da empresa */}
           <div className="lg:col-span-2 rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-6">
             <div className="flex items-center gap-2 mb-5">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
@@ -115,17 +190,23 @@ function ConfiguracoesPage() {
               <h3 className="text-base font-semibold text-foreground">Dados da empresa</h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
-              {dadosEmpresa.map((campo) => {
+              {empresaFields.map((campo) => {
                 const Icon = campo.icon;
                 return (
-                  <div key={campo.label} className="space-y-1.5">
+                  <div key={campo.key} className="space-y-1.5">
                     <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                       <Icon className="h-3.5 w-3.5" />
                       {campo.label}
                     </label>
-                    <div className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground">
-                      {campo.value}
-                    </div>
+                    <input
+                      type="text"
+                      value={empresa[campo.key]}
+                      onChange={(e) => {
+                        setEmpresa((prev) => ({ ...prev, [campo.key]: e.target.value }));
+                        setSaved(false);
+                      }}
+                      className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+                    />
                   </div>
                 );
               })}
@@ -143,15 +224,23 @@ function ConfiguracoesPage() {
                 <h3 className="text-base font-semibold text-foreground">Preferências do sistema</h3>
               </div>
               <div className="space-y-4">
-                {preferencias.map((pref) => {
+                {prefFields.map((pref) => {
                   const Icon = pref.icon;
                   return (
-                    <div key={pref.label} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Icon className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">{pref.label}</span>
-                      </div>
-                      <span className="text-sm font-semibold text-foreground">{pref.value}</span>
+                    <div key={pref.key} className="space-y-1.5">
+                      <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <Icon className="h-3.5 w-3.5" />
+                        {pref.label}
+                      </label>
+                      <input
+                        type="text"
+                        value={preferencias[pref.key]}
+                        onChange={(e) => {
+                          setPreferencias((prev) => ({ ...prev, [pref.key]: e.target.value }));
+                          setSaved(false);
+                        }}
+                        className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+                      />
                     </div>
                   );
                 })}
@@ -239,20 +328,113 @@ function ConfiguracoesPage() {
 
         {/* Action buttons */}
         <div className="flex flex-wrap items-center gap-3 pt-2">
-          <button className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition">
+          <button
+            onClick={handleSave}
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition"
+          >
             <Save className="h-4 w-4" />
             Salvar configurações
           </button>
-          <button className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground shadow-sm hover:bg-muted transition">
+          <button
+            onClick={openRestore}
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground shadow-sm hover:bg-muted transition"
+          >
             <RotateCcw className="h-4 w-4" />
             Restaurar padrão
           </button>
-          <button className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground shadow-sm hover:bg-muted transition">
+          <button
+            onClick={() => setViewOpen(true)}
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground shadow-sm hover:bg-muted transition"
+          >
             <Eye className="h-4 w-4" />
             Ver dados da empresa
           </button>
         </div>
       </div>
+
+      {/* Restore confirmation modal */}
+      {confirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-card border border-border shadow-[var(--shadow-card)] p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">
+                Restaurar configurações padrão?
+              </h2>
+              <button
+                onClick={() => setConfirmOpen(false)}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              Essa ação irá restaurar os valores mockados iniciais desta tela. Nenhuma alteração real será feita no Supabase.
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-1">
+              <button
+                onClick={() => setConfirmOpen(false)}
+                className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmRestore}
+                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+              >
+                Restaurar padrão
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View company data modal */}
+      {viewOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-card border border-border shadow-[var(--shadow-card)] p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-foreground">Dados da empresa</h2>
+              <button
+                onClick={() => setViewOpen(false)}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted transition"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {empresaFields.map((campo) => {
+                const Icon = campo.icon;
+                return (
+                  <div key={campo.key} className="space-y-1">
+                    <label className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      <Icon className="h-3.5 w-3.5" />
+                      {campo.label}
+                    </label>
+                    <p className="text-sm text-foreground">{empresa[campo.key]}</p>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="rounded-xl bg-[var(--brand-blue-soft)] border border-border p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold text-foreground">Observação</span>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Esses dados serão conectados futuramente à tabela companies do Supabase.
+              </p>
+            </div>
+            <div className="flex items-center justify-end pt-1">
+              <button
+                onClick={() => setViewOpen(false)}
+                className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition"
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

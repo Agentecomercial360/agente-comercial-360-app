@@ -73,6 +73,38 @@ function ConfiguracoesPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
 
+  // Teste temporário de conexão Supabase (apenas SELECT, somente no clique)
+  const [testLoading, setTestLoading] = useState(false);
+  const [testResult, setTestResult] = useState<
+    | { kind: "ok-found"; name: string }
+    | { kind: "ok-empty" }
+    | { kind: "error"; message: string }
+    | null
+  >(null);
+
+  const handleTestConnection = async () => {
+    setTestLoading(true);
+    setTestResult(null);
+    try {
+      const { data, error } = await supabase
+        .from("companies")
+        .select("id, name, segment, phone, city, status")
+        .limit(1);
+      if (error) {
+        setTestResult({ kind: "error", message: error.message });
+      } else if (!data || data.length === 0) {
+        setTestResult({ kind: "ok-empty" });
+      } else {
+        setTestResult({ kind: "ok-found", name: (data[0] as { name?: string }).name ?? "(sem nome)" });
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erro desconhecido";
+      setTestResult({ kind: "error", message: msg });
+    } finally {
+      setTestLoading(false);
+    }
+  };
+
   const hasChanges = useMemo(() => {
     return (
       empresa.nome !== defaultEmpresa.nome ||

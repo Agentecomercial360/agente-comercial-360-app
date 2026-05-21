@@ -93,19 +93,19 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         }}
       >
         <div
-          className="flex items-center gap-3 px-5 py-4 border-b"
+          className="flex items-center gap-3 px-5 py-3.5 border-b"
           style={{ borderColor: "var(--sidebar-brand-border)" }}
         >
           <img
             src={acLogo}
             alt="Agente Comercial 360"
-            className="h-11 w-11 object-contain shrink-0"
+            className="h-12 w-12 object-contain shrink-0"
           />
-          <div className="flex flex-col leading-tight">
-            <span className="text-[13px] font-medium tracking-wide text-white/90">
+          <div className="flex flex-col leading-[1.05]">
+            <span className="text-[12.5px] font-medium tracking-wide text-white/80">
               Agente Comercial
             </span>
-            <span className="text-lg font-bold tracking-tight" style={{ color: "var(--sidebar-brand-active, #3b82f6)" }}>
+            <span className="text-[22px] font-bold tracking-tight text-white">
               360
             </span>
           </div>

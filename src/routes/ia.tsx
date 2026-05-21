@@ -68,6 +68,12 @@ function Toggle({ enabled }: { enabled: boolean }) {
 
 function IAPage() {
   const [search, setSearch] = useState("");
+  const [assistantName, setAssistantName] = useState("Assistente Virtual");
+  const [company, setCompany] = useState("União Auto Peças");
+  const [prompt, setPrompt] = useState(
+    `Você é a assistente virtual da União Auto Peças. Seu papel é atender clientes de forma educada, objetiva e profissional. Você deve identificar o setor correto, coletar informações essenciais e encaminhar oportunidades para os responsáveis certos. Você não deve enviar preços finais sem validação humana.`
+  );
+
 
   return (
     <DashboardLayout>

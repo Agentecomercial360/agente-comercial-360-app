@@ -76,7 +76,7 @@ function ConfiguracoesPage() {
   // Teste temporário de conexão Supabase (apenas SELECT, somente no clique)
   const [testLoading, setTestLoading] = useState(false);
   const [testResult, setTestResult] = useState<
-    | { kind: "ok-found"; name: string }
+    | { kind: "ok-found"; name: string; columns: string[] }
     | { kind: "ok-empty" }
     | { kind: "error"; message: string }
     | null

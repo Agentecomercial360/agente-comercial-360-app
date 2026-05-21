@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/configuracoes")({
   component: ConfiguracoesPage,

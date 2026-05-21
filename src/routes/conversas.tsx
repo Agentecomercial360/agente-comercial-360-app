@@ -115,33 +115,87 @@ const statusBadge: Record<Status, string> = {
   Finalizada: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
 };
 
-const mensagens = [
-  {
-    autor: "cliente" as const,
-    texto:
-      "Bom dia, preciso de orçamento do kit embreagem do Gol 1.6 2014.",
-    hora: "09:38",
-  },
-  {
-    autor: "ia" as const,
-    texto:
-      "Claro! Para confirmar corretamente, você consegue informar se o veículo é manual e se deseja apenas a peça ou peça com serviço?",
-    hora: "09:39",
-  },
-  {
-    autor: "cliente" as const,
-    texto: "Só a peça mesmo.",
-    hora: "09:41",
-  },
-];
+type Mensagem = { autor: "cliente" | "ia" | "atendente"; texto: string; hora: string };
+
+const mensagensIniciais: Record<number, Mensagem[]> = {
+  1: [
+    { autor: "cliente", texto: "Bom dia, preciso de orçamento do kit embreagem do Gol 1.6 2014.", hora: "09:38" },
+    { autor: "ia", texto: "Claro! Você consegue informar se o veículo é manual e se deseja apenas a peça ou peça com serviço?", hora: "09:39" },
+    { autor: "cliente", texto: "Só a peça mesmo.", hora: "09:41" },
+  ],
+  2: [{ autor: "cliente", texto: "Vocês têm pastilha de freio do Onix?", hora: "10:12" }],
+  3: [{ autor: "cliente", texto: "Quero saber se tem bateria 60Ah.", hora: "11:05" }],
+  4: [{ autor: "cliente", texto: "Tenho uma cobrança em aberto?", hora: "11:48" }],
+  5: [
+    { autor: "cliente", texto: "Qual horário de funcionamento?", hora: "12:18" },
+    { autor: "ia", texto: "Atendemos de segunda a sábado das 8h às 18h.", hora: "12:20" },
+  ],
+};
+
+const filterToStatus: Record<string, Status[]> = {
+  Abertas: ["Aberta"],
+  "Aguardando resposta": ["Aguardando retorno"],
+  Encaminhadas: ["Encaminhada"],
+  Finalizadas: ["Finalizada"],
+};
+
+const responsaveis = ["Amanda", "Thaís", "Vinicius", "Lorenzzo", "Vitor", "Ivan"];
 
 function ConversasPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
+  const [search, setSearch] = useState("");
+  const [items, setItems] = useState<Conversa[]>(conversas);
   const [selectedId, setSelectedId] = useState<number>(1);
-  const selected = conversas.find((c) => c.id === selectedId) ?? conversas[0];
+  const [messagesById, setMessagesById] = useState<Record<number, Mensagem[]>>(mensagensIniciais);
+  const [draft, setDraft] = useState("");
+  const [forwardOpen, setForwardOpen] = useState(false);
+  const [forwardTo, setForwardTo] = useState(responsaveis[0]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return items.filter((c) => {
+      if (activeFilter !== "Todas") {
+        const allowed = filterToStatus[activeFilter];
+        if (allowed && !allowed.includes(c.status)) return false;
+      }
+      if (!q) return true;
+      return [c.cliente, c.telefone, c.canal, c.ultimaMensagem, c.status, c.setor]
+        .some((v) => v.toLowerCase().includes(q));
+    });
+  }, [items, activeFilter, search]);
+
+  const selected = items.find((c) => c.id === selectedId) ?? items[0];
+  const mensagens = messagesById[selected?.id] ?? [];
+
+  const enviar = () => {
+    const texto = draft.trim();
+    if (!texto) {
+      toast.error("Digite uma mensagem antes de enviar");
+      return;
+    }
+    const hora = `${String(mensagens.length + 9).padStart(2, "0")}:00`;
+    setMessagesById((prev) => ({
+      ...prev,
+      [selected.id]: [...(prev[selected.id] ?? []), { autor: "atendente", texto, hora }],
+    }));
+    setItems((prev) =>
+      prev.map((c) => (c.id === selected.id ? { ...c, ultimaMensagem: texto } : c)),
+    );
+    setDraft("");
+    toast.success("Mensagem enviada");
+  };
+
+  const confirmarEncaminhamento = () => {
+    setItems((prev) =>
+      prev.map((c) => (c.id === selected.id ? { ...c, status: "Encaminhada" } : c)),
+    );
+    setForwardOpen(false);
+    toast.success(`Conversa encaminhada com sucesso para ${forwardTo}`);
+  };
 
   return (
     <DashboardLayout>
+      <Toaster position="top-right" richColors />
       <div className="mx-auto max-w-7xl space-y-8">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
@@ -195,6 +249,8 @@ function ConversasPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar conversa por cliente, telefone ou mensagem..."
               className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
             />
@@ -210,176 +266,273 @@ function ConversasPage() {
                 Lista de conversas
               </h3>
             </div>
-            <ul className="divide-y divide-border max-h-[640px] overflow-y-auto">
-              {conversas.map((c) => {
-                const isActive = c.id === selectedId;
-                return (
-                  <li key={c.id}>
-                    <button
-                      onClick={() => setSelectedId(c.id)}
-                      className={`w-full text-left px-4 py-3.5 transition ${
-                        isActive
-                          ? "bg-[var(--brand-blue-soft)]"
-                          : "hover:bg-muted/40"
-                      }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-foreground truncate">
-                              {c.cliente}
-                            </span>
+            {filtered.length === 0 ? (
+              <div className="p-8 text-center">
+                <MessageCircle className="mx-auto h-8 w-8 text-muted-foreground/40" />
+                <p className="mt-3 text-sm font-semibold text-foreground">
+                  Nenhuma conversa encontrada
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Revise os filtros ou tente outro termo de busca.
+                </p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-border max-h-[640px] overflow-y-auto">
+                {filtered.map((c) => {
+                  const isActive = c.id === selectedId;
+                  return (
+                    <li key={c.id}>
+                      <button
+                        onClick={() => setSelectedId(c.id)}
+                        className={`w-full text-left px-4 py-3.5 transition ${
+                          isActive ? "bg-[var(--brand-blue-soft)]" : "hover:bg-muted/40"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold text-foreground truncate">
+                                {c.cliente}
+                              </span>
+                            </div>
+                            <div className="mt-0.5 text-xs text-muted-foreground">
+                              {c.telefone} · {c.canal}
+                            </div>
+                            <p className="mt-1.5 text-sm text-foreground/80 truncate">
+                              {c.ultimaMensagem}
+                            </p>
+                            <div className="mt-2 flex items-center gap-2">
+                              <span
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusBadge[c.status]}`}
+                              >
+                                {c.status}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground">
+                                {c.setor}
+                              </span>
+                            </div>
                           </div>
-                          <div className="mt-0.5 text-xs text-muted-foreground">
-                            {c.telefone} · {c.canal}
-                          </div>
-                          <p className="mt-1.5 text-sm text-foreground/80 truncate">
-                            {c.ultimaMensagem}
-                          </p>
-                          <div className="mt-2 flex items-center gap-2">
-                            <span
-                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusBadge[c.status]}`}
-                            >
-                              {c.status}
-                            </span>
-                            <span className="text-[10px] text-muted-foreground">
-                              {c.setor}
-                            </span>
-                          </div>
+                          <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                            {c.horario}
+                          </span>
                         </div>
-                        <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-                          {c.horario}
-                        </span>
-                      </div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
 
           {/* Conversation details */}
-          <div className="lg:col-span-2 space-y-4">
-            {/* Header card */}
-            <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-5">
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                  <h2 className="font-display text-xl font-bold tracking-tight text-foreground">
-                    {selected.cliente}
-                  </h2>
-                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      <Phone className="h-3 w-3" /> {selected.telefone}
+          {selected && (
+            <div className="lg:col-span-2 space-y-4">
+              <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-5">
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <h2 className="font-display text-xl font-bold tracking-tight text-foreground">
+                      {selected.cliente}
+                    </h2>
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <span className="inline-flex items-center gap-1">
+                        <Phone className="h-3 w-3" /> {selected.telefone}
+                      </span>
+                      <span>·</span>
+                      <span>Canal: {selected.canal}</span>
+                      <span>·</span>
+                      <span>Setor: {selected.setor}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadge[selected.status]}`}
+                    >
+                      {selected.status}
                     </span>
-                    <span>·</span>
-                    <span>Canal: {selected.canal}</span>
-                    <span>·</span>
-                    <span>Setor: {selected.setor}</span>
+                    <span className="text-xs text-muted-foreground">
+                      Responsável sugerido:{" "}
+                      <span className="font-semibold text-foreground">Amanda</span>
+                    </span>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadge[selected.status]}`}
-                  >
-                    {selected.status}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    Responsável sugerido:{" "}
-                    <span className="font-semibold text-foreground">Amanda</span>
-                  </span>
-                </div>
               </div>
-            </div>
 
-            {/* Messages */}
-            <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-5">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-4">
-                Mensagens
-              </h3>
-              <div className="space-y-3">
-                {mensagens.map((m, i) => {
-                  const isClient = m.autor === "cliente";
-                  return (
-                    <div
-                      key={i}
-                      className={`flex ${isClient ? "justify-start" : "justify-end"}`}
-                    >
+              <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-5">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-4">
+                  Mensagens
+                </h3>
+                <div className="space-y-3">
+                  {mensagens.map((m, i) => {
+                    const isClient = m.autor === "cliente";
+                    const label = m.autor === "cliente" ? "Cliente" : m.autor === "ia" ? "IA" : "Você";
+                    return (
                       <div
-                        className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
-                          isClient
-                            ? "bg-muted text-foreground rounded-tl-sm"
-                            : "bg-primary text-primary-foreground rounded-tr-sm"
-                        }`}
+                        key={i}
+                        className={`flex ${isClient ? "justify-start" : "justify-end"}`}
                       >
-                        <div className="text-[10px] font-semibold uppercase tracking-wide opacity-70 mb-1">
-                          {isClient ? "Cliente" : "IA"}
-                        </div>
-                        <p className="leading-relaxed">{m.texto}</p>
-                        <div className="mt-1 text-[10px] opacity-60 text-right">
-                          {m.hora}
+                        <div
+                          className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
+                            isClient
+                              ? "bg-muted text-foreground rounded-tl-sm"
+                              : "bg-primary text-primary-foreground rounded-tr-sm"
+                          }`}
+                        >
+                          <div className="text-[10px] font-semibold uppercase tracking-wide opacity-70 mb-1">
+                            {label}
+                          </div>
+                          <p className="leading-relaxed">{m.texto}</p>
+                          <div className="mt-1 text-[10px] opacity-60 text-right">
+                            {m.hora}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+                <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
+                  <input
+                    type="text"
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        enviar();
+                      }
+                    }}
+                    placeholder="Digite uma mensagem..."
+                    className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                  />
+                  <button
+                    onClick={enviar}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition"
+                  >
+                    <Send className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
-              <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
-                <input
-                  type="text"
-                  placeholder="Digite uma mensagem..."
-                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                />
-                <button className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition">
-                  <Send className="h-4 w-4" />
-                </button>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="rounded-2xl border border-border bg-gradient-to-br from-[var(--brand-blue-soft)] to-card p-5 shadow-[var(--shadow-soft)]">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                      <Sparkles className="h-4 w-4" />
+                    </div>
+                    <h3 className="text-base font-semibold text-foreground">Resumo da IA</h3>
+                  </div>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    O cliente demonstrou interesse em{" "}
+                    <span className="font-semibold text-foreground">
+                      {selected.ultimaMensagem}
+                    </span>
+                    . Lead classificado como{" "}
+                    <span className="font-semibold text-foreground">quente</span>.
+                    Próxima ação recomendada: verificar estoque e enviar orçamento.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] flex flex-col">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background">
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
+                    <h3 className="text-base font-semibold text-foreground">
+                      Próxima ação recomendada
+                    </h3>
+                  </div>
+                  <p className="text-sm leading-relaxed text-muted-foreground flex-1">
+                    Encaminhar para{" "}
+                    <span className="font-semibold text-foreground">Amanda</span> no setor
+                    de {selected.setor.toLowerCase()}.
+                  </p>
+                  <button
+                    onClick={() => setForwardOpen(true)}
+                    className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+                  >
+                    Encaminhar conversa
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             </div>
+          )}
+        </div>
+      </div>
 
-            {/* AI summary + Next action */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="rounded-2xl border border-border bg-gradient-to-br from-[var(--brand-blue-soft)] to-card p-5 shadow-[var(--shadow-soft)]">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                    <Sparkles className="h-4 w-4" />
-                  </div>
-                  <h3 className="text-base font-semibold text-foreground">
-                    Resumo da IA
-                  </h3>
+      {/* Forward modal */}
+      {forwardOpen && selected && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            aria-label="Fechar"
+            onClick={() => setForwardOpen(false)}
+            className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+          />
+          <div className="relative w-full max-w-md rounded-2xl bg-card shadow-2xl border border-border">
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <h2 className="text-base font-bold text-foreground">Encaminhar conversa</h2>
+              <button
+                onClick={() => setForwardOpen(false)}
+                className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="space-y-4 px-5 py-5 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Cliente</p>
+                  <p className="mt-0.5 font-semibold text-foreground">{selected.cliente}</p>
                 </div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  O cliente demonstrou interesse em{" "}
-                  <span className="font-semibold text-foreground">
-                    kit embreagem para Gol 1.6 2014
-                  </span>
-                  . Lead classificado como{" "}
-                  <span className="font-semibold text-foreground">quente</span>.
-                  Próxima ação recomendada: verificar estoque e enviar orçamento.
-                </p>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Setor</p>
+                  <p className="mt-0.5 font-semibold text-foreground">{selected.setor}</p>
+                </div>
               </div>
-
-              <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] flex flex-col">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foreground text-background">
-                    <ArrowRight className="h-4 w-4" />
-                  </div>
-                  <h3 className="text-base font-semibold text-foreground">
-                    Próxima ação recomendada
-                  </h3>
-                </div>
-                <p className="text-sm leading-relaxed text-muted-foreground flex-1">
-                  Encaminhar para{" "}
-                  <span className="font-semibold text-foreground">Amanda</span> no
-                  setor de vendas para orçamento.
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">
+                  Responsável sugerido
                 </p>
-                <button className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm">
-                  Encaminhar conversa
-                  <ArrowRight className="h-4 w-4" />
+                <p className="mt-0.5 font-semibold text-foreground">Amanda</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
+                  Selecionar responsável
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {responsaveis.map((r) => (
+                    <button
+                      key={r}
+                      onClick={() => setForwardTo(r)}
+                      className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                        forwardTo === r
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-background text-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  onClick={() => setForwardOpen(false)}
+                  className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={confirmarEncaminhamento}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                >
+                  Confirmar encaminhamento
                 </button>
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </DashboardLayout>
   );
 }
+

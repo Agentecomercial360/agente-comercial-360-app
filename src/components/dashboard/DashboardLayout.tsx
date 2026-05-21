@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import acLogo from "@/assets/ac-logo-full.png";
+import acLogo from "@/assets/ac-logo.png";
 
 const navGroups = [
   {
@@ -93,15 +93,21 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         }}
       >
         <div
-          className="flex items-center justify-center px-4 py-3 border-b"
+          className="flex items-center gap-3 px-5 py-4 border-b"
           style={{ borderColor: "var(--sidebar-brand-border)" }}
         >
-          <div className="bg-white/95 rounded-xl px-2 py-2 w-full flex items-center justify-center shadow-sm shadow-black/10" style={{ maxHeight: "104px" }}>
-            <img
-              src={acLogo}
-              alt="Agente Comercial 360"
-              className="w-full max-w-[220px] h-auto max-h-[88px] object-contain"
-            />
+          <img
+            src={acLogo}
+            alt="Agente Comercial 360"
+            className="h-11 w-11 object-contain shrink-0"
+          />
+          <div className="flex flex-col leading-tight">
+            <span className="text-[13px] font-medium tracking-wide text-white/90">
+              Agente Comercial
+            </span>
+            <span className="text-lg font-bold tracking-tight" style={{ color: "var(--sidebar-brand-active, #3b82f6)" }}>
+              360
+            </span>
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-5">

@@ -287,7 +287,41 @@ function ConfiguracoesPage() {
                   <ShieldCheck className="h-4 w-4" />
                 </div>
                 <h3 className="text-base font-semibold text-foreground">Segurança e acesso</h3>
+        </div>
+
+        {/* Teste temporário de conexão Supabase */}
+        <div className="rounded-2xl border border-dashed border-border bg-card/60 p-6">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
+              <Database className="h-4 w-4" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-foreground">Teste de conexão Supabase</h3>
+              <p className="text-xs text-muted-foreground">Área temporária — apenas SELECT na tabela <span className="font-medium">companies</span>.</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleTestConnection}
+              disabled={testLoading}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {testLoading ? "Testando..." : "Testar conexão"}
+            </button>
+            {testResult && (
+              <div
+                className={`text-sm rounded-lg px-3 py-2 ${
+                  testResult.kind === "error"
+                    ? "bg-red-50 text-red-700 ring-1 ring-red-200"
+                    : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                }`}
+              >
+                {testResult.kind === "ok-found" && `Conexão Supabase OK — empresa encontrada: ${testResult.name}`}
+                {testResult.kind === "ok-empty" && "Conexão Supabase OK — nenhuma empresa encontrada."}
+                {testResult.kind === "error" && `Erro ao conectar Supabase: ${testResult.message}`}
               </div>
+            )}
+          </div>
               <ul className="space-y-3">
                 {seguranca.map((item, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">

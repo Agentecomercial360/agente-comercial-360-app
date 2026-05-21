@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { toast, Toaster } from "sonner";
 import {
   MessageCircle,
   Clock,
@@ -10,8 +11,10 @@ import {
   Phone,
   Send,
   ArrowRight,
+  X,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+
 
 export const Route = createFileRoute("/conversas")({
   component: ConversasPage,

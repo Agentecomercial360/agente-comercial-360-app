@@ -76,7 +76,7 @@ function ConfiguracoesPage() {
   // Teste temporário de conexão Supabase (apenas SELECT, somente no clique)
   const [testLoading, setTestLoading] = useState(false);
   const [testResult, setTestResult] = useState<
-    | { kind: "ok-found"; name: string }
+    | { kind: "ok-found"; name: string; columns: string[] }
     | { kind: "ok-empty" }
     | { kind: "error"; message: string }
     | null
@@ -88,14 +88,16 @@ function ConfiguracoesPage() {
     try {
       const { data, error } = await supabase
         .from("companies")
-        .select("id, name, segment, phone, city, status")
+        .select("*")
         .limit(1);
       if (error) {
         setTestResult({ kind: "error", message: error.message });
       } else if (!data || data.length === 0) {
         setTestResult({ kind: "ok-empty" });
       } else {
-        setTestResult({ kind: "ok-found", name: (data[0] as { name?: string }).name ?? "(sem nome)" });
+        const row = data[0] as Record<string, unknown>;
+        const name = typeof row.name === "string" ? row.name : "(sem nome)";
+        setTestResult({ kind: "ok-found", name, columns: Object.keys(row) });
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro desconhecido";
@@ -354,8 +356,14 @@ function ConfiguracoesPage() {
                     : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
                 }`}
               >
-                {testResult.kind === "ok-found" &&
-                  `Conexão Supabase OK — empresa encontrada: ${testResult.name}`}
+                {testResult.kind === "ok-found" && (
+                  <div className="space-y-1">
+                    <div>{`Conexão Supabase OK — empresa encontrada: ${testResult.name}`}</div>
+                    <div className="text-xs text-emerald-700/70 font-mono break-all">
+                      colunas: {testResult.columns.join(", ")}
+                    </div>
+                  </div>
+                )}
                 {testResult.kind === "ok-empty" &&
                   "Conexão Supabase OK — nenhuma empresa encontrada."}
                 {testResult.kind === "error" &&

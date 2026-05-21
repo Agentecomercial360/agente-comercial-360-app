@@ -84,11 +84,57 @@ const prioridades = [
   "Confirmar disponibilidade das peças mais solicitadas",
 ];
 
+const setores = new Set(["Vendas", "Financeiro", "Administrativo", "Orçamentos"]);
+const statuses = new Set(["Aberto", "Em andamento", "Finalizado", "Sem resposta"]);
+const filtroMap: Record<string, string> = {
+  Abertos: "Aberto",
+  "Em andamento": "Em andamento",
+  Finalizados: "Finalizado",
+  "Sem resposta": "Sem resposta",
+};
+
 function AtendimentosPage() {
   const [filtro, setFiltro] = useState("Todos");
+  const [search, setSearch] = useState("");
+  const [items, setItems] = useState<Atendimento[]>(atendimentosMock);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return items.filter((a) => {
+      if (filtro !== "Todos") {
+        if (setores.has(filtro) && a.setor !== filtro) return false;
+        if (filtroMap[filtro] && a.status !== filtroMap[filtro]) return false;
+      }
+      if (!q) return true;
+      return [a.cliente, a.telefone, a.mensagem, a.setor, a.status, a.responsavel, a.horario]
+        .some((v) => v.toLowerCase().includes(q));
+    });
+  }, [items, filtro, search]);
+
+  const selected = items.find((a) => a.id === selectedId) || null;
+
+  const responsaveis = ["Amanda", "Vinicius", "Thaís", "Lorenzzo", "Vitor"];
+
+  const finalizar = (id: number) => {
+    setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status: "Finalizado" } : a)));
+    toast.success("Atendimento marcado como finalizado");
+  };
+
+  const encaminhar = (id: number) => {
+    setItems((prev) =>
+      prev.map((a) =>
+        a.id === id
+          ? { ...a, responsavel: responsaveis[Math.floor(Math.random() * responsaveis.length)] }
+          : a,
+      ),
+    );
+    toast.success("Atendimento encaminhado para responsável");
+  };
 
   return (
     <DashboardLayout>
+      <Toaster position="top-right" richColors />
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Atendimentos</h1>
@@ -122,6 +168,8 @@ function AtendimentosPage() {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar por cliente, telefone ou mensagem..."
                 className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
               />
@@ -144,55 +192,70 @@ function AtendimentosPage() {
           </div>
         </div>
 
-        {/* Tabela */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-4 py-3">Cliente</th>
-                  <th className="px-4 py-3">Telefone</th>
-                  <th className="px-4 py-3">Última mensagem</th>
-                  <th className="px-4 py-3">Setor</th>
-                  <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3">Responsável</th>
-                  <th className="px-4 py-3">Horário</th>
-                  <th className="px-4 py-3 text-right">Ação</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {atendimentos.map((a) => (
-                  <tr key={a.cliente} className="hover:bg-slate-50">
-                    <td className="px-4 py-3 font-semibold text-slate-900">{a.cliente}</td>
-                    <td className="px-4 py-3 text-slate-600">{a.telefone}</td>
-                    <td className="px-4 py-3 max-w-xs truncate text-slate-600">{a.mensagem}</td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${setorBadge[a.setor]}`}
-                      >
-                        {a.setor}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${statusBadge[a.status]}`}
-                      >
-                        {a.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-700">{a.responsavel}</td>
-                    <td className="px-4 py-3 text-slate-500">{a.horario}</td>
-                    <td className="px-4 py-3 text-right">
-                      <button className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
-                        Ver atendimento
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Tabela ou vazio */}
+        {filtered.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-sm">
+            <Headphones className="mx-auto h-10 w-10 text-slate-300" />
+            <h3 className="mt-3 text-base font-semibold text-slate-900">
+              Nenhum atendimento encontrado
+            </h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Revise os filtros ou tente outro termo de busca.
+            </p>
           </div>
-        </div>
+        ) : (
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-4 py-3">Cliente</th>
+                    <th className="px-4 py-3">Telefone</th>
+                    <th className="px-4 py-3">Última mensagem</th>
+                    <th className="px-4 py-3">Setor</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3">Responsável</th>
+                    <th className="px-4 py-3">Horário</th>
+                    <th className="px-4 py-3 text-right">Ação</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filtered.map((a) => (
+                    <tr key={a.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 font-semibold text-slate-900">{a.cliente}</td>
+                      <td className="px-4 py-3 text-slate-600">{a.telefone}</td>
+                      <td className="px-4 py-3 max-w-xs truncate text-slate-600">{a.mensagem}</td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${setorBadge[a.setor] ?? "bg-slate-100 text-slate-700 ring-slate-200"}`}
+                        >
+                          {a.setor}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${statusBadge[a.status] ?? "bg-slate-100 text-slate-700 ring-slate-200"}`}
+                        >
+                          {a.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-700">{a.responsavel}</td>
+                      <td className="px-4 py-3 text-slate-500">{a.horario}</td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          onClick={() => setSelectedId(a.id)}
+                          className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
+                        >
+                          Ver atendimento
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {/* Resumo IA + Prioridades */}
         <div className="grid gap-4 lg:grid-cols-2">
@@ -223,6 +286,103 @@ function AtendimentosPage() {
           </div>
         </div>
       </div>
+
+      {/* Drawer */}
+      {selected && (
+        <div className="fixed inset-0 z-50 flex">
+          <button
+            aria-label="Fechar"
+            onClick={() => setSelectedId(null)}
+            className="flex-1 bg-slate-900/50 backdrop-blur-sm"
+          />
+          <div className="w-full max-w-md overflow-y-auto bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+              <h2 className="text-lg font-bold text-slate-900">Detalhes do atendimento</h2>
+              <button
+                onClick={() => setSelectedId(null)}
+                className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="space-y-5 px-6 py-5 text-sm">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-500">Cliente</p>
+                <p className="mt-0.5 text-base font-semibold text-slate-900">{selected.cliente}</p>
+                <p className="text-slate-600">{selected.telefone}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Setor</p>
+                  <p className="mt-0.5 font-medium text-slate-800">{selected.setor}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Status</p>
+                  <p className="mt-0.5 font-medium text-slate-800">{selected.status}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Responsável</p>
+                  <p className="mt-0.5 font-medium text-slate-800">{selected.responsavel}</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-slate-500">Horário</p>
+                  <p className="mt-0.5 font-medium text-slate-800">{selected.horario}</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase tracking-wide text-slate-500">Última mensagem</p>
+                <p className="mt-1 rounded-lg bg-slate-50 p-3 text-slate-700">{selected.mensagem}</p>
+              </div>
+
+              <div className="rounded-xl border border-blue-200 bg-gradient-to-br from-blue-600 to-slate-900 p-4 text-white">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  <h4 className="text-sm font-bold">Resumo da IA</h4>
+                </div>
+                <p className="mt-2 text-xs leading-relaxed text-blue-50">
+                  A IA identificou o setor correto com base na mensagem do cliente e sugeriu o
+                  encaminhamento para o responsável vinculado.
+                </p>
+                <div className="mt-3 border-t border-white/20 pt-2">
+                  <p className="text-[10px] uppercase tracking-wide text-blue-100">
+                    Próxima ação recomendada
+                  </p>
+                  <p className="mt-0.5 text-xs text-white">
+                    Confirmar disponibilidade da peça e enviar orçamento ao cliente.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 pt-2">
+                <button
+                  onClick={() => {
+                    finalizar(selected.id);
+                    setSelectedId(null);
+                  }}
+                  className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                >
+                  <CheckCheck className="h-4 w-4" /> Marcar como finalizado
+                </button>
+                <button
+                  onClick={() => encaminhar(selected.id)}
+                  className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
+                >
+                  <UserPlus className="h-4 w-4" /> Encaminhar para responsável
+                </button>
+                <button
+                  onClick={() => setSelectedId(null)}
+                  className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
+

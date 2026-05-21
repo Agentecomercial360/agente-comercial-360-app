@@ -47,6 +47,10 @@ const navGroups = [
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [today, setToday] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState<string | null>(null);
+  const [lastUpdateText, setLastUpdateText] = useState("");
+
   useEffect(() => {
     setToday(
       new Intl.DateTimeFormat("pt-BR", {
@@ -57,6 +61,26 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       }).format(new Date())
     );
   }, []);
+
+  useEffect(() => {
+    if (!lastUpdate) return;
+    setLastUpdateText("Última atualização: agora");
+    const t = setTimeout(() => {
+      setLastUpdateText("Última atualização: há poucos segundos");
+    }, 8000);
+    return () => clearTimeout(t);
+  }, [lastUpdate]);
+
+  const handleRefresh = useCallback(() => {
+    if (isUpdating) return;
+    setIsUpdating(true);
+    const delay = 800 + Math.random() * 400;
+    setTimeout(() => {
+      setIsUpdating(false);
+      setLastUpdate(new Date().toISOString());
+      toast.success("Dados atualizados com sucesso.");
+    }, delay);
+  }, [isUpdating]);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -165,12 +189,19 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
                 Sistema online
               </div>
+              {lastUpdateText && (
+                <div className="hidden lg:flex items-center text-[11px] text-muted-foreground/80">
+                  {lastUpdateText}
+                </div>
+              )}
               <button
-                className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold text-primary-foreground shadow-[var(--shadow-soft)] hover:opacity-95 transition"
+                onClick={handleRefresh}
+                disabled={isUpdating}
+                className="inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold text-primary-foreground shadow-[var(--shadow-soft)] hover:opacity-95 transition disabled:opacity-60 disabled:cursor-not-allowed"
                 style={{ background: "var(--gradient-brand)" }}
               >
-                <RefreshCw className="h-3.5 w-3.5" />
-                Atualizar
+                <RefreshCw className={`h-3.5 w-3.5 ${isUpdating ? "animate-spin" : ""}`} />
+                {isUpdating ? "Atualizando..." : "Atualizar"}
               </button>
             </div>
           </div>

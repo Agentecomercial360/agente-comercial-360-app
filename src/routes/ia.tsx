@@ -11,6 +11,7 @@ import {
   Save,
   RotateCcw,
 } from "lucide-react";
+
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 export const Route = createFileRoute("/ia")({
@@ -67,6 +68,12 @@ function Toggle({ enabled }: { enabled: boolean }) {
 
 function IAPage() {
   const [search, setSearch] = useState("");
+  const [assistantName, setAssistantName] = useState("Assistente Virtual");
+  const [company, setCompany] = useState("União Auto Peças");
+  const [prompt, setPrompt] = useState(
+    `Você é a assistente virtual da União Auto Peças. Seu papel é atender clientes de forma educada, objetiva e profissional. Você deve identificar o setor correto, coletar informações essenciais e encaminhar oportunidades para os responsáveis certos. Você não deve enviar preços finais sem validação humana.`
+  );
+
 
   return (
     <DashboardLayout>
@@ -114,22 +121,29 @@ function IAPage() {
                   <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                     Nome da assistente
                   </label>
-                  <div className="rounded-xl border border-border bg-muted/40 px-4 py-2.5 text-sm text-foreground">
-                    Assistente Virtual
-                  </div>
+                  <input
+                    type="text"
+                    value={assistantName}
+                    onChange={(e) => setAssistantName(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                     Empresa vinculada
                   </label>
-                  <div className="rounded-xl border border-border bg-muted/40 px-4 py-2.5 text-sm text-foreground">
-                    União Auto Peças
-                  </div>
+                  <input
+                    type="text"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+                  />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                     Status da IA
                   </label>
+
                   <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700">
                     <span className="h-2 w-2 rounded-full bg-emerald-500" />
                     Ativa
@@ -141,9 +155,14 @@ function IAPage() {
                 <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">
                   Prompt de comportamento
                 </label>
-                <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm text-foreground leading-relaxed whitespace-pre-line">
-                  {`Você é a assistente virtual da União Auto Peças. Seu papel é atender clientes de forma educada, objetiva e profissional. Você deve identificar o setor correto, coletar informações essenciais e encaminhar oportunidades para os responsáveis certos. Você não deve enviar preços finais sem validação humana.`}
-                </div>
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  rows={6}
+                  className="w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition resize-y"
+                />
+                <p className="mt-1.5 text-xs text-muted-foreground">{prompt.length} caracteres</p>
+
               </div>
             </div>
 

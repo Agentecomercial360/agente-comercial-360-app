@@ -411,8 +411,9 @@ function RelatoriosPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
               <h2 className="text-xl font-bold text-slate-900">
-                Relatório Gerencial — União Auto Peças
+                Relatório Gerencial — {companyName ?? "União Auto Peças"}
               </h2>
+
               <p className="mt-1 text-sm text-slate-500">
                 Resumo operacional gerado com base nos atendimentos, leads e conversas do período.
               </p>

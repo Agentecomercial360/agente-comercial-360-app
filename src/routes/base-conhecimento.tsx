@@ -1,8 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
-import { BookOpen, Tags, CheckCircle2, AlertTriangle, Search, Sparkles, Eye, Pencil, Power, X } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { BookOpen, Tags, CheckCircle2, AlertTriangle, Search, Sparkles, Eye, Pencil, Power, X, Loader2 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+
+type KbLoadStatus = "loading" | "loaded" | "empty" | "unauthenticated" | "error";
+
+const CATEGORIAS_VALIDAS: readonly string[] = [
+  "Vendas",
+  "Administrativo",
+  "Financeiro",
+  "Regras",
+  "Entrega",
+  "Pagamento",
+  "Orçamento",
+  "Relatórios",
+];
+
+function normalizeCategoria(value: unknown): "Vendas" | "Administrativo" | "Financeiro" | "Regras" | "Entrega" | "Pagamento" | "Orçamento" | "Relatórios" {
+  if (typeof value === "string" && CATEGORIAS_VALIDAS.includes(value)) {
+    return value as never;
+  }
+  return "Vendas";
+}
 
 export const Route = createFileRoute("/base-conhecimento")({
   component: BaseConhecimentoPage,
@@ -129,6 +150,90 @@ const statusBadge: Record<Status, string> = {
 
 function BaseConhecimentoPage() {
   const [items, setItems] = useState<Conhecimento[]>(initialConhecimentos);
+  const [loadingKb, setLoadingKb] = useState(true);
+  const [kbLoadStatus, setKbLoadStatus] = useState<KbLoadStatus>("loading");
+  const [activeCompanyName, setActiveCompanyName] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (userErr || !userData?.user) {
+          setKbLoadStatus("unauthenticated");
+          setLoadingKb(false);
+          return;
+        }
+
+        const { data: cu, error: cuErr } = await supabase
+          .from("company_users")
+          .select("company_id")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+        if (cancelled) return;
+        if (cuErr || !cu?.company_id) {
+          setKbLoadStatus("error");
+          setLoadingKb(false);
+          return;
+        }
+
+        const companyId = cu.company_id as string;
+
+        const [companyRes, kbRes] = await Promise.all([
+          supabase.from("companies").select("name").eq("id", companyId).single(),
+          supabase
+            .from("knowledge_base")
+            .select("id,company_id,title,content,category,created_at")
+            .eq("company_id", companyId)
+            .order("created_at", { ascending: false }),
+        ]);
+        if (cancelled) return;
+
+        const companyName = (companyRes.data?.name as string | undefined) ?? "União Auto Peças";
+        setActiveCompanyName(companyName);
+
+        if (kbRes.error) {
+          setKbLoadStatus("error");
+          setLoadingKb(false);
+          return;
+        }
+
+        const rows = kbRes.data ?? [];
+        if (rows.length === 0) {
+          setKbLoadStatus("empty");
+          setLoadingKb(false);
+          return;
+        }
+
+        const mapped: Conhecimento[] = rows.map((r: Record<string, unknown>) => ({
+          id: String(r.id),
+          titulo: (r.title as string) ?? "",
+          categoria: normalizeCategoria(r.category),
+          conteudo: (r.content as string) ?? "",
+          empresa: companyName,
+          status: "Ativo",
+          atualizadoEm: r.created_at
+            ? new Date(r.created_at as string).toLocaleDateString("pt-BR")
+            : "",
+        }));
+
+        setItems(mapped);
+        setKbLoadStatus("loaded");
+        setLoadingKb(false);
+      } catch {
+        if (!cancelled) {
+          setKbLoadStatus("error");
+          setLoadingKb(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const [activeFilter, setActiveFilter] = useState("Todos");
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
@@ -284,6 +389,47 @@ function BaseConhecimentoPage() {
           <p className="mt-1.5 text-sm text-muted-foreground">
             Organize regras, informações e conteúdos usados pela IA para atender clientes com precisão.
           </p>
+          {(() => {
+            if (loadingKb || kbLoadStatus === "loading") {
+              return (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Carregando base de conhecimento...
+                </div>
+              );
+            }
+            if (kbLoadStatus === "loaded") {
+              return (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Dados carregados do Supabase — {items.length} conhecimento{items.length === 1 ? "" : "s"}
+                  {activeCompanyName ? ` (${activeCompanyName})` : ""}
+                </div>
+              );
+            }
+            if (kbLoadStatus === "empty") {
+              return (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  Nenhum conhecimento real encontrado. Usando dados locais temporários.
+                </div>
+              );
+            }
+            if (kbLoadStatus === "unauthenticated") {
+              return (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  Usuário não autenticado. Usando dados locais temporários.
+                </div>
+              );
+            }
+            return (
+              <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 ring-1 ring-rose-200">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Não foi possível carregar a base de conhecimento. Usando dados locais temporários.
+              </div>
+            );
+          })()}
         </div>
 
         {/* Summary cards */}
@@ -491,7 +637,7 @@ function BaseConhecimentoPage() {
                 <h3 className="text-sm font-semibold text-amber-800">Atenção</h3>
               </div>
               <p className="text-xs leading-relaxed text-amber-700">
-                Conteúdos sensíveis devem ser revisados antes de serem usados pela IA. Nesta fase, os dados são apenas visuais e ainda não estão conectados ao Supabase.
+                A leitura da Base de Conhecimento já pode ser carregada do Supabase. Nesta etapa, adicionar, editar e desativar ainda funcionam apenas localmente e não persistem mudanças no banco.
               </p>
             </div>
           </div>

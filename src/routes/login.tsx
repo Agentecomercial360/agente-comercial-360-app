@@ -14,6 +14,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -42,13 +43,33 @@ function LoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) {
+        setErrorMsg(
+          "E-mail ou senha inválidos. Verifique os dados e tente novamente."
+        );
+        setLoading(false);
+        return;
+      }
       navigate({ to: "/dashboard" });
-    }, 500);
+    } catch {
+      setErrorMsg(
+        "E-mail ou senha inválidos. Verifique os dados e tente novamente."
+      );
+      setLoading(false);
+    }
   };
 
   return (
@@ -108,6 +129,8 @@ function LoginPage() {
                       autoComplete="email"
                       required
                       placeholder="voce@empresa.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                       className="h-12 w-full rounded-xl border border-border bg-background pl-11 pr-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15"
                     />
                   </div>
@@ -130,6 +153,8 @@ function LoginPage() {
                       autoComplete="current-password"
                       required
                       placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
                       className="h-12 w-full rounded-xl border border-border bg-background pl-11 pr-12 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15"
                     />
                     <button
@@ -142,6 +167,15 @@ function LoginPage() {
                     </button>
                   </div>
                 </div>
+
+                {errorMsg && (
+                  <div
+                    role="alert"
+                    className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-medium text-rose-700"
+                  >
+                    {errorMsg}
+                  </div>
+                )}
 
                 <button
                   type="submit"

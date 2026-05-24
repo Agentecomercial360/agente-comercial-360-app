@@ -1,8 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
-import { BookOpen, Tags, CheckCircle2, AlertTriangle, Search, Sparkles, Eye, Pencil, Power, X } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { BookOpen, Tags, CheckCircle2, AlertTriangle, Search, Sparkles, Eye, Pencil, Power, X, Loader2 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
+
+type KbLoadStatus = "loading" | "loaded" | "empty" | "unauthenticated" | "error";
+
+const CATEGORIAS_VALIDAS: readonly string[] = [
+  "Vendas",
+  "Administrativo",
+  "Financeiro",
+  "Regras",
+  "Entrega",
+  "Pagamento",
+  "Orçamento",
+  "Relatórios",
+];
+
+function normalizeCategoria(value: unknown): "Vendas" | "Administrativo" | "Financeiro" | "Regras" | "Entrega" | "Pagamento" | "Orçamento" | "Relatórios" {
+  if (typeof value === "string" && CATEGORIAS_VALIDAS.includes(value)) {
+    return value as never;
+  }
+  return "Vendas";
+}
 
 export const Route = createFileRoute("/base-conhecimento")({
   component: BaseConhecimentoPage,

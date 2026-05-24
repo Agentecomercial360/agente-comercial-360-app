@@ -189,11 +189,89 @@ function ConversasPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<Conversa[]>(conversas);
-  const [selectedId, setSelectedId] = useState<number>(1);
-  const [messagesById, setMessagesById] = useState<Record<number, Mensagem[]>>(mensagensIniciais);
+  const [selectedId, setSelectedId] = useState<string | number | null>(1);
+  const [messagesById, setMessagesById] = useState<Record<string | number, Mensagem[]>>(mensagensIniciais);
   const [draft, setDraft] = useState("");
   const [forwardOpen, setForwardOpen] = useState(false);
   const [forwardTo, setForwardTo] = useState(responsaveis[0]);
+  const [loadingConversations, setLoadingConversations] = useState(true);
+  const [convLoadStatus, setConvLoadStatus] = useState<ConvLoadStatus>("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (userErr || !userData?.user) {
+          setConvLoadStatus("unauthenticated");
+          setLoadingConversations(false);
+          return;
+        }
+
+        const { data: cu, error: cuErr } = await supabase
+          .from("company_users")
+          .select("company_id")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+        if (cancelled) return;
+        if (cuErr || !cu?.company_id) {
+          setConvLoadStatus("error");
+          setLoadingConversations(false);
+          return;
+        }
+
+        const { data: rows, error: convErr } = await supabase
+          .from("conversations")
+          .select(
+            `id, channel, status, last_message_at, created_at, customer_id,
+             customers ( name, phone, city, customer_type )`,
+          )
+          .eq("company_id", cu.company_id)
+          .order("last_message_at", { ascending: false, nullsFirst: false })
+          .limit(100);
+        if (cancelled) return;
+
+        if (convErr) {
+          setConvLoadStatus("error");
+          setLoadingConversations(false);
+          return;
+        }
+
+        if (!rows || rows.length === 0) {
+          setConvLoadStatus("empty");
+          setLoadingConversations(false);
+          return;
+        }
+
+        const mapped: Conversa[] = rows.map((r: any) => {
+          const cust = Array.isArray(r.customers) ? r.customers[0] : r.customers;
+          return {
+            id: String(r.id),
+            cliente: cust?.name ?? "Cliente sem nome",
+            telefone: cust?.phone ?? "—",
+            canal: normalizeChannel(r.channel),
+            ultimaMensagem: "Carregue a conversa para ver mensagens",
+            horario: formatHorario(r.last_message_at, r.created_at),
+            status: normalizeStatus(r.status),
+            setor: "—",
+          };
+        });
+
+        setItems(mapped);
+        setSelectedId(mapped[0]?.id ?? null);
+        setConvLoadStatus("loaded");
+      } catch {
+        if (!cancelled) setConvLoadStatus("error");
+      } finally {
+        if (!cancelled) setLoadingConversations(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

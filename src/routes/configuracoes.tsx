@@ -73,6 +73,83 @@ function ConfiguracoesPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
 
+  // Carregamento da empresa real vinculada ao usuário logado (somente SELECT)
+  const [loadingCompany, setLoadingCompany] = useState(true);
+  const [companyLoadStatus, setCompanyLoadStatus] = useState<
+    "loading" | "loaded" | "unauthenticated" | "error"
+  >("loading");
+  const [activeCompanyId, setActiveCompanyId] = useState<string | null>(null);
+  const [activeCompanyCreatedAt, setActiveCompanyCreatedAt] = useState<string | null>(null);
+  const [activeCompanyEmail, setActiveCompanyEmail] = useState<string | null>(null);
+  const [activeCompanyToneOfVoice, setActiveCompanyToneOfVoice] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (userError || !userData?.user) {
+          setCompanyLoadStatus("unauthenticated");
+          setLoadingCompany(false);
+          return;
+        }
+
+        const { data: link, error: linkError } = await supabase
+          .from("company_users")
+          .select("company_id, role, is_active")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .single();
+        if (cancelled) return;
+        if (linkError || !link?.company_id) {
+          setCompanyLoadStatus("error");
+          setLoadingCompany(false);
+          return;
+        }
+
+        const { data: company, error: companyError } = await supabase
+          .from("companies")
+          .select("id, name, business_type, segment, phone, email, address, tone_of_voice, created_at")
+          .eq("id", link.company_id)
+          .single();
+        if (cancelled) return;
+        if (companyError || !company) {
+          setCompanyLoadStatus("error");
+          setLoadingCompany(false);
+          return;
+        }
+
+        setEmpresa({
+          ...defaultEmpresa,
+          nome: (company.name as string) ?? defaultEmpresa.nome,
+          segmento: (company.segment as string) ?? defaultEmpresa.segmento,
+          tipoNegocio: (company.business_type as string) ?? defaultEmpresa.tipoNegocio,
+          telefone: (company.phone as string) ?? defaultEmpresa.telefone,
+          endereco: (company.address as string) ?? defaultEmpresa.endereco,
+          cidade: defaultEmpresa.cidade,
+          horario: defaultEmpresa.horario,
+          status: defaultEmpresa.status,
+        });
+        setActiveCompanyId((company.id as string) ?? null);
+        setActiveCompanyCreatedAt((company.created_at as string) ?? null);
+        setActiveCompanyEmail((company.email as string) ?? null);
+        setActiveCompanyToneOfVoice((company.tone_of_voice as string) ?? null);
+        setSaved(true);
+        setCompanyLoadStatus("loaded");
+        setLoadingCompany(false);
+      } catch {
+        if (!cancelled) {
+          setCompanyLoadStatus("error");
+          setLoadingCompany(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Teste temporário de conexão Supabase (apenas SELECT, somente no clique)
   const [testLoading, setTestLoading] = useState(false);
   const [testResult, setTestResult] = useState<

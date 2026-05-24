@@ -643,9 +643,12 @@ function RelatoriosPage() {
             <div>
               <p className="text-sm font-semibold text-amber-900">Observação</p>
               <p className="mt-1 text-sm text-amber-800">
-                Os dados desta tela são apenas visuais nesta fase. A conexão com Supabase será
-                feita futuramente, após aprovação da estrutura visual.
+                As métricas principais de atendimentos, oportunidades, leads quentes e clientes
+                cadastrados já podem ser carregadas do Supabase. Nesta etapa, gráficos por setor,
+                peças solicitadas, pendências, clientes sem resposta e resumo executivo avançado
+                ainda usam dados temporários até a próxima fase.
               </p>
+
             </div>
           </div>
         </div>

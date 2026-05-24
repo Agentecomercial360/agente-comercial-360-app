@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Building2,
   Tag,
@@ -72,6 +72,83 @@ function ConfiguracoesPage() {
   const [saved, setSaved] = useState(true);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
+
+  // Carregamento da empresa real vinculada ao usuário logado (somente SELECT)
+  const [loadingCompany, setLoadingCompany] = useState(true);
+  const [companyLoadStatus, setCompanyLoadStatus] = useState<
+    "loading" | "loaded" | "unauthenticated" | "error"
+  >("loading");
+  const [activeCompanyId, setActiveCompanyId] = useState<string | null>(null);
+  const [activeCompanyCreatedAt, setActiveCompanyCreatedAt] = useState<string | null>(null);
+  const [activeCompanyEmail, setActiveCompanyEmail] = useState<string | null>(null);
+  const [activeCompanyToneOfVoice, setActiveCompanyToneOfVoice] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (userError || !userData?.user) {
+          setCompanyLoadStatus("unauthenticated");
+          setLoadingCompany(false);
+          return;
+        }
+
+        const { data: link, error: linkError } = await supabase
+          .from("company_users")
+          .select("company_id, role, is_active")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .single();
+        if (cancelled) return;
+        if (linkError || !link?.company_id) {
+          setCompanyLoadStatus("error");
+          setLoadingCompany(false);
+          return;
+        }
+
+        const { data: company, error: companyError } = await supabase
+          .from("companies")
+          .select("id, name, business_type, segment, phone, email, address, tone_of_voice, created_at")
+          .eq("id", link.company_id)
+          .single();
+        if (cancelled) return;
+        if (companyError || !company) {
+          setCompanyLoadStatus("error");
+          setLoadingCompany(false);
+          return;
+        }
+
+        setEmpresa({
+          ...defaultEmpresa,
+          nome: (company.name as string) ?? defaultEmpresa.nome,
+          segmento: (company.segment as string) ?? defaultEmpresa.segmento,
+          tipoNegocio: (company.business_type as string) ?? defaultEmpresa.tipoNegocio,
+          telefone: (company.phone as string) ?? defaultEmpresa.telefone,
+          endereco: (company.address as string) ?? defaultEmpresa.endereco,
+          cidade: defaultEmpresa.cidade,
+          horario: defaultEmpresa.horario,
+          status: defaultEmpresa.status,
+        });
+        setActiveCompanyId((company.id as string) ?? null);
+        setActiveCompanyCreatedAt((company.created_at as string) ?? null);
+        setActiveCompanyEmail((company.email as string) ?? null);
+        setActiveCompanyToneOfVoice((company.tone_of_voice as string) ?? null);
+        setSaved(true);
+        setCompanyLoadStatus("loaded");
+        setLoadingCompany(false);
+      } catch {
+        if (!cancelled) {
+          setCompanyLoadStatus("error");
+          setLoadingCompany(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Teste temporário de conexão Supabase (apenas SELECT, somente no clique)
   const [testLoading, setTestLoading] = useState(false);
@@ -183,6 +260,28 @@ function ConfiguracoesPage() {
           <p className="mt-1.5 text-sm text-muted-foreground">
             Gerencie os dados da empresa, preferências do sistema e parâmetros gerais da operação.
           </p>
+          <div className="mt-3 text-xs">
+            {companyLoadStatus === "loading" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-muted-foreground">
+                Carregando empresa vinculada...
+              </span>
+            )}
+            {companyLoadStatus === "loaded" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 ring-1 ring-emerald-200">
+                Dados carregados do Supabase — {empresa.nome}
+              </span>
+            )}
+            {companyLoadStatus === "unauthenticated" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 ring-1 ring-amber-200">
+                Empresa mockada — usuário não autenticado
+              </span>
+            )}
+            {companyLoadStatus === "error" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 ring-1 ring-amber-200">
+                Usando dados locais temporários
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Summary cards */}
@@ -496,6 +595,39 @@ function ConfiguracoesPage() {
                 );
               })}
             </div>
+            {(activeCompanyId || activeCompanyEmail || activeCompanyToneOfVoice || activeCompanyCreatedAt) && (
+              <div className="rounded-xl border border-border bg-background p-4 space-y-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Dados do Supabase
+                </div>
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  {activeCompanyId && (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">ID da empresa</dt>
+                      <dd className="font-mono text-xs break-all text-foreground">{activeCompanyId}</dd>
+                    </div>
+                  )}
+                  {activeCompanyEmail && (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">E-mail</dt>
+                      <dd className="text-foreground">{activeCompanyEmail}</dd>
+                    </div>
+                  )}
+                  {activeCompanyToneOfVoice && (
+                    <div className="sm:col-span-2">
+                      <dt className="text-xs text-muted-foreground">Tom de voz da IA</dt>
+                      <dd className="text-foreground">{activeCompanyToneOfVoice}</dd>
+                    </div>
+                  )}
+                  {activeCompanyCreatedAt && (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Criado em</dt>
+                      <dd className="text-foreground">{new Date(activeCompanyCreatedAt).toLocaleString("pt-BR")}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            )}
             <div className="rounded-xl bg-[var(--brand-blue-soft)] border border-border p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="h-4 w-4 text-primary" />

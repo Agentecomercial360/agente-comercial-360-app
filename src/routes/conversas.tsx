@@ -159,7 +159,7 @@ const statusBadge: Record<Status, string> = {
   Finalizada: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
 };
 
-type Mensagem = { autor: "cliente" | "ia" | "atendente"; texto: string; hora: string };
+type Mensagem = { autor: "cliente" | "ia" | "atendente" | "sistema"; texto: string; hora: string };
 
 const mensagensIniciais: Record<string | number, Mensagem[]> = {
   1: [
@@ -196,6 +196,10 @@ function ConversasPage() {
   const [forwardTo, setForwardTo] = useState(responsaveis[0]);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [convLoadStatus, setConvLoadStatus] = useState<ConvLoadStatus>("loading");
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [messagesLoadStatus, setMessagesLoadStatus] = useState<
+    "idle" | "loading" | "loaded" | "empty" | "error"
+  >("idle");
 
   useEffect(() => {
     let cancelled = false;
@@ -272,6 +276,77 @@ function ConversasPage() {
       cancelled = true;
     };
   }, []);
+
+  // Etapa 1B: carregar mensagens reais da conversa selecionada
+  useEffect(() => {
+    if (!selectedId) {
+      setMessagesLoadStatus("idle");
+      return;
+    }
+    // só buscar quando o id parece um UUID do Supabase (string longa)
+    if (typeof selectedId !== "string" || selectedId.length < 20) {
+      setMessagesLoadStatus("idle");
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingMessages(true);
+    setMessagesLoadStatus("loading");
+
+    (async () => {
+      try {
+        const { data: rows, error } = await supabase
+          .from("messages")
+          .select("id,conversation_id,sender_type,content,channel,created_at")
+          .eq("conversation_id", selectedId)
+          .order("created_at", { ascending: true });
+
+        if (cancelled) return;
+
+        if (error) {
+          setMessagesLoadStatus("error");
+          return;
+        }
+
+        if (!rows || rows.length === 0) {
+          setMessagesLoadStatus("empty");
+          return;
+        }
+
+        const mapAutor = (t: unknown): "cliente" | "ia" | "atendente" | "sistema" => {
+          const v = String(t ?? "").trim().toLowerCase();
+          if (v === "customer" || v === "client" || v === "cliente") return "cliente";
+          if (v === "ai" || v === "assistant" || v === "ia" || v === "bot") return "ia";
+          if (v === "human" || v === "agent" || v === "atendente" || v === "user") return "atendente";
+          return "sistema";
+        };
+
+        const mapped: Mensagem[] = rows.map((r: any) => {
+          const d = r.created_at ? new Date(r.created_at) : null;
+          const hora =
+            d && !Number.isNaN(d.getTime())
+              ? d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+              : "—";
+          return {
+            autor: mapAutor(r.sender_type),
+            texto: String(r.content ?? ""),
+            hora,
+          };
+        });
+
+        setMessagesById((prev) => ({ ...prev, [selectedId]: mapped }));
+        setMessagesLoadStatus("loaded");
+      } catch {
+        if (!cancelled) setMessagesLoadStatus("error");
+      } finally {
+        if (!cancelled) setLoadingMessages(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -353,8 +428,8 @@ function ConversasPage() {
         </div>
 
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          A leitura da lista de conversas já pode ser carregada do Supabase. Nesta etapa, as
-          mensagens, envio e encaminhamento ainda funcionam localmente e não persistem mudanças
+          A lista de conversas e as mensagens selecionadas já podem ser carregadas do Supabase.
+          Nesta etapa, envio e encaminhamento ainda funcionam localmente e não persistem mudanças
           no banco.
         </div>
 
@@ -524,21 +599,47 @@ function ConversasPage() {
               </div>
 
               <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-5">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-4">
-                  Mensagens
-                </h3>
+                <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Mensagens
+                  </h3>
+                  <span className="text-[10px] font-medium">
+                    {loadingMessages ? (
+                      <span className="inline-flex items-center gap-1 text-muted-foreground">
+                        <Loader2 className="h-3 w-3 animate-spin" /> Carregando mensagens...
+                      </span>
+                    ) : messagesLoadStatus === "loaded" ? (
+                      <span className="text-emerald-700">Mensagens carregadas do Supabase</span>
+                    ) : messagesLoadStatus === "empty" ? (
+                      <span className="text-amber-700">
+                        Nenhuma mensagem real encontrada para esta conversa
+                      </span>
+                    ) : messagesLoadStatus === "error" ? (
+                      <span className="text-red-700">
+                        Não foi possível carregar mensagens reais. Usando mensagens locais temporárias.
+                      </span>
+                    ) : null}
+                  </span>
+                </div>
                 <div className="space-y-3">
                   {mensagens.map((m, i) => {
-                    const isClient = m.autor === "cliente";
-                    const label = m.autor === "cliente" ? "Cliente" : m.autor === "ia" ? "IA" : "Você";
+                    const isLeft = m.autor === "cliente" || m.autor === "sistema";
+                    const label =
+                      m.autor === "cliente"
+                        ? "Cliente"
+                        : m.autor === "ia"
+                          ? "IA"
+                          : m.autor === "sistema"
+                            ? "Sistema"
+                            : "Você";
                     return (
                       <div
                         key={i}
-                        className={`flex ${isClient ? "justify-start" : "justify-end"}`}
+                        className={`flex ${isLeft ? "justify-start" : "justify-end"}`}
                       >
                         <div
                           className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
-                            isClient
+                            isLeft
                               ? "bg-muted text-foreground rounded-tl-sm"
                               : "bg-primary text-primary-foreground rounded-tr-sm"
                           }`}

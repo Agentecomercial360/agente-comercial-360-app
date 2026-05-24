@@ -428,8 +428,8 @@ function ConversasPage() {
         </div>
 
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          A leitura da lista de conversas já pode ser carregada do Supabase. Nesta etapa, as
-          mensagens, envio e encaminhamento ainda funcionam localmente e não persistem mudanças
+          A lista de conversas e as mensagens selecionadas já podem ser carregadas do Supabase.
+          Nesta etapa, envio e encaminhamento ainda funcionam localmente e não persistem mudanças
           no banco.
         </div>
 

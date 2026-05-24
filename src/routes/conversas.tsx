@@ -328,7 +328,7 @@ function ConversasPage() {
               ? d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
               : "—";
           return {
-            autor: mapAutor(r.sender_type) as Mensagem["autor"],
+            autor: mapAutor(r.sender_type),
             texto: String(r.content ?? ""),
             hora,
           };

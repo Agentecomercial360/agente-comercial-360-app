@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Activity,
@@ -14,11 +14,40 @@ import {
   PieChart,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/relatorios")({
   component: RelatoriosPage,
   head: () => ({ meta: [{ title: "Relatórios | Agente Comercial 360" }] }),
 });
+
+type RelatoriosLoadStatus =
+  | "loading"
+  | "loaded"
+  | "partial"
+  | "unauthenticated"
+  | "error";
+
+function getPeriodRange(periodo: "Hoje" | "Ontem" | "Últimos 7 dias" | "Últimos 30 dias") {
+  const now = new Date();
+  const start = new Date(now);
+  const end = new Date(now);
+  if (periodo === "Hoje") {
+    start.setHours(0, 0, 0, 0);
+  } else if (periodo === "Ontem") {
+    start.setDate(start.getDate() - 1);
+    start.setHours(0, 0, 0, 0);
+    end.setDate(end.getDate() - 1);
+    end.setHours(23, 59, 59, 999);
+  } else if (periodo === "Últimos 7 dias") {
+    start.setDate(start.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+  } else {
+    start.setDate(start.getDate() - 29);
+    start.setHours(0, 0, 0, 0);
+  }
+  return { start, end };
+}
 
 type PeriodoKey = "Hoje" | "Ontem" | "Últimos 7 dias" | "Últimos 30 dias";
 const periodos: PeriodoKey[] = ["Hoje", "Ontem", "Últimos 7 dias", "Últimos 30 dias"];

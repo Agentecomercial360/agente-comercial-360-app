@@ -637,7 +637,7 @@ function BaseConhecimentoPage() {
                 <h3 className="text-sm font-semibold text-amber-800">Atenção</h3>
               </div>
               <p className="text-xs leading-relaxed text-amber-700">
-                Conteúdos sensíveis devem ser revisados antes de serem usados pela IA. Nesta fase, os dados são apenas visuais e ainda não estão conectados ao Supabase.
+                A leitura da Base de Conhecimento já pode ser carregada do Supabase. Nesta etapa, adicionar, editar e desativar ainda funcionam apenas localmente e não persistem mudanças no banco.
               </p>
             </div>
           </div>

@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Users, Briefcase, ArrowRightLeft, UserX, Search, Sparkles, Pencil, Power, X } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/responsaveis")({
   component: ResponsaveisPage,
@@ -122,6 +123,100 @@ function ResponsaveisPage() {
     telefone: "",
     status: "Ativo",
   });
+
+  const [loadingResponsibles, setLoadingResponsibles] = useState(true);
+  const [responsiblesLoadStatus, setResponsiblesLoadStatus] = useState<
+    "loading" | "loaded" | "empty" | "unauthenticated" | "error"
+  >("loading");
+  const [loadedCount, setLoadedCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const allowedSetores: Setor[] = ["Vendas", "Financeiro", "Administrativo", "Gestão"];
+    const normalizeSetor = (d: string | null | undefined): Setor => {
+      if (!d) return "Administrativo";
+      const found = allowedSetores.find((s) => s.toLowerCase() === d.trim().toLowerCase());
+      return found ?? "Administrativo";
+    };
+
+    const load = async () => {
+      try {
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError || !userData.user) {
+          if (!cancelled) {
+            setResponsiblesLoadStatus("unauthenticated");
+            setLoadingResponsibles(false);
+          }
+          return;
+        }
+
+        const { data: cu, error: cuError } = await supabase
+          .from("company_users")
+          .select("company_id")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (cuError || !cu?.company_id) {
+          if (!cancelled) {
+            setResponsiblesLoadStatus("error");
+            setLoadingResponsibles(false);
+          }
+          return;
+        }
+
+        const { data: rows, error: rError } = await supabase
+          .from("responsibles")
+          .select("id,name,department,role,phone,email,is_active,created_at")
+          .eq("company_id", cu.company_id)
+          .order("name");
+
+        if (rError) {
+          if (!cancelled) {
+            setResponsiblesLoadStatus("error");
+            setLoadingResponsibles(false);
+          }
+          return;
+        }
+
+        if (!rows || rows.length === 0) {
+          if (!cancelled) {
+            setResponsiblesLoadStatus("empty");
+            setLoadingResponsibles(false);
+          }
+          return;
+        }
+
+        const mapped: Responsavel[] = rows.map((r) => ({
+          id: String(r.id),
+          nome: r.name ?? "Sem nome",
+          setor: normalizeSetor(r.department),
+          funcao: r.role ?? "",
+          telefone: r.phone ?? "",
+          status: r.is_active ? "Ativo" : "Inativo",
+          atendimentosHoje: 0,
+        }));
+
+        if (!cancelled) {
+          setItems(mapped);
+          setLoadedCount(mapped.length);
+          setResponsiblesLoadStatus("loaded");
+          setLoadingResponsibles(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setResponsiblesLoadStatus("error");
+          setLoadingResponsibles(false);
+        }
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const ativosCount = useMemo(
     () => items.filter((r) => r.status === "Ativo").length,
@@ -247,6 +342,39 @@ function ResponsaveisPage() {
           <p className="mt-1.5 text-sm text-muted-foreground">
             Gerencie os responsáveis por setor da empresa e organize o encaminhamento dos atendimentos.
           </p>
+          {(() => {
+            if (loadingResponsibles) {
+              return (
+                <p className="mt-2 text-xs text-muted-foreground">Carregando responsáveis...</p>
+              );
+            }
+            if (responsiblesLoadStatus === "loaded") {
+              return (
+                <p className="mt-2 text-xs font-medium text-emerald-600">
+                  Dados carregados do Supabase — {loadedCount} {loadedCount === 1 ? "responsável" : "responsáveis"}
+                </p>
+              );
+            }
+            if (responsiblesLoadStatus === "empty") {
+              return (
+                <p className="mt-2 text-xs font-medium text-amber-600">
+                  Nenhum responsável real encontrado. Usando dados locais temporários.
+                </p>
+              );
+            }
+            if (responsiblesLoadStatus === "unauthenticated") {
+              return (
+                <p className="mt-2 text-xs font-medium text-amber-600">
+                  Usuário não autenticado. Usando dados locais temporários.
+                </p>
+              );
+            }
+            return (
+              <p className="mt-2 text-xs font-medium text-amber-600">
+                Não foi possível carregar responsáveis. Usando dados locais temporários.
+              </p>
+            );
+          })()}
         </div>
 
         {/* Summary cards */}

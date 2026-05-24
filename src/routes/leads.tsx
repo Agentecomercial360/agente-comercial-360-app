@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Users,
   Flame,
@@ -10,22 +10,17 @@ import {
   X,
   ArrowRightLeft,
   CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/leads")({
   component: LeadsPage,
   head: () => ({ meta: [{ title: "Leads | Agente Comercial 360" }] }),
 });
-
-const summary = [
-  { label: "Total de leads", value: 32, icon: Users },
-  { label: "Leads quentes", value: 14, icon: Flame },
-  { label: "Leads em negociação", value: 9, icon: Handshake },
-  { label: "Leads sem responsável", value: 3, icon: UserX },
-];
 
 const filters = [
   "Todos",
@@ -40,25 +35,36 @@ const filters = [
 
 type Filter = (typeof filters)[number];
 
+type LeadStatus =
+  | "Aberto"
+  | "Em negociação"
+  | "Aguardando retorno"
+  | "Sem resposta"
+  | "Fechado"
+  | "Perdido";
+
+type LeadTemperatura = "Quente" | "Morno" | "Frio";
+
 type Lead = {
-  id: number;
+  id: string | number;
   cliente: string;
   telefone: string;
   peca: string;
   veiculo: string;
   ano: number;
-  temperatura: "Quente" | "Morno" | "Frio";
+  temperatura: LeadTemperatura;
   score: number;
-  status:
-    | "Aberto"
-    | "Em negociação"
-    | "Aguardando retorno"
-    | "Sem resposta"
-    | "Fechado"
-    | "Perdido";
+  status: LeadStatus;
   responsavel: string;
   proximaAcao: string;
 };
+
+type LeadsLoadStatus =
+  | "loading"
+  | "loaded"
+  | "empty"
+  | "unauthenticated"
+  | "error";
 
 const initialLeads: Lead[] = [
   { id: 1, cliente: "João Martins", telefone: "(15) 99999-1020", peca: "Kit embreagem", veiculo: "Gol 1.6", ano: 2014, temperatura: "Quente", score: 92, status: "Em negociação", responsavel: "Amanda", proximaAcao: "Enviar orçamento" },
@@ -68,13 +74,13 @@ const initialLeads: Lead[] = [
   { id: 5, cliente: "Mariana Costa", telefone: "(15) 95555-7788", peca: "Alternador", veiculo: "Palio", ano: 2012, temperatura: "Morno", score: 74, status: "Em negociação", responsavel: "Vitor", proximaAcao: "Verificar estoque" },
 ];
 
-const tempBadge: Record<Lead["temperatura"], string> = {
+const tempBadge: Record<LeadTemperatura, string> = {
   Quente: "bg-rose-100 text-rose-700 ring-1 ring-rose-200",
   Morno: "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
   Frio: "bg-sky-100 text-sky-700 ring-1 ring-sky-200",
 };
 
-const statusBadge: Record<Lead["status"], string> = {
+const statusBadge: Record<LeadStatus, string> = {
   Aberto: "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
   "Em negociação": "bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200",
   "Aguardando retorno": "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
@@ -82,6 +88,25 @@ const statusBadge: Record<Lead["status"], string> = {
   Fechado: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
   Perdido: "bg-rose-100 text-rose-700 ring-1 ring-rose-200",
 };
+
+function deriveTemperatura(score: number | null | undefined): LeadTemperatura {
+  if (score == null) return "Frio";
+  if (score >= 80) return "Quente";
+  if (score >= 50) return "Morno";
+  return "Frio";
+}
+
+function normalizeStatus(stage: string | null | undefined): LeadStatus {
+  if (!stage) return "Aberto";
+  const s = String(stage).trim().toLowerCase();
+  if (["aberto", "new"].includes(s)) return "Aberto";
+  if (["orcamento", "orçamento", "em negociação", "em negociacao", "negociacao", "negociação", "negotiation", "qualified"].includes(s)) return "Em negociação";
+  if (["aguardando retorno", "follow_up", "follow-up"].includes(s)) return "Aguardando retorno";
+  if (["sem resposta", "no_response"].includes(s)) return "Sem resposta";
+  if (["fechado", "won"].includes(s)) return "Fechado";
+  if (["perdido", "lost"].includes(s)) return "Perdido";
+  return "Aberto";
+}
 
 function applyFilter(lead: Lead, f: Filter): boolean {
   switch (f) {
@@ -100,7 +125,97 @@ function LeadsPage() {
   const [activeFilter, setActiveFilter] = useState<Filter>("Todos");
   const [search, setSearch] = useState("");
   const [leads, setLeads] = useState<Lead[]>(initialLeads);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | number | null>(null);
+  const [loadingLeads, setLoadingLeads] = useState(true);
+  const [leadsLoadStatus, setLeadsLoadStatus] = useState<LeadsLoadStatus>("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (userErr || !userData?.user) {
+          setLeadsLoadStatus("unauthenticated");
+          setLoadingLeads(false);
+          return;
+        }
+
+        const { data: cuRow, error: cuErr } = await supabase
+          .from("company_users")
+          .select("company_id")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+        if (cancelled) return;
+        if (cuErr || !cuRow?.company_id) {
+          setLeadsLoadStatus("error");
+          setLoadingLeads(false);
+          return;
+        }
+
+        const { data: rows, error: leadsErr } = await supabase
+          .from("leads")
+          .select(`
+            id,
+            interest,
+            stage,
+            score,
+            estimated_value,
+            next_action,
+            next_follow_up_at,
+            created_at,
+            customer_id,
+            customers ( name, phone, city, customer_type )
+          `)
+          .eq("company_id", cuRow.company_id)
+          .order("created_at", { ascending: false });
+        if (cancelled) return;
+        if (leadsErr) {
+          setLeadsLoadStatus("error");
+          setLoadingLeads(false);
+          return;
+        }
+
+        if (!rows || rows.length === 0) {
+          setLeadsLoadStatus("empty");
+          setLoadingLeads(false);
+          return;
+        }
+
+        const mapped: Lead[] = rows.map((r: any) => {
+          const customer = Array.isArray(r.customers) ? r.customers[0] : r.customers;
+          const score = typeof r.score === "number" ? r.score : 0;
+          return {
+            id: String(r.id),
+            cliente: customer?.name ?? "—",
+            telefone: customer?.phone ?? "—",
+            peca: r.interest ?? "—",
+            veiculo: "—",
+            ano: 0,
+            temperatura: deriveTemperatura(r.score),
+            score,
+            status: normalizeStatus(r.stage),
+            responsavel: "—",
+            proximaAcao: r.next_action ?? "—",
+          };
+        });
+
+        setLeads(mapped);
+        setLeadsLoadStatus("loaded");
+        setLoadingLeads(false);
+      } catch {
+        if (cancelled) return;
+        setLeadsLoadStatus("error");
+        setLoadingLeads(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -116,17 +231,66 @@ function LeadsPage() {
 
   const selected = leads.find((l) => l.id === selectedId) ?? null;
 
-  function markNegotiating(id: number) {
+  const totalLeads = leads.length;
+  const hotLeads = leads.filter((l) => l.temperatura === "Quente").length;
+  const negotiatingLeads = leads.filter((l) => l.status === "Em negociação").length;
+  const noOwnerLeads = leads.filter((l) => l.responsavel === "—").length;
+
+  const summary = [
+    { label: "Total de leads", value: totalLeads, icon: Users },
+    { label: "Leads quentes", value: hotLeads, icon: Flame },
+    { label: "Leads em negociação", value: negotiatingLeads, icon: Handshake },
+    { label: "Leads sem responsável", value: noOwnerLeads, icon: UserX },
+  ];
+
+  function markNegotiating(id: string | number) {
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status: "Em negociação" } : l)));
     toast.success("Lead marcado como em negociação");
   }
 
-  function forwardLead(id: number) {
+  function forwardLead(id: string | number) {
     const owners = ["Amanda", "Vinicius", "Thaís", "Lorenzzo", "Vitor"];
     const next = owners[Math.floor(Math.random() * owners.length)];
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, responsavel: next } : l)));
     toast.success(`Lead encaminhado para ${next}`);
   }
+
+  const statusIndicator = (() => {
+    if (loadingLeads) {
+      return (
+        <div className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Carregando leads...
+        </div>
+      );
+    }
+    if (leadsLoadStatus === "loaded") {
+      return (
+        <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
+          Dados carregados do Supabase — {leads.length} leads
+        </div>
+      );
+    }
+    if (leadsLoadStatus === "empty") {
+      return (
+        <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+          Nenhum lead real encontrado. Usando dados locais temporários.
+        </div>
+      );
+    }
+    if (leadsLoadStatus === "unauthenticated") {
+      return (
+        <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+          Usuário não autenticado. Usando dados locais temporários.
+        </div>
+      );
+    }
+    return (
+      <div className="inline-flex items-center gap-2 rounded-full bg-rose-100 px-3 py-1 text-xs font-medium text-rose-700 ring-1 ring-rose-200">
+        Não foi possível carregar leads. Usando dados locais temporários.
+      </div>
+    );
+  })();
 
   return (
     <DashboardLayout>
@@ -137,6 +301,7 @@ function LeadsPage() {
           <p className="mt-1.5 text-sm text-muted-foreground">
             Visualize oportunidades comerciais, temperatura dos leads e próximas ações.
           </p>
+          <div className="mt-3">{statusIndicator}</div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -209,7 +374,7 @@ function LeadsPage() {
                         <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{l.telefone}</td>
                         <td className="px-4 py-3 text-foreground whitespace-nowrap">{l.peca}</td>
                         <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{l.veiculo}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{l.ano}</td>
+                        <td className="px-4 py-3 text-muted-foreground">{l.ano ? l.ano : "—"}</td>
                         <td className="px-4 py-3">
                           <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${tempBadge[l.temperatura]}`}>{l.temperatura}</span>
                         </td>
@@ -243,8 +408,8 @@ function LeadsPage() {
               <h3 className="text-base font-semibold text-foreground">Resumo da IA</h3>
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              A IA identificou <span className="font-semibold text-foreground">14 leads quentes</span> e{" "}
-              <span className="font-semibold text-foreground">3 oportunidades sem responsável</span>. Priorize contatos com maior score e clientes aguardando orçamento.
+              A IA identificou <span className="font-semibold text-foreground">{hotLeads} {hotLeads === 1 ? "lead quente" : "leads quentes"}</span> e{" "}
+              <span className="font-semibold text-foreground">{noOwnerLeads} {noOwnerLeads === 1 ? "oportunidade sem responsável" : "oportunidades sem responsável"}</span>. Priorize contatos com maior score e clientes aguardando orçamento.
             </p>
           </div>
         </div>
@@ -277,7 +442,7 @@ function LeadsPage() {
                 <Info label="Telefone" value={selected.telefone} />
                 <Info label="Peça/produto" value={selected.peca} />
                 <Info label="Veículo" value={selected.veiculo} />
-                <Info label="Ano" value={String(selected.ano)} />
+                <Info label="Ano" value={selected.ano ? String(selected.ano) : "—"} />
                 <Info label="Responsável" value={selected.responsavel} />
                 <Info label="Próxima ação" value={selected.proximaAcao} />
               </div>

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast, Toaster } from "sonner";
 import {
   MessageCircle,
@@ -12,8 +12,52 @@ import {
   Send,
   ArrowRight,
   X,
+  Loader2,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { supabase } from "@/lib/supabase";
+
+type ConvLoadStatus =
+  | "loading"
+  | "loaded"
+  | "empty"
+  | "unauthenticated"
+  | "error";
+
+function normalizeChannel(value: unknown): string {
+  const v = String(value ?? "").trim().toLowerCase();
+  if (!v) return "WhatsApp";
+  if (v === "whatsapp") return "WhatsApp";
+  if (v === "instagram") return "Instagram";
+  if (v === "email" || v === "e-mail") return "Email";
+  if (v === "site" || v === "web") return "Site";
+  return String(value).charAt(0).toUpperCase() + String(value).slice(1);
+}
+
+function normalizeStatus(value: unknown): Status {
+  const v = String(value ?? "").trim().toLowerCase();
+  if (["aberta", "open", "active"].includes(v)) return "Aberta";
+  if (["aguardando resposta", "aguardando", "waiting", "pending"].includes(v))
+    return "Aguardando retorno";
+  if (["encaminhada", "forwarded", "assigned"].includes(v)) return "Encaminhada";
+  if (["finalizada", "closed", "finished"].includes(v)) return "Finalizada";
+  return "Aberta";
+}
+
+function formatHorario(lastMessageAt: string | null, createdAt: string | null): string {
+  const iso = lastMessageAt ?? createdAt;
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const today = new Date();
+  const sameDay =
+    d.getFullYear() === today.getFullYear() &&
+    d.getMonth() === today.getMonth() &&
+    d.getDate() === today.getDate();
+  return sameDay
+    ? d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    : d.toLocaleDateString("pt-BR");
+}
 
 
 export const Route = createFileRoute("/conversas")({
@@ -44,7 +88,7 @@ type Status =
   | "Finalizada";
 
 type Conversa = {
-  id: number;
+  id: string | number;
   cliente: string;
   telefone: string;
   canal: string;
@@ -117,7 +161,7 @@ const statusBadge: Record<Status, string> = {
 
 type Mensagem = { autor: "cliente" | "ia" | "atendente"; texto: string; hora: string };
 
-const mensagensIniciais: Record<number, Mensagem[]> = {
+const mensagensIniciais: Record<string | number, Mensagem[]> = {
   1: [
     { autor: "cliente", texto: "Bom dia, preciso de orçamento do kit embreagem do Gol 1.6 2014.", hora: "09:38" },
     { autor: "ia", texto: "Claro! Você consegue informar se o veículo é manual e se deseja apenas a peça ou peça com serviço?", hora: "09:39" },
@@ -145,11 +189,89 @@ function ConversasPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<Conversa[]>(conversas);
-  const [selectedId, setSelectedId] = useState<number>(1);
-  const [messagesById, setMessagesById] = useState<Record<number, Mensagem[]>>(mensagensIniciais);
+  const [selectedId, setSelectedId] = useState<string | number | null>(1);
+  const [messagesById, setMessagesById] = useState<Record<string | number, Mensagem[]>>(mensagensIniciais);
   const [draft, setDraft] = useState("");
   const [forwardOpen, setForwardOpen] = useState(false);
   const [forwardTo, setForwardTo] = useState(responsaveis[0]);
+  const [loadingConversations, setLoadingConversations] = useState(true);
+  const [convLoadStatus, setConvLoadStatus] = useState<ConvLoadStatus>("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (userErr || !userData?.user) {
+          setConvLoadStatus("unauthenticated");
+          setLoadingConversations(false);
+          return;
+        }
+
+        const { data: cu, error: cuErr } = await supabase
+          .from("company_users")
+          .select("company_id")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+        if (cancelled) return;
+        if (cuErr || !cu?.company_id) {
+          setConvLoadStatus("error");
+          setLoadingConversations(false);
+          return;
+        }
+
+        const { data: rows, error: convErr } = await supabase
+          .from("conversations")
+          .select(
+            `id, channel, status, last_message_at, created_at, customer_id,
+             customers ( name, phone, city, customer_type )`,
+          )
+          .eq("company_id", cu.company_id)
+          .order("last_message_at", { ascending: false, nullsFirst: false })
+          .limit(100);
+        if (cancelled) return;
+
+        if (convErr) {
+          setConvLoadStatus("error");
+          setLoadingConversations(false);
+          return;
+        }
+
+        if (!rows || rows.length === 0) {
+          setConvLoadStatus("empty");
+          setLoadingConversations(false);
+          return;
+        }
+
+        const mapped: Conversa[] = rows.map((r: any) => {
+          const cust = Array.isArray(r.customers) ? r.customers[0] : r.customers;
+          return {
+            id: String(r.id),
+            cliente: cust?.name ?? "Cliente sem nome",
+            telefone: cust?.phone ?? "—",
+            canal: normalizeChannel(r.channel),
+            ultimaMensagem: "Carregue a conversa para ver mensagens",
+            horario: formatHorario(r.last_message_at, r.created_at),
+            status: normalizeStatus(r.status),
+            setor: "—",
+          };
+        });
+
+        setItems(mapped);
+        setSelectedId(mapped[0]?.id ?? null);
+        setConvLoadStatus("loaded");
+      } catch {
+        if (!cancelled) setConvLoadStatus("error");
+      } finally {
+        if (!cancelled) setLoadingConversations(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -176,7 +298,7 @@ function ConversasPage() {
     const hora = `${String(mensagens.length + 9).padStart(2, "0")}:00`;
     setMessagesById((prev) => ({
       ...prev,
-      [selected.id]: [...(prev[selected.id] ?? []), { autor: "atendente", texto, hora }],
+      [selected.id]: [...(prev[selected.id] ?? []), { autor: "atendente" as const, texto, hora }],
     }));
     setItems((prev) =>
       prev.map((c) => (c.id === selected.id ? { ...c, ultimaMensagem: texto } : c)),
@@ -205,28 +327,72 @@ function ConversasPage() {
             Consulte o histórico de mensagens, interações com clientes e respostas
             sugeridas pela IA.
           </p>
+          <div className="mt-2 text-xs">
+            {loadingConversations ? (
+              <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" /> Carregando conversas do Supabase...
+              </span>
+            ) : convLoadStatus === "loaded" ? (
+              <span className="text-emerald-700">
+                Dados carregados do Supabase — {items.length} conversas
+              </span>
+            ) : convLoadStatus === "empty" ? (
+              <span className="text-amber-700">
+                Nenhuma conversa real encontrada. Usando dados locais temporários.
+              </span>
+            ) : convLoadStatus === "unauthenticated" ? (
+              <span className="text-amber-700">
+                Usuário não autenticado. Usando dados locais temporários.
+              </span>
+            ) : convLoadStatus === "error" ? (
+              <span className="text-red-700">
+                Não foi possível carregar conversas. Usando dados locais temporários.
+              </span>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+          A leitura da lista de conversas já pode ser carregada do Supabase. Nesta etapa, as
+          mensagens, envio e encaminhamento ainda funcionam localmente e não persistem mudanças
+          no banco.
         </div>
 
         {/* Summary cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {summary.map((s) => {
-            const Icon = s.icon;
-            return (
-              <div
-                key={s.label}
-                className="rounded-2xl bg-card p-5 border border-border shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
-                  <Icon className="h-5 w-5" />
+          {(() => {
+            const counts = {
+              abertas: items.filter((c) => c.status === "Aberta").length,
+              aguardando: items.filter((c) => c.status === "Aguardando retorno").length,
+              encaminhadas: items.filter((c) => c.status === "Encaminhada").length,
+              finalizadas: items.filter((c) => c.status === "Finalizada").length,
+            };
+            const cards = [
+              { label: "Conversas abertas", value: counts.abertas, icon: MessageCircle },
+              { label: "Aguardando resposta", value: counts.aguardando, icon: Clock },
+              { label: "Encaminhadas para humano", value: counts.encaminhadas, icon: UserCheck },
+              { label: "Finalizadas hoje", value: counts.finalizadas, icon: CheckCircle2 },
+            ];
+            return cards.map((s) => {
+              const Icon = s.icon;
+              return (
+                <div
+                  key={s.label}
+                  className="rounded-2xl bg-card p-5 border border-border shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">
+                    {s.value}
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">{s.label}</div>
                 </div>
-                <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">
-                  {s.value}
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">{s.label}</div>
-              </div>
-            );
-          })}
+              );
+            });
+          })()}
         </div>
+
 
         {/* Filters + search */}
         <div className="rounded-2xl bg-card p-4 border border-border shadow-[var(--shadow-soft)] space-y-3">

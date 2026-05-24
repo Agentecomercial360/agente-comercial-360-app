@@ -123,7 +123,73 @@ function AtendimentosPage() {
   const [filtro, setFiltro] = useState("Todos");
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<Atendimento[]>(atendimentosMock);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<string | number | null>(null);
+  const [, setLoadingAtendimentos] = useState<boolean>(true);
+  const [atendimentosLoadStatus, setAtendimentosLoadStatus] = useState<LoadStatus>("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (userErr || !userData?.user) {
+          if (!cancelled) setAtendimentosLoadStatus("unauthenticated");
+          return;
+        }
+        const { data: cu, error: cuErr } = await supabase
+          .from("company_users")
+          .select("company_id")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+        if (cuErr || !cu?.company_id) {
+          if (!cancelled) setAtendimentosLoadStatus("error");
+          return;
+        }
+        const { data: rows, error: convErr } = await supabase
+          .from("conversations")
+          .select(
+            `id, channel, status, last_message_at, created_at, customer_id,
+             customers ( name, phone, city, customer_type )`,
+          )
+          .eq("company_id", cu.company_id)
+          .order("last_message_at", { ascending: false, nullsFirst: false })
+          .limit(100);
+        if (convErr) {
+          if (!cancelled) setAtendimentosLoadStatus("error");
+          return;
+        }
+        if (!rows || rows.length === 0) {
+          if (!cancelled) setAtendimentosLoadStatus("empty");
+          return;
+        }
+        const mapped: Atendimento[] = rows.map((r: any) => {
+          const cust = Array.isArray(r.customers) ? r.customers[0] : r.customers;
+          return {
+            id: String(r.id),
+            cliente: cust?.name ?? "Cliente sem nome",
+            telefone: cust?.phone ?? "—",
+            mensagem: "Carregue o atendimento para ver mensagens",
+            setor: "—",
+            status: normalizeStatus(r.status),
+            responsavel: "—",
+            horario: formatHorario(r.last_message_at, r.created_at),
+          };
+        });
+        if (cancelled) return;
+        setItems(mapped);
+        setSelectedId(mapped[0]?.id ?? null);
+        setAtendimentosLoadStatus("loaded");
+      } catch {
+        if (!cancelled) setAtendimentosLoadStatus("error");
+      } finally {
+        if (!cancelled) setLoadingAtendimentos(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -142,12 +208,12 @@ function AtendimentosPage() {
 
   const responsaveis = ["Amanda", "Vinicius", "Thaís", "Lorenzzo", "Vitor"];
 
-  const finalizar = (id: number) => {
+  const finalizar = (id: string | number) => {
     setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status: "Finalizado" } : a)));
     toast.success("Atendimento marcado como finalizado");
   };
 
-  const encaminhar = (id: number) => {
+  const encaminhar = (id: string | number) => {
     setItems((prev) =>
       prev.map((a) =>
         a.id === id
@@ -157,6 +223,40 @@ function AtendimentosPage() {
     );
     toast.success("Atendimento encaminhado para responsável");
   };
+
+  const dynamicCards = useMemo(
+    () => [
+      { label: "Atendimentos hoje", value: items.length, icon: Headphones },
+      { label: "Em andamento", value: items.filter((a) => a.status === "Em andamento").length, icon: Clock },
+      {
+        label: "Aguardando resposta",
+        value: items.filter((a) => a.status === "Aguardando resposta").length,
+        icon: AlertCircle,
+      },
+      { label: "Finalizados", value: items.filter((a) => a.status === "Finalizado").length, icon: CheckCircle2 },
+    ],
+    [items],
+  );
+
+  const statusMsg =
+    atendimentosLoadStatus === "loading"
+      ? "Carregando atendimentos do Supabase..."
+      : atendimentosLoadStatus === "loaded"
+        ? `Dados carregados do Supabase — ${items.length} atendimentos`
+        : atendimentosLoadStatus === "empty"
+          ? "Nenhum atendimento real encontrado. Usando dados locais temporários."
+          : atendimentosLoadStatus === "unauthenticated"
+            ? "Usuário não autenticado. Usando dados locais temporários."
+            : "Não foi possível carregar atendimentos. Usando dados locais temporários.";
+  const statusColor =
+    atendimentosLoadStatus === "loaded"
+      ? "text-emerald-600"
+      : atendimentosLoadStatus === "loading"
+        ? "text-slate-500"
+        : atendimentosLoadStatus === "empty"
+          ? "text-amber-600"
+          : "text-red-600";
+
 
   return (
     <DashboardLayout>

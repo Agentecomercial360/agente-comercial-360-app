@@ -268,7 +268,38 @@ function IAPage() {
           <p className="mt-1.5 text-sm text-muted-foreground">
             Configure o comportamento da assistente virtual, regras de atuação e critérios de encaminhamento.
           </p>
+          {(() => {
+            if (loadingAi) {
+              return (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Carregando configurações da IA...
+                </div>
+              );
+            }
+            if (aiLoadStatus === "loaded") {
+              return (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Dados carregados do Supabase — IA
+                </div>
+              );
+            }
+            const msg =
+              aiLoadStatus === "empty"
+                ? "Nenhuma configuração real encontrada. Usando dados locais temporários."
+                : aiLoadStatus === "unauthenticated"
+                  ? "Usuário não autenticado. Usando dados locais temporários."
+                  : "Não foi possível carregar configurações da IA. Usando dados locais temporários.";
+            return (
+              <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 ring-1 ring-amber-200">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                {msg}
+              </div>
+            );
+          })()}
         </div>
+
 
         {/* Summary cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

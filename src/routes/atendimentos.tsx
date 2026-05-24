@@ -67,7 +67,7 @@ const filtros = [
 ];
 
 type Atendimento = {
-  id: number;
+  id: string | number;
   cliente: string;
   telefone: string;
   mensagem: string;

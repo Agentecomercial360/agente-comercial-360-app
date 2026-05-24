@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast, Toaster } from "sonner";
 import {
   MessageCircle,
@@ -12,8 +12,52 @@ import {
   Send,
   ArrowRight,
   X,
+  Loader2,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { supabase } from "@/lib/supabase";
+
+type ConvLoadStatus =
+  | "loading"
+  | "loaded"
+  | "empty"
+  | "unauthenticated"
+  | "error";
+
+function normalizeChannel(value: unknown): string {
+  const v = String(value ?? "").trim().toLowerCase();
+  if (!v) return "WhatsApp";
+  if (v === "whatsapp") return "WhatsApp";
+  if (v === "instagram") return "Instagram";
+  if (v === "email" || v === "e-mail") return "Email";
+  if (v === "site" || v === "web") return "Site";
+  return String(value).charAt(0).toUpperCase() + String(value).slice(1);
+}
+
+function normalizeStatus(value: unknown): Status {
+  const v = String(value ?? "").trim().toLowerCase();
+  if (["aberta", "open", "active"].includes(v)) return "Aberta";
+  if (["aguardando resposta", "aguardando", "waiting", "pending"].includes(v))
+    return "Aguardando retorno";
+  if (["encaminhada", "forwarded", "assigned"].includes(v)) return "Encaminhada";
+  if (["finalizada", "closed", "finished"].includes(v)) return "Finalizada";
+  return "Aberta";
+}
+
+function formatHorario(lastMessageAt: string | null, createdAt: string | null): string {
+  const iso = lastMessageAt ?? createdAt;
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const today = new Date();
+  const sameDay =
+    d.getFullYear() === today.getFullYear() &&
+    d.getMonth() === today.getMonth() &&
+    d.getDate() === today.getDate();
+  return sameDay
+    ? d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+    : d.toLocaleDateString("pt-BR");
+}
 
 
 export const Route = createFileRoute("/conversas")({

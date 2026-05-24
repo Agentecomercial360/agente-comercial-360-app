@@ -360,12 +360,11 @@ function IAPage() {
                   <input
                     type="text"
                     value={company}
-                    onChange={(e) => {
-                      setCompany(e.target.value);
-                      setSaved(false);
-                    }}
-                    className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+                    readOnly
+                    title="Empresa vinculada ao usuário logado"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-4 py-2.5 text-sm text-foreground cursor-not-allowed focus:outline-none"
                   />
+
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">

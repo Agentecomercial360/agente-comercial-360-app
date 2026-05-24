@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, ClientOnly, Link } from "@tanstack/react-router";
 import {
   Headphones,
@@ -26,6 +27,7 @@ import {
   Cell,
 } from "recharts";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
@@ -34,7 +36,15 @@ export const Route = createFileRoute("/dashboard")({
   }),
 });
 
-const kpis = [
+type Kpi = {
+  label: string;
+  value: number | string;
+  icon: typeof Headphones;
+  delta: string;
+  up: boolean;
+};
+
+const kpisMock: Kpi[] = [
   { label: "Atendimentos hoje", value: 128, icon: Headphones, delta: "+12%", up: true },
   { label: "Leads quentes", value: 14, icon: Flame, delta: "+3", up: true },
   { label: "Conversas abertas", value: 26, icon: MessageSquare, delta: "-2", up: false },
@@ -72,7 +82,9 @@ const nextActions = [
   "Revisar conversas abertas há mais de 24 horas",
 ];
 
-const topLeads = [
+type TopLead = { name: string; item: string; score: number; owner: string };
+
+const topLeadsMock: TopLead[] = [
   { name: "João Martins", item: "Kit embreagem", score: 92, owner: "Amanda" },
   { name: "Fernanda Lima", item: "Bateria 60Ah", score: 88, owner: "Thaís" },
   { name: "Pedro Henrique", item: "Amortecedor dianteiro", score: 81, owner: "Vitor" },
@@ -82,20 +94,196 @@ const topLeads = [
 
 const CHART_H = "h-60";
 
+type LoadStatus = "loading" | "loaded" | "partial" | "unauthenticated" | "error";
+
 function DashboardPage() {
+  const [, setLoadingDashboard] = useState(true);
+  const [dashboardLoadStatus, setDashboardLoadStatus] = useState<LoadStatus>("loading");
+  const [companyName, setCompanyName] = useState<string>("União Auto Peças");
+  const [dashboardKpis, setDashboardKpis] = useState<Kpi[]>(kpisMock);
+  const [dashboardTopLeads, setDashboardTopLeads] = useState<TopLead[]>(topLeadsMock);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (userErr || !userData?.user) {
+          if (!cancelled) setDashboardLoadStatus("unauthenticated");
+          return;
+        }
+
+        const { data: cu, error: cuErr } = await supabase
+          .from("company_users")
+          .select("company_id")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (cuErr || !cu?.company_id) {
+          if (!cancelled) setDashboardLoadStatus("error");
+          return;
+        }
+
+        const companyId = cu.company_id as string;
+
+        const startOfToday = new Date();
+        startOfToday.setHours(0, 0, 0, 0);
+
+        const [companyRes, todayRes, hotRes, openRes, topLeadsRes] = await Promise.allSettled([
+          supabase.from("companies").select("name").eq("id", companyId).single(),
+          supabase
+            .from("conversations")
+            .select("id", { count: "exact", head: true })
+            .eq("company_id", companyId)
+            .gte("created_at", startOfToday.toISOString()),
+          supabase
+            .from("leads")
+            .select("id", { count: "exact", head: true })
+            .eq("company_id", companyId)
+            .gte("score", 80),
+          supabase
+            .from("conversations")
+            .select("id", { count: "exact", head: true })
+            .eq("company_id", companyId)
+            .in("status", ["aberta", "Aberta", "open", "active"]),
+          supabase
+            .from("leads")
+            .select("id, interest, score, customer_id, customers ( name )")
+            .eq("company_id", companyId)
+            .gte("score", 80)
+            .order("score", { ascending: false })
+            .limit(5),
+        ]);
+
+        if (cancelled) return;
+
+        let failures = 0;
+
+        // Company name
+        if (companyRes.status === "fulfilled" && !companyRes.value.error && companyRes.value.data?.name) {
+          setCompanyName(companyRes.value.data.name as string);
+        } else {
+          failures++;
+        }
+
+        // KPIs
+        const nextKpis: Kpi[] = [...kpisMock];
+
+        if (todayRes.status === "fulfilled" && !todayRes.value.error) {
+          nextKpis[0] = {
+            label: "Atendimentos hoje",
+            value: todayRes.value.count ?? 0,
+            icon: Headphones,
+            delta: "—",
+            up: true,
+          };
+        } else {
+          failures++;
+        }
+
+        if (hotRes.status === "fulfilled" && !hotRes.value.error) {
+          nextKpis[1] = {
+            label: "Leads quentes",
+            value: hotRes.value.count ?? 0,
+            icon: Flame,
+            delta: "—",
+            up: true,
+          };
+        } else {
+          failures++;
+        }
+
+        if (openRes.status === "fulfilled" && !openRes.value.error) {
+          nextKpis[2] = {
+            label: "Conversas abertas",
+            value: openRes.value.count ?? 0,
+            icon: MessageSquare,
+            delta: "—",
+            up: true,
+          };
+        } else {
+          failures++;
+        }
+
+        // KPI 4 (Clientes sem resposta) permanece como mock nesta etapa.
+        setDashboardKpis(nextKpis);
+
+        // Top leads
+        if (topLeadsRes.status === "fulfilled" && !topLeadsRes.value.error && topLeadsRes.value.data) {
+          const rows = topLeadsRes.value.data as Array<{
+            id: string;
+            interest: string | null;
+            score: number | null;
+            customers: { name: string | null } | { name: string | null }[] | null;
+          }>;
+
+          if (rows.length > 0) {
+            const mapped: TopLead[] = rows.map((r) => {
+              const cust = Array.isArray(r.customers) ? r.customers[0] : r.customers;
+              return {
+                name: cust?.name ?? "—",
+                item: r.interest ?? "—",
+                score: r.score ?? 0,
+                owner: "—",
+              };
+            });
+            setDashboardTopLeads(mapped);
+          }
+        } else {
+          failures++;
+        }
+
+        setDashboardLoadStatus(failures === 0 ? "loaded" : "partial");
+      } catch {
+        if (!cancelled) setDashboardLoadStatus("error");
+      } finally {
+        if (!cancelled) setLoadingDashboard(false);
+      }
+    }
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const statusBadge = (() => {
+    switch (dashboardLoadStatus) {
+      case "loaded":
+        return { text: "Dados carregados do Supabase — Dashboard", color: "text-emerald-600" };
+      case "partial":
+        return { text: "Dashboard parcialmente carregado do Supabase", color: "text-amber-600" };
+      case "error":
+        return {
+          text: "Não foi possível carregar métricas reais. Usando dados locais temporários.",
+          color: "text-rose-600",
+        };
+      case "unauthenticated":
+        return {
+          text: "Usuário não autenticado. Usando dados locais temporários.",
+          color: "text-amber-600",
+        };
+      default:
+        return { text: "Carregando métricas…", color: "text-muted-foreground" };
+    }
+  })();
+
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-7xl space-y-8">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">Dashboard Comercial</h1>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Visão geral dos atendimentos, leads e oportunidades da União Auto Peças.
+            Visão geral dos atendimentos, leads e oportunidades da {companyName}.
           </p>
+          <p className={`mt-1 text-xs font-medium ${statusBadge.color}`}>{statusBadge.text}</p>
         </div>
 
         {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {kpis.map((k) => {
+          {dashboardKpis.map((k) => {
             const Icon = k.icon;
             return (
               <div
@@ -137,11 +325,11 @@ function DashboardPage() {
                 </div>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-foreground/90">
-                A operação apresenta alto volume de atendimentos comerciais hoje. A IA identificou{" "}
-                <span className="font-semibold">14 leads quentes</span>,{" "}
-                <span className="font-semibold">9 clientes sem resposta</span> e{" "}
-                <span className="font-semibold">6 oportunidades aguardando orçamento</span>. Recomenda-se priorizar
-                contatos com maior score e conversas abertas há mais tempo.
+                O Dashboard já iniciou a leitura de métricas reais do Supabase para{" "}
+                <span className="font-semibold">atendimentos</span>,{" "}
+                <span className="font-semibold">leads quentes</span> e{" "}
+                <span className="font-semibold">conversas abertas</span>. Nesta etapa, gráficos avançados, clientes sem
+                resposta e operação por setor ainda usam dados temporários até a próxima fase da integração.
               </p>
             </div>
           </div>
@@ -168,7 +356,7 @@ function DashboardPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-semibold text-foreground">Atendimentos por dia</h3>
-                <p className="text-xs text-muted-foreground">Últimos 7 dias</p>
+                <p className="text-xs text-muted-foreground">Últimos 7 dias (dados temporários)</p>
               </div>
             </div>
             <div className={CHART_H}>
@@ -201,7 +389,7 @@ function DashboardPage() {
 
           <div className="rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
             <h3 className="text-base font-semibold text-foreground">Leads por temperatura</h3>
-            <p className="text-xs text-muted-foreground mb-4">Distribuição atual</p>
+            <p className="text-xs text-muted-foreground mb-4">Distribuição atual (dados temporários)</p>
             <div className={CHART_H}>
               <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -257,8 +445,8 @@ function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {topLeads.map((l, i) => (
-                    <tr key={l.name} className="hover:bg-muted/30 transition">
+                  {dashboardTopLeads.map((l, i) => (
+                    <tr key={`${l.name}-${i}`} className="hover:bg-muted/30 transition">
                       <td className="px-4 py-3 text-muted-foreground">{i + 1}</td>
                       <td className="px-4 py-3 font-medium text-foreground">{l.name}</td>
                       <td className="px-4 py-3 text-foreground/80">{l.item}</td>

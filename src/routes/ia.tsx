@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Activity,
   Building2,
@@ -11,14 +11,19 @@ import {
   Save,
   RotateCcw,
   X,
+  CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ia")({
   component: IAPage,
   head: () => ({ meta: [{ title: "Configuração da IA | Agente Comercial 360" }] }),
 });
+
+type AiLoadStatus = "loading" | "loaded" | "empty" | "unauthenticated" | "error";
 
 const defaultAssistantName = "Assistente Virtual";
 const defaultCompany = "União Auto Peças";
@@ -75,6 +80,95 @@ function IAPage() {
   const [saved, setSaved] = useState(true);
   const [search, setSearch] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  const [loadingAi, setLoadingAi] = useState(true);
+  const [aiLoadStatus, setAiLoadStatus] = useState<AiLoadStatus>("loading");
+  const [activeAiSettingsId, setActiveAiSettingsId] = useState<string | null>(null);
+  const [activeAiCreatedAt, setActiveAiCreatedAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (userError || !userData?.user) {
+          setAiLoadStatus("unauthenticated");
+          setLoadingAi(false);
+          return;
+        }
+
+        const { data: cu, error: cuError } = await supabase
+          .from("company_users")
+          .select("company_id")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+        if (cancelled) return;
+        if (cuError || !cu?.company_id) {
+          setAiLoadStatus("error");
+          setLoadingAi(false);
+          return;
+        }
+        const companyId = cu.company_id as string;
+
+        const [companyRes, aiRes] = await Promise.all([
+          supabase.from("companies").select("name").eq("id", companyId).single(),
+          supabase
+            .from("ai_settings")
+            .select(
+              "id,company_id,agent_name,behavior_prompt,can_send_prices,can_create_quote,created_at",
+            )
+            .eq("company_id", companyId)
+            .maybeSingle(),
+        ]);
+        if (cancelled) return;
+
+        const realCompanyName = companyRes.data?.name as string | undefined;
+        if (realCompanyName) setCompany(realCompanyName);
+
+        if (aiRes.error) {
+          setAiLoadStatus("error");
+          setLoadingAi(false);
+          return;
+        }
+
+        const ai = aiRes.data;
+        if (!ai) {
+          setAiLoadStatus("empty");
+          setLoadingAi(false);
+          return;
+        }
+
+        if (ai.agent_name) setAssistantName(ai.agent_name as string);
+        if (ai.behavior_prompt) setPrompt(ai.behavior_prompt as string);
+        setRules((prev) =>
+          prev.map((r) => {
+            if (r.label === "Pode enviar preço?")
+              return { ...r, value: Boolean(ai.can_send_prices) };
+            if (r.label === "Pode criar orçamento?")
+              return { ...r, value: Boolean(ai.can_create_quote) };
+            return r;
+          }),
+        );
+        setActiveAiSettingsId((ai.id as string) ?? null);
+        setActiveAiCreatedAt((ai.created_at as string) ?? null);
+        setAiLoadStatus("loaded");
+        setSaved(true);
+        setLoadingAi(false);
+      } catch {
+        if (cancelled) return;
+        setAiLoadStatus("error");
+        setLoadingAi(false);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const hasChanges = useMemo(() => {
     if (assistantName !== defaultAssistantName) return true;
@@ -174,7 +268,38 @@ function IAPage() {
           <p className="mt-1.5 text-sm text-muted-foreground">
             Configure o comportamento da assistente virtual, regras de atuação e critérios de encaminhamento.
           </p>
+          {(() => {
+            if (loadingAi) {
+              return (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Carregando configurações da IA...
+                </div>
+              );
+            }
+            if (aiLoadStatus === "loaded") {
+              return (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Dados carregados do Supabase — IA
+                </div>
+              );
+            }
+            const msg =
+              aiLoadStatus === "empty"
+                ? "Nenhuma configuração real encontrada. Usando dados locais temporários."
+                : aiLoadStatus === "unauthenticated"
+                  ? "Usuário não autenticado. Usando dados locais temporários."
+                  : "Não foi possível carregar configurações da IA. Usando dados locais temporários.";
+            return (
+              <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 ring-1 ring-amber-200">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                {msg}
+              </div>
+            );
+          })()}
         </div>
+
 
         {/* Summary cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -235,12 +360,11 @@ function IAPage() {
                   <input
                     type="text"
                     value={company}
-                    onChange={(e) => {
-                      setCompany(e.target.value);
-                      setSaved(false);
-                    }}
-                    className="w-full rounded-xl border border-border bg-card px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+                    readOnly
+                    title="Empresa vinculada ao usuário logado"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-4 py-2.5 text-sm text-foreground cursor-not-allowed focus:outline-none"
                   />
+
                 </div>
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1.5">

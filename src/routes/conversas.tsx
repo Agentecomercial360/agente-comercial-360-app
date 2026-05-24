@@ -159,7 +159,7 @@ const statusBadge: Record<Status, string> = {
   Finalizada: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
 };
 
-type Mensagem = { autor: "cliente" | "ia" | "atendente"; texto: string; hora: string };
+type Mensagem = { autor: "cliente" | "ia" | "atendente" | "sistema"; texto: string; hora: string };
 
 const mensagensIniciais: Record<string | number, Mensagem[]> = {
   1: [

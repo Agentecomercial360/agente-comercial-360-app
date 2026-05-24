@@ -389,6 +389,47 @@ function BaseConhecimentoPage() {
           <p className="mt-1.5 text-sm text-muted-foreground">
             Organize regras, informações e conteúdos usados pela IA para atender clientes com precisão.
           </p>
+          {(() => {
+            if (loadingKb || kbLoadStatus === "loading") {
+              return (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-muted px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Carregando base de conhecimento...
+                </div>
+              );
+            }
+            if (kbLoadStatus === "loaded") {
+              return (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Dados carregados do Supabase — {items.length} conhecimento{items.length === 1 ? "" : "s"}
+                  {activeCompanyName ? ` (${activeCompanyName})` : ""}
+                </div>
+              );
+            }
+            if (kbLoadStatus === "empty") {
+              return (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  Nenhum conhecimento real encontrado. Usando dados locais temporários.
+                </div>
+              );
+            }
+            if (kbLoadStatus === "unauthenticated") {
+              return (
+                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  Usuário não autenticado. Usando dados locais temporários.
+                </div>
+              );
+            }
+            return (
+              <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-medium text-rose-700 ring-1 ring-rose-200">
+                <AlertTriangle className="h-3.5 w-3.5" />
+                Não foi possível carregar a base de conhecimento. Usando dados locais temporários.
+              </div>
+            );
+          })()}
         </div>
 
         {/* Summary cards */}

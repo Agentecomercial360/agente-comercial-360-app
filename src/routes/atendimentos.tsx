@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast, Toaster } from "sonner";
 import {
   Headphones,
@@ -14,11 +14,37 @@ import {
   UserPlus,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/atendimentos")({
   component: AtendimentosPage,
   head: () => ({ meta: [{ title: "Atendimentos | Agente Comercial 360" }] }),
 });
+
+type LoadStatus = "loading" | "loaded" | "empty" | "unauthenticated" | "error";
+
+function normalizeStatus(raw: unknown): string {
+  const s = String(raw ?? "").trim().toLowerCase();
+  if (["aberta", "aberto", "open", "active"].includes(s)) return "Aberto";
+  if (["em_andamento", "andamento", "in_progress"].includes(s)) return "Em andamento";
+  if (["aguardando_cliente", "aguardando_resposta", "waiting", "pending"].includes(s))
+    return "Aguardando resposta";
+  if (["sem_resposta", "no_response"].includes(s)) return "Sem resposta";
+  if (["finalizada", "finalizado", "closed", "finished"].includes(s)) return "Finalizado";
+  return "Aberto";
+}
+
+function formatHorario(lastMessageAt: string | null, createdAt: string | null): string {
+  const iso = lastMessageAt ?? createdAt;
+  if (!iso) return "—";
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  } catch {
+    return "—";
+  }
+}
 
 
 const cards = [

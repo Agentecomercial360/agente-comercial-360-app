@@ -260,6 +260,28 @@ function ConfiguracoesPage() {
           <p className="mt-1.5 text-sm text-muted-foreground">
             Gerencie os dados da empresa, preferências do sistema e parâmetros gerais da operação.
           </p>
+          <div className="mt-3 text-xs">
+            {companyLoadStatus === "loading" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-muted-foreground">
+                Carregando empresa vinculada...
+              </span>
+            )}
+            {companyLoadStatus === "loaded" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 ring-1 ring-emerald-200">
+                Dados carregados do Supabase — {empresa.nome}
+              </span>
+            )}
+            {companyLoadStatus === "unauthenticated" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 ring-1 ring-amber-200">
+                Empresa mockada — usuário não autenticado
+              </span>
+            )}
+            {companyLoadStatus === "error" && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 ring-1 ring-amber-200">
+                Usando dados locais temporários
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Summary cards */}

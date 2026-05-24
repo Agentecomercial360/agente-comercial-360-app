@@ -599,13 +599,39 @@ function ConversasPage() {
               </div>
 
               <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-5">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-4">
-                  Mensagens
-                </h3>
+                <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+                  <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Mensagens
+                  </h3>
+                  <span className="text-[10px] font-medium">
+                    {loadingMessages ? (
+                      <span className="inline-flex items-center gap-1 text-muted-foreground">
+                        <Loader2 className="h-3 w-3 animate-spin" /> Carregando mensagens...
+                      </span>
+                    ) : messagesLoadStatus === "loaded" ? (
+                      <span className="text-emerald-700">Mensagens carregadas do Supabase</span>
+                    ) : messagesLoadStatus === "empty" ? (
+                      <span className="text-amber-700">
+                        Nenhuma mensagem real encontrada para esta conversa
+                      </span>
+                    ) : messagesLoadStatus === "error" ? (
+                      <span className="text-red-700">
+                        Não foi possível carregar mensagens reais. Usando mensagens locais temporárias.
+                      </span>
+                    ) : null}
+                  </span>
+                </div>
                 <div className="space-y-3">
                   {mensagens.map((m, i) => {
-                    const isClient = m.autor === "cliente";
-                    const label = m.autor === "cliente" ? "Cliente" : m.autor === "ia" ? "IA" : "Você";
+                    const isLeft = m.autor === "cliente" || m.autor === "sistema";
+                    const label =
+                      m.autor === "cliente"
+                        ? "Cliente"
+                        : m.autor === "ia"
+                          ? "IA"
+                          : m.autor === "sistema"
+                            ? "Sistema"
+                            : "Você";
                     return (
                       <div
                         key={i}

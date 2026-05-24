@@ -196,6 +196,10 @@ function ConversasPage() {
   const [forwardTo, setForwardTo] = useState(responsaveis[0]);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [convLoadStatus, setConvLoadStatus] = useState<ConvLoadStatus>("loading");
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [messagesLoadStatus, setMessagesLoadStatus] = useState<
+    "idle" | "loading" | "loaded" | "empty" | "error"
+  >("idle");
 
   useEffect(() => {
     let cancelled = false;

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Activity,
@@ -14,11 +14,40 @@ import {
   PieChart,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/relatorios")({
   component: RelatoriosPage,
   head: () => ({ meta: [{ title: "Relatórios | Agente Comercial 360" }] }),
 });
+
+type RelatoriosLoadStatus =
+  | "loading"
+  | "loaded"
+  | "partial"
+  | "unauthenticated"
+  | "error";
+
+function getPeriodRange(periodo: "Hoje" | "Ontem" | "Últimos 7 dias" | "Últimos 30 dias") {
+  const now = new Date();
+  const start = new Date(now);
+  const end = new Date(now);
+  if (periodo === "Hoje") {
+    start.setHours(0, 0, 0, 0);
+  } else if (periodo === "Ontem") {
+    start.setDate(start.getDate() - 1);
+    start.setHours(0, 0, 0, 0);
+    end.setDate(end.getDate() - 1);
+    end.setHours(23, 59, 59, 999);
+  } else if (periodo === "Últimos 7 dias") {
+    start.setDate(start.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+  } else {
+    start.setDate(start.getDate() - 29);
+    start.setHours(0, 0, 0, 0);
+  }
+  return { start, end };
+}
 
 type PeriodoKey = "Hoje" | "Ontem" | "Últimos 7 dias" | "Últimos 30 dias";
 const periodos: PeriodoKey[] = ["Hoje", "Ontem", "Últimos 7 dias", "Últimos 30 dias"];
@@ -187,7 +216,124 @@ function csvEscape(v: string | number) {
 
 function RelatoriosPage() {
   const [periodo, setPeriodo] = useState<PeriodoKey>("Hoje");
-  const d = dadosPorPeriodo[periodo];
+  const [loadingRelatorios, setLoadingRelatorios] = useState(true);
+  const [relatoriosLoadStatus, setRelatoriosLoadStatus] =
+    useState<RelatoriosLoadStatus>("loading");
+  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [dadosRelatorio, setDadosRelatorio] = useState<DadosPeriodo>(dadosPorPeriodo[periodo]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      setLoadingRelatorios(true);
+      setRelatoriosLoadStatus("loading");
+      const base = dadosPorPeriodo[periodo];
+      try {
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (userErr || !userData?.user) {
+          if (!cancelled) {
+            setDadosRelatorio(base);
+            setRelatoriosLoadStatus("unauthenticated");
+            setLoadingRelatorios(false);
+          }
+          return;
+        }
+        const { data: cu } = await supabase
+          .from("company_users")
+          .select("company_id")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+        const companyId = (cu as { company_id?: string } | null)?.company_id;
+        if (!companyId) {
+          if (!cancelled) {
+            setDadosRelatorio(base);
+            setRelatoriosLoadStatus("error");
+            setLoadingRelatorios(false);
+          }
+          return;
+        }
+        const { start, end } = getPeriodRange(periodo);
+        const startISO = start.toISOString();
+        const endISO = end.toISOString();
+
+        const results = await Promise.allSettled([
+          supabase.from("companies").select("name").eq("id", companyId).single(),
+          supabase
+            .from("conversations")
+            .select("id", { count: "exact", head: true })
+            .eq("company_id", companyId)
+            .gte("created_at", startISO)
+            .lte("created_at", endISO),
+          supabase
+            .from("leads")
+            .select("id", { count: "exact", head: true })
+            .eq("company_id", companyId)
+            .gte("created_at", startISO)
+            .lte("created_at", endISO),
+          supabase
+            .from("leads")
+            .select("id", { count: "exact", head: true })
+            .eq("company_id", companyId)
+            .gte("score", 80),
+          supabase
+            .from("customers")
+            .select("id", { count: "exact", head: true })
+            .eq("company_id", companyId),
+        ]);
+
+        let failures = 0;
+        const next: DadosPeriodo = { ...base };
+
+        const r0 = results[0];
+        if (r0.status === "fulfilled" && !r0.value.error) {
+          const name = (r0.value.data as { name?: string } | null)?.name ?? null;
+          if (!cancelled) setCompanyName(name);
+        } else failures++;
+
+        const r1 = results[1];
+        if (r1.status === "fulfilled" && !r1.value.error && typeof r1.value.count === "number") {
+          next.atendimentos = r1.value.count;
+        } else failures++;
+
+        const r2 = results[2];
+        if (r2.status === "fulfilled" && !r2.value.error && typeof r2.value.count === "number") {
+          next.oportunidades = r2.value.count;
+        } else failures++;
+
+        const r3 = results[3];
+        if (r3.status === "fulfilled" && !r3.value.error && typeof r3.value.count === "number") {
+          next.leadsQuentes = r3.value.count;
+        } else failures++;
+
+        const r4 = results[4];
+        if (r4.status === "fulfilled" && !r4.value.error && typeof r4.value.count === "number") {
+          next.novos = r4.value.count;
+        } else failures++;
+
+        next.resumo =
+          "As métricas principais (atendimentos, oportunidades, leads quentes e clientes cadastrados) já vêm do Supabase. Gráficos por setor, peças solicitadas, pendências e resumo executivo avançado ainda usam dados temporários até a próxima fase.";
+
+        if (!cancelled) {
+          setDadosRelatorio(next);
+          setRelatoriosLoadStatus(failures === 0 ? "loaded" : failures >= 5 ? "error" : "partial");
+          setLoadingRelatorios(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setDadosRelatorio(base);
+          setRelatoriosLoadStatus("error");
+          setLoadingRelatorios(false);
+        }
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [periodo]);
+
+  const d = dadosRelatorio;
   const cards = useMemo(
     () => [
       {
@@ -203,6 +349,25 @@ function RelatoriosPage() {
   );
   const maxSemana = Math.max(...d.semana.map((s) => s.valor));
   const totalSetores = d.setores.reduce((a, s) => a + s.valor, 0) || 1;
+
+  const statusMessage =
+    relatoriosLoadStatus === "loading"
+      ? "Carregando relatórios do Supabase..."
+      : relatoriosLoadStatus === "loaded"
+        ? "Dados carregados do Supabase — Relatórios"
+        : relatoriosLoadStatus === "partial"
+          ? "Relatórios parcialmente carregados do Supabase"
+          : relatoriosLoadStatus === "unauthenticated"
+            ? "Usuário não autenticado. Usando dados locais temporários."
+            : "Não foi possível carregar métricas reais. Usando dados locais temporários.";
+  const statusTone =
+    relatoriosLoadStatus === "loaded"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      : relatoriosLoadStatus === "partial"
+        ? "bg-amber-50 text-amber-800 border-amber-200"
+        : relatoriosLoadStatus === "loading"
+          ? "bg-slate-50 text-slate-600 border-slate-200"
+          : "bg-rose-50 text-rose-700 border-rose-200";
 
   const handleExport = () => {
     try {
@@ -236,12 +401,19 @@ function RelatoriosPage() {
           </p>
         </div>
 
+        <div className={`rounded-lg border px-3 py-2 text-xs font-medium ${statusTone}`}>
+          {statusMessage}
+          {loadingRelatorios ? " (carregando...)" : ""}
+        </div>
+
+
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
               <h2 className="text-xl font-bold text-slate-900">
-                Relatório Gerencial — União Auto Peças
+                Relatório Gerencial — {companyName ?? "União Auto Peças"}
               </h2>
+
               <p className="mt-1 text-sm text-slate-500">
                 Resumo operacional gerado com base nos atendimentos, leads e conversas do período.
               </p>
@@ -471,9 +643,12 @@ function RelatoriosPage() {
             <div>
               <p className="text-sm font-semibold text-amber-900">Observação</p>
               <p className="mt-1 text-sm text-amber-800">
-                Os dados desta tela são apenas visuais nesta fase. A conexão com Supabase será
-                feita futuramente, após aprovação da estrutura visual.
+                As métricas principais de atendimentos, oportunidades, leads quentes e clientes
+                cadastrados já podem ser carregadas do Supabase. Nesta etapa, gráficos por setor,
+                peças solicitadas, pendências, clientes sem resposta e resumo executivo avançado
+                ainda usam dados temporários até a próxima fase.
               </p>
+
             </div>
           </div>
         </div>

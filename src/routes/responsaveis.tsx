@@ -342,6 +342,39 @@ function ResponsaveisPage() {
           <p className="mt-1.5 text-sm text-muted-foreground">
             Gerencie os responsáveis por setor da empresa e organize o encaminhamento dos atendimentos.
           </p>
+          {(() => {
+            if (loadingResponsibles) {
+              return (
+                <p className="mt-2 text-xs text-muted-foreground">Carregando responsáveis...</p>
+              );
+            }
+            if (responsiblesLoadStatus === "loaded") {
+              return (
+                <p className="mt-2 text-xs font-medium text-emerald-600">
+                  Dados carregados do Supabase — {loadedCount} {loadedCount === 1 ? "responsável" : "responsáveis"}
+                </p>
+              );
+            }
+            if (responsiblesLoadStatus === "empty") {
+              return (
+                <p className="mt-2 text-xs font-medium text-amber-600">
+                  Nenhum responsável real encontrado. Usando dados locais temporários.
+                </p>
+              );
+            }
+            if (responsiblesLoadStatus === "unauthenticated") {
+              return (
+                <p className="mt-2 text-xs font-medium text-amber-600">
+                  Usuário não autenticado. Usando dados locais temporários.
+                </p>
+              );
+            }
+            return (
+              <p className="mt-2 text-xs font-medium text-amber-600">
+                Não foi possível carregar responsáveis. Usando dados locais temporários.
+              </p>
+            );
+          })()}
         </div>
 
         {/* Summary cards */}

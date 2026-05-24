@@ -81,6 +81,95 @@ function IAPage() {
   const [search, setSearch] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  const [loadingAi, setLoadingAi] = useState(true);
+  const [aiLoadStatus, setAiLoadStatus] = useState<AiLoadStatus>("loading");
+  const [activeAiSettingsId, setActiveAiSettingsId] = useState<string | null>(null);
+  const [activeAiCreatedAt, setActiveAiCreatedAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (userError || !userData?.user) {
+          setAiLoadStatus("unauthenticated");
+          setLoadingAi(false);
+          return;
+        }
+
+        const { data: cu, error: cuError } = await supabase
+          .from("company_users")
+          .select("company_id")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+        if (cancelled) return;
+        if (cuError || !cu?.company_id) {
+          setAiLoadStatus("error");
+          setLoadingAi(false);
+          return;
+        }
+        const companyId = cu.company_id as string;
+
+        const [companyRes, aiRes] = await Promise.all([
+          supabase.from("companies").select("name").eq("id", companyId).single(),
+          supabase
+            .from("ai_settings")
+            .select(
+              "id,company_id,agent_name,behavior_prompt,can_send_prices,can_create_quote,created_at",
+            )
+            .eq("company_id", companyId)
+            .maybeSingle(),
+        ]);
+        if (cancelled) return;
+
+        const realCompanyName = companyRes.data?.name as string | undefined;
+        if (realCompanyName) setCompany(realCompanyName);
+
+        if (aiRes.error) {
+          setAiLoadStatus("error");
+          setLoadingAi(false);
+          return;
+        }
+
+        const ai = aiRes.data;
+        if (!ai) {
+          setAiLoadStatus("empty");
+          setLoadingAi(false);
+          return;
+        }
+
+        if (ai.agent_name) setAssistantName(ai.agent_name as string);
+        if (ai.behavior_prompt) setPrompt(ai.behavior_prompt as string);
+        setRules((prev) =>
+          prev.map((r) => {
+            if (r.label === "Pode enviar preço?")
+              return { ...r, value: Boolean(ai.can_send_prices) };
+            if (r.label === "Pode criar orçamento?")
+              return { ...r, value: Boolean(ai.can_create_quote) };
+            return r;
+          }),
+        );
+        setActiveAiSettingsId((ai.id as string) ?? null);
+        setActiveAiCreatedAt((ai.created_at as string) ?? null);
+        setAiLoadStatus("loaded");
+        setSaved(true);
+        setLoadingAi(false);
+      } catch {
+        if (cancelled) return;
+        setAiLoadStatus("error");
+        setLoadingAi(false);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const hasChanges = useMemo(() => {
     if (assistantName !== defaultAssistantName) return true;
     if (company !== defaultCompany) return true;

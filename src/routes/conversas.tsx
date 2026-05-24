@@ -161,7 +161,7 @@ const statusBadge: Record<Status, string> = {
 
 type Mensagem = { autor: "cliente" | "ia" | "atendente"; texto: string; hora: string };
 
-const mensagensIniciais: Record<number, Mensagem[]> = {
+const mensagensIniciais: Record<string | number, Mensagem[]> = {
   1: [
     { autor: "cliente", texto: "Bom dia, preciso de orçamento do kit embreagem do Gol 1.6 2014.", hora: "09:38" },
     { autor: "ia", texto: "Claro! Você consegue informar se o veículo é manual e se deseja apenas a peça ou peça com serviço?", hora: "09:39" },

@@ -635,11 +635,11 @@ function ConversasPage() {
                     return (
                       <div
                         key={i}
-                        className={`flex ${isClient ? "justify-start" : "justify-end"}`}
+                        className={`flex ${isLeft ? "justify-start" : "justify-end"}`}
                       >
                         <div
                           className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
-                            isClient
+                            isLeft
                               ? "bg-muted text-foreground rounded-tl-sm"
                               : "bg-primary text-primary-foreground rounded-tr-sm"
                           }`}

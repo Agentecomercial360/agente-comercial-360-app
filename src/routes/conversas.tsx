@@ -88,7 +88,7 @@ type Status =
   | "Finalizada";
 
 type Conversa = {
-  id: number;
+  id: string | number;
   cliente: string;
   telefone: string;
   canal: string;

@@ -263,15 +263,24 @@ function AtendimentosPage() {
       <Toaster position="top-right" richColors />
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Atendimentos</h1>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h1 className="text-3xl font-bold text-slate-900">Atendimentos</h1>
+            <span className={`text-xs font-medium ${statusColor}`}>{statusMsg}</span>
+          </div>
           <p className="mt-1 text-sm text-slate-500">
             Acompanhe os atendimentos recebidos, setores identificados e responsáveis vinculados.
           </p>
         </div>
 
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+          A leitura da lista de atendimentos já pode ser carregada do Supabase. Nesta etapa, setor,
+          responsável, mensagens, finalizar e encaminhar ainda funcionam localmente e não persistem
+          mudanças no banco.
+        </div>
+
         {/* Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {cards.map((c) => (
+          {dynamicCards.map((c) => (
             <div
               key={c.label}
               className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
@@ -286,6 +295,7 @@ function AtendimentosPage() {
             </div>
           ))}
         </div>
+
 
         {/* Filtros */}
         <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">

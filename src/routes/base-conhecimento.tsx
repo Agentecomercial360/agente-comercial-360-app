@@ -150,6 +150,90 @@ const statusBadge: Record<Status, string> = {
 
 function BaseConhecimentoPage() {
   const [items, setItems] = useState<Conhecimento[]>(initialConhecimentos);
+  const [loadingKb, setLoadingKb] = useState(true);
+  const [kbLoadStatus, setKbLoadStatus] = useState<KbLoadStatus>("loading");
+  const [activeCompanyName, setActiveCompanyName] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (cancelled) return;
+        if (userErr || !userData?.user) {
+          setKbLoadStatus("unauthenticated");
+          setLoadingKb(false);
+          return;
+        }
+
+        const { data: cu, error: cuErr } = await supabase
+          .from("company_users")
+          .select("company_id")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+        if (cancelled) return;
+        if (cuErr || !cu?.company_id) {
+          setKbLoadStatus("error");
+          setLoadingKb(false);
+          return;
+        }
+
+        const companyId = cu.company_id as string;
+
+        const [companyRes, kbRes] = await Promise.all([
+          supabase.from("companies").select("name").eq("id", companyId).single(),
+          supabase
+            .from("knowledge_base")
+            .select("id,company_id,title,content,category,created_at")
+            .eq("company_id", companyId)
+            .order("created_at", { ascending: false }),
+        ]);
+        if (cancelled) return;
+
+        const companyName = (companyRes.data?.name as string | undefined) ?? "União Auto Peças";
+        setActiveCompanyName(companyName);
+
+        if (kbRes.error) {
+          setKbLoadStatus("error");
+          setLoadingKb(false);
+          return;
+        }
+
+        const rows = kbRes.data ?? [];
+        if (rows.length === 0) {
+          setKbLoadStatus("empty");
+          setLoadingKb(false);
+          return;
+        }
+
+        const mapped: Conhecimento[] = rows.map((r: Record<string, unknown>) => ({
+          id: String(r.id),
+          titulo: (r.title as string) ?? "",
+          categoria: normalizeCategoria(r.category),
+          conteudo: (r.content as string) ?? "",
+          empresa: companyName,
+          status: "Ativo",
+          atualizadoEm: r.created_at
+            ? new Date(r.created_at as string).toLocaleDateString("pt-BR")
+            : "",
+        }));
+
+        setItems(mapped);
+        setKbLoadStatus("loaded");
+        setLoadingKb(false);
+      } catch {
+        if (!cancelled) {
+          setKbLoadStatus("error");
+          setLoadingKb(false);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const [activeFilter, setActiveFilter] = useState("Todos");
   const [search, setSearch] = useState("");
   const [modalOpen, setModalOpen] = useState(false);

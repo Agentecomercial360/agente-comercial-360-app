@@ -327,28 +327,72 @@ function ConversasPage() {
             Consulte o histórico de mensagens, interações com clientes e respostas
             sugeridas pela IA.
           </p>
+          <div className="mt-2 text-xs">
+            {loadingConversations ? (
+              <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                <Loader2 className="h-3 w-3 animate-spin" /> Carregando conversas do Supabase...
+              </span>
+            ) : convLoadStatus === "loaded" ? (
+              <span className="text-emerald-700">
+                Dados carregados do Supabase — {items.length} conversas
+              </span>
+            ) : convLoadStatus === "empty" ? (
+              <span className="text-amber-700">
+                Nenhuma conversa real encontrada. Usando dados locais temporários.
+              </span>
+            ) : convLoadStatus === "unauthenticated" ? (
+              <span className="text-amber-700">
+                Usuário não autenticado. Usando dados locais temporários.
+              </span>
+            ) : convLoadStatus === "error" ? (
+              <span className="text-red-700">
+                Não foi possível carregar conversas. Usando dados locais temporários.
+              </span>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+          A leitura da lista de conversas já pode ser carregada do Supabase. Nesta etapa, as
+          mensagens, envio e encaminhamento ainda funcionam localmente e não persistem mudanças
+          no banco.
         </div>
 
         {/* Summary cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {summary.map((s) => {
-            const Icon = s.icon;
-            return (
-              <div
-                key={s.label}
-                className="rounded-2xl bg-card p-5 border border-border shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
-                  <Icon className="h-5 w-5" />
+          {(() => {
+            const counts = {
+              abertas: items.filter((c) => c.status === "Aberta").length,
+              aguardando: items.filter((c) => c.status === "Aguardando retorno").length,
+              encaminhadas: items.filter((c) => c.status === "Encaminhada").length,
+              finalizadas: items.filter((c) => c.status === "Finalizada").length,
+            };
+            const cards = [
+              { label: "Conversas abertas", value: counts.abertas, icon: MessageCircle },
+              { label: "Aguardando resposta", value: counts.aguardando, icon: Clock },
+              { label: "Encaminhadas para humano", value: counts.encaminhadas, icon: UserCheck },
+              { label: "Finalizadas hoje", value: counts.finalizadas, icon: CheckCircle2 },
+            ];
+            return cards.map((s) => {
+              const Icon = s.icon;
+              return (
+                <div
+                  key={s.label}
+                  className="rounded-2xl bg-card p-5 border border-border shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">
+                    {s.value}
+                  </div>
+                  <div className="mt-1 text-xs text-muted-foreground">{s.label}</div>
                 </div>
-                <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">
-                  {s.value}
-                </div>
-                <div className="mt-1 text-xs text-muted-foreground">{s.label}</div>
-              </div>
-            );
-          })}
+              );
+            });
+          })()}
         </div>
+
 
         {/* Filters + search */}
         <div className="rounded-2xl bg-card p-4 border border-border shadow-[var(--shadow-soft)] space-y-3">

@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Activity,
   Building2,
@@ -11,14 +11,19 @@ import {
   Save,
   RotateCcw,
   X,
+  CheckCircle2,
+  Loader2,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ia")({
   component: IAPage,
   head: () => ({ meta: [{ title: "Configuração da IA | Agente Comercial 360" }] }),
 });
+
+type AiLoadStatus = "loading" | "loaded" | "empty" | "unauthenticated" | "error";
 
 const defaultAssistantName = "Assistente Virtual";
 const defaultCompany = "União Auto Peças";

@@ -298,7 +298,7 @@ function ConversasPage() {
     const hora = `${String(mensagens.length + 9).padStart(2, "0")}:00`;
     setMessagesById((prev) => ({
       ...prev,
-      [selected.id]: [...(prev[selected.id] ?? []), { autor: "atendente", texto, hora }],
+      [selected.id]: [...(prev[selected.id] ?? []), { autor: "atendente" as const, texto, hora }],
     }));
     setItems((prev) =>
       prev.map((c) => (c.id === selected.id ? { ...c, ultimaMensagem: texto } : c)),

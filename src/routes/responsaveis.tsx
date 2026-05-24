@@ -124,6 +124,100 @@ function ResponsaveisPage() {
     status: "Ativo",
   });
 
+  const [loadingResponsibles, setLoadingResponsibles] = useState(true);
+  const [responsiblesLoadStatus, setResponsiblesLoadStatus] = useState<
+    "loading" | "loaded" | "empty" | "unauthenticated" | "error"
+  >("loading");
+  const [loadedCount, setLoadedCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const allowedSetores: Setor[] = ["Vendas", "Financeiro", "Administrativo", "Gestão"];
+    const normalizeSetor = (d: string | null | undefined): Setor => {
+      if (!d) return "Administrativo";
+      const found = allowedSetores.find((s) => s.toLowerCase() === d.trim().toLowerCase());
+      return found ?? "Administrativo";
+    };
+
+    const load = async () => {
+      try {
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError || !userData.user) {
+          if (!cancelled) {
+            setResponsiblesLoadStatus("unauthenticated");
+            setLoadingResponsibles(false);
+          }
+          return;
+        }
+
+        const { data: cu, error: cuError } = await supabase
+          .from("company_users")
+          .select("company_id")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+
+        if (cuError || !cu?.company_id) {
+          if (!cancelled) {
+            setResponsiblesLoadStatus("error");
+            setLoadingResponsibles(false);
+          }
+          return;
+        }
+
+        const { data: rows, error: rError } = await supabase
+          .from("responsibles")
+          .select("id,name,department,role,phone,email,is_active,created_at")
+          .eq("company_id", cu.company_id)
+          .order("name");
+
+        if (rError) {
+          if (!cancelled) {
+            setResponsiblesLoadStatus("error");
+            setLoadingResponsibles(false);
+          }
+          return;
+        }
+
+        if (!rows || rows.length === 0) {
+          if (!cancelled) {
+            setResponsiblesLoadStatus("empty");
+            setLoadingResponsibles(false);
+          }
+          return;
+        }
+
+        const mapped: Responsavel[] = rows.map((r) => ({
+          id: String(r.id),
+          nome: r.name ?? "Sem nome",
+          setor: normalizeSetor(r.department),
+          funcao: r.role ?? "",
+          telefone: r.phone ?? "",
+          status: r.is_active ? "Ativo" : "Inativo",
+          atendimentosHoje: 0,
+        }));
+
+        if (!cancelled) {
+          setItems(mapped);
+          setLoadedCount(mapped.length);
+          setResponsiblesLoadStatus("loaded");
+          setLoadingResponsibles(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setResponsiblesLoadStatus("error");
+          setLoadingResponsibles(false);
+        }
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const ativosCount = useMemo(
     () => items.filter((r) => r.status === "Ativo").length,
     [items]

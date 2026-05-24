@@ -595,6 +595,39 @@ function ConfiguracoesPage() {
                 );
               })}
             </div>
+            {(activeCompanyId || activeCompanyEmail || activeCompanyToneOfVoice || activeCompanyCreatedAt) && (
+              <div className="rounded-xl border border-border bg-background p-4 space-y-2">
+                <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Dados do Supabase
+                </div>
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  {activeCompanyId && (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">ID da empresa</dt>
+                      <dd className="font-mono text-xs break-all text-foreground">{activeCompanyId}</dd>
+                    </div>
+                  )}
+                  {activeCompanyEmail && (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">E-mail</dt>
+                      <dd className="text-foreground">{activeCompanyEmail}</dd>
+                    </div>
+                  )}
+                  {activeCompanyToneOfVoice && (
+                    <div className="sm:col-span-2">
+                      <dt className="text-xs text-muted-foreground">Tom de voz da IA</dt>
+                      <dd className="text-foreground">{activeCompanyToneOfVoice}</dd>
+                    </div>
+                  )}
+                  {activeCompanyCreatedAt && (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">Criado em</dt>
+                      <dd className="text-foreground">{new Date(activeCompanyCreatedAt).toLocaleString("pt-BR")}</dd>
+                    </div>
+                  )}
+                </dl>
+              </div>
+            )}
             <div className="rounded-xl bg-[var(--brand-blue-soft)] border border-border p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="h-4 w-4 text-primary" />

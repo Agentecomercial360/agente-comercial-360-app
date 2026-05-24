@@ -497,7 +497,7 @@ function IAPage() {
                 <h3 className="text-sm font-semibold text-amber-800">Atenção</h3>
               </div>
               <p className="text-xs leading-relaxed text-amber-700">
-                A IA não deve enviar preços finais nem fechar orçamentos sem validação humana. Nesta fase, os dados exibidos são apenas visuais e ainda não estão conectados ao Supabase.
+                A leitura das configurações da IA já está conectada ao Supabase. Nesta etapa, as alterações feitas nesta tela ainda são locais: o botão Salvar configurações ainda não persiste mudanças no banco. A persistência será ativada em uma próxima fase com UPDATE seguro.
               </p>
             </div>
           </div>

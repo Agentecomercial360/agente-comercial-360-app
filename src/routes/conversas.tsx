@@ -277,6 +277,77 @@ function ConversasPage() {
     };
   }, []);
 
+  // Etapa 1B: carregar mensagens reais da conversa selecionada
+  useEffect(() => {
+    if (!selectedId) {
+      setMessagesLoadStatus("idle");
+      return;
+    }
+    // só buscar quando o id parece um UUID do Supabase (string longa)
+    if (typeof selectedId !== "string" || selectedId.length < 20) {
+      setMessagesLoadStatus("idle");
+      return;
+    }
+
+    let cancelled = false;
+    setLoadingMessages(true);
+    setMessagesLoadStatus("loading");
+
+    (async () => {
+      try {
+        const { data: rows, error } = await supabase
+          .from("messages")
+          .select("id,conversation_id,sender_type,content,channel,created_at")
+          .eq("conversation_id", selectedId)
+          .order("created_at", { ascending: true });
+
+        if (cancelled) return;
+
+        if (error) {
+          setMessagesLoadStatus("error");
+          return;
+        }
+
+        if (!rows || rows.length === 0) {
+          setMessagesLoadStatus("empty");
+          return;
+        }
+
+        const mapAutor = (t: unknown): "cliente" | "ia" | "atendente" | "sistema" => {
+          const v = String(t ?? "").trim().toLowerCase();
+          if (v === "customer" || v === "client" || v === "cliente") return "cliente";
+          if (v === "ai" || v === "assistant" || v === "ia" || v === "bot") return "ia";
+          if (v === "human" || v === "agent" || v === "atendente" || v === "user") return "atendente";
+          return "sistema";
+        };
+
+        const mapped: Mensagem[] = rows.map((r: any) => {
+          const d = r.created_at ? new Date(r.created_at) : null;
+          const hora =
+            d && !Number.isNaN(d.getTime())
+              ? d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
+              : "—";
+          return {
+            autor: mapAutor(r.sender_type) as Mensagem["autor"],
+            texto: String(r.content ?? ""),
+            hora,
+          };
+        });
+
+        setMessagesById((prev) => ({ ...prev, [selectedId]: mapped }));
+        setMessagesLoadStatus("loaded");
+      } catch {
+        if (!cancelled) setMessagesLoadStatus("error");
+      } finally {
+        if (!cancelled) setLoadingMessages(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId]);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return items.filter((c) => {

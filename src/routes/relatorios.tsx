@@ -401,6 +401,12 @@ function RelatoriosPage() {
           </p>
         </div>
 
+        <div className={`rounded-lg border px-3 py-2 text-xs font-medium ${statusTone}`}>
+          {statusMessage}
+          {loadingRelatorios ? " (carregando...)" : ""}
+        </div>
+
+
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>

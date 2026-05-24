@@ -216,7 +216,124 @@ function csvEscape(v: string | number) {
 
 function RelatoriosPage() {
   const [periodo, setPeriodo] = useState<PeriodoKey>("Hoje");
-  const d = dadosPorPeriodo[periodo];
+  const [loadingRelatorios, setLoadingRelatorios] = useState(true);
+  const [relatoriosLoadStatus, setRelatoriosLoadStatus] =
+    useState<RelatoriosLoadStatus>("loading");
+  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [dadosRelatorio, setDadosRelatorio] = useState<DadosPeriodo>(dadosPorPeriodo[periodo]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      setLoadingRelatorios(true);
+      setRelatoriosLoadStatus("loading");
+      const base = dadosPorPeriodo[periodo];
+      try {
+        const { data: userData, error: userErr } = await supabase.auth.getUser();
+        if (userErr || !userData?.user) {
+          if (!cancelled) {
+            setDadosRelatorio(base);
+            setRelatoriosLoadStatus("unauthenticated");
+            setLoadingRelatorios(false);
+          }
+          return;
+        }
+        const { data: cu } = await supabase
+          .from("company_users")
+          .select("company_id")
+          .eq("user_id", userData.user.id)
+          .eq("is_active", true)
+          .maybeSingle();
+        const companyId = (cu as { company_id?: string } | null)?.company_id;
+        if (!companyId) {
+          if (!cancelled) {
+            setDadosRelatorio(base);
+            setRelatoriosLoadStatus("error");
+            setLoadingRelatorios(false);
+          }
+          return;
+        }
+        const { start, end } = getPeriodRange(periodo);
+        const startISO = start.toISOString();
+        const endISO = end.toISOString();
+
+        const results = await Promise.allSettled([
+          supabase.from("companies").select("name").eq("id", companyId).single(),
+          supabase
+            .from("conversations")
+            .select("id", { count: "exact", head: true })
+            .eq("company_id", companyId)
+            .gte("created_at", startISO)
+            .lte("created_at", endISO),
+          supabase
+            .from("leads")
+            .select("id", { count: "exact", head: true })
+            .eq("company_id", companyId)
+            .gte("created_at", startISO)
+            .lte("created_at", endISO),
+          supabase
+            .from("leads")
+            .select("id", { count: "exact", head: true })
+            .eq("company_id", companyId)
+            .gte("score", 80),
+          supabase
+            .from("customers")
+            .select("id", { count: "exact", head: true })
+            .eq("company_id", companyId),
+        ]);
+
+        let failures = 0;
+        const next: DadosPeriodo = { ...base };
+
+        const r0 = results[0];
+        if (r0.status === "fulfilled" && !r0.value.error) {
+          const name = (r0.value.data as { name?: string } | null)?.name ?? null;
+          if (!cancelled) setCompanyName(name);
+        } else failures++;
+
+        const r1 = results[1];
+        if (r1.status === "fulfilled" && !r1.value.error && typeof r1.value.count === "number") {
+          next.atendimentos = r1.value.count;
+        } else failures++;
+
+        const r2 = results[2];
+        if (r2.status === "fulfilled" && !r2.value.error && typeof r2.value.count === "number") {
+          next.oportunidades = r2.value.count;
+        } else failures++;
+
+        const r3 = results[3];
+        if (r3.status === "fulfilled" && !r3.value.error && typeof r3.value.count === "number") {
+          next.leadsQuentes = r3.value.count;
+        } else failures++;
+
+        const r4 = results[4];
+        if (r4.status === "fulfilled" && !r4.value.error && typeof r4.value.count === "number") {
+          next.novos = r4.value.count;
+        } else failures++;
+
+        next.resumo =
+          "As métricas principais (atendimentos, oportunidades, leads quentes e clientes cadastrados) já vêm do Supabase. Gráficos por setor, peças solicitadas, pendências e resumo executivo avançado ainda usam dados temporários até a próxima fase.";
+
+        if (!cancelled) {
+          setDadosRelatorio(next);
+          setRelatoriosLoadStatus(failures === 0 ? "loaded" : failures >= 5 ? "error" : "partial");
+          setLoadingRelatorios(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setDadosRelatorio(base);
+          setRelatoriosLoadStatus("error");
+          setLoadingRelatorios(false);
+        }
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [periodo]);
+
+  const d = dadosRelatorio;
   const cards = useMemo(
     () => [
       {
@@ -232,6 +349,25 @@ function RelatoriosPage() {
   );
   const maxSemana = Math.max(...d.semana.map((s) => s.valor));
   const totalSetores = d.setores.reduce((a, s) => a + s.valor, 0) || 1;
+
+  const statusMessage =
+    relatoriosLoadStatus === "loading"
+      ? "Carregando relatórios do Supabase..."
+      : relatoriosLoadStatus === "loaded"
+        ? "Dados carregados do Supabase — Relatórios"
+        : relatoriosLoadStatus === "partial"
+          ? "Relatórios parcialmente carregados do Supabase"
+          : relatoriosLoadStatus === "unauthenticated"
+            ? "Usuário não autenticado. Usando dados locais temporários."
+            : "Não foi possível carregar métricas reais. Usando dados locais temporários.";
+  const statusTone =
+    relatoriosLoadStatus === "loaded"
+      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+      : relatoriosLoadStatus === "partial"
+        ? "bg-amber-50 text-amber-800 border-amber-200"
+        : relatoriosLoadStatus === "loading"
+          ? "bg-slate-50 text-slate-600 border-slate-200"
+          : "bg-rose-50 text-rose-700 border-rose-200";
 
   const handleExport = () => {
     try {

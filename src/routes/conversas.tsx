@@ -379,7 +379,9 @@ function ConversasPage() {
       prev.map((c) => (c.id === selected.id ? { ...c, ultimaMensagem: texto } : c)),
     );
     setDraft("");
-    toast.success("Mensagem enviada");
+    toast.success(
+      "Mensagem adicionada apenas localmente. O envio real pelo WhatsApp será conectado via n8n/Cloud API em uma próxima fase.",
+    );
   };
 
   const confirmarEncaminhamento = () => {
@@ -387,7 +389,9 @@ function ConversasPage() {
       prev.map((c) => (c.id === selected.id ? { ...c, status: "Encaminhada" } : c)),
     );
     setForwardOpen(false);
-    toast.success(`Conversa encaminhada com sucesso para ${forwardTo}`);
+    toast.success(
+      "Encaminhamento registrado apenas localmente. O roteamento real para responsáveis será conectado em uma próxima fase.",
+    );
   };
 
   return (
@@ -428,9 +432,9 @@ function ConversasPage() {
         </div>
 
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          A lista de conversas e as mensagens selecionadas já podem ser carregadas do Supabase.
-          Nesta etapa, envio e encaminhamento ainda funcionam localmente e não persistem mudanças
-          no banco.
+          As conversas e mensagens são carregadas do Supabase. O envio real pelo WhatsApp e os
+          encaminhamentos para responsáveis ainda <strong>não estão conectados</strong> — nesta
+          etapa funcionam apenas localmente (modo teste).
         </div>
 
         {/* Summary cards */}
@@ -667,7 +671,7 @@ function ConversasPage() {
                         enviar();
                       }
                     }}
-                    placeholder="Digite uma mensagem..."
+                    placeholder="Digite uma mensagem (modo teste — não envia pelo WhatsApp)..."
                     className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                   />
                   <button

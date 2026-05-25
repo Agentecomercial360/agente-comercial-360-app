@@ -262,7 +262,9 @@ function AtendimentosPage() {
           : a,
       ),
     );
-    toast.success("Atendimento encaminhado para responsável");
+    toast.success(
+      "Encaminhamento aplicado apenas localmente. Persistência de responsável será conectada em uma próxima fase.",
+    );
   };
 
   const dynamicCards = useMemo(
@@ -314,8 +316,9 @@ function AtendimentosPage() {
         </div>
 
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800">
-          Atendimentos são carregados do Supabase. A ação de finalizar atendimento já é salva no
-          Supabase. Encaminhamentos e automações externas serão implementados em uma próxima fase.
+          Atendimentos são carregados do Supabase. <strong>Finalizar atendimento</strong> já é
+          salvo no Supabase. <strong>Encaminhamentos</strong> ainda são locais e não alteram o
+          banco nesta fase.
         </div>
 
 
@@ -548,9 +551,10 @@ function AtendimentosPage() {
 
                 <button
                   onClick={() => encaminhar(selected.id)}
+                  title="Encaminhamento ainda é local e não altera o Supabase nesta fase."
                   className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                 >
-                  <UserPlus className="h-4 w-4" /> Encaminhar para responsável
+                  <UserPlus className="h-4 w-4" /> Encaminhar localmente
                 </button>
                 <button
                   onClick={() => setSelectedId(null)}

@@ -309,7 +309,9 @@ function LeadsPage() {
     const owners = ["Amanda", "Vinicius", "Thaís", "Lorenzzo", "Vitor"];
     const next = owners[Math.floor(Math.random() * owners.length)];
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, responsavel: next } : l)));
-    toast.success(`Lead encaminhado para ${next}`);
+    toast.success(
+      "Encaminhamento de lead ainda é local. Atribuição real de responsável e automações (WhatsApp, follow-up) serão conectadas em uma próxima fase.",
+    );
   }
 
   const statusIndicator = (() => {
@@ -324,7 +326,7 @@ function LeadsPage() {
     if (leadsLoadStatus === "loaded") {
       return (
         <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
-          Leads são carregados do Supabase ({leads.length}). A ação de marcar como em negociação já é salva no Supabase. Encaminhamentos e automações externas serão implementados em uma próxima fase.
+          Leads são carregados do Supabase ({leads.length}). <strong>Marcar como negociação</strong> já é salvo no Supabase. Encaminhamento, WhatsApp e follow-up ainda são recursos futuros (locais).
         </div>
       );
     }
@@ -548,10 +550,11 @@ function LeadsPage() {
 
                 <button
                   onClick={() => forwardLead(selected.id)}
+                  title="Encaminhamento ainda é local — não altera o Supabase nesta fase."
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition"
                 >
                   <ArrowRightLeft className="h-4 w-4" />
-                  Encaminhar para responsável
+                  Encaminhar localmente (em breve)
                 </button>
                 <button
                   onClick={() => setSelectedId(null)}

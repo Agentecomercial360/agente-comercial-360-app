@@ -212,9 +212,9 @@ function ConfiguracoesPage() {
 
   const handleSave = () => {
     setSaved(true);
-    toast.success("Configurações salvas localmente.", {
-      description: "Alterações salvas apenas nesta sessão visual.",
-    });
+    toast.success(
+      "Alterações aplicadas apenas nesta sessão. Salvamento definitivo no Supabase ainda não está ativo nesta tela.",
+    );
   };
 
   const openRestore = () => {
@@ -226,7 +226,9 @@ function ConfiguracoesPage() {
     setPreferencias(defaultPreferencias);
     setSaved(true);
     setConfirmOpen(false);
-    toast.success("Configurações padrão restauradas.");
+    toast.success(
+      "Restauração aplicada apenas localmente. Nenhuma alteração foi enviada ao Supabase.",
+    );
   };
 
   const empresaFields: { key: keyof typeof empresa; label: string; icon: React.ElementType }[] = [
@@ -506,21 +508,33 @@ function ConfiguracoesPage() {
           </div>
         </div>
 
+        {/* Banner de aviso de persistência */}
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+          Os dados da empresa são carregados do Supabase. Nesta etapa, alterações feitas em
+          Configurações ainda <strong>não são persistidas</strong> no banco — elas valem apenas
+          nesta sessão visual.
+        </div>
+
         {/* Action buttons */}
         <div className="flex flex-wrap items-center gap-3 pt-2">
-          <button
-            onClick={handleSave}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition"
-          >
-            <Save className="h-4 w-4" />
-            Salvar configurações
-          </button>
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={handleSave}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition"
+            >
+              <Save className="h-4 w-4" />
+              Salvar alterações localmente
+            </button>
+            <span className="text-[11px] text-muted-foreground">
+              Salvamento no Supabase será ativado em uma próxima fase.
+            </span>
+          </div>
           <button
             onClick={openRestore}
             className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-5 py-2.5 text-sm font-semibold text-foreground shadow-sm hover:bg-muted transition"
           >
             <RotateCcw className="h-4 w-4" />
-            Restaurar padrão
+            Restaurar padrão (local)
           </button>
           <button
             onClick={() => setViewOpen(true)}

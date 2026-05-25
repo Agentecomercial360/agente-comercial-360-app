@@ -385,7 +385,9 @@ function RelatoriosPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success("Relatório exportado com sucesso.");
+      toast.success(
+        "Relatório exportado localmente. Alguns blocos ainda usam dados temporários (setores, peças solicitadas, pendências e recomendações).",
+      );
     } catch {
       toast.error("Não foi possível exportar o relatório.");
     }
@@ -406,6 +408,11 @@ function RelatoriosPage() {
           {loadingRelatorios ? " (carregando...)" : ""}
         </div>
 
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+          Relatórios usam métricas reais parciais do Supabase. Alguns gráficos e listas
+          (setores, peças solicitadas, pendências e recomendações) ainda usam dados temporários.
+        </div>
+
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -423,10 +430,11 @@ function RelatoriosPage() {
             </div>
             <button
               onClick={handleExport}
+              title="A exportação inclui métricas reais parciais e alguns blocos temporários."
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
             >
               <Download className="h-4 w-4" />
-              Exportar relatório
+              Exportar relatório parcial
             </button>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">

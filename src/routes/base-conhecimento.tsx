@@ -373,6 +373,7 @@ function BaseConhecimentoPage() {
             title: form.titulo.trim(),
             content: form.conteudo.trim(),
             category: form.categoria,
+            is_active: true,
           })
           .select()
           .single();

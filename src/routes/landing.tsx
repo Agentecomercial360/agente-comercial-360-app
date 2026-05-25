@@ -105,19 +105,28 @@ function LandingPage() {
           className="pointer-events-none absolute bottom-[-20%] left-[-10%] -z-10 h-[400px] w-[400px] rounded-full opacity-20 blur-3xl"
           style={{ background: "var(--gradient-brand)" }}
         />
+        {/* subtle tech grid */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.18]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, oklch(0.55 0.22 258 / 0.10) 1px, transparent 1px), linear-gradient(to bottom, oklch(0.55 0.22 258 / 0.10) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
+            maskImage:
+              "radial-gradient(ellipse at center, black 35%, transparent 75%)",
+          }}
+        />
 
         <div className="mx-auto max-w-7xl px-6 pt-16 pb-20 md:pt-24 md:pb-28">
-          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
             {/* LEFT */}
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-premium)] bg-white px-3.5 py-1.5 text-xs font-medium text-muted-foreground shadow-[var(--shadow-soft)]">
-                <span className="relative flex size-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
-                  <span className="relative inline-flex size-2 rounded-full bg-primary" />
-                </span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3.5 py-1.5 text-xs font-medium text-foreground/80 shadow-[var(--shadow-soft)] backdrop-blur">
+                <Sparkles className="size-3.5 text-primary" />
                 Plataforma SaaS de inteligência comercial
               </div>
-              <h1 className="font-display mt-6 text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.025em] md:text-6xl lg:text-[4.25rem]">
+              <h1 className="font-display mt-6 text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.025em] text-[oklch(0.18_0.04_258)] md:text-6xl lg:text-[4.25rem]">
                 Transforme{" "}
                 <span
                   className="bg-clip-text text-transparent"
@@ -128,9 +137,8 @@ function LandingPage() {
                 com inteligência comercial
               </h1>
               <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-                Centralize WhatsApp, leads, responsáveis, IA, base de conhecimento e
-                relatórios em uma operação comercial organizada, escalável e pronta para
-                automações.
+                Centralize atendimentos, leads, responsáveis, IA, base de conhecimento e
+                relatórios em uma operação comercial organizada, rápida e escalável.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <a href="#cta-final">
@@ -294,6 +302,12 @@ function LandingPage() {
                               </span>
                               Sistema online
                             </div>
+                            <div
+                              className="flex items-center gap-1 rounded-md px-2 py-1 text-[9px] font-semibold text-white shadow-[0_4px_10px_-2px_oklch(0.55_0.22_258_/_0.5)]"
+                              style={{ background: "var(--gradient-brand)" }}
+                            >
+                              <Zap className="size-2.5" /> Atualizar
+                            </div>
                           </div>
                         </div>
 
@@ -313,13 +327,19 @@ function LandingPage() {
                             </div>
                           </div>
 
+                          {/* Banner verde Supabase */}
+                          <div className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[9px] font-medium text-emerald-700">
+                            <CheckCircle2 className="size-3 shrink-0" />
+                            Dados carregados do Supabase
+                          </div>
+
                           {/* KPI CARDS */}
                           <div className="grid grid-cols-4 gap-1.5">
                             {[
-                              { icon: Headphones, label: "Atendimentos hoje", value: "47", trend: "+12%" },
-                              { icon: TrendingUp, label: "Leads quentes", value: "18", trend: "+6" },
-                              { icon: MessageSquare, label: "Conversas abertas", value: "23", trend: "ativo" },
-                              { icon: CheckCircle2, label: "Finalizados", value: "31", trend: "+9" },
+                              { icon: Headphones, label: "Atendimentos hoje", value: "1" },
+                              { icon: TrendingUp, label: "Leads quentes", value: "1" },
+                              { icon: MessageSquare, label: "Conversas abertas", value: "1" },
+                              { icon: CheckCircle2, label: "Finalizados", value: "1" },
                             ].map((k) => (
                               <div
                                 key={k.label}
@@ -333,104 +353,74 @@ function LandingPage() {
                                     <k.icon className="size-2.5" />
                                   </div>
                                 </div>
-                                <div className="font-display mt-1 flex items-baseline gap-1">
-                                  <span className="text-lg font-bold tracking-tight">{k.value}</span>
-                                  <span className="text-[8px] font-semibold text-emerald-600">{k.trend}</span>
+                                <div className="font-display mt-1 text-lg font-bold tracking-tight">
+                                  {k.value}
                                 </div>
                               </div>
                             ))}
                           </div>
 
-                          {/* Mini table — Top leads */}
+                          {/* Mini lista */}
                           <div className="rounded-lg border border-[var(--border-premium)] bg-white shadow-[var(--shadow-soft)]">
-                            <div className="flex items-center justify-between border-b border-[var(--border-premium)] px-2.5 py-1.5">
-                              <div className="text-[9px] font-bold tracking-tight">Top leads</div>
-                              <div className="text-[8px] text-muted-foreground">atualizado agora</div>
-                            </div>
-                            <div className="grid grid-cols-[1.4fr_1.4fr_0.9fr_0.5fr] gap-2 border-b border-[var(--border-premium)] px-2.5 py-1 text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <div className="grid grid-cols-[1.4fr_1.4fr_0.9fr_0.5fr] gap-2 border-b border-[var(--border-premium)] px-2.5 py-1.5 text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
                               <span>Cliente</span>
-                              <span>Interesse</span>
+                              <span>Mensagem</span>
                               <span>Status</span>
                               <span className="text-right">Score</span>
                             </div>
-                            {[
-                              {
-                                ini: "C",
-                                nome: "Cliente Teste Auto Peças",
-                                msg: "Kit embreagem Gol 1.6",
-                                status: "Em negociação",
-                                statusCls: "bg-amber-50 text-amber-700 ring-amber-200",
-                                score: 92,
-                              },
-                              {
-                                ini: "M",
-                                nome: "Marcelo / Oficina Cruzeiro",
-                                msg: "Pastilhas de freio Civic",
-                                status: "Qualificado",
-                                statusCls: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-                                score: 87,
-                              },
-                              {
-                                ini: "R",
-                                nome: "Roberta — Frota RS",
-                                msg: "Orçamento óleo 5W30",
-                                status: "Novo",
-                                statusCls: "bg-sky-50 text-sky-700 ring-sky-200",
-                                score: 74,
-                              },
-                            ].map((r) => (
-                              <div
-                                key={r.ini + r.nome}
-                                className="grid grid-cols-[1.4fr_1.4fr_0.9fr_0.5fr] items-center gap-2 px-2.5 py-1.5"
-                              >
-                                <div className="flex min-w-0 items-center gap-1.5">
-                                  <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[8px] font-bold text-primary">
-                                    {r.ini}
-                                  </div>
-                                  <div className="min-w-0 truncate text-[9px] font-semibold">
-                                    {r.nome}
-                                  </div>
+                            <div className="grid grid-cols-[1.4fr_1.4fr_0.9fr_0.5fr] items-center gap-2 px-2.5 py-2">
+                              <div className="flex min-w-0 items-center gap-1.5">
+                                <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[8px] font-bold text-primary">
+                                  C
                                 </div>
-                                <div className="truncate text-[9px] text-muted-foreground">
-                                  {r.msg}
-                                </div>
-                                <div>
-                                  <span
-                                    className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ring-1 ${r.statusCls}`}
-                                  >
-                                    {r.status}
-                                  </span>
-                                </div>
-                                <div className="text-right text-[10px] font-bold text-primary">
-                                  {r.score}
+                                <div className="min-w-0 truncate text-[9px] font-semibold">
+                                  Cliente Teste Auto Peças
                                 </div>
                               </div>
-                            ))}
+                              <div className="truncate text-[9px] text-muted-foreground">
+                                Kit embreagem para Gol 1.6
+                              </div>
+                              <div>
+                                <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[8px] font-semibold text-amber-700 ring-1 ring-amber-200">
+                                  Em negociação
+                                </span>
+                              </div>
+                              <div className="text-right text-[10px] font-bold text-primary">
+                                92
+                              </div>
+                            </div>
                           </div>
 
-                          {/* IA summary */}
+                          {/* Resumo da IA — navy premium */}
                           <div
-                            className="flex items-start gap-2 rounded-lg border border-primary/25 p-2"
+                            className="relative overflow-hidden rounded-lg p-2.5 text-white shadow-[0_8px_24px_-8px_oklch(0.18_0.04_258_/_0.6)]"
                             style={{
                               background:
-                                "linear-gradient(90deg, oklch(0.55 0.22 258 / 0.10), oklch(0.55 0.22 258 / 0.02))",
+                                "linear-gradient(135deg, oklch(0.20 0.045 258) 0%, oklch(0.30 0.10 258) 100%)",
                             }}
                           >
                             <div
-                              className="flex size-6 shrink-0 items-center justify-center rounded-md text-white"
+                              aria-hidden
+                              className="pointer-events-none absolute -right-6 -top-6 size-20 rounded-full opacity-40 blur-2xl"
                               style={{ background: "var(--gradient-brand)" }}
-                            >
-                              <Bot className="size-3" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5 text-[9px] font-bold text-foreground">
-                                Resumo da IA
-                                <span className="rounded bg-primary/15 px-1 py-px text-[7px] font-semibold text-primary">
-                                  auto
-                                </span>
+                            />
+                            <div className="relative flex items-start gap-2">
+                              <div
+                                className="flex size-6 shrink-0 items-center justify-center rounded-md text-white"
+                                style={{ background: "var(--gradient-brand)" }}
+                              >
+                                <Bot className="size-3" />
                               </div>
-                              <div className="text-[9px] leading-snug text-muted-foreground">
-                                3 leads quentes precisam de follow-up. Tempo médio de resposta caiu 18%.
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5 text-[9px] font-bold">
+                                  Resumo da IA
+                                  <span className="rounded bg-white/20 px-1 py-px text-[7px] font-semibold">
+                                    auto
+                                  </span>
+                                </div>
+                                <div className="text-[9px] leading-snug text-white/80">
+                                  A IA identificou uma oportunidade quente e recomendou follow-up comercial.
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -442,18 +432,18 @@ function LandingPage() {
               </div>
 
               {/* floating badges */}
-              <div className="absolute -left-5 top-[28%] hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
+              <div className="absolute -left-5 top-[30%] hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
                 <div className="flex items-center gap-2 text-xs">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
-                    <CheckCircle2 className="size-4" />
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                    <TrendingUp className="size-4" />
                   </div>
                   <div>
-                    <div className="font-semibold">Lead convertido</div>
-                    <div className="text-[11px] text-muted-foreground">+ R$ 4.820</div>
+                    <div className="font-semibold">Lead quente detectado</div>
+                    <div className="text-[11px] text-muted-foreground">score 92 · agora</div>
                   </div>
                 </div>
               </div>
-              <div className="absolute -right-4 top-[18%] hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
+              <div className="absolute -right-4 bottom-12 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className="flex size-8 items-center justify-center rounded-lg text-white"
@@ -462,19 +452,8 @@ function LandingPage() {
                     <Bot className="size-4" />
                   </div>
                   <div>
-                    <div className="font-semibold">IA respondeu</div>
-                    <div className="text-[11px] text-muted-foreground">12 conversas</div>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute -right-2 bottom-10 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur lg:block">
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-sky-100 text-sky-600">
-                    <Activity className="size-4" />
-                  </div>
-                  <div>
-                    <div className="font-semibold">Dados em tempo real</div>
-                    <div className="text-[11px] text-muted-foreground">sincronizando</div>
+                    <div className="font-semibold">IA recomendou follow-up</div>
+                    <div className="text-[11px] text-muted-foreground">Cliente Teste · Auto Peças</div>
                   </div>
                 </div>
               </div>

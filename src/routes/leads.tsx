@@ -128,6 +128,9 @@ function LeadsPage() {
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [loadingLeads, setLoadingLeads] = useState(true);
   const [leadsLoadStatus, setLeadsLoadStatus] = useState<LeadsLoadStatus>("loading");
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [updatingLeadId, setUpdatingLeadId] = useState<string | number | null>(null);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -154,6 +157,8 @@ function LeadsPage() {
           setLoadingLeads(false);
           return;
         }
+        setCompanyId(cuRow.company_id as string);
+
 
         const { data: rows, error: leadsErr } = await supabase
           .from("leads")
@@ -243,10 +248,62 @@ function LeadsPage() {
     { label: "Leads sem responsável", value: noOwnerLeads, icon: UserX },
   ];
 
-  function markNegotiating(id: string | number) {
-    setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status: "Em negociação" } : l)));
-    toast.success("Lead marcado como em negociação");
+  async function markNegotiating(id: string | number) {
+    // Fallback local para leads mockados (id numérico) — não persiste no Supabase
+    if (typeof id === "number") {
+      setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status: "Em negociação" } : l)));
+      toast.success("Lead marcado como em negociação (local)");
+      return;
+    }
+
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !userData?.user) {
+      toast.error("Usuário não autenticado. Faça login novamente.");
+      return;
+    }
+    if (!companyId) {
+      toast.error("Empresa vinculada não encontrada para este usuário.");
+      return;
+    }
+
+    setUpdatingLeadId(id);
+    try {
+      const { data, error } = await supabase
+        .from("leads")
+        .update({
+          stage: "orcamento",
+          next_action:
+            "Lead marcado como em negociação. Acompanhar orçamento e próximo contato.",
+        })
+        .eq("id", id)
+        .eq("company_id", companyId)
+        .select()
+        .single();
+
+      if (error || !data) {
+        toast.error("Não foi possível atualizar o lead.");
+        return;
+      }
+
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.id === id
+            ? {
+                ...l,
+                status: normalizeStatus((data as any).stage),
+                proximaAcao: (data as any).next_action ?? l.proximaAcao,
+              }
+            : l,
+        ),
+      );
+      toast.success("Lead atualizado no Supabase.");
+    } catch {
+      toast.error("Não foi possível atualizar o lead.");
+    } finally {
+      setUpdatingLeadId(null);
+    }
   }
+
 
   function forwardLead(id: string | number) {
     const owners = ["Amanda", "Vinicius", "Thaís", "Lorenzzo", "Vitor"];
@@ -267,10 +324,11 @@ function LeadsPage() {
     if (leadsLoadStatus === "loaded") {
       return (
         <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
-          Dados carregados do Supabase — {leads.length} leads
+          Leads são carregados do Supabase ({leads.length}). A ação de marcar como em negociação já é salva no Supabase. Encaminhamentos e automações externas serão implementados em uma próxima fase.
         </div>
       );
     }
+
     if (leadsLoadStatus === "empty") {
       return (
         <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200">
@@ -472,11 +530,22 @@ function LeadsPage() {
               <div className="flex flex-col gap-2 pt-2">
                 <button
                   onClick={() => markNegotiating(selected.id)}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+                  disabled={updatingLeadId === selected.id}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Marcar como em negociação
+                  {updatingLeadId === selected.id ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Atualizando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" />
+                      Marcar como em negociação
+                    </>
+                  )}
                 </button>
+
                 <button
                   onClick={() => forwardLead(selected.id)}
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition"

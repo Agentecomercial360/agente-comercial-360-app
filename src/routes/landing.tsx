@@ -111,10 +111,13 @@ function LandingPage() {
             {/* LEFT */}
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-premium)] bg-white px-3.5 py-1.5 text-xs font-medium text-muted-foreground shadow-[var(--shadow-soft)]">
-                <Sparkles className="size-3.5 text-primary" />
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
+                  <span className="relative inline-flex size-2 rounded-full bg-primary" />
+                </span>
                 Plataforma SaaS de inteligência comercial
               </div>
-              <h1 className="font-display mt-6 text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl">
+              <h1 className="font-display mt-6 text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.025em] md:text-6xl lg:text-[4.25rem]">
                 Transforme{" "}
                 <span
                   className="bg-clip-text text-transparent"
@@ -129,14 +132,14 @@ function LandingPage() {
                 relatórios em uma operação comercial organizada, escalável e pronta para
                 automações.
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <a href="#cta-final">
-                  <Button size="lg" className="h-12 w-full gap-2 px-6 text-base shadow-[var(--shadow-premium)] sm:w-auto">
+                  <Button size="lg" className="h-12 w-full gap-2 px-7 text-base shadow-[var(--shadow-premium)] sm:w-auto">
                     Solicitar demonstração <ArrowRight className="size-4" />
                   </Button>
                 </a>
                 <Link to="/login">
-                  <Button size="lg" variant="outline" className="h-12 w-full px-6 text-base sm:w-auto">
+                  <Button size="lg" variant="outline" className="h-12 w-full px-7 text-base sm:w-auto">
                     Entrar no painel
                   </Button>
                 </Link>
@@ -155,99 +158,206 @@ function LandingPage() {
               </div>
             </div>
 
-            {/* RIGHT — premium mock */}
+            {/* RIGHT — dashboard mockup inspired by the real product */}
             <div className="relative">
               <div
                 aria-hidden
-                className="pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] opacity-40 blur-2xl"
+                className="pointer-events-none absolute -inset-8 -z-10 rounded-[2.75rem] opacity-50 blur-3xl"
                 style={{ background: "var(--gradient-brand)" }}
               />
+              {/* browser frame */}
               <div
-                className="relative rounded-3xl border border-[var(--border-premium)] bg-white p-3"
+                className="relative rounded-[1.75rem] border border-[var(--border-premium)] bg-white p-2.5"
                 style={{ boxShadow: "var(--shadow-premium)" }}
               >
-                <div className="rounded-2xl bg-gradient-to-br from-[var(--brand-blue-soft)] via-white to-[var(--brand-blue-soft)] p-5 md:p-6">
-                  {/* header bar */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                        <Sparkles className="size-3.5" />
-                      </div>
-                      <span className="font-display text-sm font-semibold">Dashboard 360</span>
-                    </div>
-                    <div className="flex gap-1.5">
-                      <div className="size-2 rounded-full bg-emerald-400" />
-                      <div className="size-2 rounded-full bg-amber-400" />
-                      <div className="size-2 rounded-full bg-rose-400" />
-                    </div>
+                <div className="flex items-center justify-between px-3 pb-2 pt-1">
+                  <div className="flex gap-1.5">
+                    <span className="size-2.5 rounded-full bg-rose-400/80" />
+                    <span className="size-2.5 rounded-full bg-amber-400/80" />
+                    <span className="size-2.5 rounded-full bg-emerald-400/80" />
                   </div>
+                  <div className="hidden rounded-md border border-[var(--border-premium)] bg-secondary/60 px-3 py-0.5 text-[10px] text-muted-foreground sm:block">
+                    app.agentecomercial360.com/dashboard
+                  </div>
+                  <div className="size-2.5" />
+                </div>
 
-                  {/* KPI cards */}
-                  <div className="mt-5 grid grid-cols-2 gap-3">
-                    {[
-                      { icon: TrendingUp, label: "Leads quentes", value: "47", tone: "text-emerald-600" },
-                      { icon: MessageSquare, label: "Conversas abertas", value: "128", tone: "text-primary" },
-                      { icon: Bot, label: "IA ativa", value: "On", tone: "text-violet-600" },
-                      { icon: Briefcase, label: "Responsáveis", value: "12", tone: "text-primary" },
-                    ].map((k) => (
+                <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--brand-blue-soft)] via-white to-[var(--brand-blue-soft)]">
+                  {/* inner app shell: sidebar + content */}
+                  <div className="grid grid-cols-[58px_1fr]">
+                    {/* sidebar */}
+                    <div className="flex flex-col items-center gap-3 border-r border-[var(--border-premium)] bg-white/60 py-4 backdrop-blur">
                       <div
-                        key={k.label}
-                        className="rounded-xl border border-[var(--border-premium)] bg-white/80 p-3 backdrop-blur"
+                        className="flex size-8 items-center justify-center rounded-lg text-white"
+                        style={{ background: "var(--gradient-brand)" }}
                       >
-                        <div className="flex items-center gap-2">
-                          <div className="flex size-7 items-center justify-center rounded-md bg-secondary">
-                            <k.icon className={`size-3.5 ${k.tone}`} />
-                          </div>
-                          <span className="text-[11px] text-muted-foreground">{k.label}</span>
+                        <Sparkles className="size-4" />
+                      </div>
+                      {[BarChart3, Headphones, MessageSquare, Users, Bot, BookOpen].map((I, i) => (
+                        <div
+                          key={i}
+                          className={`flex size-8 items-center justify-center rounded-lg ${
+                            i === 0
+                              ? "bg-primary/10 text-primary"
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          <I className="size-4" />
                         </div>
-                        <div className="font-display mt-2 text-xl font-semibold">{k.value}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* mini chart + conversations */}
-                  <div className="mt-3 grid grid-cols-5 gap-3">
-                    <div className="col-span-2 rounded-xl border border-[var(--border-premium)] bg-white/80 p-3 backdrop-blur">
-                      <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium">
-                        <BarChart3 className="size-3 text-primary" /> Conversão
-                      </div>
-                      <div className="flex h-20 items-end gap-1.5">
-                        {[40, 65, 50, 80, 55, 90, 75].map((h, i) => (
-                          <div
-                            key={i}
-                            className="flex-1 rounded-t"
-                            style={{
-                              height: `${h}%`,
-                              background: "var(--gradient-brand)",
-                              opacity: 0.7 + i * 0.04,
-                            }}
-                          />
-                        ))}
-                      </div>
+                      ))}
                     </div>
-                    <div className="col-span-3 rounded-xl border border-[var(--border-premium)] bg-white/80 p-3 backdrop-blur">
-                      <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium">
-                        <MessageSquare className="size-3 text-primary" /> Conversas
+
+                    {/* content */}
+                    <div className="p-4 md:p-5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                            Dashboard
+                          </div>
+                          <div className="font-display text-sm font-semibold tracking-tight">
+                            União Auto Peças
+                          </div>
+                        </div>
+                        <div className="hidden items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-medium text-emerald-700 sm:flex">
+                          <span className="size-1.5 rounded-full bg-emerald-500" />
+                          Ao vivo
+                        </div>
                       </div>
-                      <div className="space-y-2">
+
+                      {/* KPI cards — mirror real dashboard */}
+                      <div className="mt-4 grid grid-cols-2 gap-2.5">
                         {[
-                          { n: "Maria S.", t: "Pedido peça #4421", time: "2m" },
-                          { n: "João P.", t: "Orçamento aprovado", time: "5m" },
-                          { n: "Carla R.", t: "Agendar visita", time: "12m" },
-                        ].map((c) => (
-                          <div key={c.n} className="flex items-center justify-between text-[11px]">
-                            <div className="flex items-center gap-2">
-                              <div className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
-                                {c.n[0]}
+                          { icon: Headphones, label: "Atendimentos hoje", value: "128", delta: "+12%", up: true },
+                          { icon: TrendingUp, label: "Leads quentes", value: "14", delta: "+3", up: true },
+                          { icon: MessageSquare, label: "Conversas abertas", value: "26", delta: "-2", up: false },
+                          { icon: Clock, label: "Sem resposta", value: "9", delta: "+1", up: false },
+                        ].map((k) => (
+                          <div
+                            key={k.label}
+                            className="rounded-xl border border-[var(--border-premium)] bg-white/95 p-2.5 shadow-[var(--shadow-soft)]"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex size-7 items-center justify-center rounded-lg bg-[var(--brand-blue-soft)] text-primary">
+                                <k.icon className="size-3.5" />
                               </div>
-                              <div>
-                                <div className="font-medium text-foreground">{c.n}</div>
-                                <div className="text-muted-foreground">{c.t}</div>
-                              </div>
+                              <span
+                                className={`text-[10px] font-medium ${
+                                  k.up ? "text-emerald-600" : "text-rose-600"
+                                }`}
+                              >
+                                {k.delta}
+                              </span>
                             </div>
-                            <span className="text-muted-foreground">{c.time}</span>
+                            <div className="font-display mt-2 text-xl font-bold tracking-tight">
+                              {k.value}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground">{k.label}</div>
                           </div>
                         ))}
+                      </div>
+
+                      {/* chart + top leads */}
+                      <div className="mt-2.5 grid grid-cols-5 gap-2.5">
+                        <div className="col-span-2 rounded-xl border border-[var(--border-premium)] bg-white/95 p-2.5 shadow-[var(--shadow-soft)]">
+                          <div className="mb-2 flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 text-[10px] font-semibold">
+                              <BarChart3 className="size-3 text-primary" /> Semana
+                            </div>
+                            <span className="text-[9px] text-muted-foreground">+18%</span>
+                          </div>
+                          <div className="flex h-16 items-end gap-1">
+                            {[42, 68, 55, 88, 74, 50, 32].map((h, i) => (
+                              <div key={i} className="flex flex-1 flex-col items-center gap-0.5">
+                                <div
+                                  className="w-full rounded-t-sm"
+                                  style={{
+                                    height: `${h}%`,
+                                    background: "var(--gradient-brand)",
+                                    opacity: 0.55 + i * 0.05,
+                                  }}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                          <div className="mt-1 flex justify-between text-[8px] text-muted-foreground">
+                            {["S","T","Q","Q","S","S","D"].map((d, i) => (
+                              <span key={i}>{d}</span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="col-span-3 rounded-xl border border-[var(--border-premium)] bg-white/95 p-2.5 shadow-[var(--shadow-soft)]">
+                          <div className="mb-2 flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 text-[10px] font-semibold">
+                              <TrendingUp className="size-3 text-primary" /> Top leads
+                            </div>
+                            <span className="text-[9px] text-muted-foreground">Hoje</span>
+                          </div>
+                          <div className="space-y-1.5">
+                            {[
+                              { n: "João Martins", t: "Kit embreagem", s: 92 },
+                              { n: "Fernanda Lima", t: "Bateria 60Ah", s: 88 },
+                              { n: "Pedro Henrique", t: "Amortecedor", s: 81 },
+                            ].map((c) => (
+                              <div key={c.n} className="flex items-center justify-between">
+                                <div className="flex items-center gap-1.5">
+                                  <div className="flex size-5 items-center justify-center rounded-full bg-primary/10 text-[9px] font-semibold text-primary">
+                                    {c.n[0]}
+                                  </div>
+                                  <div>
+                                    <div className="text-[10px] font-medium leading-tight text-foreground">
+                                      {c.n}
+                                    </div>
+                                    <div className="text-[9px] leading-tight text-muted-foreground">
+                                      {c.t}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <div className="h-1 w-10 overflow-hidden rounded-full bg-secondary">
+                                    <div
+                                      className="h-full rounded-full"
+                                      style={{
+                                        width: `${c.s}%`,
+                                        background: "var(--gradient-brand)",
+                                      }}
+                                    />
+                                  </div>
+                                  <span className="text-[9px] font-semibold text-primary">
+                                    {c.s}
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* IA summary strip */}
+                      <div
+                        className="mt-2.5 flex items-start gap-2 rounded-xl border border-primary/20 p-2.5"
+                        style={{
+                          background:
+                            "linear-gradient(90deg, oklch(0.55 0.22 258 / 0.08), oklch(0.55 0.22 258 / 0.02))",
+                        }}
+                      >
+                        <div
+                          className="flex size-7 shrink-0 items-center justify-center rounded-lg text-white"
+                          style={{ background: "var(--gradient-brand)" }}
+                        >
+                          <Bot className="size-3.5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5 text-[10px] font-semibold">
+                            Resumo da IA
+                            <span className="rounded bg-primary/10 px-1 py-px text-[8px] font-medium text-primary">
+                              auto
+                            </span>
+                          </div>
+                          <div className="truncate text-[10px] text-muted-foreground">
+                            3 leads quentes aguardando retorno · priorize Fernanda Lima.
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -255,27 +365,28 @@ function LandingPage() {
               </div>
 
               {/* floating badges */}
-              <div
-                className="absolute -left-4 top-1/3 hidden rounded-xl border border-[var(--border-premium)] bg-white px-3 py-2 shadow-[var(--shadow-card)] md:block"
-              >
+              <div className="absolute -left-4 top-[28%] hidden rounded-xl border border-[var(--border-premium)] bg-white px-3 py-2 shadow-[var(--shadow-card)] md:block">
                 <div className="flex items-center gap-2 text-xs">
-                  <div className="flex size-7 items-center justify-center rounded-md bg-emerald-100 text-emerald-600">
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
                     <CheckCircle2 className="size-4" />
                   </div>
                   <div>
                     <div className="font-semibold">Lead convertido</div>
-                    <div className="text-muted-foreground">+R$ 4.820</div>
+                    <div className="text-[11px] text-muted-foreground">+ R$ 4.820</div>
                   </div>
                 </div>
               </div>
-              <div className="absolute -right-3 bottom-8 hidden rounded-xl border border-[var(--border-premium)] bg-white px-3 py-2 shadow-[var(--shadow-card)] md:block">
+              <div className="absolute -right-3 bottom-10 hidden rounded-xl border border-[var(--border-premium)] bg-white px-3 py-2 shadow-[var(--shadow-card)] md:block">
                 <div className="flex items-center gap-2 text-xs">
-                  <div className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+                  <div
+                    className="flex size-8 items-center justify-center rounded-lg text-white"
+                    style={{ background: "var(--gradient-brand)" }}
+                  >
                     <Bot className="size-4" />
                   </div>
                   <div>
                     <div className="font-semibold">IA respondeu</div>
-                    <div className="text-muted-foreground">12 conversas</div>
+                    <div className="text-[11px] text-muted-foreground">12 conversas</div>
                   </div>
                 </div>
               </div>
@@ -284,44 +395,77 @@ function LandingPage() {
         </div>
       </section>
 
+
       {/* PROBLEMA */}
-      <section id="problema" className="border-t border-[var(--border-premium)] bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-20 md:py-28">
+      <section id="problema" className="relative overflow-hidden border-t border-[var(--border-premium)] bg-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 -z-0 h-64"
+          style={{
+            background:
+              "radial-gradient(60% 100% at 50% 0%, oklch(0.96 0.02 25 / 0.6), transparent 70%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-7xl px-6 py-20 md:py-28">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive">
+            <div className="inline-flex items-center gap-2 rounded-full border border-destructive/20 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive">
               <AlertTriangle className="size-3.5" /> Onde as vendas estão escapando
             </div>
-            <h2 className="font-display mt-5 text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
+            <h2 className="font-display mt-5 text-3xl font-semibold tracking-[-0.02em] md:text-4xl lg:text-[3.25rem] lg:leading-[1.05]">
               Empresas perdem vendas todos os dias por falhas operacionais
             </h2>
-            <p className="mt-4 text-muted-foreground md:text-lg">
-              Atendimento desorganizado custa caro. Geralmente o problema não é o time —
+            <p className="mt-5 text-muted-foreground md:text-lg">
+              Atendimento desorganizado custa caro. Quase nunca é o time —
               é a falta de uma plataforma que conecte tudo.
             </p>
           </div>
           <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {[
-              { icon: Clock, title: "Demora no atendimento", text: "Mensagens sem resposta — e o cliente compra do concorrente." },
+              { icon: Clock, title: "Demora no atendimento", text: "Mensagem sem resposta = cliente comprando do concorrente." },
               { icon: FileWarning, title: "Leads sem follow-up", text: "Oportunidades quentes esfriam por falta de retomada." },
-              { icon: Search, title: "Conversas espalhadas", text: "WhatsApp pessoal, e-mail e planilha — nada conversa." },
-              { icon: AlertTriangle, title: "Falta de controle comercial", text: "Sem visibilidade do que cada responsável atende." },
-              { icon: BarChart3, title: "Relatórios manuais", text: "Decisões no achismo, sem dados confiáveis em tempo real." },
-              { icon: Users, title: "Equipe sem prioridade clara", text: "Cada um responde do seu jeito, sem padrão nem histórico." },
+              { icon: Search, title: "Conversas espalhadas", text: "WhatsApp, e-mail, planilha — nada se fala." },
+              { icon: AlertTriangle, title: "Sem controle comercial", text: "Você não sabe o que cada responsável está atendendo." },
+              { icon: BarChart3, title: "Relatórios manuais", text: "Decisões no achismo, sem dado confiável em tempo real." },
+              { icon: Users, title: "Equipe sem prioridade", text: "Cada um responde do seu jeito, sem padrão nem histórico." },
             ].map((p) => (
               <div
                 key={p.title}
-                className="group rounded-2xl border border-[var(--border-premium)] bg-white p-6 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-card)]"
+                className="group relative overflow-hidden rounded-2xl border border-[var(--border-premium)] bg-white p-7 shadow-[var(--shadow-soft)] transition-all duration-300 hover:-translate-y-1 hover:border-destructive/30 hover:shadow-[var(--shadow-card)]"
               >
-                <div className="flex size-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive transition-transform group-hover:scale-110">
-                  <p.icon className="size-6" />
+                <div
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-[3px] scale-x-0 transition-transform duration-300 group-hover:scale-x-100"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, oklch(0.65 0.22 25), oklch(0.6 0.22 15))",
+                  }}
+                />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -right-12 -top-12 size-32 rounded-full opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100"
+                  style={{ background: "oklch(0.7 0.2 25 / 0.25)" }}
+                />
+                <div
+                  className="relative flex size-14 items-center justify-center rounded-2xl border border-destructive/15 text-destructive shadow-[var(--shadow-soft)] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[-4deg]"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, oklch(0.97 0.02 25), oklch(0.94 0.05 25))",
+                  }}
+                >
+                  <p.icon className="size-6" strokeWidth={2.2} />
                 </div>
-                <h3 className="mt-5 font-display text-lg font-semibold">{p.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{p.text}</p>
+                <h3 className="font-display mt-5 text-lg font-semibold tracking-tight">
+                  {p.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {p.text}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
+
 
       {/* SOLUÇÃO */}
       <section id="solucao" className="relative overflow-hidden bg-[var(--brand-blue-soft)]/50">

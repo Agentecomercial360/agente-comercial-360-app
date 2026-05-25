@@ -563,15 +563,23 @@ function IAPage() {
               </p>
             </div>
 
-            {/* Attention card */}
-            <div className="rounded-2xl bg-amber-50 border border-amber-200 shadow-[var(--shadow-soft)] p-5">
+            {/* Info card */}
+            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 shadow-[var(--shadow-soft)] p-5">
               <div className="flex items-start gap-2 mb-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                <h3 className="text-sm font-semibold text-amber-800">Atenção</h3>
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                <h3 className="text-sm font-semibold text-emerald-800">Persistência ativa</h3>
               </div>
-              <p className="text-xs leading-relaxed text-amber-700">
-                A leitura das configurações da IA já está conectada ao Supabase. Nesta etapa, as alterações feitas nesta tela ainda são locais: o botão Salvar configurações ainda não persiste mudanças no banco. A persistência será ativada em uma próxima fase com UPDATE seguro.
+              <p className="text-xs leading-relaxed text-emerald-700">
+                As configurações da IA são carregadas e salvas no Supabase. Alterações feitas nesta tela serão persistidas para a empresa vinculada ao usuário logado.
               </p>
+              {saveError && (
+                <p className="mt-2 text-xs font-medium text-red-700">{saveError}</p>
+              )}
+              {saveSuccess && !saveError && (
+                <p className="mt-2 text-xs font-medium text-emerald-700">
+                  Última gravação concluída com sucesso.
+                </p>
+              )}
             </div>
           </div>
         </div>

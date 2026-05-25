@@ -158,227 +158,280 @@ function LandingPage() {
               </div>
             </div>
 
-            {/* RIGHT — realistic mini-replica of the Agente Comercial 360 panel */}
+            {/* RIGHT — premium product shot of the Agente Comercial 360 dashboard */}
             <div className="relative lg:-mr-6 xl:-mr-12">
-              {/* glow */}
+              {/* layered glow */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] opacity-60 blur-3xl"
+                className="pointer-events-none absolute -inset-12 -z-10 rounded-[3rem] opacity-50 blur-3xl"
                 style={{ background: "var(--gradient-brand)" }}
               />
               <div
                 aria-hidden
-                className="pointer-events-none absolute -right-16 top-1/3 -z-10 h-72 w-72 rounded-full opacity-40 blur-3xl"
+                className="pointer-events-none absolute -right-20 top-1/4 -z-10 h-80 w-80 rounded-full opacity-40 blur-3xl"
                 style={{ background: "var(--gradient-brand)" }}
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -left-10 bottom-0 -z-10 h-56 w-56 rounded-full bg-primary/20 opacity-50 blur-3xl"
               />
 
-              {/* browser frame with subtle perspective */}
+              {/* outer ring for depth */}
               <div
-                className="relative rounded-[1.75rem] border border-[var(--border-premium)] bg-white p-2"
+                className="relative rounded-[2rem] p-[1px]"
                 style={{
-                  boxShadow: "var(--shadow-premium)",
-                  transform: "perspective(1800px) rotateY(-4deg) rotateX(2deg)",
+                  background:
+                    "linear-gradient(140deg, oklch(0.55 0.22 258 / 0.35), oklch(0.55 0.22 258 / 0.05) 40%, transparent 70%)",
+                  transform: "perspective(1800px) rotateY(-5deg) rotateX(2deg)",
                 }}
               >
-                {/* window chrome */}
-                <div className="flex items-center justify-between px-3 pb-2 pt-1.5">
-                  <div className="flex gap-1.5">
-                    <span className="size-2.5 rounded-full bg-rose-400/80" />
-                    <span className="size-2.5 rounded-full bg-amber-400/80" />
-                    <span className="size-2.5 rounded-full bg-emerald-400/80" />
+                {/* browser frame */}
+                <div
+                  className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-white p-2"
+                  style={{ boxShadow: "var(--shadow-premium)" }}
+                >
+                  {/* window chrome */}
+                  <div className="flex items-center justify-between px-3 pb-2 pt-1.5">
+                    <div className="flex gap-1.5">
+                      <span className="size-2.5 rounded-full bg-rose-400/80" />
+                      <span className="size-2.5 rounded-full bg-amber-400/80" />
+                      <span className="size-2.5 rounded-full bg-emerald-400/80" />
+                    </div>
+                    <div className="hidden items-center gap-1.5 rounded-md border border-[var(--border-premium)] bg-secondary/60 px-3 py-0.5 text-[10px] text-muted-foreground sm:flex">
+                      <ShieldCheck className="size-2.5 text-emerald-600" />
+                      app.agentecomercial360.com/dashboard
+                    </div>
+                    <div className="size-2.5" />
                   </div>
-                  <div className="hidden rounded-md border border-[var(--border-premium)] bg-secondary/60 px-3 py-0.5 text-[10px] text-muted-foreground sm:block">
-                    app.agentecomercial360.com/atendimentos
-                  </div>
-                  <div className="size-2.5" />
-                </div>
 
-                {/* app shell: sidebar + main */}
-                <div className="overflow-hidden rounded-2xl bg-slate-50">
-                  <div className="grid grid-cols-[140px_1fr] md:grid-cols-[168px_1fr]">
-                    {/* SIDEBAR — navy like real app */}
-                    <aside className="flex flex-col gap-2 bg-[oklch(0.18_0.04_258)] px-2.5 py-3 text-white">
-                      <div className="flex items-center gap-2 px-1.5 pb-2">
-                        <div
-                          className="flex size-7 shrink-0 items-center justify-center rounded-md text-white"
-                          style={{ background: "var(--gradient-brand)" }}
-                        >
-                          <span className="text-[10px] font-black tracking-tighter">AC</span>
-                        </div>
-                        <div className="min-w-0 leading-tight">
-                          <div className="truncate text-[9px] font-medium text-white/60">
-                            Agente Comercial
+                  {/* app shell: sidebar + main */}
+                  <div className="overflow-hidden rounded-[1.5rem] bg-slate-50">
+                    <div className="grid grid-cols-[140px_1fr] md:grid-cols-[170px_1fr]">
+                      {/* SIDEBAR */}
+                      <aside
+                        className="flex flex-col gap-1.5 px-2.5 py-3 text-white"
+                        style={{
+                          background:
+                            "linear-gradient(180deg, oklch(0.20 0.045 258) 0%, oklch(0.15 0.04 258) 100%)",
+                        }}
+                      >
+                        <div className="flex items-center gap-2 px-1.5 pb-2.5">
+                          <div
+                            className="flex size-7 shrink-0 items-center justify-center rounded-md text-white shadow-[0_4px_10px_-2px_oklch(0.55_0.22_258_/_0.6)]"
+                            style={{ background: "var(--gradient-brand)" }}
+                          >
+                            <span className="text-[10px] font-black tracking-tighter">AC</span>
                           </div>
-                          <div className="font-display text-[11px] font-bold">360</div>
-                        </div>
-                      </div>
-
-                      <div className="px-1.5 text-[8px] font-semibold uppercase tracking-wider text-white/40">
-                        Operação
-                      </div>
-                      {[
-                        { I: BarChart3, l: "Dashboard", active: false },
-                        { I: Headphones, l: "Atendimentos", active: true },
-                        { I: MessageSquare, l: "Conversas", active: false },
-                        { I: Users, l: "Leads", active: false },
-                      ].map((it) => (
-                        <div
-                          key={it.l}
-                          className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[10px] ${
-                            it.active
-                              ? "bg-primary text-white shadow-[0_4px_12px_-2px_oklch(0.55_0.22_258_/_0.5)]"
-                              : "text-white/65"
-                          }`}
-                        >
-                          <it.I className="size-3" />
-                          <span className="truncate">{it.l}</span>
-                        </div>
-                      ))}
-
-                      <div className="mt-1 px-1.5 text-[8px] font-semibold uppercase tracking-wider text-white/40">
-                        Inteligência
-                      </div>
-                      {[
-                        { I: Sparkles, l: "IA" },
-                        { I: BookOpen, l: "Base" },
-                      ].map((it) => (
-                        <div
-                          key={it.l}
-                          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-[10px] text-white/65"
-                        >
-                          <it.I className="size-3" />
-                          <span className="truncate">{it.l}</span>
-                        </div>
-                      ))}
-                    </aside>
-
-                    {/* MAIN */}
-                    <div className="flex flex-col">
-                      {/* TOP HEADER — like real app */}
-                      <div className="flex items-center justify-between gap-2 border-b border-[var(--border-premium)] bg-white px-3 py-2.5">
-                        <div className="flex min-w-0 items-center gap-2.5">
                           <div className="min-w-0 leading-tight">
-                            <div className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
-                              Empresa ativa
+                            <div className="truncate text-[9px] font-medium text-white/55">
+                              Agente Comercial
                             </div>
-                            <div className="font-display truncate text-[11px] font-bold tracking-tight">
-                              União Auto Peças
-                            </div>
-                          </div>
-                          <div className="hidden items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-700 sm:flex">
-                            <Bot className="size-2.5" /> IA Ativa
+                            <div className="font-display text-[11px] font-bold">360</div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <div className="hidden items-center gap-1 text-[9px] text-muted-foreground md:flex">
-                            <span className="size-1.5 rounded-full bg-emerald-500" />
-                            Sistema online
-                          </div>
+
+                        <div className="px-1.5 pb-0.5 text-[8px] font-semibold uppercase tracking-wider text-white/35">
+                          Operação
+                        </div>
+                        {[
+                          { I: BarChart3, l: "Dashboard", active: true },
+                          { I: Headphones, l: "Atendimentos", active: false },
+                          { I: MessageSquare, l: "Conversas", active: false },
+                          { I: Users, l: "Leads", active: false },
+                        ].map((it) => (
                           <div
-                            className="flex items-center gap-1 rounded-md px-2 py-1 text-[9px] font-semibold text-white"
-                            style={{ background: "var(--gradient-brand)" }}
+                            key={it.l}
+                            className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[10px] ${
+                              it.active
+                                ? "bg-primary text-white shadow-[0_6px_14px_-3px_oklch(0.55_0.22_258_/_0.55)]"
+                                : "text-white/65"
+                            }`}
                           >
-                            <Zap className="size-2.5" /> Atualizar
+                            <it.I className="size-3" />
+                            <span className="truncate">{it.l}</span>
                           </div>
-                        </div>
-                      </div>
+                        ))}
 
-                      {/* CONTENT */}
-                      <div className="space-y-2.5 p-3">
-                        <div>
-                          <div className="font-display text-sm font-bold tracking-tight">
-                            Atendimentos
+                        <div className="mt-1.5 px-1.5 pb-0.5 text-[8px] font-semibold uppercase tracking-wider text-white/35">
+                          Inteligência
+                        </div>
+                        {[
+                          { I: Sparkles, l: "IA" },
+                          { I: BookOpen, l: "Base" },
+                        ].map((it) => (
+                          <div
+                            key={it.l}
+                            className="flex items-center gap-2 rounded-md px-2 py-1.5 text-[10px] text-white/65"
+                          >
+                            <it.I className="size-3" />
+                            <span className="truncate">{it.l}</span>
                           </div>
-                          <div className="text-[9px] text-muted-foreground">
-                            Acompanhe os atendimentos, setores e responsáveis vinculados.
-                          </div>
-                        </div>
+                        ))}
+                      </aside>
 
-                        {/* Banner verde Supabase */}
-                        <div className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[9px] font-medium text-emerald-700">
-                          <CheckCircle2 className="size-3 shrink-0" />
-                          Dados carregados do Supabase
-                        </div>
-
-                        {/* KPI CARDS — match real dashboard */}
-                        <div className="grid grid-cols-4 gap-1.5">
-                          {[
-                            { icon: Headphones, label: "Atendimentos hoje", value: "1" },
-                            { icon: TrendingUp, label: "Leads quentes", value: "1" },
-                            { icon: MessageSquare, label: "Conversas abertas", value: "1" },
-                            { icon: CheckCircle2, label: "Finalizados", value: "1" },
-                          ].map((k) => (
-                            <div
-                              key={k.label}
-                              className="rounded-lg border border-[var(--border-premium)] bg-white p-2 shadow-[var(--shadow-soft)]"
-                            >
-                              <div className="flex items-center justify-between gap-1">
-                                <div className="text-[8px] font-medium leading-tight text-muted-foreground">
-                                  {k.label}
-                                </div>
-                                <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[var(--brand-blue-soft)] text-primary">
-                                  <k.icon className="size-2.5" />
-                                </div>
+                      {/* MAIN */}
+                      <div className="flex flex-col">
+                        {/* TOP HEADER */}
+                        <div className="flex items-center justify-between gap-2 border-b border-[var(--border-premium)] bg-white px-3 py-2.5">
+                          <div className="flex min-w-0 items-center gap-2.5">
+                            <div className="min-w-0 leading-tight">
+                              <div className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
+                                Empresa ativa
                               </div>
-                              <div className="font-display mt-1 text-lg font-bold tracking-tight">
-                                {k.value}
+                              <div className="font-display truncate text-[11px] font-bold tracking-tight">
+                                União Auto Peças
                               </div>
                             </div>
-                          ))}
+                            <div className="hidden items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-700 sm:flex">
+                              <Bot className="size-2.5" /> IA Ativa
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="hidden items-center gap-1 text-[9px] text-muted-foreground md:flex">
+                              <span className="relative flex size-1.5">
+                                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-60" />
+                                <span className="relative inline-flex size-1.5 rounded-full bg-emerald-500" />
+                              </span>
+                              Sistema online
+                            </div>
+                          </div>
                         </div>
 
-                        {/* Lead row (mini table) */}
-                        <div className="rounded-lg border border-[var(--border-premium)] bg-white shadow-[var(--shadow-soft)]">
-                          <div className="grid grid-cols-[1.4fr_1.6fr_0.9fr_0.5fr] gap-2 border-b border-[var(--border-premium)] px-2.5 py-1.5 text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            <span>Cliente</span>
-                            <span>Mensagem</span>
-                            <span>Status</span>
-                            <span className="text-right">Score</span>
-                          </div>
-                          <div className="grid grid-cols-[1.4fr_1.6fr_0.9fr_0.5fr] items-center gap-2 px-2.5 py-2">
-                            <div className="flex min-w-0 items-center gap-1.5">
-                              <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[8px] font-bold text-primary">
-                                C
-                              </div>
-                              <div className="min-w-0 truncate text-[9px] font-semibold">
-                                Cliente Teste Auto Peças
-                              </div>
-                            </div>
-                            <div className="truncate text-[9px] text-muted-foreground">
-                              Kit embreagem para Gol 1.6
-                            </div>
+                        {/* CONTENT */}
+                        <div className="space-y-2.5 p-3">
+                          <div className="flex items-end justify-between gap-2">
                             <div>
-                              <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[8px] font-semibold text-amber-700 ring-1 ring-amber-200">
-                                Em negociação
-                              </span>
+                              <div className="font-display text-sm font-bold tracking-tight">
+                                Dashboard
+                              </div>
+                              <div className="text-[9px] text-muted-foreground">
+                                Visão geral da operação comercial em tempo real.
+                              </div>
                             </div>
-                            <div className="text-right text-[10px] font-bold text-primary">92</div>
+                            <div className="hidden items-center gap-1 rounded-md border border-[var(--border-premium)] bg-white px-1.5 py-0.5 text-[9px] text-muted-foreground sm:flex">
+                              Hoje
+                            </div>
                           </div>
-                        </div>
 
-                        {/* IA summary */}
-                        <div
-                          className="flex items-start gap-2 rounded-lg border border-primary/25 p-2"
-                          style={{
-                            background:
-                              "linear-gradient(90deg, oklch(0.55 0.22 258 / 0.10), oklch(0.55 0.22 258 / 0.02))",
-                          }}
-                        >
-                          <div
-                            className="flex size-6 shrink-0 items-center justify-center rounded-md text-white"
-                            style={{ background: "var(--gradient-brand)" }}
-                          >
-                            <Bot className="size-3" />
+                          {/* KPI CARDS */}
+                          <div className="grid grid-cols-4 gap-1.5">
+                            {[
+                              { icon: Headphones, label: "Atendimentos hoje", value: "47", trend: "+12%" },
+                              { icon: TrendingUp, label: "Leads quentes", value: "18", trend: "+6" },
+                              { icon: MessageSquare, label: "Conversas abertas", value: "23", trend: "ativo" },
+                              { icon: CheckCircle2, label: "Finalizados", value: "31", trend: "+9" },
+                            ].map((k) => (
+                              <div
+                                key={k.label}
+                                className="rounded-lg border border-[var(--border-premium)] bg-white p-2 shadow-[var(--shadow-soft)]"
+                              >
+                                <div className="flex items-center justify-between gap-1">
+                                  <div className="text-[8px] font-medium leading-tight text-muted-foreground">
+                                    {k.label}
+                                  </div>
+                                  <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[var(--brand-blue-soft)] text-primary">
+                                    <k.icon className="size-2.5" />
+                                  </div>
+                                </div>
+                                <div className="font-display mt-1 flex items-baseline gap-1">
+                                  <span className="text-lg font-bold tracking-tight">{k.value}</span>
+                                  <span className="text-[8px] font-semibold text-emerald-600">{k.trend}</span>
+                                </div>
+                              </div>
+                            ))}
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-1.5 text-[9px] font-bold text-foreground">
-                              Resumo da IA
-                              <span className="rounded bg-primary/15 px-1 py-px text-[7px] font-semibold text-primary">
-                                auto
-                              </span>
+
+                          {/* Mini table — Top leads */}
+                          <div className="rounded-lg border border-[var(--border-premium)] bg-white shadow-[var(--shadow-soft)]">
+                            <div className="flex items-center justify-between border-b border-[var(--border-premium)] px-2.5 py-1.5">
+                              <div className="text-[9px] font-bold tracking-tight">Top leads</div>
+                              <div className="text-[8px] text-muted-foreground">atualizado agora</div>
                             </div>
-                            <div className="text-[9px] leading-snug text-muted-foreground">
-                              A IA identificou uma oportunidade quente e recomendou follow-up comercial.
+                            <div className="grid grid-cols-[1.4fr_1.4fr_0.9fr_0.5fr] gap-2 border-b border-[var(--border-premium)] px-2.5 py-1 text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              <span>Cliente</span>
+                              <span>Interesse</span>
+                              <span>Status</span>
+                              <span className="text-right">Score</span>
+                            </div>
+                            {[
+                              {
+                                ini: "C",
+                                nome: "Cliente Teste Auto Peças",
+                                msg: "Kit embreagem Gol 1.6",
+                                status: "Em negociação",
+                                statusCls: "bg-amber-50 text-amber-700 ring-amber-200",
+                                score: 92,
+                              },
+                              {
+                                ini: "M",
+                                nome: "Marcelo / Oficina Cruzeiro",
+                                msg: "Pastilhas de freio Civic",
+                                status: "Qualificado",
+                                statusCls: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+                                score: 87,
+                              },
+                              {
+                                ini: "R",
+                                nome: "Roberta — Frota RS",
+                                msg: "Orçamento óleo 5W30",
+                                status: "Novo",
+                                statusCls: "bg-sky-50 text-sky-700 ring-sky-200",
+                                score: 74,
+                              },
+                            ].map((r) => (
+                              <div
+                                key={r.ini + r.nome}
+                                className="grid grid-cols-[1.4fr_1.4fr_0.9fr_0.5fr] items-center gap-2 px-2.5 py-1.5"
+                              >
+                                <div className="flex min-w-0 items-center gap-1.5">
+                                  <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[8px] font-bold text-primary">
+                                    {r.ini}
+                                  </div>
+                                  <div className="min-w-0 truncate text-[9px] font-semibold">
+                                    {r.nome}
+                                  </div>
+                                </div>
+                                <div className="truncate text-[9px] text-muted-foreground">
+                                  {r.msg}
+                                </div>
+                                <div>
+                                  <span
+                                    className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ring-1 ${r.statusCls}`}
+                                  >
+                                    {r.status}
+                                  </span>
+                                </div>
+                                <div className="text-right text-[10px] font-bold text-primary">
+                                  {r.score}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* IA summary */}
+                          <div
+                            className="flex items-start gap-2 rounded-lg border border-primary/25 p-2"
+                            style={{
+                              background:
+                                "linear-gradient(90deg, oklch(0.55 0.22 258 / 0.10), oklch(0.55 0.22 258 / 0.02))",
+                            }}
+                          >
+                            <div
+                              className="flex size-6 shrink-0 items-center justify-center rounded-md text-white"
+                              style={{ background: "var(--gradient-brand)" }}
+                            >
+                              <Bot className="size-3" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 text-[9px] font-bold text-foreground">
+                                Resumo da IA
+                                <span className="rounded bg-primary/15 px-1 py-px text-[7px] font-semibold text-primary">
+                                  auto
+                                </span>
+                              </div>
+                              <div className="text-[9px] leading-snug text-muted-foreground">
+                                3 leads quentes precisam de follow-up. Tempo médio de resposta caiu 18%.
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -389,7 +442,7 @@ function LandingPage() {
               </div>
 
               {/* floating badges */}
-              <div className="absolute -left-5 top-[34%] hidden rounded-xl border border-[var(--border-premium)] bg-white px-3 py-2 shadow-[var(--shadow-card)] md:block">
+              <div className="absolute -left-5 top-[28%] hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
                 <div className="flex items-center gap-2 text-xs">
                   <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
                     <CheckCircle2 className="size-4" />
@@ -400,7 +453,7 @@ function LandingPage() {
                   </div>
                 </div>
               </div>
-              <div className="absolute -right-4 bottom-12 hidden rounded-xl border border-[var(--border-premium)] bg-white px-3 py-2 shadow-[var(--shadow-card)] md:block">
+              <div className="absolute -right-4 top-[18%] hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className="flex size-8 items-center justify-center rounded-lg text-white"
@@ -411,6 +464,17 @@ function LandingPage() {
                   <div>
                     <div className="font-semibold">IA respondeu</div>
                     <div className="text-[11px] text-muted-foreground">12 conversas</div>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -right-2 bottom-10 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur lg:block">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-sky-100 text-sky-600">
+                    <Activity className="size-4" />
+                  </div>
+                  <div>
+                    <div className="font-semibold">Dados em tempo real</div>
+                    <div className="text-[11px] text-muted-foreground">sincronizando</div>
                   </div>
                 </div>
               </div>

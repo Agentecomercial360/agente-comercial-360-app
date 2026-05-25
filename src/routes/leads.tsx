@@ -530,11 +530,22 @@ function LeadsPage() {
               <div className="flex flex-col gap-2 pt-2">
                 <button
                   onClick={() => markNegotiating(selected.id)}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+                  disabled={updatingLeadId === selected.id}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Marcar como em negociação
+                  {updatingLeadId === selected.id ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Atualizando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" />
+                      Marcar como em negociação
+                    </>
+                  )}
                 </button>
+
                 <button
                   onClick={() => forwardLead(selected.id)}
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition"

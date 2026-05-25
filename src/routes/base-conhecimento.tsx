@@ -161,8 +161,9 @@ function BaseConhecimentoPage() {
   const reloadKb = async (cid: string, companyName: string) => {
     const { data, error } = await supabase
       .from("knowledge_base")
-      .select("id,company_id,title,content,category,created_at")
+      .select("id,company_id,title,content,category,created_at,is_active")
       .eq("company_id", cid)
+      .eq("is_active", true)
       .order("created_at", { ascending: false });
     if (error) {
       setKbLoadStatus("error");
@@ -180,7 +181,7 @@ function BaseConhecimentoPage() {
       categoria: normalizeCategoria(r.category),
       conteudo: (r.content as string) ?? "",
       empresa: companyName,
-      status: "Ativo",
+      status: r.is_active === false ? "Inativo" : "Ativo",
       atualizadoEm: r.created_at
         ? new Date(r.created_at as string).toLocaleDateString("pt-BR")
         : "",
@@ -372,6 +373,7 @@ function BaseConhecimentoPage() {
             title: form.titulo.trim(),
             content: form.conteudo.trim(),
             category: form.categoria,
+            is_active: true,
           })
           .select()
           .single();
@@ -393,8 +395,44 @@ function BaseConhecimentoPage() {
     }
   };
 
-  const toggleStatus = (_id: string) => {
-    toast.info("Remoção/desativação da base de conhecimento será implementada em uma próxima fase.");
+  const toggleStatus = async (id: string) => {
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) {
+      const msg = "Usuário não autenticado. Faça login novamente.";
+      setSaveError(msg);
+      toast.error(msg);
+      return;
+    }
+    if (!companyId) {
+      const msg = "Empresa vinculada não encontrada para este usuário.";
+      setSaveError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    // Optimistic UI? No — only remove after confirmed success.
+    const { error } = await supabase
+      .from("knowledge_base")
+      .update({ is_active: false })
+      .eq("id", id)
+      .eq("company_id", companyId)
+      .select()
+      .single();
+
+    if (error) {
+      const msg = "Não foi possível desativar o conhecimento.";
+      setSaveError(msg);
+      toast.error(msg + (error.message ? ` (${error.message})` : ""));
+      return;
+    }
+
+    const msg = "Conhecimento desativado no Supabase.";
+    setSaveSuccess(msg);
+    toast.success(msg);
+    await reloadKb(companyId, activeCompanyName ?? "União Auto Peças");
   };
 
   const viewingItem = useMemo(
@@ -660,7 +698,7 @@ function BaseConhecimentoPage() {
                 <h3 className="text-sm font-semibold text-emerald-800">Persistência ativa</h3>
               </div>
               <p className="text-xs leading-relaxed text-emerald-700">
-                A Base de Conhecimento é carregada e salva no Supabase. Novos conhecimentos e edições feitas nesta tela serão persistidos para a empresa vinculada ao usuário logado. Remoção/desativação será implementada em uma próxima fase.
+                A Base de Conhecimento é carregada e salva no Supabase. Novos conhecimentos, edições e desativações feitas nesta tela são persistidos para a empresa vinculada ao usuário logado. Desativar não apaga o registro, apenas oculta da base ativa.
               </p>
               {saveError && (
                 <p className="mt-2 text-xs font-medium text-rose-700">{saveError}</p>

@@ -550,10 +550,11 @@ function LeadsPage() {
 
                 <button
                   onClick={() => forwardLead(selected.id)}
+                  title="Encaminhamento ainda é local — não altera o Supabase nesta fase."
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition"
                 >
                   <ArrowRightLeft className="h-4 w-4" />
-                  Encaminhar para responsável
+                  Encaminhar localmente (em breve)
                 </button>
                 <button
                   onClick={() => setSelectedId(null)}

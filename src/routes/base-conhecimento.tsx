@@ -395,8 +395,44 @@ function BaseConhecimentoPage() {
     }
   };
 
-  const toggleStatus = (_id: string) => {
-    toast.info("Remoção/desativação da base de conhecimento será implementada em uma próxima fase.");
+  const toggleStatus = async (id: string) => {
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) {
+      const msg = "Usuário não autenticado. Faça login novamente.";
+      setSaveError(msg);
+      toast.error(msg);
+      return;
+    }
+    if (!companyId) {
+      const msg = "Empresa vinculada não encontrada para este usuário.";
+      setSaveError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    // Optimistic UI? No — only remove after confirmed success.
+    const { error } = await supabase
+      .from("knowledge_base")
+      .update({ is_active: false })
+      .eq("id", id)
+      .eq("company_id", companyId)
+      .select()
+      .single();
+
+    if (error) {
+      const msg = "Não foi possível desativar o conhecimento.";
+      setSaveError(msg);
+      toast.error(msg + (error.message ? ` (${error.message})` : ""));
+      return;
+    }
+
+    const msg = "Conhecimento desativado no Supabase.";
+    setSaveSuccess(msg);
+    toast.success(msg);
+    await reloadKb(companyId, activeCompanyName ?? "União Auto Peças");
   };
 
   const viewingItem = useMemo(

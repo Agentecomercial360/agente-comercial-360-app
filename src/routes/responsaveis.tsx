@@ -129,93 +129,94 @@ function ResponsaveisPage() {
     "loading" | "loaded" | "empty" | "unauthenticated" | "error"
   >("loading");
   const [loadedCount, setLoadedCount] = useState(0);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+
+  const normalizeSetor = (d: string | null | undefined): Setor => {
+    const allowed: Setor[] = ["Vendas", "Financeiro", "Administrativo", "Gestão"];
+    if (!d) return "Administrativo";
+    const found = allowed.find((s) => s.toLowerCase() === d.trim().toLowerCase());
+    return found ?? "Administrativo";
+  };
+
+  const resolveCompanyId = async (): Promise<{ companyId: string | null; reason?: string }> => {
+    if (companyId) return { companyId };
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      return { companyId: null, reason: "unauthenticated" };
+    }
+    const { data: cu, error: cuError } = await supabase
+      .from("company_users")
+      .select("company_id")
+      .eq("user_id", userData.user.id)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (cuError || !cu?.company_id) {
+      return { companyId: null, reason: "no_company" };
+    }
+    setCompanyId(cu.company_id as string);
+    return { companyId: cu.company_id as string };
+  };
+
+  const loadResponsibles = async (cidOverride?: string) => {
+    setLoadingResponsibles(true);
+    try {
+      let cid = cidOverride ?? companyId;
+      if (!cid) {
+        const resolved = await resolveCompanyId();
+        if (!resolved.companyId) {
+          setResponsiblesLoadStatus(resolved.reason === "unauthenticated" ? "unauthenticated" : "error");
+          setLoadingResponsibles(false);
+          return;
+        }
+        cid = resolved.companyId;
+      }
+
+      const { data: rows, error: rError } = await supabase
+        .from("responsibles")
+        .select("id,name,department,role,phone,email,is_active,created_at")
+        .eq("company_id", cid)
+        .order("name");
+
+      if (rError) {
+        setResponsiblesLoadStatus("error");
+        setLoadingResponsibles(false);
+        return;
+      }
+
+      if (!rows || rows.length === 0) {
+        setItems([]);
+        setLoadedCount(0);
+        setResponsiblesLoadStatus("empty");
+        setLoadingResponsibles(false);
+        return;
+      }
+
+      const mapped: Responsavel[] = rows.map((r) => ({
+        id: String(r.id),
+        nome: r.name ?? "Sem nome",
+        setor: normalizeSetor(r.department),
+        funcao: r.role ?? "",
+        telefone: r.phone ?? "",
+        status: r.is_active ? "Ativo" : "Inativo",
+        atendimentosHoje: 0,
+      }));
+
+      setItems(mapped);
+      setLoadedCount(mapped.length);
+      setResponsiblesLoadStatus("loaded");
+      setLoadingResponsibles(false);
+    } catch {
+      setResponsiblesLoadStatus("error");
+      setLoadingResponsibles(false);
+    }
+  };
 
   useEffect(() => {
-    let cancelled = false;
-
-    const allowedSetores: Setor[] = ["Vendas", "Financeiro", "Administrativo", "Gestão"];
-    const normalizeSetor = (d: string | null | undefined): Setor => {
-      if (!d) return "Administrativo";
-      const found = allowedSetores.find((s) => s.toLowerCase() === d.trim().toLowerCase());
-      return found ?? "Administrativo";
-    };
-
-    const load = async () => {
-      try {
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        if (userError || !userData.user) {
-          if (!cancelled) {
-            setResponsiblesLoadStatus("unauthenticated");
-            setLoadingResponsibles(false);
-          }
-          return;
-        }
-
-        const { data: cu, error: cuError } = await supabase
-          .from("company_users")
-          .select("company_id")
-          .eq("user_id", userData.user.id)
-          .eq("is_active", true)
-          .maybeSingle();
-
-        if (cuError || !cu?.company_id) {
-          if (!cancelled) {
-            setResponsiblesLoadStatus("error");
-            setLoadingResponsibles(false);
-          }
-          return;
-        }
-
-        const { data: rows, error: rError } = await supabase
-          .from("responsibles")
-          .select("id,name,department,role,phone,email,is_active,created_at")
-          .eq("company_id", cu.company_id)
-          .order("name");
-
-        if (rError) {
-          if (!cancelled) {
-            setResponsiblesLoadStatus("error");
-            setLoadingResponsibles(false);
-          }
-          return;
-        }
-
-        if (!rows || rows.length === 0) {
-          if (!cancelled) {
-            setResponsiblesLoadStatus("empty");
-            setLoadingResponsibles(false);
-          }
-          return;
-        }
-
-        const mapped: Responsavel[] = rows.map((r) => ({
-          id: String(r.id),
-          nome: r.name ?? "Sem nome",
-          setor: normalizeSetor(r.department),
-          funcao: r.role ?? "",
-          telefone: r.phone ?? "",
-          status: r.is_active ? "Ativo" : "Inativo",
-          atendimentosHoje: 0,
-        }));
-
-        if (!cancelled) {
-          setItems(mapped);
-          setLoadedCount(mapped.length);
-          setResponsiblesLoadStatus("loaded");
-          setLoadingResponsibles(false);
-        }
-      } catch {
-        if (!cancelled) {
-          setResponsiblesLoadStatus("error");
-          setLoadingResponsibles(false);
-        }
-      }
-    };
-
-    load();
-    return () => {
-      cancelled = true;
-    };
+    loadResponsibles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const ativosCount = useMemo(

@@ -111,10 +111,13 @@ function LandingPage() {
             {/* LEFT */}
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-premium)] bg-white px-3.5 py-1.5 text-xs font-medium text-muted-foreground shadow-[var(--shadow-soft)]">
-                <Sparkles className="size-3.5 text-primary" />
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
+                  <span className="relative inline-flex size-2 rounded-full bg-primary" />
+                </span>
                 Plataforma SaaS de inteligência comercial
               </div>
-              <h1 className="font-display mt-6 text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl">
+              <h1 className="font-display mt-6 text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.025em] md:text-6xl lg:text-[4.25rem]">
                 Transforme{" "}
                 <span
                   className="bg-clip-text text-transparent"
@@ -129,14 +132,14 @@ function LandingPage() {
                 relatórios em uma operação comercial organizada, escalável e pronta para
                 automações.
               </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <a href="#cta-final">
-                  <Button size="lg" className="h-12 w-full gap-2 px-6 text-base shadow-[var(--shadow-premium)] sm:w-auto">
+                  <Button size="lg" className="h-12 w-full gap-2 px-7 text-base shadow-[var(--shadow-premium)] sm:w-auto">
                     Solicitar demonstração <ArrowRight className="size-4" />
                   </Button>
                 </a>
                 <Link to="/login">
-                  <Button size="lg" variant="outline" className="h-12 w-full px-6 text-base sm:w-auto">
+                  <Button size="lg" variant="outline" className="h-12 w-full px-7 text-base sm:w-auto">
                     Entrar no painel
                   </Button>
                 </Link>

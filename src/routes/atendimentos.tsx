@@ -126,6 +126,9 @@ function AtendimentosPage() {
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [, setLoadingAtendimentos] = useState<boolean>(true);
   const [atendimentosLoadStatus, setAtendimentosLoadStatus] = useState<LoadStatus>("loading");
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [finishingId, setFinishingId] = useState<string | number | null>(null);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -146,6 +149,8 @@ function AtendimentosPage() {
           if (!cancelled) setAtendimentosLoadStatus("error");
           return;
         }
+        if (!cancelled) setCompanyId(cu.company_id as string);
+
         const { data: rows, error: convErr } = await supabase
           .from("conversations")
           .select(
@@ -208,10 +213,46 @@ function AtendimentosPage() {
 
   const responsaveis = ["Amanda", "Vinicius", "Thaís", "Lorenzzo", "Vitor"];
 
-  const finalizar = (id: string | number) => {
-    setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status: "Finalizado" } : a)));
-    toast.success("Atendimento marcado como finalizado");
+  const finalizar = async (id: string | number) => {
+    if (typeof id !== "string") {
+      // mock local
+      setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status: "Finalizado" } : a)));
+      toast.success("Atendimento marcado como finalizado (local)");
+      return;
+    }
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !userData?.user) {
+      toast.error("Usuário não autenticado. Faça login novamente.");
+      return;
+    }
+    if (!companyId) {
+      toast.error("Empresa vinculada não encontrada para este usuário.");
+      return;
+    }
+    setFinishingId(id);
+    try {
+      const { data, error } = await supabase
+        .from("conversations")
+        .update({ status: "finalizada" })
+        .eq("id", id)
+        .eq("company_id", companyId)
+        .select()
+        .single();
+      if (error || !data) {
+        toast.error("Não foi possível finalizar o atendimento.");
+        return;
+      }
+      setItems((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, status: normalizeStatus(data.status) } : a)),
+      );
+      toast.success("Atendimento finalizado no Supabase.");
+    } catch {
+      toast.error("Não foi possível finalizar o atendimento.");
+    } finally {
+      setFinishingId(null);
+    }
   };
+
 
   const encaminhar = (id: string | number) => {
     setItems((prev) =>
@@ -272,11 +313,11 @@ function AtendimentosPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          A leitura da lista de atendimentos já pode ser carregada do Supabase. Nesta etapa, setor,
-          responsável, mensagens, finalizar e encaminhar ainda funcionam localmente e não persistem
-          mudanças no banco.
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800">
+          Atendimentos são carregados do Supabase. A ação de finalizar atendimento já é salva no
+          Supabase. Encaminhamentos e automações externas serão implementados em uma próxima fase.
         </div>
+
 
         {/* Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -493,14 +534,18 @@ function AtendimentosPage() {
 
               <div className="flex flex-col gap-2 pt-2">
                 <button
-                  onClick={() => {
-                    finalizar(selected.id);
+                  disabled={finishingId === selected.id}
+                  onClick={async () => {
+                    const sid = selected.id;
+                    await finalizar(sid);
                     setSelectedId(null);
                   }}
-                  className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                  className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <CheckCheck className="h-4 w-4" /> Marcar como finalizado
+                  <CheckCheck className="h-4 w-4" />
+                  {finishingId === selected.id ? "Finalizando..." : "Marcar como finalizado"}
                 </button>
+
                 <button
                   onClick={() => encaminhar(selected.id)}
                   className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"

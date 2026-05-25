@@ -212,9 +212,9 @@ function ConfiguracoesPage() {
 
   const handleSave = () => {
     setSaved(true);
-    toast.success("Configurações salvas localmente.", {
-      description: "Alterações salvas apenas nesta sessão visual.",
-    });
+    toast.success(
+      "Alterações aplicadas apenas nesta sessão. Salvamento definitivo no Supabase ainda não está ativo nesta tela.",
+    );
   };
 
   const openRestore = () => {
@@ -226,7 +226,9 @@ function ConfiguracoesPage() {
     setPreferencias(defaultPreferencias);
     setSaved(true);
     setConfirmOpen(false);
-    toast.success("Configurações padrão restauradas.");
+    toast.success(
+      "Restauração aplicada apenas localmente. Nenhuma alteração foi enviada ao Supabase.",
+    );
   };
 
   const empresaFields: { key: keyof typeof empresa; label: string; icon: React.ElementType }[] = [

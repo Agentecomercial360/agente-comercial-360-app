@@ -149,6 +149,8 @@ function AtendimentosPage() {
           if (!cancelled) setAtendimentosLoadStatus("error");
           return;
         }
+        if (!cancelled) setCompanyId(cu.company_id as string);
+
         const { data: rows, error: convErr } = await supabase
           .from("conversations")
           .select(

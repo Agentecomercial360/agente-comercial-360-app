@@ -158,204 +158,228 @@ function LandingPage() {
               </div>
             </div>
 
-            {/* RIGHT — dashboard mockup inspired by the real product */}
-            <div className="relative">
+            {/* RIGHT — realistic mini-replica of the Agente Comercial 360 panel */}
+            <div className="relative lg:-mr-6 xl:-mr-12">
+              {/* glow */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute -inset-8 -z-10 rounded-[2.75rem] opacity-50 blur-3xl"
+                className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] opacity-60 blur-3xl"
                 style={{ background: "var(--gradient-brand)" }}
               />
-              {/* browser frame */}
               <div
-                className="relative rounded-[1.75rem] border border-[var(--border-premium)] bg-white p-2.5"
-                style={{ boxShadow: "var(--shadow-premium)" }}
+                aria-hidden
+                className="pointer-events-none absolute -right-16 top-1/3 -z-10 h-72 w-72 rounded-full opacity-40 blur-3xl"
+                style={{ background: "var(--gradient-brand)" }}
+              />
+
+              {/* browser frame with subtle perspective */}
+              <div
+                className="relative rounded-[1.75rem] border border-[var(--border-premium)] bg-white p-2"
+                style={{
+                  boxShadow: "var(--shadow-premium)",
+                  transform: "perspective(1800px) rotateY(-4deg) rotateX(2deg)",
+                }}
               >
-                <div className="flex items-center justify-between px-3 pb-2 pt-1">
+                {/* window chrome */}
+                <div className="flex items-center justify-between px-3 pb-2 pt-1.5">
                   <div className="flex gap-1.5">
                     <span className="size-2.5 rounded-full bg-rose-400/80" />
                     <span className="size-2.5 rounded-full bg-amber-400/80" />
                     <span className="size-2.5 rounded-full bg-emerald-400/80" />
                   </div>
                   <div className="hidden rounded-md border border-[var(--border-premium)] bg-secondary/60 px-3 py-0.5 text-[10px] text-muted-foreground sm:block">
-                    app.agentecomercial360.com/dashboard
+                    app.agentecomercial360.com/atendimentos
                   </div>
                   <div className="size-2.5" />
                 </div>
 
-                <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-[var(--brand-blue-soft)] via-white to-[var(--brand-blue-soft)]">
-                  {/* inner app shell: sidebar + content */}
-                  <div className="grid grid-cols-[58px_1fr]">
-                    {/* sidebar */}
-                    <div className="flex flex-col items-center gap-3 border-r border-[var(--border-premium)] bg-white/60 py-4 backdrop-blur">
-                      <div
-                        className="flex size-8 items-center justify-center rounded-lg text-white"
-                        style={{ background: "var(--gradient-brand)" }}
-                      >
-                        <Sparkles className="size-4" />
-                      </div>
-                      {[BarChart3, Headphones, MessageSquare, Users, Bot, BookOpen].map((I, i) => (
+                {/* app shell: sidebar + main */}
+                <div className="overflow-hidden rounded-2xl bg-slate-50">
+                  <div className="grid grid-cols-[140px_1fr] md:grid-cols-[168px_1fr]">
+                    {/* SIDEBAR — navy like real app */}
+                    <aside className="flex flex-col gap-2 bg-[oklch(0.18_0.04_258)] px-2.5 py-3 text-white">
+                      <div className="flex items-center gap-2 px-1.5 pb-2">
                         <div
-                          key={i}
-                          className={`flex size-8 items-center justify-center rounded-lg ${
-                            i === 0
-                              ? "bg-primary/10 text-primary"
-                              : "text-muted-foreground"
-                          }`}
-                        >
-                          <I className="size-4" />
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* content */}
-                    <div className="p-4 md:p-5">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                            Dashboard
-                          </div>
-                          <div className="font-display text-sm font-semibold tracking-tight">
-                            União Auto Peças
-                          </div>
-                        </div>
-                        <div className="hidden items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-medium text-emerald-700 sm:flex">
-                          <span className="size-1.5 rounded-full bg-emerald-500" />
-                          Ao vivo
-                        </div>
-                      </div>
-
-                      {/* KPI cards — mirror real dashboard */}
-                      <div className="mt-4 grid grid-cols-2 gap-2.5">
-                        {[
-                          { icon: Headphones, label: "Atendimentos hoje", value: "128", delta: "+12%", up: true },
-                          { icon: TrendingUp, label: "Leads quentes", value: "14", delta: "+3", up: true },
-                          { icon: MessageSquare, label: "Conversas abertas", value: "26", delta: "-2", up: false },
-                          { icon: Clock, label: "Sem resposta", value: "9", delta: "+1", up: false },
-                        ].map((k) => (
-                          <div
-                            key={k.label}
-                            className="rounded-xl border border-[var(--border-premium)] bg-white/95 p-2.5 shadow-[var(--shadow-soft)]"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex size-7 items-center justify-center rounded-lg bg-[var(--brand-blue-soft)] text-primary">
-                                <k.icon className="size-3.5" />
-                              </div>
-                              <span
-                                className={`text-[10px] font-medium ${
-                                  k.up ? "text-emerald-600" : "text-rose-600"
-                                }`}
-                              >
-                                {k.delta}
-                              </span>
-                            </div>
-                            <div className="font-display mt-2 text-xl font-bold tracking-tight">
-                              {k.value}
-                            </div>
-                            <div className="text-[10px] text-muted-foreground">{k.label}</div>
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* chart + top leads */}
-                      <div className="mt-2.5 grid grid-cols-5 gap-2.5">
-                        <div className="col-span-2 rounded-xl border border-[var(--border-premium)] bg-white/95 p-2.5 shadow-[var(--shadow-soft)]">
-                          <div className="mb-2 flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 text-[10px] font-semibold">
-                              <BarChart3 className="size-3 text-primary" /> Semana
-                            </div>
-                            <span className="text-[9px] text-muted-foreground">+18%</span>
-                          </div>
-                          <div className="flex h-16 items-end gap-1">
-                            {[42, 68, 55, 88, 74, 50, 32].map((h, i) => (
-                              <div key={i} className="flex flex-1 flex-col items-center gap-0.5">
-                                <div
-                                  className="w-full rounded-t-sm"
-                                  style={{
-                                    height: `${h}%`,
-                                    background: "var(--gradient-brand)",
-                                    opacity: 0.55 + i * 0.05,
-                                  }}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                          <div className="mt-1 flex justify-between text-[8px] text-muted-foreground">
-                            {["S","T","Q","Q","S","S","D"].map((d, i) => (
-                              <span key={i}>{d}</span>
-                            ))}
-                          </div>
-                        </div>
-
-                        <div className="col-span-3 rounded-xl border border-[var(--border-premium)] bg-white/95 p-2.5 shadow-[var(--shadow-soft)]">
-                          <div className="mb-2 flex items-center justify-between">
-                            <div className="flex items-center gap-1.5 text-[10px] font-semibold">
-                              <TrendingUp className="size-3 text-primary" /> Top leads
-                            </div>
-                            <span className="text-[9px] text-muted-foreground">Hoje</span>
-                          </div>
-                          <div className="space-y-1.5">
-                            {[
-                              { n: "João Martins", t: "Kit embreagem", s: 92 },
-                              { n: "Fernanda Lima", t: "Bateria 60Ah", s: 88 },
-                              { n: "Pedro Henrique", t: "Amortecedor", s: 81 },
-                            ].map((c) => (
-                              <div key={c.n} className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5">
-                                  <div className="flex size-5 items-center justify-center rounded-full bg-primary/10 text-[9px] font-semibold text-primary">
-                                    {c.n[0]}
-                                  </div>
-                                  <div>
-                                    <div className="text-[10px] font-medium leading-tight text-foreground">
-                                      {c.n}
-                                    </div>
-                                    <div className="text-[9px] leading-tight text-muted-foreground">
-                                      {c.t}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                  <div className="h-1 w-10 overflow-hidden rounded-full bg-secondary">
-                                    <div
-                                      className="h-full rounded-full"
-                                      style={{
-                                        width: `${c.s}%`,
-                                        background: "var(--gradient-brand)",
-                                      }}
-                                    />
-                                  </div>
-                                  <span className="text-[9px] font-semibold text-primary">
-                                    {c.s}
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* IA summary strip */}
-                      <div
-                        className="mt-2.5 flex items-start gap-2 rounded-xl border border-primary/20 p-2.5"
-                        style={{
-                          background:
-                            "linear-gradient(90deg, oklch(0.55 0.22 258 / 0.08), oklch(0.55 0.22 258 / 0.02))",
-                        }}
-                      >
-                        <div
-                          className="flex size-7 shrink-0 items-center justify-center rounded-lg text-white"
+                          className="flex size-7 shrink-0 items-center justify-center rounded-md text-white"
                           style={{ background: "var(--gradient-brand)" }}
                         >
-                          <Bot className="size-3.5" />
+                          <span className="text-[10px] font-black tracking-tighter">AC</span>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 text-[10px] font-semibold">
-                            Resumo da IA
-                            <span className="rounded bg-primary/10 px-1 py-px text-[8px] font-medium text-primary">
-                              auto
-                            </span>
+                        <div className="min-w-0 leading-tight">
+                          <div className="truncate text-[9px] font-medium text-white/60">
+                            Agente Comercial
                           </div>
-                          <div className="truncate text-[10px] text-muted-foreground">
-                            3 leads quentes aguardando retorno · priorize Fernanda Lima.
+                          <div className="font-display text-[11px] font-bold">360</div>
+                        </div>
+                      </div>
+
+                      <div className="px-1.5 text-[8px] font-semibold uppercase tracking-wider text-white/40">
+                        Operação
+                      </div>
+                      {[
+                        { I: BarChart3, l: "Dashboard", active: false },
+                        { I: Headphones, l: "Atendimentos", active: true },
+                        { I: MessageSquare, l: "Conversas", active: false },
+                        { I: Users, l: "Leads", active: false },
+                      ].map((it) => (
+                        <div
+                          key={it.l}
+                          className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[10px] ${
+                            it.active
+                              ? "bg-primary text-white shadow-[0_4px_12px_-2px_oklch(0.55_0.22_258_/_0.5)]"
+                              : "text-white/65"
+                          }`}
+                        >
+                          <it.I className="size-3" />
+                          <span className="truncate">{it.l}</span>
+                        </div>
+                      ))}
+
+                      <div className="mt-1 px-1.5 text-[8px] font-semibold uppercase tracking-wider text-white/40">
+                        Inteligência
+                      </div>
+                      {[
+                        { I: Sparkles, l: "IA" },
+                        { I: BookOpen, l: "Base" },
+                      ].map((it) => (
+                        <div
+                          key={it.l}
+                          className="flex items-center gap-2 rounded-md px-2 py-1.5 text-[10px] text-white/65"
+                        >
+                          <it.I className="size-3" />
+                          <span className="truncate">{it.l}</span>
+                        </div>
+                      ))}
+                    </aside>
+
+                    {/* MAIN */}
+                    <div className="flex flex-col">
+                      {/* TOP HEADER — like real app */}
+                      <div className="flex items-center justify-between gap-2 border-b border-[var(--border-premium)] bg-white px-3 py-2.5">
+                        <div className="flex min-w-0 items-center gap-2.5">
+                          <div className="min-w-0 leading-tight">
+                            <div className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              Empresa ativa
+                            </div>
+                            <div className="font-display truncate text-[11px] font-bold tracking-tight">
+                              União Auto Peças
+                            </div>
+                          </div>
+                          <div className="hidden items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-700 sm:flex">
+                            <Bot className="size-2.5" /> IA Ativa
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="hidden items-center gap-1 text-[9px] text-muted-foreground md:flex">
+                            <span className="size-1.5 rounded-full bg-emerald-500" />
+                            Sistema online
+                          </div>
+                          <div
+                            className="flex items-center gap-1 rounded-md px-2 py-1 text-[9px] font-semibold text-white"
+                            style={{ background: "var(--gradient-brand)" }}
+                          >
+                            <Zap className="size-2.5" /> Atualizar
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CONTENT */}
+                      <div className="space-y-2.5 p-3">
+                        <div>
+                          <div className="font-display text-sm font-bold tracking-tight">
+                            Atendimentos
+                          </div>
+                          <div className="text-[9px] text-muted-foreground">
+                            Acompanhe os atendimentos, setores e responsáveis vinculados.
+                          </div>
+                        </div>
+
+                        {/* Banner verde Supabase */}
+                        <div className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[9px] font-medium text-emerald-700">
+                          <CheckCircle2 className="size-3 shrink-0" />
+                          Dados carregados do Supabase
+                        </div>
+
+                        {/* KPI CARDS — match real dashboard */}
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {[
+                            { icon: Headphones, label: "Atendimentos hoje", value: "1" },
+                            { icon: TrendingUp, label: "Leads quentes", value: "1" },
+                            { icon: MessageSquare, label: "Conversas abertas", value: "1" },
+                            { icon: CheckCircle2, label: "Finalizados", value: "1" },
+                          ].map((k) => (
+                            <div
+                              key={k.label}
+                              className="rounded-lg border border-[var(--border-premium)] bg-white p-2 shadow-[var(--shadow-soft)]"
+                            >
+                              <div className="flex items-center justify-between gap-1">
+                                <div className="text-[8px] font-medium leading-tight text-muted-foreground">
+                                  {k.label}
+                                </div>
+                                <div className="flex size-5 shrink-0 items-center justify-center rounded-md bg-[var(--brand-blue-soft)] text-primary">
+                                  <k.icon className="size-2.5" />
+                                </div>
+                              </div>
+                              <div className="font-display mt-1 text-lg font-bold tracking-tight">
+                                {k.value}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Lead row (mini table) */}
+                        <div className="rounded-lg border border-[var(--border-premium)] bg-white shadow-[var(--shadow-soft)]">
+                          <div className="grid grid-cols-[1.4fr_1.6fr_0.9fr_0.5fr] gap-2 border-b border-[var(--border-premium)] px-2.5 py-1.5 text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            <span>Cliente</span>
+                            <span>Mensagem</span>
+                            <span>Status</span>
+                            <span className="text-right">Score</span>
+                          </div>
+                          <div className="grid grid-cols-[1.4fr_1.6fr_0.9fr_0.5fr] items-center gap-2 px-2.5 py-2">
+                            <div className="flex min-w-0 items-center gap-1.5">
+                              <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[8px] font-bold text-primary">
+                                C
+                              </div>
+                              <div className="min-w-0 truncate text-[9px] font-semibold">
+                                Cliente Teste Auto Peças
+                              </div>
+                            </div>
+                            <div className="truncate text-[9px] text-muted-foreground">
+                              Kit embreagem para Gol 1.6
+                            </div>
+                            <div>
+                              <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[8px] font-semibold text-amber-700 ring-1 ring-amber-200">
+                                Em negociação
+                              </span>
+                            </div>
+                            <div className="text-right text-[10px] font-bold text-primary">92</div>
+                          </div>
+                        </div>
+
+                        {/* IA summary */}
+                        <div
+                          className="flex items-start gap-2 rounded-lg border border-primary/25 p-2"
+                          style={{
+                            background:
+                              "linear-gradient(90deg, oklch(0.55 0.22 258 / 0.10), oklch(0.55 0.22 258 / 0.02))",
+                          }}
+                        >
+                          <div
+                            className="flex size-6 shrink-0 items-center justify-center rounded-md text-white"
+                            style={{ background: "var(--gradient-brand)" }}
+                          >
+                            <Bot className="size-3" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 text-[9px] font-bold text-foreground">
+                              Resumo da IA
+                              <span className="rounded bg-primary/15 px-1 py-px text-[7px] font-semibold text-primary">
+                                auto
+                              </span>
+                            </div>
+                            <div className="text-[9px] leading-snug text-muted-foreground">
+                              A IA identificou uma oportunidade quente e recomendou follow-up comercial.
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -365,7 +389,7 @@ function LandingPage() {
               </div>
 
               {/* floating badges */}
-              <div className="absolute -left-4 top-[28%] hidden rounded-xl border border-[var(--border-premium)] bg-white px-3 py-2 shadow-[var(--shadow-card)] md:block">
+              <div className="absolute -left-5 top-[34%] hidden rounded-xl border border-[var(--border-premium)] bg-white px-3 py-2 shadow-[var(--shadow-card)] md:block">
                 <div className="flex items-center gap-2 text-xs">
                   <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
                     <CheckCircle2 className="size-4" />
@@ -376,7 +400,7 @@ function LandingPage() {
                   </div>
                 </div>
               </div>
-              <div className="absolute -right-3 bottom-10 hidden rounded-xl border border-[var(--border-premium)] bg-white px-3 py-2 shadow-[var(--shadow-card)] md:block">
+              <div className="absolute -right-4 bottom-12 hidden rounded-xl border border-[var(--border-premium)] bg-white px-3 py-2 shadow-[var(--shadow-card)] md:block">
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className="flex size-8 items-center justify-center rounded-lg text-white"

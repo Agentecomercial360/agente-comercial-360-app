@@ -248,10 +248,62 @@ function LeadsPage() {
     { label: "Leads sem responsável", value: noOwnerLeads, icon: UserX },
   ];
 
-  function markNegotiating(id: string | number) {
-    setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status: "Em negociação" } : l)));
-    toast.success("Lead marcado como em negociação");
+  async function markNegotiating(id: string | number) {
+    // Fallback local para leads mockados (id numérico) — não persiste no Supabase
+    if (typeof id === "number") {
+      setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status: "Em negociação" } : l)));
+      toast.success("Lead marcado como em negociação (local)");
+      return;
+    }
+
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !userData?.user) {
+      toast.error("Usuário não autenticado. Faça login novamente.");
+      return;
+    }
+    if (!companyId) {
+      toast.error("Empresa vinculada não encontrada para este usuário.");
+      return;
+    }
+
+    setUpdatingLeadId(id);
+    try {
+      const { data, error } = await supabase
+        .from("leads")
+        .update({
+          stage: "orcamento",
+          next_action:
+            "Lead marcado como em negociação. Acompanhar orçamento e próximo contato.",
+        })
+        .eq("id", id)
+        .eq("company_id", companyId)
+        .select()
+        .single();
+
+      if (error || !data) {
+        toast.error("Não foi possível atualizar o lead.");
+        return;
+      }
+
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.id === id
+            ? {
+                ...l,
+                status: normalizeStatus((data as any).stage),
+                proximaAcao: (data as any).next_action ?? l.proximaAcao,
+              }
+            : l,
+        ),
+      );
+      toast.success("Lead atualizado no Supabase.");
+    } catch {
+      toast.error("Não foi possível atualizar o lead.");
+    } finally {
+      setUpdatingLeadId(null);
+    }
   }
+
 
   function forwardLead(id: string | number) {
     const owners = ["Amanda", "Vinicius", "Thaís", "Lorenzzo", "Vitor"];

@@ -313,11 +313,11 @@ function AtendimentosPage() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          A leitura da lista de atendimentos já pode ser carregada do Supabase. Nesta etapa, setor,
-          responsável, mensagens, finalizar e encaminhar ainda funcionam localmente e não persistem
-          mudanças no banco.
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800">
+          Atendimentos são carregados do Supabase. A ação de finalizar atendimento já é salva no
+          Supabase. Encaminhamentos e automações externas serão implementados em uma próxima fase.
         </div>
+
 
         {/* Cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

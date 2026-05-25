@@ -768,9 +768,10 @@ function ResponsaveisPage() {
               </button>
               <button
                 onClick={saveResponsavel}
-                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+                disabled={isSaving}
+                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {editingId ? "Salvar alterações" : "Salvar responsável"}
+                {isSaving ? "Salvando..." : editingId ? "Salvar alterações" : "Salvar responsável"}
               </button>
             </div>
           </div>

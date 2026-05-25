@@ -391,11 +391,10 @@ function LandingPage() {
                 </div>
               </div>
             </div>
-              </div>
-            </div>
           </div>
         </div>
       </section>
+
 
       {/* PROBLEMA */}
       <section id="problema" className="border-t border-[var(--border-premium)] bg-white">

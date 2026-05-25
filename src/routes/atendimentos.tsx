@@ -551,9 +551,10 @@ function AtendimentosPage() {
 
                 <button
                   onClick={() => encaminhar(selected.id)}
+                  title="Encaminhamento ainda é local e não altera o Supabase nesta fase."
                   className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"
                 >
-                  <UserPlus className="h-4 w-4" /> Encaminhar para responsável
+                  <UserPlus className="h-4 w-4" /> Encaminhar localmente
                 </button>
                 <button
                   onClick={() => setSelectedId(null)}

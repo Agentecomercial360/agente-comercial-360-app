@@ -105,19 +105,28 @@ function LandingPage() {
           className="pointer-events-none absolute bottom-[-20%] left-[-10%] -z-10 h-[400px] w-[400px] rounded-full opacity-20 blur-3xl"
           style={{ background: "var(--gradient-brand)" }}
         />
+        {/* subtle tech grid */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.18]"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, oklch(0.55 0.22 258 / 0.10) 1px, transparent 1px), linear-gradient(to bottom, oklch(0.55 0.22 258 / 0.10) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
+            maskImage:
+              "radial-gradient(ellipse at center, black 35%, transparent 75%)",
+          }}
+        />
 
         <div className="mx-auto max-w-7xl px-6 pt-16 pb-20 md:pt-24 md:pb-28">
-          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
             {/* LEFT */}
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-premium)] bg-white px-3.5 py-1.5 text-xs font-medium text-muted-foreground shadow-[var(--shadow-soft)]">
-                <span className="relative flex size-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-60" />
-                  <span className="relative inline-flex size-2 rounded-full bg-primary" />
-                </span>
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3.5 py-1.5 text-xs font-medium text-foreground/80 shadow-[var(--shadow-soft)] backdrop-blur">
+                <Sparkles className="size-3.5 text-primary" />
                 Plataforma SaaS de inteligência comercial
               </div>
-              <h1 className="font-display mt-6 text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.025em] md:text-6xl lg:text-[4.25rem]">
+              <h1 className="font-display mt-6 text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.025em] text-[oklch(0.18_0.04_258)] md:text-6xl lg:text-[4.25rem]">
                 Transforme{" "}
                 <span
                   className="bg-clip-text text-transparent"
@@ -128,9 +137,8 @@ function LandingPage() {
                 com inteligência comercial
               </h1>
               <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-                Centralize WhatsApp, leads, responsáveis, IA, base de conhecimento e
-                relatórios em uma operação comercial organizada, escalável e pronta para
-                automações.
+                Centralize atendimentos, leads, responsáveis, IA, base de conhecimento e
+                relatórios em uma operação comercial organizada, rápida e escalável.
               </p>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                 <a href="#cta-final">

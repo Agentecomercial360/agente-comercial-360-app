@@ -379,7 +379,9 @@ function ConversasPage() {
       prev.map((c) => (c.id === selected.id ? { ...c, ultimaMensagem: texto } : c)),
     );
     setDraft("");
-    toast.success("Mensagem enviada");
+    toast.success(
+      "Mensagem adicionada apenas localmente. O envio real pelo WhatsApp será conectado via n8n/Cloud API em uma próxima fase.",
+    );
   };
 
   const confirmarEncaminhamento = () => {
@@ -387,7 +389,9 @@ function ConversasPage() {
       prev.map((c) => (c.id === selected.id ? { ...c, status: "Encaminhada" } : c)),
     );
     setForwardOpen(false);
-    toast.success(`Conversa encaminhada com sucesso para ${forwardTo}`);
+    toast.success(
+      "Encaminhamento registrado apenas localmente. O roteamento real para responsáveis será conectado em uma próxima fase.",
+    );
   };
 
   return (

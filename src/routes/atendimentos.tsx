@@ -316,8 +316,9 @@ function AtendimentosPage() {
         </div>
 
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800">
-          Atendimentos são carregados do Supabase. A ação de finalizar atendimento já é salva no
-          Supabase. Encaminhamentos e automações externas serão implementados em uma próxima fase.
+          Atendimentos são carregados do Supabase. <strong>Finalizar atendimento</strong> já é
+          salvo no Supabase. <strong>Encaminhamentos</strong> ainda são locais e não alteram o
+          banco nesta fase.
         </div>
 
 

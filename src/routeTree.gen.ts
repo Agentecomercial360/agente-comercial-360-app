@@ -13,6 +13,7 @@ import { Route as ResponsaveisRouteImport } from './routes/responsaveis'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeadsRouteImport } from './routes/leads'
+import { Route as LandingRouteImport } from './routes/landing'
 import { Route as IaRouteImport } from './routes/ia'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConversasRouteImport } from './routes/conversas'
@@ -39,6 +40,11 @@ const LoginRoute = LoginRouteImport.update({
 const LeadsRoute = LeadsRouteImport.update({
   id: '/leads',
   path: '/leads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LandingRoute = LandingRouteImport.update({
+  id: '/landing',
+  path: '/landing',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IaRoute = IaRouteImport.update({
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/conversas': typeof ConversasRoute
   '/dashboard': typeof DashboardRoute
   '/ia': typeof IaRoute
+  '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
   '/relatorios': typeof RelatoriosRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/conversas': typeof ConversasRoute
   '/dashboard': typeof DashboardRoute
   '/ia': typeof IaRoute
+  '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
   '/relatorios': typeof RelatoriosRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/conversas': typeof ConversasRoute
   '/dashboard': typeof DashboardRoute
   '/ia': typeof IaRoute
+  '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
   '/relatorios': typeof RelatoriosRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/conversas'
     | '/dashboard'
     | '/ia'
+    | '/landing'
     | '/leads'
     | '/login'
     | '/relatorios'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/conversas'
     | '/dashboard'
     | '/ia'
+    | '/landing'
     | '/leads'
     | '/login'
     | '/relatorios'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/conversas'
     | '/dashboard'
     | '/ia'
+    | '/landing'
     | '/leads'
     | '/login'
     | '/relatorios'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   ConversasRoute: typeof ConversasRoute
   DashboardRoute: typeof DashboardRoute
   IaRoute: typeof IaRoute
+  LandingRoute: typeof LandingRoute
   LeadsRoute: typeof LeadsRoute
   LoginRoute: typeof LoginRoute
   RelatoriosRoute: typeof RelatoriosRoute
@@ -201,6 +214,13 @@ declare module '@tanstack/react-router' {
       path: '/leads'
       fullPath: '/leads'
       preLoaderRoute: typeof LeadsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/landing': {
+      id: '/landing'
+      path: '/landing'
+      fullPath: '/landing'
+      preLoaderRoute: typeof LandingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ia': {
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConversasRoute: ConversasRoute,
   DashboardRoute: DashboardRoute,
   IaRoute: IaRoute,
+  LandingRoute: LandingRoute,
   LeadsRoute: LeadsRoute,
   LoginRoute: LoginRoute,
   RelatoriosRoute: RelatoriosRoute,
@@ -271,13 +292,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

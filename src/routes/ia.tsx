@@ -85,6 +85,11 @@ function IAPage() {
   const [aiLoadStatus, setAiLoadStatus] = useState<AiLoadStatus>("loading");
   const [activeAiSettingsId, setActiveAiSettingsId] = useState<string | null>(null);
   const [activeAiCreatedAt, setActiveAiCreatedAt] = useState<string | null>(null);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [mustCallHumanWhen, setMustCallHumanWhen] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     let cancelled = false;

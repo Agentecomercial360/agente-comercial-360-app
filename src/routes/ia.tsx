@@ -160,6 +160,7 @@ function IAPage() {
         );
         setActiveAiSettingsId((ai.id as string) ?? null);
         setActiveAiCreatedAt((ai.created_at as string) ?? null);
+        setMustCallHumanWhen((ai.must_call_human_when as string | null) ?? null);
         setAiLoadStatus("loaded");
         setSaved(true);
         setLoadingAi(false);

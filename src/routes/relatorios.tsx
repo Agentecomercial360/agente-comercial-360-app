@@ -430,10 +430,11 @@ function RelatoriosPage() {
             </div>
             <button
               onClick={handleExport}
+              title="A exportação inclui métricas reais parciais e alguns blocos temporários."
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
             >
               <Download className="h-4 w-4" />
-              Exportar relatório
+              Exportar relatório parcial
             </button>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">

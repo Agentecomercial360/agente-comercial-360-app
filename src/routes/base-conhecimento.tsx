@@ -698,7 +698,7 @@ function BaseConhecimentoPage() {
                 <h3 className="text-sm font-semibold text-emerald-800">Persistência ativa</h3>
               </div>
               <p className="text-xs leading-relaxed text-emerald-700">
-                A Base de Conhecimento é carregada e salva no Supabase. Novos conhecimentos e edições feitas nesta tela serão persistidos para a empresa vinculada ao usuário logado. Remoção/desativação será implementada em uma próxima fase.
+                A Base de Conhecimento é carregada e salva no Supabase. Novos conhecimentos, edições e desativações feitas nesta tela são persistidos para a empresa vinculada ao usuário logado. Desativar não apaga o registro, apenas oculta da base ativa.
               </p>
               {saveError && (
                 <p className="mt-2 text-xs font-medium text-rose-700">{saveError}</p>

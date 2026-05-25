@@ -213,10 +213,46 @@ function AtendimentosPage() {
 
   const responsaveis = ["Amanda", "Vinicius", "Thaís", "Lorenzzo", "Vitor"];
 
-  const finalizar = (id: string | number) => {
-    setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status: "Finalizado" } : a)));
-    toast.success("Atendimento marcado como finalizado");
+  const finalizar = async (id: string | number) => {
+    if (typeof id !== "string") {
+      // mock local
+      setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status: "Finalizado" } : a)));
+      toast.success("Atendimento marcado como finalizado (local)");
+      return;
+    }
+    const { data: userData, error: userErr } = await supabase.auth.getUser();
+    if (userErr || !userData?.user) {
+      toast.error("Usuário não autenticado. Faça login novamente.");
+      return;
+    }
+    if (!companyId) {
+      toast.error("Empresa vinculada não encontrada para este usuário.");
+      return;
+    }
+    setFinishingId(id);
+    try {
+      const { data, error } = await supabase
+        .from("conversations")
+        .update({ status: "finalizada" })
+        .eq("id", id)
+        .eq("company_id", companyId)
+        .select()
+        .single();
+      if (error || !data) {
+        toast.error("Não foi possível finalizar o atendimento.");
+        return;
+      }
+      setItems((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, status: normalizeStatus(data.status) } : a)),
+      );
+      toast.success("Atendimento finalizado no Supabase.");
+    } catch {
+      toast.error("Não foi possível finalizar o atendimento.");
+    } finally {
+      setFinishingId(null);
+    }
   };
+
 
   const encaminhar = (id: string | number) => {
     setItems((prev) =>

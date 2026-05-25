@@ -128,6 +128,9 @@ function LeadsPage() {
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [loadingLeads, setLoadingLeads] = useState(true);
   const [leadsLoadStatus, setLeadsLoadStatus] = useState<LeadsLoadStatus>("loading");
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [updatingLeadId, setUpdatingLeadId] = useState<string | number | null>(null);
+
 
   useEffect(() => {
     let cancelled = false;

@@ -654,14 +654,20 @@ function BaseConhecimentoPage() {
             </div>
 
             {/* Attention */}
-            <div className="rounded-2xl bg-amber-50 border border-amber-200 shadow-[var(--shadow-soft)] p-5">
+            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 shadow-[var(--shadow-soft)] p-5">
               <div className="flex items-start gap-2 mb-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                <h3 className="text-sm font-semibold text-amber-800">Atenção</h3>
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                <h3 className="text-sm font-semibold text-emerald-800">Persistência ativa</h3>
               </div>
-              <p className="text-xs leading-relaxed text-amber-700">
-                A leitura da Base de Conhecimento já pode ser carregada do Supabase. Nesta etapa, adicionar, editar e desativar ainda funcionam apenas localmente e não persistem mudanças no banco.
+              <p className="text-xs leading-relaxed text-emerald-700">
+                A Base de Conhecimento é carregada e salva no Supabase. Novos conhecimentos e edições feitas nesta tela serão persistidos para a empresa vinculada ao usuário logado. Remoção/desativação será implementada em uma próxima fase.
               </p>
+              {saveError && (
+                <p className="mt-2 text-xs font-medium text-rose-700">{saveError}</p>
+              )}
+              {saveSuccess && !saveError && (
+                <p className="mt-2 text-xs font-medium text-emerald-700">{saveSuccess}</p>
+              )}
             </div>
           </div>
         </div>

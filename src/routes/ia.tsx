@@ -117,13 +117,14 @@ function IAPage() {
           return;
         }
         const companyId = cu.company_id as string;
+        setCompanyId(companyId);
 
         const [companyRes, aiRes] = await Promise.all([
           supabase.from("companies").select("name").eq("id", companyId).single(),
           supabase
             .from("ai_settings")
             .select(
-              "id,company_id,agent_name,behavior_prompt,can_send_prices,can_create_quote,created_at",
+              "id,company_id,agent_name,behavior_prompt,can_send_prices,can_create_quote,must_call_human_when,created_at",
             )
             .eq("company_id", companyId)
             .maybeSingle(),

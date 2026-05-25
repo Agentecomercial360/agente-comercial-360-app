@@ -408,6 +408,11 @@ function RelatoriosPage() {
           {loadingRelatorios ? " (carregando...)" : ""}
         </div>
 
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+          Relatórios usam métricas reais parciais do Supabase. Alguns gráficos e listas
+          (setores, peças solicitadas, pendências e recomendações) ainda usam dados temporários.
+        </div>
+
 
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">

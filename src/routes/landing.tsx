@@ -397,43 +397,75 @@ function LandingPage() {
 
 
       {/* PROBLEMA */}
-      <section id="problema" className="border-t border-[var(--border-premium)] bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-20 md:py-28">
+      <section id="problema" className="relative overflow-hidden border-t border-[var(--border-premium)] bg-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 -z-0 h-64"
+          style={{
+            background:
+              "radial-gradient(60% 100% at 50% 0%, oklch(0.96 0.02 25 / 0.6), transparent 70%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-7xl px-6 py-20 md:py-28">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive">
+            <div className="inline-flex items-center gap-2 rounded-full border border-destructive/20 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive">
               <AlertTriangle className="size-3.5" /> Onde as vendas estão escapando
             </div>
-            <h2 className="font-display mt-5 text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
+            <h2 className="font-display mt-5 text-3xl font-semibold tracking-[-0.02em] md:text-4xl lg:text-[3.25rem] lg:leading-[1.05]">
               Empresas perdem vendas todos os dias por falhas operacionais
             </h2>
-            <p className="mt-4 text-muted-foreground md:text-lg">
-              Atendimento desorganizado custa caro. Geralmente o problema não é o time —
+            <p className="mt-5 text-muted-foreground md:text-lg">
+              Atendimento desorganizado custa caro. Quase nunca é o time —
               é a falta de uma plataforma que conecte tudo.
             </p>
           </div>
           <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {[
-              { icon: Clock, title: "Demora no atendimento", text: "Mensagens sem resposta — e o cliente compra do concorrente." },
+              { icon: Clock, title: "Demora no atendimento", text: "Mensagem sem resposta = cliente comprando do concorrente." },
               { icon: FileWarning, title: "Leads sem follow-up", text: "Oportunidades quentes esfriam por falta de retomada." },
-              { icon: Search, title: "Conversas espalhadas", text: "WhatsApp pessoal, e-mail e planilha — nada conversa." },
-              { icon: AlertTriangle, title: "Falta de controle comercial", text: "Sem visibilidade do que cada responsável atende." },
-              { icon: BarChart3, title: "Relatórios manuais", text: "Decisões no achismo, sem dados confiáveis em tempo real." },
-              { icon: Users, title: "Equipe sem prioridade clara", text: "Cada um responde do seu jeito, sem padrão nem histórico." },
+              { icon: Search, title: "Conversas espalhadas", text: "WhatsApp, e-mail, planilha — nada se fala." },
+              { icon: AlertTriangle, title: "Sem controle comercial", text: "Você não sabe o que cada responsável está atendendo." },
+              { icon: BarChart3, title: "Relatórios manuais", text: "Decisões no achismo, sem dado confiável em tempo real." },
+              { icon: Users, title: "Equipe sem prioridade", text: "Cada um responde do seu jeito, sem padrão nem histórico." },
             ].map((p) => (
               <div
                 key={p.title}
-                className="group rounded-2xl border border-[var(--border-premium)] bg-white p-6 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-card)]"
+                className="group relative overflow-hidden rounded-2xl border border-[var(--border-premium)] bg-white p-7 shadow-[var(--shadow-soft)] transition-all duration-300 hover:-translate-y-1 hover:border-destructive/30 hover:shadow-[var(--shadow-card)]"
               >
-                <div className="flex size-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive transition-transform group-hover:scale-110">
-                  <p.icon className="size-6" />
+                <div
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-[3px] scale-x-0 transition-transform duration-300 group-hover:scale-x-100"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, oklch(0.65 0.22 25), oklch(0.6 0.22 15))",
+                  }}
+                />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -right-12 -top-12 size-32 rounded-full opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-100"
+                  style={{ background: "oklch(0.7 0.2 25 / 0.25)" }}
+                />
+                <div
+                  className="relative flex size-14 items-center justify-center rounded-2xl border border-destructive/15 text-destructive shadow-[var(--shadow-soft)] transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[-4deg]"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, oklch(0.97 0.02 25), oklch(0.94 0.05 25))",
+                  }}
+                >
+                  <p.icon className="size-6" strokeWidth={2.2} />
                 </div>
-                <h3 className="mt-5 font-display text-lg font-semibold">{p.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{p.text}</p>
+                <h3 className="font-display mt-5 text-lg font-semibold tracking-tight">
+                  {p.title}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {p.text}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
+
 
       {/* SOLUÇÃO */}
       <section id="solucao" className="relative overflow-hidden bg-[var(--brand-blue-soft)]/50">

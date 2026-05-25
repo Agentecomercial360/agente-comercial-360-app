@@ -432,9 +432,9 @@ function ConversasPage() {
         </div>
 
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          A lista de conversas e as mensagens selecionadas já podem ser carregadas do Supabase.
-          Nesta etapa, envio e encaminhamento ainda funcionam localmente e não persistem mudanças
-          no banco.
+          As conversas e mensagens são carregadas do Supabase. O envio real pelo WhatsApp e os
+          encaminhamentos para responsáveis ainda <strong>não estão conectados</strong> — nesta
+          etapa funcionam apenas localmente (modo teste).
         </div>
 
         {/* Summary cards */}

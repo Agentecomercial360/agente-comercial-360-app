@@ -19,10 +19,12 @@ import {
   Search,
   FileWarning,
   Building2,
-  Stethoscope,
-  Wrench,
-  Store,
   Briefcase,
+  Brain,
+  Network,
+  TrendingUp,
+  Activity,
+  Layers,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
 import { Button } from "@/components/ui/button";
@@ -35,7 +37,7 @@ export const Route = createFileRoute("/landing")({
       {
         name: "description",
         content:
-          "Centralize atendimentos, leads, conversas e relatórios em uma plataforma inteligente com IA, automações e integração com WhatsApp.",
+          "Centralize WhatsApp, leads, responsáveis, IA, base de conhecimento e relatórios em uma plataforma comercial premium, escalável e pronta para automações.",
       },
       {
         property: "og:title",
@@ -44,7 +46,7 @@ export const Route = createFileRoute("/landing")({
       {
         property: "og:description",
         content:
-          "Transforme conversas em vendas. Atendimento, leads, responsáveis, IA, base de conhecimento e relatórios em um só lugar.",
+          "Transforme conversas em vendas com IA, automações e WhatsApp em uma operação comercial organizada.",
       },
     ],
   }),
@@ -54,27 +56,27 @@ function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
       {/* NAV */}
-      <header className="sticky top-0 z-40 border-b border-[var(--border-premium)] bg-[var(--topbar)] backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-[var(--border-premium)] bg-white/80 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <a href="#top" className="flex items-center gap-2">
-            <img src={acLogo} alt="Agente Comercial 360" className="h-8 w-8 rounded-md" />
+          <a href="#top" className="flex items-center gap-2.5">
+            <img src={acLogo} alt="Agente Comercial 360" className="h-9 w-9 rounded-lg" />
             <span className="font-display text-lg font-semibold tracking-tight">
               Agente Comercial <span className="text-primary">360</span>
             </span>
           </a>
-          <nav className="hidden items-center gap-8 text-sm text-muted-foreground md:flex">
+          <nav className="hidden items-center gap-8 text-sm text-muted-foreground lg:flex">
             <a href="#problema" className="hover:text-foreground transition-colors">Problema</a>
             <a href="#solucao" className="hover:text-foreground transition-colors">Solução</a>
             <a href="#funcionalidades" className="hover:text-foreground transition-colors">Funcionalidades</a>
+            <a href="#como-funciona" className="hover:text-foreground transition-colors">Como funciona</a>
             <a href="#tecnologia" className="hover:text-foreground transition-colors">Tecnologia</a>
-            <a href="#para-quem" className="hover:text-foreground transition-colors">Para quem</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Link to="/login">
+            <Link to="/login" className="hidden sm:block">
               <Button variant="ghost" size="sm">Entrar no painel</Button>
             </Link>
             <a href="#cta-final">
-              <Button size="sm" className="gap-1.5">
+              <Button size="sm" className="gap-1.5 shadow-[var(--shadow-soft)]">
                 Solicitar demo <ArrowRight className="size-4" />
               </Button>
             </a>
@@ -84,113 +86,196 @@ function LandingPage() {
 
       {/* HERO */}
       <section id="top" className="relative overflow-hidden">
+        {/* decorative gradients */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10"
           style={{
             background:
-              "radial-gradient(60% 50% at 50% 0%, var(--brand-blue-soft) 0%, transparent 70%)",
+              "radial-gradient(70% 60% at 80% 0%, var(--brand-blue-soft) 0%, transparent 60%), radial-gradient(50% 50% at 10% 30%, var(--brand-blue-soft) 0%, transparent 60%)",
           }}
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-32 left-1/2 -z-10 h-[420px] w-[820px] -translate-x-1/2 rounded-full opacity-30 blur-3xl"
+          className="pointer-events-none absolute -top-40 right-[-10%] -z-10 h-[500px] w-[500px] rounded-full opacity-30 blur-3xl"
           style={{ background: "var(--gradient-brand)" }}
         />
-        <div className="mx-auto max-w-7xl px-6 pt-20 pb-24 md:pt-28 md:pb-32">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-premium)] bg-white px-3 py-1 text-xs font-medium text-muted-foreground shadow-[var(--shadow-soft)]">
-              <Sparkles className="size-3.5 text-primary" />
-              Plataforma SaaS de inteligência comercial
-            </div>
-            <h1 className="font-display mt-6 text-4xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
-              Transforme{" "}
-              <span
-                className="bg-clip-text text-transparent"
-                style={{ backgroundImage: "var(--gradient-brand)" }}
-              >
-                conversas em vendas
-              </span>{" "}
-              com inteligência comercial
-            </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-lg">
-              O Agente Comercial 360 centraliza atendimentos, leads, responsáveis, base
-              de conhecimento e relatórios em uma plataforma inteligente para empresas
-              que querem vender com mais controle.
-            </p>
-            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a href="#cta-final">
-                <Button size="lg" className="h-12 gap-2 px-6 text-base">
-                  Solicitar demonstração <ArrowRight className="size-4" />
-                </Button>
-              </a>
-              <Link to="/login">
-                <Button size="lg" variant="outline" className="h-12 px-6 text-base">
-                  Entrar no painel
-                </Button>
-              </Link>
-            </div>
-            <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-              <ShieldCheck className="size-4 text-primary" />
-              Multiempresa • Multiusuário • Dados isolados por empresa
-            </div>
-          </div>
+        <div
+          aria-hidden
+          className="pointer-events-none absolute bottom-[-20%] left-[-10%] -z-10 h-[400px] w-[400px] rounded-full opacity-20 blur-3xl"
+          style={{ background: "var(--gradient-brand)" }}
+        />
 
-          {/* Hero mock card */}
-          <div className="mx-auto mt-16 max-w-5xl">
-            <div
-              className="rounded-3xl border border-[var(--border-premium)] bg-white p-2"
-              style={{ boxShadow: "var(--shadow-premium)" }}
-            >
-              <div className="rounded-2xl bg-[var(--brand-blue-soft)] p-6 md:p-10">
-                <div className="grid gap-4 md:grid-cols-3">
-                  {[
-                    { icon: Headphones, label: "Atendimentos ativos", value: "128" },
-                    { icon: Users, label: "Leads em negociação", value: "47" },
-                    { icon: LineChart, label: "Conversão semanal", value: "+32%" },
-                  ].map((k) => (
-                    <div
-                      key={k.label}
-                      className="rounded-xl border border-[var(--border-premium)] bg-white p-5"
-                      style={{ boxShadow: "var(--shadow-soft)" }}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex size-10 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
-                          <k.icon className="size-5" />
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">{k.label}</div>
-                          <div className="font-display text-2xl font-semibold">{k.value}</div>
-                        </div>
+        <div className="mx-auto max-w-7xl px-6 pt-16 pb-20 md:pt-24 md:pb-28">
+          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+            {/* LEFT */}
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-premium)] bg-white px-3.5 py-1.5 text-xs font-medium text-muted-foreground shadow-[var(--shadow-soft)]">
+                <Sparkles className="size-3.5 text-primary" />
+                Plataforma SaaS de inteligência comercial
+              </div>
+              <h1 className="font-display mt-6 text-4xl font-semibold leading-[1.05] tracking-tight md:text-5xl lg:text-6xl">
+                Transforme{" "}
+                <span
+                  className="bg-clip-text text-transparent"
+                  style={{ backgroundImage: "var(--gradient-brand)" }}
+                >
+                  conversas em vendas
+                </span>{" "}
+                com inteligência comercial
+              </h1>
+              <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+                Centralize WhatsApp, leads, responsáveis, IA, base de conhecimento e
+                relatórios em uma operação comercial organizada, escalável e pronta para
+                automações.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <a href="#cta-final">
+                  <Button size="lg" className="h-12 w-full gap-2 px-6 text-base shadow-[var(--shadow-premium)] sm:w-auto">
+                    Solicitar demonstração <ArrowRight className="size-4" />
+                  </Button>
+                </a>
+                <Link to="/login">
+                  <Button size="lg" variant="outline" className="h-12 w-full px-6 text-base sm:w-auto">
+                    Entrar no painel
+                  </Button>
+                </Link>
+              </div>
+              <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+                {[
+                  { icon: Bot, label: "IA ativa" },
+                  { icon: Users, label: "Leads organizados" },
+                  { icon: Activity, label: "Relatórios em tempo real" },
+                ].map((b) => (
+                  <div key={b.label} className="inline-flex items-center gap-1.5">
+                    <b.icon className="size-3.5 text-primary" />
+                    {b.label}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* RIGHT — premium mock */}
+            <div className="relative">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -inset-6 -z-10 rounded-[2.5rem] opacity-40 blur-2xl"
+                style={{ background: "var(--gradient-brand)" }}
+              />
+              <div
+                className="relative rounded-3xl border border-[var(--border-premium)] bg-white p-3"
+                style={{ boxShadow: "var(--shadow-premium)" }}
+              >
+                <div className="rounded-2xl bg-gradient-to-br from-[var(--brand-blue-soft)] via-white to-[var(--brand-blue-soft)] p-5 md:p-6">
+                  {/* header bar */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                        <Sparkles className="size-3.5" />
                       </div>
+                      <span className="font-display text-sm font-semibold">Dashboard 360</span>
                     </div>
-                  ))}
-                </div>
-                <div className="mt-6 grid gap-4 md:grid-cols-2">
-                  <div className="rounded-xl border border-[var(--border-premium)] bg-white p-5">
-                    <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-                      <MessageSquare className="size-4 text-primary" /> Conversas recentes
-                    </div>
-                    <div className="space-y-3 text-sm">
-                      {["Maria S. — pedido peça #4421", "João P. — orçamento aprovado", "Carla R. — agendar visita"].map((t) => (
-                        <div key={t} className="flex items-center justify-between border-b border-border pb-2 last:border-0">
-                          <span className="text-foreground">{t}</span>
-                          <span className="text-xs text-muted-foreground">há 2 min</span>
-                        </div>
-                      ))}
+                    <div className="flex gap-1.5">
+                      <div className="size-2 rounded-full bg-emerald-400" />
+                      <div className="size-2 rounded-full bg-amber-400" />
+                      <div className="size-2 rounded-full bg-rose-400" />
                     </div>
                   </div>
-                  <div className="rounded-xl border border-[var(--border-premium)] bg-white p-5">
-                    <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-                      <Bot className="size-4 text-primary" /> IA sugeriu próxima ação
+
+                  {/* KPI cards */}
+                  <div className="mt-5 grid grid-cols-2 gap-3">
+                    {[
+                      { icon: TrendingUp, label: "Leads quentes", value: "47", tone: "text-emerald-600" },
+                      { icon: MessageSquare, label: "Conversas abertas", value: "128", tone: "text-primary" },
+                      { icon: Bot, label: "IA ativa", value: "On", tone: "text-violet-600" },
+                      { icon: Briefcase, label: "Responsáveis", value: "12", tone: "text-primary" },
+                    ].map((k) => (
+                      <div
+                        key={k.label}
+                        className="rounded-xl border border-[var(--border-premium)] bg-white/80 p-3 backdrop-blur"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="flex size-7 items-center justify-center rounded-md bg-secondary">
+                            <k.icon className={`size-3.5 ${k.tone}`} />
+                          </div>
+                          <span className="text-[11px] text-muted-foreground">{k.label}</span>
+                        </div>
+                        <div className="font-display mt-2 text-xl font-semibold">{k.value}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* mini chart + conversations */}
+                  <div className="mt-3 grid grid-cols-5 gap-3">
+                    <div className="col-span-2 rounded-xl border border-[var(--border-premium)] bg-white/80 p-3 backdrop-blur">
+                      <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium">
+                        <BarChart3 className="size-3 text-primary" /> Conversão
+                      </div>
+                      <div className="flex h-20 items-end gap-1.5">
+                        {[40, 65, 50, 80, 55, 90, 75].map((h, i) => (
+                          <div
+                            key={i}
+                            className="flex-1 rounded-t"
+                            style={{
+                              height: `${h}%`,
+                              background: "var(--gradient-brand)",
+                              opacity: 0.7 + i * 0.04,
+                            }}
+                          />
+                        ))}
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      “Fazer follow-up com 12 leads sem resposta há mais de 24h. Estimativa de
-                      conversão adicional: <span className="font-medium text-foreground">+18%</span>.”
-                    </p>
-                    <Button size="sm" variant="secondary" className="mt-4 gap-1.5">
-                      Ver sugestões <ArrowRight className="size-3.5" />
-                    </Button>
+                    <div className="col-span-3 rounded-xl border border-[var(--border-premium)] bg-white/80 p-3 backdrop-blur">
+                      <div className="mb-2 flex items-center gap-1.5 text-[11px] font-medium">
+                        <MessageSquare className="size-3 text-primary" /> Conversas
+                      </div>
+                      <div className="space-y-2">
+                        {[
+                          { n: "Maria S.", t: "Pedido peça #4421", time: "2m" },
+                          { n: "João P.", t: "Orçamento aprovado", time: "5m" },
+                          { n: "Carla R.", t: "Agendar visita", time: "12m" },
+                        ].map((c) => (
+                          <div key={c.n} className="flex items-center justify-between text-[11px]">
+                            <div className="flex items-center gap-2">
+                              <div className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
+                                {c.n[0]}
+                              </div>
+                              <div>
+                                <div className="font-medium text-foreground">{c.n}</div>
+                                <div className="text-muted-foreground">{c.t}</div>
+                              </div>
+                            </div>
+                            <span className="text-muted-foreground">{c.time}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* floating badges */}
+              <div
+                className="absolute -left-4 top-1/3 hidden rounded-xl border border-[var(--border-premium)] bg-white px-3 py-2 shadow-[var(--shadow-card)] md:block"
+              >
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="flex size-7 items-center justify-center rounded-md bg-emerald-100 text-emerald-600">
+                    <CheckCircle2 className="size-4" />
+                  </div>
+                  <div>
+                    <div className="font-semibold">Lead convertido</div>
+                    <div className="text-muted-foreground">+R$ 4.820</div>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -right-3 bottom-8 hidden rounded-xl border border-[var(--border-premium)] bg-white px-3 py-2 shadow-[var(--shadow-card)] md:block">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+                    <Bot className="size-4" />
+                  </div>
+                  <div>
+                    <div className="font-semibold">IA respondeu</div>
+                    <div className="text-muted-foreground">12 conversas</div>
                   </div>
                 </div>
               </div>
@@ -203,34 +288,34 @@ function LandingPage() {
       <section id="problema" className="border-t border-[var(--border-premium)] bg-white">
         <div className="mx-auto max-w-7xl px-6 py-20 md:py-28">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
+            <div className="inline-flex items-center gap-2 rounded-full bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive">
               <AlertTriangle className="size-3.5" /> Onde as vendas estão escapando
             </div>
-            <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
+            <h2 className="font-display mt-5 text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
               Empresas perdem vendas todos os dias por falhas operacionais
             </h2>
-            <p className="mt-4 text-muted-foreground">
-              Atendimento desorganizado custa caro. E geralmente o problema não é o time —
+            <p className="mt-4 text-muted-foreground md:text-lg">
+              Atendimento desorganizado custa caro. Geralmente o problema não é o time —
               é a falta de uma plataforma que conecte tudo.
             </p>
           </div>
-          <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {[
-              { icon: Clock, title: "Demora no atendimento", text: "Mensagens ficam sem resposta e o cliente compra do concorrente." },
-              { icon: FileWarning, title: "Falta de follow-up", text: "Leads quentes esfriam por falta de retomada no momento certo." },
-              { icon: Search, title: "Conversas espalhadas", text: "WhatsApp pessoal, e-mail, planilha — nada se conversa." },
-              { icon: AlertTriangle, title: "Falta de controle comercial", text: "Sem visibilidade do que cada responsável está atendendo." },
-              { icon: BarChart3, title: "Ausência de relatórios", text: "Decisões tomadas no achismo, sem dados confiáveis." },
-              { icon: Users, title: "Time desalinhado", text: "Cada um responde do seu jeito, sem padrão nem histórico." },
+              { icon: Clock, title: "Demora no atendimento", text: "Mensagens sem resposta — e o cliente compra do concorrente." },
+              { icon: FileWarning, title: "Leads sem follow-up", text: "Oportunidades quentes esfriam por falta de retomada." },
+              { icon: Search, title: "Conversas espalhadas", text: "WhatsApp pessoal, e-mail e planilha — nada conversa." },
+              { icon: AlertTriangle, title: "Falta de controle comercial", text: "Sem visibilidade do que cada responsável atende." },
+              { icon: BarChart3, title: "Relatórios manuais", text: "Decisões no achismo, sem dados confiáveis em tempo real." },
+              { icon: Users, title: "Equipe sem prioridade clara", text: "Cada um responde do seu jeito, sem padrão nem histórico." },
             ].map((p) => (
               <div
                 key={p.title}
-                className="rounded-2xl border border-[var(--border-premium)] bg-white p-6 transition-shadow hover:shadow-[var(--shadow-card)]"
+                className="group rounded-2xl border border-[var(--border-premium)] bg-white p-6 transition-all hover:-translate-y-0.5 hover:shadow-[var(--shadow-card)]"
               >
-                <div className="flex size-10 items-center justify-center rounded-lg bg-destructive/10 text-destructive">
-                  <p.icon className="size-5" />
+                <div className="flex size-12 items-center justify-center rounded-xl bg-destructive/10 text-destructive transition-transform group-hover:scale-110">
+                  <p.icon className="size-6" />
                 </div>
-                <h3 className="mt-4 font-display text-lg font-semibold">{p.title}</h3>
+                <h3 className="mt-5 font-display text-lg font-semibold">{p.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{p.text}</p>
               </div>
             ))}
@@ -239,63 +324,53 @@ function LandingPage() {
       </section>
 
       {/* SOLUÇÃO */}
-      <section id="solucao" className="relative overflow-hidden bg-[var(--brand-blue-soft)]/40">
-        <div className="mx-auto max-w-7xl px-6 py-20 md:py-28">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                <CheckCircle2 className="size-3.5" /> A solução
-              </div>
-              <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
-                Tudo o que sua operação comercial precisa, em um só lugar
-              </h2>
-              <p className="mt-4 text-muted-foreground">
-                O Agente Comercial 360 organiza pessoas, conversas e processos. Cada lead
-                vira histórico. Cada atendimento vira dado. Cada conversa vira oportunidade.
-              </p>
-              <ul className="mt-8 space-y-3">
-                {[
-                  "Atendimentos centralizados e rastreáveis",
-                  "Leads com etapa, responsável e próxima ação",
-                  "Responsáveis por setor com filas inteligentes",
-                  "IA que sugere respostas e prioridades",
-                  "Base de conhecimento conectada ao agente",
-                  "Relatórios em tempo real para decisão",
-                ].map((s) => (
-                  <li key={s} className="flex items-start gap-3 text-sm">
-                    <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-primary" />
-                    <span>{s}</span>
-                  </li>
-                ))}
-              </ul>
+      <section id="solucao" className="relative overflow-hidden bg-[var(--brand-blue-soft)]/50">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-20 right-[-10%] h-[400px] w-[400px] rounded-full opacity-20 blur-3xl"
+          style={{ background: "var(--gradient-brand)" }}
+        />
+        <div className="relative mx-auto max-w-7xl px-6 py-20 md:py-28">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+              <CheckCircle2 className="size-3.5" /> A solução
             </div>
-            <div
-              className="rounded-3xl border border-[var(--border-premium)] bg-white p-6 md:p-8"
-              style={{ boxShadow: "var(--shadow-card)" }}
-            >
-              <div className="grid grid-cols-2 gap-4">
-                {[
-                  { icon: Headphones, label: "Atendimentos" },
-                  { icon: MessageSquare, label: "Conversas" },
-                  { icon: Users, label: "Leads" },
-                  { icon: Briefcase, label: "Responsáveis" },
-                  { icon: Bot, label: "IA" },
-                  { icon: BookOpen, label: "Base de conhecimento" },
-                  { icon: BarChart3, label: "Relatórios" },
-                  { icon: ShieldCheck, label: "Multiempresa" },
-                ].map((b) => (
-                  <div
-                    key={b.label}
-                    className="group rounded-xl border border-[var(--border-premium)] bg-background p-4 transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:bg-white"
-                  >
-                    <div className="flex size-9 items-center justify-center rounded-lg bg-secondary text-secondary-foreground transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
-                      <b.icon className="size-4" />
-                    </div>
-                    <div className="mt-3 text-sm font-medium">{b.label}</div>
-                  </div>
-                ))}
+            <h2 className="font-display mt-5 text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
+              Tudo que sua operação comercial precisa em um só lugar
+            </h2>
+            <p className="mt-4 text-muted-foreground md:text-lg">
+              O Agente Comercial 360 organiza pessoas, conversas e processos. Cada lead
+              vira histórico. Cada atendimento vira dado. Cada conversa vira oportunidade.
+            </p>
+          </div>
+
+          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { icon: Headphones, title: "Atendimentos", text: "Histórico, status e SLA por conversa." },
+              { icon: MessageSquare, title: "Conversas", text: "Tudo centralizado e rastreável." },
+              { icon: Users, title: "Leads", text: "Etapas, dono e próxima ação claros." },
+              { icon: Briefcase, title: "Responsáveis", text: "Distribuição automática por setor." },
+              { icon: Bot, title: "IA", text: "Sugestões e priorização inteligente." },
+              { icon: BookOpen, title: "Base de Conhecimento", text: "Conteúdo curado que alimenta a IA." },
+              { icon: BarChart3, title: "Relatórios", text: "Performance em tempo real para decisão." },
+              { icon: ShieldCheck, title: "Multiempresa", text: "Dados isolados por empresa e usuário." },
+            ].map((b) => (
+              <div
+                key={b.title}
+                className="group relative overflow-hidden rounded-2xl border border-[var(--border-premium)] bg-white p-6 transition-all hover:-translate-y-1 hover:border-primary/30 hover:shadow-[var(--shadow-card)]"
+              >
+                <div
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-1 opacity-0 transition-opacity group-hover:opacity-100"
+                  style={{ background: "var(--gradient-brand)" }}
+                />
+                <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+                  <b.icon className="size-6" />
+                </div>
+                <h3 className="mt-5 font-display text-base font-semibold">{b.title}</h3>
+                <p className="mt-1.5 text-sm text-muted-foreground">{b.text}</p>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -304,43 +379,98 @@ function LandingPage() {
       <section id="funcionalidades" className="border-t border-[var(--border-premium)] bg-white">
         <div className="mx-auto max-w-7xl px-6 py-20 md:py-28">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
-              <Zap className="size-3.5" /> Funcionalidades
+            <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-xs font-medium text-secondary-foreground">
+              <Zap className="size-3.5 text-primary" /> Funcionalidades
             </div>
-            <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
+            <h2 className="font-display mt-5 text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
               Uma plataforma completa para vender com método
             </h2>
-            <p className="mt-4 text-muted-foreground">
+            <p className="mt-4 text-muted-foreground md:text-lg">
               Construída para times comerciais que querem previsibilidade e escala.
             </p>
           </div>
-          <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {[
               { icon: Headphones, title: "Atendimento inteligente", text: "Histórico completo, status e SLA por conversa." },
-              { icon: Users, title: "Gestão de leads", text: "Etapas, próxima ação e dono claro para cada oportunidade." },
-              { icon: Briefcase, title: "Responsáveis por setor", text: "Distribua conversas e leads por equipe automaticamente." },
-              { icon: BookOpen, title: "Base de conhecimento", text: "Conteúdo curado que alimenta a IA e padroniza respostas." },
-              { icon: BarChart3, title: "Dashboard em tempo real", text: "KPIs comerciais sempre à mão para gestão e time." },
-              { icon: LineChart, title: "Relatórios gerenciais", text: "Performance por responsável, setor, etapa e período." },
-              { icon: MessageSquare, title: "Pronto para WhatsApp oficial", text: "Arquitetura preparada para WhatsApp Cloud API." },
-              { icon: Workflow, title: "Automações com n8n", text: "Workflows externos integráveis para escalar processos." },
+              { icon: Users, title: "Gestão de leads", text: "Etapas, próxima ação e dono claro por oportunidade." },
+              { icon: Briefcase, title: "Responsáveis por setor", text: "Distribua conversas e leads por equipe." },
+              { icon: BookOpen, title: "Base de conhecimento", text: "Conteúdo curado que alimenta a IA." },
+              { icon: BarChart3, title: "Dashboard em tempo real", text: "KPIs comerciais sempre à mão." },
+              { icon: LineChart, title: "Relatórios gerenciais", text: "Performance por responsável, setor e período." },
+              { icon: MessageSquare, title: "WhatsApp oficial", text: "Arquitetura pronta para WhatsApp Cloud API." },
+              { icon: Workflow, title: "Automações com n8n", text: "Workflows externos para escalar processos." },
             ].map((f) => (
               <div
                 key={f.title}
-                className="group relative overflow-hidden rounded-2xl border border-[var(--border-premium)] bg-white p-6 transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+                className="group relative overflow-hidden rounded-2xl border border-[var(--border-premium)] bg-white p-6 transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-[var(--shadow-card)]"
               >
                 <div
                   aria-hidden
                   className="absolute inset-x-0 top-0 h-1 opacity-0 transition-opacity group-hover:opacity-100"
                   style={{ background: "var(--gradient-brand)" }}
                 />
-                <div className="flex size-11 items-center justify-center rounded-xl bg-secondary text-primary">
-                  <f.icon className="size-5" />
+                <div className="flex size-12 items-center justify-center rounded-2xl bg-[var(--brand-blue-soft)] text-primary transition-transform group-hover:scale-110">
+                  <f.icon className="size-6" />
                 </div>
-                <h3 className="mt-4 font-display text-lg font-semibold">{f.title}</h3>
+                <h3 className="mt-5 font-display text-base font-semibold">{f.title}</h3>
                 <p className="mt-2 text-sm text-muted-foreground">{f.text}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* COMO FUNCIONA */}
+      <section id="como-funciona" className="relative overflow-hidden border-t border-[var(--border-premium)] bg-[var(--brand-blue-soft)]/30">
+        <div className="mx-auto max-w-7xl px-6 py-20 md:py-28">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+              <Workflow className="size-3.5" /> Como funciona
+            </div>
+            <h2 className="font-display mt-5 text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
+              Do primeiro contato à venda — sem perder nada no caminho
+            </h2>
+            <p className="mt-4 text-muted-foreground md:text-lg">
+              Quatro passos simples para transformar conversas em receita previsível.
+            </p>
+          </div>
+
+          <div className="relative mt-16">
+            {/* connecting line */}
+            <div
+              aria-hidden
+              className="absolute left-0 right-0 top-7 hidden h-px lg:block"
+              style={{
+                background:
+                  "linear-gradient(to right, transparent, var(--brand-blue) 20%, var(--brand-blue) 80%, transparent)",
+                opacity: 0.3,
+              }}
+            />
+            <div className="grid gap-6 lg:grid-cols-4">
+              {[
+                { n: "01", icon: MessageSquare, title: "Cliente chama no WhatsApp", text: "Conversa entra direto na plataforma, com histórico unificado." },
+                { n: "02", icon: Brain, title: "IA identifica intenção", text: "Organiza informações, sugere próxima ação e prioridade." },
+                { n: "03", icon: Users, title: "Vira lead e é encaminhado", text: "Oportunidade vai para o setor e responsável certos." },
+                { n: "04", icon: BarChart3, title: "Gestor acompanha tudo", text: "Dashboard e relatórios em tempo real, sem planilha." },
+              ].map((s) => (
+                <div
+                  key={s.n}
+                  className="relative rounded-2xl border border-[var(--border-premium)] bg-white p-6 transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="flex size-14 items-center justify-center rounded-2xl text-white shadow-[var(--shadow-soft)]"
+                      style={{ background: "var(--gradient-brand)" }}
+                    >
+                      <s.icon className="size-6" />
+                    </div>
+                    <span className="font-display text-3xl font-bold text-primary/20">{s.n}</span>
+                  </div>
+                  <h3 className="mt-5 font-display text-base font-semibold">{s.title}</h3>
+                  <p className="mt-2 text-sm text-muted-foreground">{s.text}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -356,72 +486,51 @@ function LandingPage() {
           className="pointer-events-none absolute inset-0 opacity-20"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 20% 20%, white 0, transparent 35%), radial-gradient(circle at 80% 80%, white 0, transparent 30%)",
+              "radial-gradient(circle at 15% 20%, white 0, transparent 35%), radial-gradient(circle at 85% 80%, white 0, transparent 30%)",
+          }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.07]"
+          style={{
+            backgroundImage:
+              "linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)",
+            backgroundSize: "48px 48px",
           }}
         />
         <div className="relative mx-auto max-w-7xl px-6 py-20 md:py-28">
           <div className="mx-auto max-w-2xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-medium backdrop-blur">
-              <Database className="size-3.5" /> Tecnologia
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-medium backdrop-blur">
+              <Layers className="size-3.5" /> Stack de automação comercial
             </div>
-            <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
-              Construído sobre uma stack moderna, segura e escalável
+            <h2 className="font-display mt-5 text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
+              Uma base moderna para conectar atendimento, dados e IA
             </h2>
-            <p className="mt-4 text-white/80">
-              Infraestrutura preparada para crescer com a sua operação.
+            <p className="mt-4 text-white/85 md:text-lg">
+              Infraestrutura segura, escalável e preparada para crescer com a sua operação
+              comercial.
             </p>
           </div>
-          <div className="mt-14 grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
             {[
-              { icon: Database, label: "Supabase" },
-              { icon: Workflow, label: "n8n" },
-              { icon: MessageSquare, label: "WhatsApp Cloud API" },
-              { icon: Bot, label: "IA" },
-              { icon: BookOpen, label: "RAG" },
-              { icon: BarChart3, label: "Dashboards" },
+              { icon: Database, label: "Supabase", text: "Banco e auth" },
+              { icon: Workflow, label: "n8n", text: "Automações" },
+              { icon: MessageSquare, label: "WhatsApp Cloud API", text: "Mensageria oficial" },
+              { icon: Bot, label: "IA", text: "Sugestões e triagem" },
+              { icon: BookOpen, label: "RAG", text: "Conhecimento contextual" },
+              { icon: BarChart3, label: "Dashboards", text: "KPIs em tempo real" },
+              { icon: Network, label: "CRM", text: "Pipeline comercial" },
+              { icon: Zap, label: "Automações", text: "Fluxos sem código" },
             ].map((t) => (
               <div
                 key={t.label}
-                className="flex flex-col items-center gap-2 rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur transition-colors hover:bg-white/15"
+                className="group rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur-md transition-all hover:-translate-y-0.5 hover:bg-white/20"
               >
-                <t.icon className="size-6" />
-                <span className="text-sm font-medium">{t.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PARA QUEM */}
-      <section id="para-quem" className="border-t border-[var(--border-premium)] bg-background">
-        <div className="mx-auto max-w-7xl px-6 py-20 md:py-28">
-          <div className="mx-auto max-w-2xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground">
-              <Building2 className="size-3.5" /> Para quem é
-            </div>
-            <h2 className="font-display mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
-              Feito para empresas que vivem de atendimento
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Se a sua receita depende de conversar com cliente, o 360 foi feito pra você.
-            </p>
-          </div>
-          <div className="mt-14 grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-            {[
-              { icon: Wrench, title: "Autopeças" },
-              { icon: Store, title: "Comércios" },
-              { icon: Stethoscope, title: "Clínicas" },
-              { icon: Briefcase, title: "Prestadores de serviço" },
-              { icon: Building2, title: "PMEs em geral" },
-            ].map((s) => (
-              <div
-                key={s.title}
-                className="rounded-2xl border border-[var(--border-premium)] bg-white p-6 text-center transition-shadow hover:shadow-[var(--shadow-soft)]"
-              >
-                <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-secondary text-primary">
-                  <s.icon className="size-6" />
+                <div className="flex size-11 items-center justify-center rounded-xl bg-white/15">
+                  <t.icon className="size-5" />
                 </div>
-                <div className="mt-4 font-display text-base font-semibold">{s.title}</div>
+                <div className="mt-4 font-display text-base font-semibold">{t.label}</div>
+                <div className="text-xs text-white/75">{t.text}</div>
               </div>
             ))}
           </div>
@@ -434,32 +543,44 @@ function LandingPage() {
           <div
             className="relative overflow-hidden rounded-3xl p-10 text-center md:p-16"
             style={{
-              background: "var(--gradient-brand)",
+              background:
+                "linear-gradient(135deg, #0a1a3f 0%, var(--brand-blue) 60%, #1e3a8a 100%)",
               boxShadow: "var(--shadow-premium)",
             }}
           >
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 opacity-20"
+              className="pointer-events-none absolute inset-0 opacity-25"
               style={{
                 backgroundImage:
-                  "radial-gradient(circle at 30% 30%, white 0, transparent 40%)",
+                  "radial-gradient(circle at 25% 30%, white 0, transparent 40%), radial-gradient(circle at 75% 70%, white 0, transparent 35%)",
               }}
             />
-            <div className="relative mx-auto max-w-2xl text-white">
-              <h2 className="font-display text-3xl font-semibold tracking-tight md:text-5xl">
-                Pronto para transformar seu atendimento em uma operação inteligente?
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 opacity-[0.08]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)",
+                backgroundSize: "40px 40px",
+              }}
+            />
+            <div className="relative mx-auto max-w-3xl text-white">
+              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-medium backdrop-blur">
+                <Sparkles className="size-3.5" /> Agente Comercial 360
+              </div>
+              <h2 className="font-display mt-5 text-3xl font-semibold tracking-tight md:text-5xl">
+                Pronto para transformar seu atendimento em uma central comercial inteligente?
               </h2>
               <p className="mt-5 text-white/85 md:text-lg">
-                Organize, automatize e escale o comercial da sua empresa com o Agente
-                Comercial 360.
+                Mostre profissionalismo, organize sua equipe e acompanhe oportunidades em
+                tempo real com o Agente Comercial 360.
               </p>
               <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <a href="mailto:contato@agentecomercial360.com?subject=Solicita%C3%A7%C3%A3o%20de%20demonstra%C3%A7%C3%A3o%20-%20Agente%20Comercial%20360">
                   <Button
                     size="lg"
-                    variant="secondary"
-                    className="h-12 gap-2 px-6 text-base text-primary"
+                    className="h-12 gap-2 bg-white px-6 text-base text-primary hover:bg-white/90"
                   >
                     Solicitar demonstração <ArrowRight className="size-4" />
                   </Button>

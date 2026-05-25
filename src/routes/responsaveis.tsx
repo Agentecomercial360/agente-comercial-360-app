@@ -475,6 +475,15 @@ function ResponsaveisPage() {
               </p>
             );
           })()}
+          <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+            Responsáveis são carregados e salvos no Supabase. Adições, edições e ativações feitas nesta tela serão persistidas para a empresa vinculada ao usuário logado.
+            {saveError && (
+              <span className="ml-1 font-semibold text-red-700">• {saveError}</span>
+            )}
+            {saveSuccess && !saveError && (
+              <span className="ml-1 font-semibold text-emerald-700">• {saveSuccess}</span>
+            )}
+          </div>
         </div>
 
         {/* Summary cards */}

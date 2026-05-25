@@ -534,14 +534,18 @@ function AtendimentosPage() {
 
               <div className="flex flex-col gap-2 pt-2">
                 <button
-                  onClick={() => {
-                    finalizar(selected.id);
+                  disabled={finishingId === selected.id}
+                  onClick={async () => {
+                    const sid = selected.id;
+                    await finalizar(sid);
                     setSelectedId(null);
                   }}
-                  className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                  className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <CheckCheck className="h-4 w-4" /> Marcar como finalizado
+                  <CheckCheck className="h-4 w-4" />
+                  {finishingId === selected.id ? "Finalizando..." : "Marcar como finalizado"}
                 </button>
+
                 <button
                   onClick={() => encaminhar(selected.id)}
                   className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700"

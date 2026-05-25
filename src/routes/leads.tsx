@@ -309,7 +309,9 @@ function LeadsPage() {
     const owners = ["Amanda", "Vinicius", "Thaís", "Lorenzzo", "Vitor"];
     const next = owners[Math.floor(Math.random() * owners.length)];
     setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, responsavel: next } : l)));
-    toast.success(`Lead encaminhado para ${next}`);
+    toast.success(
+      "Encaminhamento de lead ainda é local. Atribuição real de responsável e automações (WhatsApp, follow-up) serão conectadas em uma próxima fase.",
+    );
   }
 
   const statusIndicator = (() => {

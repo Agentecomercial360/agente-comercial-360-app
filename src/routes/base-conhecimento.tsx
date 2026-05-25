@@ -755,9 +755,11 @@ function BaseConhecimentoPage() {
               </button>
               <button
                 onClick={saveConhecimento}
-                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+                disabled={isSaving}
+                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2"
               >
-                {editingId ? "Salvar alterações" : "Salvar conhecimento"}
+                {isSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                {isSaving ? "Salvando..." : editingId ? "Salvar alterações" : "Salvar conhecimento"}
               </button>
             </div>
           </div>

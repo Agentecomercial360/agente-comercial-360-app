@@ -126,6 +126,9 @@ function AtendimentosPage() {
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
   const [, setLoadingAtendimentos] = useState<boolean>(true);
   const [atendimentosLoadStatus, setAtendimentosLoadStatus] = useState<LoadStatus>("loading");
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [finishingId, setFinishingId] = useState<string | number | null>(null);
+
 
   useEffect(() => {
     let cancelled = false;

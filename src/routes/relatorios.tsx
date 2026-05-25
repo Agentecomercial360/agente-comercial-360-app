@@ -385,7 +385,9 @@ function RelatoriosPage() {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-      toast.success("Relatório exportado com sucesso.");
+      toast.success(
+        "Relatório exportado localmente. Alguns blocos ainda usam dados temporários (setores, peças solicitadas, pendências e recomendações).",
+      );
     } catch {
       toast.error("Não foi possível exportar o relatório.");
     }

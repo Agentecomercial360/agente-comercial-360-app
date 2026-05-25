@@ -325,55 +325,76 @@ function BaseConhecimentoPage() {
     setViewingId(null);
   };
 
-  const saveConhecimento = () => {
-    if (!form.titulo.trim() || !form.conteudo.trim() || !form.empresa.trim()) {
-      toast.error("Preencha todos os campos obrigatórios.");
+  const saveConhecimento = async () => {
+    if (!form.titulo.trim() || !form.conteudo.trim()) {
+      toast.error("Título e conteúdo são obrigatórios.");
+      return;
+    }
+    if (isSaving) return;
+
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) {
+      const msg = "Usuário não autenticado. Faça login novamente.";
+      setSaveError(msg);
+      toast.error(msg);
+      return;
+    }
+    if (!companyId) {
+      const msg = "Empresa vinculada não encontrada para este usuário.";
+      setSaveError(msg);
+      toast.error(msg);
       return;
     }
 
-    if (editingId) {
-      setItems((prev) =>
-        prev.map((c) =>
-          c.id === editingId
-            ? {
-                ...c,
-                titulo: form.titulo.trim(),
-                categoria: form.categoria,
-                conteudo: form.conteudo.trim(),
-                empresa: form.empresa.trim(),
-                status: form.status,
-                atualizadoEm: "20/05/2026",
-              }
-            : c
-        )
-      );
-      toast.success("Conhecimento atualizado com sucesso.");
-    } else {
-      const newId = String(Date.now());
-      setItems((prev) => [
-        ...prev,
-        {
-          id: newId,
-          titulo: form.titulo.trim(),
-          categoria: form.categoria,
-          conteudo: form.conteudo.trim(),
-          empresa: form.empresa.trim(),
-          status: form.status,
-          atualizadoEm: "20/05/2026",
-        },
-      ]);
-      toast.success("Conhecimento adicionado com sucesso.");
+    setIsSaving(true);
+    try {
+      if (editingId) {
+        const { error } = await supabase
+          .from("knowledge_base")
+          .update({
+            title: form.titulo.trim(),
+            content: form.conteudo.trim(),
+            category: form.categoria,
+          })
+          .eq("id", editingId)
+          .eq("company_id", companyId)
+          .select()
+          .single();
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("knowledge_base")
+          .insert({
+            company_id: companyId,
+            title: form.titulo.trim(),
+            content: form.conteudo.trim(),
+            category: form.categoria,
+          })
+          .select()
+          .single();
+        if (error) throw error;
+      }
+
+      const msg = "Conhecimento salvo no Supabase.";
+      setSaveSuccess(msg);
+      toast.success(msg);
+      await reloadKb(companyId, activeCompanyName ?? "União Auto Peças");
+      setModalOpen(false);
+      setEditingId(null);
+    } catch (e) {
+      const msg = "Não foi possível salvar o conhecimento.";
+      setSaveError(msg);
+      toast.error(msg + (e instanceof Error ? ` (${e.message})` : ""));
+    } finally {
+      setIsSaving(false);
     }
-    closeModal();
   };
 
-  const toggleStatus = (id: string) => {
-    setItems((prev) =>
-      prev.map((c) =>
-        c.id === id ? { ...c, status: c.status === "Ativo" ? "Inativo" : "Ativo" } : c
-      )
-    );
-    toast.success("Status do conhecimento atualizado.");
+  const toggleStatus = (_id: string) => {
+    toast.info("Remoção/desativação da base de conhecimento será implementada em uma próxima fase.");
   };
 
   const viewingItem = useMemo(

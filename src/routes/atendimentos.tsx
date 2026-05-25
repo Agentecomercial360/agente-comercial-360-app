@@ -262,7 +262,9 @@ function AtendimentosPage() {
           : a,
       ),
     );
-    toast.success("Atendimento encaminhado para responsável");
+    toast.success(
+      "Encaminhamento aplicado apenas localmente. Persistência de responsável será conectada em uma próxima fase.",
+    );
   };
 
   const dynamicCards = useMemo(

@@ -85,6 +85,11 @@ function IAPage() {
   const [aiLoadStatus, setAiLoadStatus] = useState<AiLoadStatus>("loading");
   const [activeAiSettingsId, setActiveAiSettingsId] = useState<string | null>(null);
   const [activeAiCreatedAt, setActiveAiCreatedAt] = useState<string | null>(null);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [mustCallHumanWhen, setMustCallHumanWhen] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -112,13 +117,14 @@ function IAPage() {
           return;
         }
         const companyId = cu.company_id as string;
+        setCompanyId(companyId);
 
         const [companyRes, aiRes] = await Promise.all([
           supabase.from("companies").select("name").eq("id", companyId).single(),
           supabase
             .from("ai_settings")
             .select(
-              "id,company_id,agent_name,behavior_prompt,can_send_prices,can_create_quote,created_at",
+              "id,company_id,agent_name,behavior_prompt,can_send_prices,can_create_quote,must_call_human_when,created_at",
             )
             .eq("company_id", companyId)
             .maybeSingle(),
@@ -154,6 +160,7 @@ function IAPage() {
         );
         setActiveAiSettingsId((ai.id as string) ?? null);
         setActiveAiCreatedAt((ai.created_at as string) ?? null);
+        setMustCallHumanWhen((ai.must_call_human_when as string | null) ?? null);
         setAiLoadStatus("loaded");
         setSaved(true);
         setLoadingAi(false);
@@ -237,11 +244,76 @@ function IAPage() {
     setSaved(false);
   };
 
-  const handleSave = () => {
-    setSaved(true);
-    toast.success("Configurações da IA salvas localmente.", {
-      description: "Alterações salvas apenas nesta sessão visual.",
-    });
+  const handleSave = async () => {
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user) {
+      const msg = "Usuário não autenticado. Faça login novamente.";
+      setSaveError(msg);
+      toast.error(msg);
+      return;
+    }
+    if (!companyId) {
+      const msg = "Empresa vinculada não encontrada para este usuário.";
+      setSaveError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const podePreco = rules.find((r) => r.label === "Pode enviar preço?")?.value ?? false;
+      const podeOrcamento = rules.find((r) => r.label === "Pode criar orçamento?")?.value ?? false;
+
+      const { data, error } = await supabase
+        .from("ai_settings")
+        .upsert(
+          {
+            company_id: companyId,
+            agent_name: assistantName,
+            behavior_prompt: prompt,
+            can_send_prices: podePreco,
+            can_create_quote: podeOrcamento,
+            must_call_human_when: mustCallHumanWhen,
+          },
+          { onConflict: "company_id" },
+        )
+        .select(
+          "id,company_id,agent_name,behavior_prompt,can_send_prices,can_create_quote,must_call_human_when,created_at",
+        )
+        .single();
+
+      if (error || !data) {
+        throw error ?? new Error("Sem retorno do Supabase");
+      }
+
+      if (data.agent_name) setAssistantName(data.agent_name as string);
+      if (data.behavior_prompt) setPrompt(data.behavior_prompt as string);
+      setRules((prev) =>
+        prev.map((r) => {
+          if (r.label === "Pode enviar preço?")
+            return { ...r, value: Boolean(data.can_send_prices) };
+          if (r.label === "Pode criar orçamento?")
+            return { ...r, value: Boolean(data.can_create_quote) };
+          return r;
+        }),
+      );
+      setActiveAiSettingsId((data.id as string) ?? null);
+      setActiveAiCreatedAt((data.created_at as string) ?? null);
+      setMustCallHumanWhen((data.must_call_human_when as string | null) ?? null);
+      setAiLoadStatus("loaded");
+      setSaved(true);
+      setSaveSuccess(true);
+      toast.success("Configurações da IA salvas no Supabase.");
+    } catch (err) {
+      const msg = "Não foi possível salvar as configurações da IA.";
+      setSaveError(msg);
+      toast.error(msg);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const openRestore = () => {
@@ -413,10 +485,11 @@ function IAPage() {
             <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={handleSave}
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+                disabled={isSaving}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Save className="h-4 w-4" />
-                Salvar configurações
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {isSaving ? "Salvando..." : "Salvar configurações"}
               </button>
               <button
                 onClick={openRestore}
@@ -490,15 +563,23 @@ function IAPage() {
               </p>
             </div>
 
-            {/* Attention card */}
-            <div className="rounded-2xl bg-amber-50 border border-amber-200 shadow-[var(--shadow-soft)] p-5">
+            {/* Info card */}
+            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 shadow-[var(--shadow-soft)] p-5">
               <div className="flex items-start gap-2 mb-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                <h3 className="text-sm font-semibold text-amber-800">Atenção</h3>
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                <h3 className="text-sm font-semibold text-emerald-800">Persistência ativa</h3>
               </div>
-              <p className="text-xs leading-relaxed text-amber-700">
-                A leitura das configurações da IA já está conectada ao Supabase. Nesta etapa, as alterações feitas nesta tela ainda são locais: o botão Salvar configurações ainda não persiste mudanças no banco. A persistência será ativada em uma próxima fase com UPDATE seguro.
+              <p className="text-xs leading-relaxed text-emerald-700">
+                As configurações da IA são carregadas e salvas no Supabase. Alterações feitas nesta tela serão persistidas para a empresa vinculada ao usuário logado.
               </p>
+              {saveError && (
+                <p className="mt-2 text-xs font-medium text-red-700">{saveError}</p>
+              )}
+              {saveSuccess && !saveError && (
+                <p className="mt-2 text-xs font-medium text-emerald-700">
+                  Última gravação concluída com sucesso.
+                </p>
+              )}
             </div>
           </div>
         </div>

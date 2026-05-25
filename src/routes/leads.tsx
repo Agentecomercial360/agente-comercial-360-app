@@ -157,6 +157,8 @@ function LeadsPage() {
           setLoadingLeads(false);
           return;
         }
+        setCompanyId(cuRow.company_id as string);
+
 
         const { data: rows, error: leadsErr } = await supabase
           .from("leads")

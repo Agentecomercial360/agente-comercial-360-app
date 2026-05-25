@@ -324,10 +324,11 @@ function LeadsPage() {
     if (leadsLoadStatus === "loaded") {
       return (
         <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
-          Dados carregados do Supabase — {leads.length} leads
+          Leads são carregados do Supabase ({leads.length}). A ação de marcar como em negociação já é salva no Supabase. Encaminhamentos e automações externas serão implementados em uma próxima fase.
         </div>
       );
     }
+
     if (leadsLoadStatus === "empty") {
       return (
         <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-amber-200">

@@ -129,93 +129,94 @@ function ResponsaveisPage() {
     "loading" | "loaded" | "empty" | "unauthenticated" | "error"
   >("loading");
   const [loadedCount, setLoadedCount] = useState(0);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+
+  const normalizeSetor = (d: string | null | undefined): Setor => {
+    const allowed: Setor[] = ["Vendas", "Financeiro", "Administrativo", "Gestão"];
+    if (!d) return "Administrativo";
+    const found = allowed.find((s) => s.toLowerCase() === d.trim().toLowerCase());
+    return found ?? "Administrativo";
+  };
+
+  const resolveCompanyId = async (): Promise<{ companyId: string | null; reason?: string }> => {
+    if (companyId) return { companyId };
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData.user) {
+      return { companyId: null, reason: "unauthenticated" };
+    }
+    const { data: cu, error: cuError } = await supabase
+      .from("company_users")
+      .select("company_id")
+      .eq("user_id", userData.user.id)
+      .eq("is_active", true)
+      .maybeSingle();
+    if (cuError || !cu?.company_id) {
+      return { companyId: null, reason: "no_company" };
+    }
+    setCompanyId(cu.company_id as string);
+    return { companyId: cu.company_id as string };
+  };
+
+  const loadResponsibles = async (cidOverride?: string) => {
+    setLoadingResponsibles(true);
+    try {
+      let cid = cidOverride ?? companyId;
+      if (!cid) {
+        const resolved = await resolveCompanyId();
+        if (!resolved.companyId) {
+          setResponsiblesLoadStatus(resolved.reason === "unauthenticated" ? "unauthenticated" : "error");
+          setLoadingResponsibles(false);
+          return;
+        }
+        cid = resolved.companyId;
+      }
+
+      const { data: rows, error: rError } = await supabase
+        .from("responsibles")
+        .select("id,name,department,role,phone,email,is_active,created_at")
+        .eq("company_id", cid)
+        .order("name");
+
+      if (rError) {
+        setResponsiblesLoadStatus("error");
+        setLoadingResponsibles(false);
+        return;
+      }
+
+      if (!rows || rows.length === 0) {
+        setItems([]);
+        setLoadedCount(0);
+        setResponsiblesLoadStatus("empty");
+        setLoadingResponsibles(false);
+        return;
+      }
+
+      const mapped: Responsavel[] = rows.map((r) => ({
+        id: String(r.id),
+        nome: r.name ?? "Sem nome",
+        setor: normalizeSetor(r.department),
+        funcao: r.role ?? "",
+        telefone: r.phone ?? "",
+        status: r.is_active ? "Ativo" : "Inativo",
+        atendimentosHoje: 0,
+      }));
+
+      setItems(mapped);
+      setLoadedCount(mapped.length);
+      setResponsiblesLoadStatus("loaded");
+      setLoadingResponsibles(false);
+    } catch {
+      setResponsiblesLoadStatus("error");
+      setLoadingResponsibles(false);
+    }
+  };
 
   useEffect(() => {
-    let cancelled = false;
-
-    const allowedSetores: Setor[] = ["Vendas", "Financeiro", "Administrativo", "Gestão"];
-    const normalizeSetor = (d: string | null | undefined): Setor => {
-      if (!d) return "Administrativo";
-      const found = allowedSetores.find((s) => s.toLowerCase() === d.trim().toLowerCase());
-      return found ?? "Administrativo";
-    };
-
-    const load = async () => {
-      try {
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        if (userError || !userData.user) {
-          if (!cancelled) {
-            setResponsiblesLoadStatus("unauthenticated");
-            setLoadingResponsibles(false);
-          }
-          return;
-        }
-
-        const { data: cu, error: cuError } = await supabase
-          .from("company_users")
-          .select("company_id")
-          .eq("user_id", userData.user.id)
-          .eq("is_active", true)
-          .maybeSingle();
-
-        if (cuError || !cu?.company_id) {
-          if (!cancelled) {
-            setResponsiblesLoadStatus("error");
-            setLoadingResponsibles(false);
-          }
-          return;
-        }
-
-        const { data: rows, error: rError } = await supabase
-          .from("responsibles")
-          .select("id,name,department,role,phone,email,is_active,created_at")
-          .eq("company_id", cu.company_id)
-          .order("name");
-
-        if (rError) {
-          if (!cancelled) {
-            setResponsiblesLoadStatus("error");
-            setLoadingResponsibles(false);
-          }
-          return;
-        }
-
-        if (!rows || rows.length === 0) {
-          if (!cancelled) {
-            setResponsiblesLoadStatus("empty");
-            setLoadingResponsibles(false);
-          }
-          return;
-        }
-
-        const mapped: Responsavel[] = rows.map((r) => ({
-          id: String(r.id),
-          nome: r.name ?? "Sem nome",
-          setor: normalizeSetor(r.department),
-          funcao: r.role ?? "",
-          telefone: r.phone ?? "",
-          status: r.is_active ? "Ativo" : "Inativo",
-          atendimentosHoje: 0,
-        }));
-
-        if (!cancelled) {
-          setItems(mapped);
-          setLoadedCount(mapped.length);
-          setResponsiblesLoadStatus("loaded");
-          setLoadingResponsibles(false);
-        }
-      } catch {
-        if (!cancelled) {
-          setResponsiblesLoadStatus("error");
-          setLoadingResponsibles(false);
-        }
-      }
-    };
-
-    load();
-    return () => {
-      cancelled = true;
-    };
+    loadResponsibles();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const ativosCount = useMemo(
@@ -289,47 +290,146 @@ function ResponsaveisPage() {
     setEditingId(null);
   };
 
-  const saveResponsavel = () => {
-    if (!form.nome.trim() || !form.funcao.trim() || !form.telefone.trim()) {
-      toast.error("Preencha todos os campos obrigatórios.");
+  const saveResponsavel = async () => {
+    if (isSaving) return;
+    if (!form.nome.trim() || !form.funcao.trim()) {
+      toast.error("Preencha nome, setor e função.");
       return;
     }
 
-    if (editingId) {
-      setItems((prev) =>
-        prev.map((r) =>
-          r.id === editingId
-            ? { ...r, nome: form.nome.trim(), setor: form.setor, funcao: form.funcao.trim(), telefone: form.telefone.trim(), status: form.status }
-            : r
-        )
-      );
-      toast.success("Responsável atualizado com sucesso.");
-    } else {
-      const newId = String(Date.now());
-      setItems((prev) => [
-        ...prev,
-        {
-          id: newId,
-          nome: form.nome.trim(),
-          setor: form.setor,
-          funcao: form.funcao.trim(),
-          telefone: form.telefone.trim(),
-          status: form.status,
-          atendimentosHoje: 0,
-        },
-      ]);
-      toast.success("Responsável adicionado com sucesso.");
+    setSaveError(null);
+    setSaveSuccess(null);
+    setIsSaving(true);
+
+    try {
+      const resolved = await resolveCompanyId();
+      if (!resolved.companyId) {
+        const msg =
+          resolved.reason === "unauthenticated"
+            ? "Usuário não autenticado. Faça login novamente."
+            : "Empresa vinculada não encontrada para este usuário.";
+        setSaveError(msg);
+        toast.error(msg);
+        setIsSaving(false);
+        return;
+      }
+      const cid = resolved.companyId;
+
+      if (editingId) {
+        const numericId = Number(editingId);
+        if (Number.isNaN(numericId)) {
+          // local-only item (mock fallback): apenas atualiza estado
+          setItems((prev) =>
+            prev.map((r) =>
+              r.id === editingId
+                ? {
+                    ...r,
+                    nome: form.nome.trim(),
+                    setor: form.setor,
+                    funcao: form.funcao.trim(),
+                    telefone: form.telefone.trim(),
+                    status: form.status,
+                  }
+                : r
+            )
+          );
+          toast.success("Responsável atualizado localmente.");
+        } else {
+          const { error } = await supabase
+            .from("responsibles")
+            .update({
+              name: form.nome.trim(),
+              department: form.setor,
+              role: form.funcao.trim(),
+              phone: form.telefone.trim() || null,
+            })
+            .eq("id", numericId)
+            .eq("company_id", cid)
+            .select()
+            .single();
+
+          if (error) throw error;
+
+          toast.success("Responsável salvo no Supabase.");
+          setSaveSuccess("Responsável atualizado no Supabase.");
+        }
+      } else {
+        const { error } = await supabase
+          .from("responsibles")
+          .insert({
+            company_id: cid,
+            name: form.nome.trim(),
+            department: form.setor,
+            role: form.funcao.trim(),
+            phone: form.telefone.trim() || null,
+            email: null,
+            is_active: form.status === "Ativo",
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        toast.success("Responsável salvo no Supabase.");
+        setSaveSuccess("Responsável adicionado no Supabase.");
+      }
+
+      await loadResponsibles(cid);
+      setIsSaving(false);
+      closeModal();
+    } catch (err) {
+      const msg = "Não foi possível salvar o responsável.";
+      console.error("[responsaveis] save error", err);
+      setSaveError(msg);
+      toast.error(msg);
+      setIsSaving(false);
     }
-    closeModal();
   };
 
-  const toggleStatus = (id: string) => {
-    setItems((prev) =>
-      prev.map((r) =>
-        r.id === id ? { ...r, status: r.status === "Ativo" ? "Inativo" : "Ativo" } : r
-      )
-    );
-    toast.success("Status do responsável atualizado.");
+  const toggleStatus = async (id: string) => {
+    const target = items.find((r) => r.id === id);
+    if (!target) return;
+    const novoStatus = target.status !== "Ativo";
+
+    const numericId = Number(id);
+    if (Number.isNaN(numericId)) {
+      // fallback local (mock)
+      setItems((prev) =>
+        prev.map((r) =>
+          r.id === id ? { ...r, status: novoStatus ? "Ativo" : "Inativo" } : r
+        )
+      );
+      toast.success("Status atualizado localmente.");
+      return;
+    }
+
+    try {
+      const resolved = await resolveCompanyId();
+      if (!resolved.companyId) {
+        const msg =
+          resolved.reason === "unauthenticated"
+            ? "Usuário não autenticado. Faça login novamente."
+            : "Empresa vinculada não encontrada para este usuário.";
+        toast.error(msg);
+        return;
+      }
+
+      const { error } = await supabase
+        .from("responsibles")
+        .update({ is_active: novoStatus })
+        .eq("id", numericId)
+        .eq("company_id", resolved.companyId)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success("Status do responsável atualizado.");
+      await loadResponsibles(resolved.companyId);
+    } catch (err) {
+      console.error("[responsaveis] toggle error", err);
+      toast.error("Não foi possível atualizar o status.");
+    }
   };
 
   return (
@@ -375,6 +475,15 @@ function ResponsaveisPage() {
               </p>
             );
           })()}
+          <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+            Responsáveis são carregados e salvos no Supabase. Adições, edições e ativações feitas nesta tela serão persistidas para a empresa vinculada ao usuário logado.
+            {saveError && (
+              <span className="ml-1 font-semibold text-red-700">• {saveError}</span>
+            )}
+            {saveSuccess && !saveError && (
+              <span className="ml-1 font-semibold text-emerald-700">• {saveSuccess}</span>
+            )}
+          </div>
         </div>
 
         {/* Summary cards */}
@@ -659,9 +768,10 @@ function ResponsaveisPage() {
               </button>
               <button
                 onClick={saveResponsavel}
-                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+                disabled={isSaving}
+                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {editingId ? "Salvar alterações" : "Salvar responsável"}
+                {isSaving ? "Salvando..." : editingId ? "Salvar alterações" : "Salvar responsável"}
               </button>
             </div>
           </div>

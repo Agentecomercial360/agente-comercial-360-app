@@ -485,10 +485,11 @@ function IAPage() {
             <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={handleSave}
-                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+                disabled={isSaving}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                <Save className="h-4 w-4" />
-                Salvar configurações
+                {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {isSaving ? "Salvando..." : "Salvar configurações"}
               </button>
               <button
                 onClick={openRestore}

@@ -161,8 +161,9 @@ function BaseConhecimentoPage() {
   const reloadKb = async (cid: string, companyName: string) => {
     const { data, error } = await supabase
       .from("knowledge_base")
-      .select("id,company_id,title,content,category,created_at")
+      .select("id,company_id,title,content,category,created_at,is_active")
       .eq("company_id", cid)
+      .eq("is_active", true)
       .order("created_at", { ascending: false });
     if (error) {
       setKbLoadStatus("error");
@@ -180,7 +181,7 @@ function BaseConhecimentoPage() {
       categoria: normalizeCategoria(r.category),
       conteudo: (r.content as string) ?? "",
       empresa: companyName,
-      status: "Ativo",
+      status: r.is_active === false ? "Inativo" : "Ativo",
       atualizadoEm: r.created_at
         ? new Date(r.created_at as string).toLocaleDateString("pt-BR")
         : "",

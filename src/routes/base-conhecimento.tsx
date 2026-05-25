@@ -153,6 +153,41 @@ function BaseConhecimentoPage() {
   const [loadingKb, setLoadingKb] = useState(true);
   const [kbLoadStatus, setKbLoadStatus] = useState<KbLoadStatus>("loading");
   const [activeCompanyName, setActiveCompanyName] = useState<string | null>(null);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+
+  const reloadKb = async (cid: string, companyName: string) => {
+    const { data, error } = await supabase
+      .from("knowledge_base")
+      .select("id,company_id,title,content,category,created_at")
+      .eq("company_id", cid)
+      .order("created_at", { ascending: false });
+    if (error) {
+      setKbLoadStatus("error");
+      return;
+    }
+    const rows = data ?? [];
+    if (rows.length === 0) {
+      setItems([]);
+      setKbLoadStatus("empty");
+      return;
+    }
+    const mapped: Conhecimento[] = rows.map((r: Record<string, unknown>) => ({
+      id: String(r.id),
+      titulo: (r.title as string) ?? "",
+      categoria: normalizeCategoria(r.category),
+      conteudo: (r.content as string) ?? "",
+      empresa: companyName,
+      status: "Ativo",
+      atualizadoEm: r.created_at
+        ? new Date(r.created_at as string).toLocaleDateString("pt-BR")
+        : "",
+    }));
+    setItems(mapped);
+    setKbLoadStatus("loaded");
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -179,49 +214,16 @@ function BaseConhecimentoPage() {
           return;
         }
 
-        const companyId = cu.company_id as string;
+        const cid = cu.company_id as string;
+        setCompanyId(cid);
 
-        const [companyRes, kbRes] = await Promise.all([
-          supabase.from("companies").select("name").eq("id", companyId).single(),
-          supabase
-            .from("knowledge_base")
-            .select("id,company_id,title,content,category,created_at")
-            .eq("company_id", companyId)
-            .order("created_at", { ascending: false }),
-        ]);
+        const companyRes = await supabase.from("companies").select("name").eq("id", cid).single();
         if (cancelled) return;
-
         const companyName = (companyRes.data?.name as string | undefined) ?? "União Auto Peças";
         setActiveCompanyName(companyName);
 
-        if (kbRes.error) {
-          setKbLoadStatus("error");
-          setLoadingKb(false);
-          return;
-        }
-
-        const rows = kbRes.data ?? [];
-        if (rows.length === 0) {
-          setKbLoadStatus("empty");
-          setLoadingKb(false);
-          return;
-        }
-
-        const mapped: Conhecimento[] = rows.map((r: Record<string, unknown>) => ({
-          id: String(r.id),
-          titulo: (r.title as string) ?? "",
-          categoria: normalizeCategoria(r.category),
-          conteudo: (r.content as string) ?? "",
-          empresa: companyName,
-          status: "Ativo",
-          atualizadoEm: r.created_at
-            ? new Date(r.created_at as string).toLocaleDateString("pt-BR")
-            : "",
-        }));
-
-        setItems(mapped);
-        setKbLoadStatus("loaded");
-        setLoadingKb(false);
+        await reloadKb(cid, companyName);
+        if (!cancelled) setLoadingKb(false);
       } catch {
         if (!cancelled) {
           setKbLoadStatus("error");
@@ -323,55 +325,76 @@ function BaseConhecimentoPage() {
     setViewingId(null);
   };
 
-  const saveConhecimento = () => {
-    if (!form.titulo.trim() || !form.conteudo.trim() || !form.empresa.trim()) {
-      toast.error("Preencha todos os campos obrigatórios.");
+  const saveConhecimento = async () => {
+    if (!form.titulo.trim() || !form.conteudo.trim()) {
+      toast.error("Título e conteúdo são obrigatórios.");
+      return;
+    }
+    if (isSaving) return;
+
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData?.user) {
+      const msg = "Usuário não autenticado. Faça login novamente.";
+      setSaveError(msg);
+      toast.error(msg);
+      return;
+    }
+    if (!companyId) {
+      const msg = "Empresa vinculada não encontrada para este usuário.";
+      setSaveError(msg);
+      toast.error(msg);
       return;
     }
 
-    if (editingId) {
-      setItems((prev) =>
-        prev.map((c) =>
-          c.id === editingId
-            ? {
-                ...c,
-                titulo: form.titulo.trim(),
-                categoria: form.categoria,
-                conteudo: form.conteudo.trim(),
-                empresa: form.empresa.trim(),
-                status: form.status,
-                atualizadoEm: "20/05/2026",
-              }
-            : c
-        )
-      );
-      toast.success("Conhecimento atualizado com sucesso.");
-    } else {
-      const newId = String(Date.now());
-      setItems((prev) => [
-        ...prev,
-        {
-          id: newId,
-          titulo: form.titulo.trim(),
-          categoria: form.categoria,
-          conteudo: form.conteudo.trim(),
-          empresa: form.empresa.trim(),
-          status: form.status,
-          atualizadoEm: "20/05/2026",
-        },
-      ]);
-      toast.success("Conhecimento adicionado com sucesso.");
+    setIsSaving(true);
+    try {
+      if (editingId) {
+        const { error } = await supabase
+          .from("knowledge_base")
+          .update({
+            title: form.titulo.trim(),
+            content: form.conteudo.trim(),
+            category: form.categoria,
+          })
+          .eq("id", editingId)
+          .eq("company_id", companyId)
+          .select()
+          .single();
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("knowledge_base")
+          .insert({
+            company_id: companyId,
+            title: form.titulo.trim(),
+            content: form.conteudo.trim(),
+            category: form.categoria,
+          })
+          .select()
+          .single();
+        if (error) throw error;
+      }
+
+      const msg = "Conhecimento salvo no Supabase.";
+      setSaveSuccess(msg);
+      toast.success(msg);
+      await reloadKb(companyId, activeCompanyName ?? "União Auto Peças");
+      setModalOpen(false);
+      setEditingId(null);
+    } catch (e) {
+      const msg = "Não foi possível salvar o conhecimento.";
+      setSaveError(msg);
+      toast.error(msg + (e instanceof Error ? ` (${e.message})` : ""));
+    } finally {
+      setIsSaving(false);
     }
-    closeModal();
   };
 
-  const toggleStatus = (id: string) => {
-    setItems((prev) =>
-      prev.map((c) =>
-        c.id === id ? { ...c, status: c.status === "Ativo" ? "Inativo" : "Ativo" } : c
-      )
-    );
-    toast.success("Status do conhecimento atualizado.");
+  const toggleStatus = (_id: string) => {
+    toast.info("Remoção/desativação da base de conhecimento será implementada em uma próxima fase.");
   };
 
   const viewingItem = useMemo(
@@ -631,14 +654,20 @@ function BaseConhecimentoPage() {
             </div>
 
             {/* Attention */}
-            <div className="rounded-2xl bg-amber-50 border border-amber-200 shadow-[var(--shadow-soft)] p-5">
+            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 shadow-[var(--shadow-soft)] p-5">
               <div className="flex items-start gap-2 mb-2">
-                <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                <h3 className="text-sm font-semibold text-amber-800">Atenção</h3>
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                <h3 className="text-sm font-semibold text-emerald-800">Persistência ativa</h3>
               </div>
-              <p className="text-xs leading-relaxed text-amber-700">
-                A leitura da Base de Conhecimento já pode ser carregada do Supabase. Nesta etapa, adicionar, editar e desativar ainda funcionam apenas localmente e não persistem mudanças no banco.
+              <p className="text-xs leading-relaxed text-emerald-700">
+                A Base de Conhecimento é carregada e salva no Supabase. Novos conhecimentos e edições feitas nesta tela serão persistidos para a empresa vinculada ao usuário logado. Remoção/desativação será implementada em uma próxima fase.
               </p>
+              {saveError && (
+                <p className="mt-2 text-xs font-medium text-rose-700">{saveError}</p>
+              )}
+              {saveSuccess && !saveError && (
+                <p className="mt-2 text-xs font-medium text-emerald-700">{saveSuccess}</p>
+              )}
             </div>
           </div>
         </div>
@@ -726,9 +755,11 @@ function BaseConhecimentoPage() {
               </button>
               <button
                 onClick={saveConhecimento}
-                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
+                disabled={isSaving}
+                className="rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2"
               >
-                {editingId ? "Salvar alterações" : "Salvar conhecimento"}
+                {isSaving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                {isSaving ? "Salvando..." : editingId ? "Salvar alterações" : "Salvar conhecimento"}
               </button>
             </div>
           </div>

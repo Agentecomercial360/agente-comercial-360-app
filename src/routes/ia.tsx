@@ -244,11 +244,76 @@ function IAPage() {
     setSaved(false);
   };
 
-  const handleSave = () => {
-    setSaved(true);
-    toast.success("Configurações da IA salvas localmente.", {
-      description: "Alterações salvas apenas nesta sessão visual.",
-    });
+  const handleSave = async () => {
+    setSaveError(null);
+    setSaveSuccess(false);
+
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    if (userError || !userData?.user) {
+      const msg = "Usuário não autenticado. Faça login novamente.";
+      setSaveError(msg);
+      toast.error(msg);
+      return;
+    }
+    if (!companyId) {
+      const msg = "Empresa vinculada não encontrada para este usuário.";
+      setSaveError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const podePreco = rules.find((r) => r.label === "Pode enviar preço?")?.value ?? false;
+      const podeOrcamento = rules.find((r) => r.label === "Pode criar orçamento?")?.value ?? false;
+
+      const { data, error } = await supabase
+        .from("ai_settings")
+        .upsert(
+          {
+            company_id: companyId,
+            agent_name: assistantName,
+            behavior_prompt: prompt,
+            can_send_prices: podePreco,
+            can_create_quote: podeOrcamento,
+            must_call_human_when: mustCallHumanWhen,
+          },
+          { onConflict: "company_id" },
+        )
+        .select(
+          "id,company_id,agent_name,behavior_prompt,can_send_prices,can_create_quote,must_call_human_when,created_at",
+        )
+        .single();
+
+      if (error || !data) {
+        throw error ?? new Error("Sem retorno do Supabase");
+      }
+
+      if (data.agent_name) setAssistantName(data.agent_name as string);
+      if (data.behavior_prompt) setPrompt(data.behavior_prompt as string);
+      setRules((prev) =>
+        prev.map((r) => {
+          if (r.label === "Pode enviar preço?")
+            return { ...r, value: Boolean(data.can_send_prices) };
+          if (r.label === "Pode criar orçamento?")
+            return { ...r, value: Boolean(data.can_create_quote) };
+          return r;
+        }),
+      );
+      setActiveAiSettingsId((data.id as string) ?? null);
+      setActiveAiCreatedAt((data.created_at as string) ?? null);
+      setMustCallHumanWhen((data.must_call_human_when as string | null) ?? null);
+      setAiLoadStatus("loaded");
+      setSaved(true);
+      setSaveSuccess(true);
+      toast.success("Configurações da IA salvas no Supabase.");
+    } catch (err) {
+      const msg = "Não foi possível salvar as configurações da IA.";
+      setSaveError(msg);
+      toast.error(msg);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const openRestore = () => {

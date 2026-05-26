@@ -16,6 +16,12 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
+import {
+  type ConversationStatus,
+  normalizeConversationStatus,
+  getConversationStatusLabel,
+  getConversationStatusBadgeClass,
+} from "@/lib/conversation-status";
 
 type ConvLoadStatus =
   | "loading"
@@ -32,16 +38,6 @@ function normalizeChannel(value: unknown): string {
   if (v === "email" || v === "e-mail") return "Email";
   if (v === "site" || v === "web") return "Site";
   return String(value).charAt(0).toUpperCase() + String(value).slice(1);
-}
-
-function normalizeStatus(value: unknown): Status {
-  const v = String(value ?? "").trim().toLowerCase();
-  if (["aberta", "open", "active"].includes(v)) return "Aberta";
-  if (["aguardando resposta", "aguardando", "waiting", "pending"].includes(v))
-    return "Aguardando retorno";
-  if (["encaminhada", "forwarded", "assigned"].includes(v)) return "Encaminhada";
-  if (["finalizada", "closed", "finished"].includes(v)) return "Finalizada";
-  return "Aberta";
 }
 
 function formatHorario(lastMessageAt: string | null, createdAt: string | null): string {
@@ -72,20 +68,7 @@ const summary = [
   { label: "Finalizadas hoje", value: 18, icon: CheckCircle2 },
 ];
 
-const filters = [
-  "Todas",
-  "Abertas",
-  "Aguardando resposta",
-  "Encaminhadas",
-  "Finalizadas",
-];
-
-type Status =
-  | "Aberta"
-  | "Aguardando retorno"
-  | "Encaminhada"
-  | "Financeiro"
-  | "Finalizada";
+type Status = ConversationStatus;
 
 type Conversa = {
   id: string | number;
@@ -106,7 +89,7 @@ const conversas: Conversa[] = [
     canal: "WhatsApp",
     ultimaMensagem: "Preciso de orçamento do kit embreagem.",
     horario: "09:41",
-    status: "Aberta",
+    status: "aberta",
     setor: "Vendas",
   },
   {
@@ -116,7 +99,7 @@ const conversas: Conversa[] = [
     canal: "WhatsApp",
     ultimaMensagem: "Vocês têm pastilha de freio do Onix?",
     horario: "10:12",
-    status: "Aguardando retorno",
+    status: "aguardando_cliente",
     setor: "Vendas",
   },
   {
@@ -126,7 +109,7 @@ const conversas: Conversa[] = [
     canal: "WhatsApp",
     ultimaMensagem: "Quero saber se tem bateria 60Ah.",
     horario: "11:05",
-    status: "Encaminhada",
+    status: "encaminhada",
     setor: "Vendas",
   },
   {
@@ -136,7 +119,7 @@ const conversas: Conversa[] = [
     canal: "WhatsApp",
     ultimaMensagem: "Tenho uma cobrança em aberto?",
     horario: "11:48",
-    status: "Financeiro",
+    status: "em_andamento",
     setor: "Financeiro",
   },
   {
@@ -146,18 +129,10 @@ const conversas: Conversa[] = [
     canal: "WhatsApp",
     ultimaMensagem: "Qual horário de funcionamento?",
     horario: "12:20",
-    status: "Finalizada",
+    status: "finalizada",
     setor: "Administrativo",
   },
 ];
-
-const statusBadge: Record<Status, string> = {
-  Aberta: "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
-  "Aguardando retorno": "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
-  Encaminhada: "bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200",
-  Financeiro: "bg-violet-100 text-violet-700 ring-1 ring-violet-200",
-  Finalizada: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
-};
 
 type Mensagem = { autor: "cliente" | "ia" | "atendente" | "sistema"; texto: string; hora: string };
 
@@ -176,11 +151,21 @@ const mensagensIniciais: Record<string | number, Mensagem[]> = {
   ],
 };
 
-const filterToStatus: Record<string, Status[]> = {
-  Abertas: ["Aberta"],
-  "Aguardando resposta": ["Aguardando retorno"],
-  Encaminhadas: ["Encaminhada"],
-  Finalizadas: ["Finalizada"],
+const filters = [
+  "Todas",
+  "Abertas",
+  "Em andamento",
+  "Aguardando resposta",
+  "Encaminhadas",
+  "Finalizadas",
+];
+
+const filterToStatus: Record<string, ConversationStatus[]> = {
+  Abertas: ["aberta"],
+  "Em andamento": ["em_andamento"],
+  "Aguardando resposta": ["aguardando_cliente", "aguardando_empresa"],
+  Encaminhadas: ["encaminhada"],
+  Finalizadas: ["finalizada"],
 };
 
 const responsaveis = ["Amanda", "Thaís", "Vinicius", "Lorenzzo", "Vitor", "Ivan"];
@@ -258,7 +243,7 @@ function ConversasPage() {
             canal: normalizeChannel(r.channel),
             ultimaMensagem: "Carregue a conversa para ver mensagens",
             horario: formatHorario(r.last_message_at, r.created_at),
-            status: normalizeStatus(r.status),
+            status: normalizeConversationStatus(r.status),
             setor: "—",
           };
         });
@@ -386,7 +371,7 @@ function ConversasPage() {
 
   const confirmarEncaminhamento = () => {
     setItems((prev) =>
-      prev.map((c) => (c.id === selected.id ? { ...c, status: "Encaminhada" } : c)),
+      prev.map((c) => (c.id === selected.id ? { ...c, status: "encaminhada" as ConversationStatus } : c)),
     );
     setForwardOpen(false);
     toast.success(
@@ -441,10 +426,10 @@ function ConversasPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {(() => {
             const counts = {
-              abertas: items.filter((c) => c.status === "Aberta").length,
-              aguardando: items.filter((c) => c.status === "Aguardando retorno").length,
-              encaminhadas: items.filter((c) => c.status === "Encaminhada").length,
-              finalizadas: items.filter((c) => c.status === "Finalizada").length,
+              abertas: items.filter((c) => c.status === "aberta").length,
+              aguardando: items.filter((c) => c.status === "aguardando_cliente" || c.status === "aguardando_empresa").length,
+              encaminhadas: items.filter((c) => c.status === "encaminhada").length,
+              finalizadas: items.filter((c) => c.status === "finalizada").length,
             };
             const cards = [
               { label: "Conversas abertas", value: counts.abertas, icon: MessageCircle },
@@ -548,9 +533,9 @@ function ConversasPage() {
                             </p>
                             <div className="mt-2 flex items-center gap-2">
                               <span
-                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusBadge[c.status]}`}
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${getConversationStatusBadgeClass(c.status)}`}
                               >
-                                {c.status}
+                                {getConversationStatusLabel(c.status)}
                               </span>
                               <span className="text-[10px] text-muted-foreground">
                                 {c.setor}
@@ -590,9 +575,9 @@ function ConversasPage() {
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadge[selected.status]}`}
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getConversationStatusBadgeClass(selected.status)}`}
                     >
-                      {selected.status}
+                      {getConversationStatusLabel(selected.status)}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       Responsável sugerido:{" "}

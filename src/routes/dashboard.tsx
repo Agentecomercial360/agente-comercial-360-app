@@ -205,7 +205,7 @@ function DashboardPage() {
           .eq("company_id", companyId),
         supabase
           .from("leads")
-          .select("id, interest, score, estimated_value, customers ( name )")
+          .select("id, interest, score, estimated_value, next_action, customers ( name )")
           .eq("company_id", companyId)
           .gte("score", 80)
           .order("score", { ascending: false })

@@ -551,8 +551,21 @@ function LandingPage() {
                     <TrendingUp className="size-4" />
                   </div>
                   <div>
-                    <div className="text-[11px] font-semibold">+ oportunidades</div>
-                    <div className="text-[11px] text-emerald-600 font-semibold">+R$ 128k este mês</div>
+                    <div className="text-[11px] font-semibold">+37 oportunidades</div>
+                    <div className="text-[11px] text-emerald-600 font-semibold">geradas este mês</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Responsável acionado — top right (above phone) */}
+              <div className="absolute -right-4 -top-2 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur lg:flex">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600">
+                    <Users className="size-4" />
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold">Responsável acionado</div>
+                    <div className="text-[10px] text-muted-foreground">distribuição automática</div>
                   </div>
                 </div>
               </div>

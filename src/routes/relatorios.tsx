@@ -263,33 +263,67 @@ function RelatoriosPage() {
         const startISO = start.toISOString();
         const endISO = end.toISOString();
 
-        const results = await Promise.allSettled([
-          supabase.from("companies").select("name").eq("id", companyId).single(),
+        // Helper para contagem de conversations por status canônico no período.
+        const countConversationsByStatus = (
+          status: ConversationStatus,
+          dateColumn: "updated_at" | "created_at",
+        ) =>
           supabase
             .from("conversations")
             .select("id", { count: "exact", head: true })
             .eq("company_id", companyId)
-            .gte("created_at", startISO)
-            .lte("created_at", endISO),
+            .eq("status", status)
+            .gte(dateColumn, startISO)
+            .lte(dateColumn, endISO);
+
+        const results = await Promise.allSettled([
+          supabase.from("companies").select("name").eq("id", companyId).single(),
+          // 1: atendimentos = conversations finalizadas no período (updated_at)
+          countConversationsByStatus("finalizada", "updated_at"),
+          // 2: oportunidades = leads criados no período
           supabase
             .from("leads")
             .select("id", { count: "exact", head: true })
             .eq("company_id", companyId)
             .gte("created_at", startISO)
             .lte("created_at", endISO),
+          // 3: leads quentes no período
           supabase
             .from("leads")
             .select("id", { count: "exact", head: true })
             .eq("company_id", companyId)
-            .gte("score", 80),
+            .gte("score", 80)
+            .gte("created_at", startISO)
+            .lte("created_at", endISO),
+          // 4: novos clientes no período
           supabase
             .from("customers")
             .select("id", { count: "exact", head: true })
-            .eq("company_id", companyId),
+            .eq("company_id", companyId)
+            .gte("created_at", startISO)
+            .lte("created_at", endISO),
+          // 5: sem_resposta no período
+          countConversationsByStatus("sem_resposta", "created_at"),
+          // 6-10: status canônicos adicionais (created_at)
+          countConversationsByStatus("aberta", "created_at"),
+          countConversationsByStatus("em_andamento", "created_at"),
+          countConversationsByStatus("aguardando_cliente", "created_at"),
+          countConversationsByStatus("aguardando_empresa", "created_at"),
+          countConversationsByStatus("encaminhada", "created_at"),
         ]);
 
         let failures = 0;
         const next: DadosPeriodo = { ...base };
+        const statusCounts: Partial<Record<ConversationStatus, number>> = {};
+
+        const readCount = (idx: number, fallback: number): number => {
+          const r = results[idx];
+          if (r.status === "fulfilled" && !r.value.error && typeof r.value.count === "number") {
+            return r.value.count;
+          }
+          failures++;
+          return fallback;
+        };
 
         const r0 = results[0];
         if (r0.status === "fulfilled" && !r0.value.error) {
@@ -297,32 +331,34 @@ function RelatoriosPage() {
           if (!cancelled) setCompanyName(name);
         } else failures++;
 
-        const r1 = results[1];
-        if (r1.status === "fulfilled" && !r1.value.error && typeof r1.value.count === "number") {
-          next.atendimentos = r1.value.count;
-        } else failures++;
-
-        const r2 = results[2];
-        if (r2.status === "fulfilled" && !r2.value.error && typeof r2.value.count === "number") {
-          next.oportunidades = r2.value.count;
-        } else failures++;
-
-        const r3 = results[3];
-        if (r3.status === "fulfilled" && !r3.value.error && typeof r3.value.count === "number") {
-          next.leadsQuentes = r3.value.count;
-        } else failures++;
-
-        const r4 = results[4];
-        if (r4.status === "fulfilled" && !r4.value.error && typeof r4.value.count === "number") {
-          next.novos = r4.value.count;
-        } else failures++;
+        next.atendimentos = readCount(1, base.atendimentos);
+        next.oportunidades = readCount(2, base.oportunidades);
+        next.leadsQuentes = readCount(3, base.leadsQuentes);
+        next.novos = readCount(4, base.novos);
+        next.semResposta = readCount(5, base.semResposta);
+        statusCounts.finalizada = next.atendimentos;
+        statusCounts.sem_resposta = next.semResposta;
+        statusCounts.aberta = readCount(6, 0);
+        statusCounts.em_andamento = readCount(7, 0);
+        statusCounts.aguardando_cliente = readCount(8, 0);
+        statusCounts.aguardando_empresa = readCount(9, 0);
+        statusCounts.encaminhada = readCount(10, 0);
+        next.statusCounts = statusCounts;
 
         next.resumo =
-          "As métricas principais (atendimentos, oportunidades, leads quentes e clientes cadastrados) já vêm do Supabase. Gráficos por setor, peças solicitadas, pendências e resumo executivo avançado ainda usam dados temporários até a próxima fase.";
+          `No período selecionado (${periodo.toLowerCase()}), a operação teve ` +
+          `${next.atendimentos} atendimento(s) finalizado(s), ` +
+          `${next.oportunidades} oportunidade(s) gerada(s), ` +
+          `${next.leadsQuentes} lead(s) quente(s) e ` +
+          `${next.semResposta} cliente(s) sem resposta. ` +
+          `Conversas em andamento: ${statusCounts.em_andamento ?? 0}; ` +
+          `aguardando cliente: ${statusCounts.aguardando_cliente ?? 0}; ` +
+          `aguardando empresa: ${statusCounts.aguardando_empresa ?? 0}; ` +
+          `encaminhadas: ${statusCounts.encaminhada ?? 0}.`;
 
         if (!cancelled) {
           setDadosRelatorio(next);
-          setRelatoriosLoadStatus(failures === 0 ? "loaded" : failures >= 5 ? "error" : "partial");
+          setRelatoriosLoadStatus(failures === 0 ? "loaded" : failures >= 6 ? "error" : "partial");
           setLoadingRelatorios(false);
         }
       } catch {

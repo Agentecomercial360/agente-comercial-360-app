@@ -119,6 +119,7 @@ function DashboardPage() {
   const [convWaitingClient, setConvWaitingClient] = useState<KpiValue>(DASH);
   const [convWaitingCompany, setConvWaitingCompany] = useState<KpiValue>(DASH);
   const [convFinished, setConvFinished] = useState<KpiValue>(DASH);
+  const [convNoResponse, setConvNoResponse] = useState<KpiValue>(DASH);
   const [messagesToday, setMessagesToday] = useState<KpiValue>(DASH);
   const [activeResponsibles, setActiveResponsibles] = useState<KpiValue>(DASH);
   const [activeKnowledge, setActiveKnowledge] = useState<KpiValue>(DASH);
@@ -176,6 +177,7 @@ function DashboardPage() {
         waitClientRes,
         waitCompanyRes,
         finishedRes,
+        noResponseRes,
         msgTodayRes,
         respRes,
         kbRes,
@@ -196,6 +198,7 @@ function DashboardPage() {
         countQuery("conversations").eq("status", "aguardando_cliente"),
         countQuery("conversations").eq("status", "aguardando_empresa"),
         countQuery("conversations").eq("status", "finalizada"),
+        countQuery("conversations").eq("status", "sem_resposta"),
         countQuery("messages").gte("created_at", startOfToday.toISOString()),
         countQuery("responsibles").eq("is_active", true),
         countQuery("knowledge_base").eq("is_active", true),
@@ -249,6 +252,7 @@ function DashboardPage() {
       applyCount(waitClientRes as never, setConvWaitingClient);
       applyCount(waitCompanyRes as never, setConvWaitingCompany);
       applyCount(finishedRes as never, setConvFinished);
+      applyCount(noResponseRes as never, setConvNoResponse);
       applyCount(msgTodayRes as never, setMessagesToday);
       applyCount(respRes as never, setActiveResponsibles);
       applyCount(kbRes as never, setActiveKnowledge);
@@ -370,7 +374,7 @@ function DashboardPage() {
     { label: "Mensagens hoje", value: messagesToday, icon: Headphones },
     { label: "Leads quentes (score ≥ 80)", value: hotLeads, icon: Flame },
     { label: "Conversas abertas", value: convOpen, icon: MessageSquare },
-    { label: "Clientes sem resposta", value: DASH, icon: UserX, hint: "Regra em configuração" },
+    { label: "Clientes sem resposta", value: convNoResponse, icon: UserX },
   ];
 
   const kpisSecondary: Kpi[] = [

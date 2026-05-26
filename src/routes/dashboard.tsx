@@ -495,8 +495,7 @@ function DashboardPage() {
           })}
         </div>
 
-        {/* AI executive summary + next actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Resumo executivo (real) */}
         {/* Resumo executivo (gerado a partir dos dados reais) */}
         <div className="rounded-2xl border border-border p-6 shadow-[var(--shadow-soft)] bg-gradient-to-br from-[var(--brand-blue-soft)] via-card to-card relative overflow-hidden">
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />

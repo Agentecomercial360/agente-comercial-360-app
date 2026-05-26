@@ -64,12 +64,12 @@ function LandingPage() {
               Agente Comercial <span className="text-primary">360</span>
             </span>
           </a>
-          <nav className="hidden items-center gap-8 text-sm text-muted-foreground lg:flex">
+          <nav className="hidden items-center gap-7 text-sm text-muted-foreground lg:flex">
             <a href="#problema" className="hover:text-foreground transition-colors">Problema</a>
             <a href="#solucao" className="hover:text-foreground transition-colors">Solução</a>
             <a href="#funcionalidades" className="hover:text-foreground transition-colors">Funcionalidades</a>
-            <a href="#como-funciona" className="hover:text-foreground transition-colors">Como funciona</a>
-            <a href="#tecnologia" className="hover:text-foreground transition-colors">Tecnologia</a>
+            <a href="#depoimentos" className="hover:text-foreground transition-colors">Depoimentos</a>
+            <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
             <Link to="/login" className="hidden sm:block">

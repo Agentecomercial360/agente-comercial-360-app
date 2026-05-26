@@ -64,12 +64,12 @@ function LandingPage() {
               Agente Comercial <span className="text-primary">360</span>
             </span>
           </a>
-          <nav className="hidden items-center gap-8 text-sm text-muted-foreground lg:flex">
+          <nav className="hidden items-center gap-7 text-sm text-muted-foreground lg:flex">
             <a href="#problema" className="hover:text-foreground transition-colors">Problema</a>
             <a href="#solucao" className="hover:text-foreground transition-colors">Solução</a>
             <a href="#funcionalidades" className="hover:text-foreground transition-colors">Funcionalidades</a>
-            <a href="#como-funciona" className="hover:text-foreground transition-colors">Como funciona</a>
-            <a href="#tecnologia" className="hover:text-foreground transition-colors">Tecnologia</a>
+            <a href="#depoimentos" className="hover:text-foreground transition-colors">Depoimentos</a>
+            <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
           </nav>
           <div className="flex items-center gap-2">
             <Link to="/login" className="hidden sm:block">
@@ -151,6 +151,25 @@ function LandingPage() {
                       <b.icon className="size-3.5" />
                     </span>
                     {b.label}
+                  </div>
+                ))}
+              </div>
+
+              {/* stats — prova de tração */}
+              <div className="mt-10 grid grid-cols-2 gap-6 border-t border-[var(--border-premium)] pt-7 sm:grid-cols-4">
+                {[
+                  { v: "+10k", l: "Conversas processadas" },
+                  { v: "+85%", l: "Resposta em até 2min" },
+                  { v: "+30%", l: "Conversão de leads" },
+                  { v: "24/7", l: "IA disponível" },
+                ].map((s) => (
+                  <div key={s.l}>
+                    <div className="font-display text-3xl font-bold tracking-tight text-[oklch(0.16_0.04_258)] md:text-4xl">
+                      {s.v}
+                    </div>
+                    <div className="mt-1 text-xs leading-snug text-muted-foreground">
+                      {s.l}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -719,6 +738,137 @@ function LandingPage() {
                 <div className="mt-4 font-display text-base font-semibold">{t.label}</div>
                 <div className="text-xs text-white/75">{t.text}</div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* DEPOIMENTOS — prova social */}
+      <section id="depoimentos" className="border-t border-[var(--border-premium)] bg-white">
+        <div className="mx-auto max-w-7xl px-6 py-20 md:py-28">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+              <Sparkles className="size-3.5" /> Quem usa, recomenda
+            </div>
+            <h2 className="font-display mt-5 text-3xl font-semibold tracking-[-0.02em] md:text-4xl lg:text-5xl">
+              Operações comerciais mais{" "}
+              <span className="text-primary">organizadas e previsíveis</span>
+            </h2>
+            <p className="mt-4 text-muted-foreground md:text-lg">
+              Times comerciais usam o Agente Comercial 360 para responder mais rápido,
+              priorizar o que importa e fechar mais vendas.
+            </p>
+          </div>
+
+          <div className="mt-14 grid gap-6 md:grid-cols-3">
+            {[
+              {
+                quote:
+                  "Centralizamos o WhatsApp, organizamos os leads e o time finalmente sabe a próxima ação. A conversão subiu de forma consistente.",
+                name: "Gestor Comercial",
+                role: "Distribuidora automotiva",
+              },
+              {
+                quote:
+                  "A IA prioriza as conversas certas e o painel mostra tudo em tempo real. Saímos da planilha para uma operação de verdade.",
+                name: "Coordenadora de Vendas",
+                role: "Indústria B2B",
+              },
+              {
+                quote:
+                  "Nosso atendimento ficou padronizado, com histórico completo. Cada lead vira oportunidade rastreável, do primeiro contato à venda.",
+                name: "Diretor de Operações",
+                role: "Rede de franquias",
+              },
+            ].map((t) => (
+              <figure
+                key={t.name}
+                className="relative flex flex-col rounded-2xl border border-[var(--border-premium)] bg-white p-7 shadow-[var(--shadow-soft)] transition-all hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+              >
+                <div className="flex gap-0.5 text-amber-500">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <svg key={i} viewBox="0 0 20 20" className="size-4 fill-current">
+                      <path d="M10 1.5l2.6 5.3 5.9.9-4.3 4.2 1 5.9L10 15l-5.2 2.8 1-5.9L1.5 7.7l5.9-.9L10 1.5z" />
+                    </svg>
+                  ))}
+                </div>
+                <blockquote className="mt-5 flex-1 text-[15px] leading-relaxed text-foreground/85">
+                  “{t.quote}”
+                </blockquote>
+                <figcaption className="mt-6 flex items-center gap-3 border-t border-[var(--border-premium)] pt-4">
+                  <div
+                    className="flex size-10 items-center justify-center rounded-full text-sm font-bold text-white"
+                    style={{ background: "var(--gradient-brand)" }}
+                  >
+                    {t.name[0]}
+                  </div>
+                  <div className="leading-tight">
+                    <div className="text-sm font-semibold">{t.name}</div>
+                    <div className="text-xs text-muted-foreground">{t.role}</div>
+                  </div>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section id="faq" className="border-t border-[var(--border-premium)] bg-[var(--brand-blue-soft)]/30">
+        <div className="mx-auto max-w-4xl px-6 py-20 md:py-28">
+          <div className="mx-auto max-w-2xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 text-xs font-medium text-primary">
+              <BookOpen className="size-3.5" /> Perguntas frequentes
+            </div>
+            <h2 className="font-display mt-5 text-3xl font-semibold tracking-[-0.02em] md:text-4xl lg:text-5xl">
+              Tudo o que você precisa saber
+            </h2>
+            <p className="mt-4 text-muted-foreground md:text-lg">
+              Respostas rápidas para as dúvidas mais comuns sobre a plataforma.
+            </p>
+          </div>
+
+          <div className="mt-12 space-y-3">
+            {[
+              {
+                q: "Funciona com o WhatsApp que minha empresa já usa?",
+                a: "Sim. A arquitetura é preparada para WhatsApp Cloud API oficial, mantendo histórico unificado, distribuição por responsável e integração com a IA.",
+              },
+              {
+                q: "Quanto tempo leva para colocar em produção?",
+                a: "A operação básica entra no ar em poucos dias. Configuramos empresa, usuários, responsáveis, base de conhecimento e fluxos de IA seguindo um checklist guiado.",
+              },
+              {
+                q: "Meus dados ficam isolados dos outros clientes?",
+                a: "Sim. A plataforma é multiempresa por design, com isolamento de dados por empresa e usuário, autenticação segura e políticas de acesso por papel.",
+              },
+              {
+                q: "A IA substitui a equipe comercial?",
+                a: "Não. A IA prioriza conversas, sugere próximas ações e responde casos repetitivos. O time comercial ganha foco para fechar oportunidades de maior valor.",
+              },
+              {
+                q: "Consigo medir o ROI da operação?",
+                a: "Sim. Os relatórios em tempo real mostram conversão, tempo de resposta, performance por responsável e por setor — sem depender de planilhas.",
+              },
+            ].map((item) => (
+              <details
+                key={item.q}
+                className="group rounded-2xl border border-[var(--border-premium)] bg-white p-6 shadow-[var(--shadow-soft)] transition-all open:shadow-[var(--shadow-card)]"
+              >
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4">
+                  <span className="font-display text-base font-semibold tracking-tight md:text-lg">
+                    {item.q}
+                  </span>
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[var(--brand-blue-soft)] text-primary transition-transform group-open:rotate-45">
+                    <svg viewBox="0 0 20 20" className="size-4">
+                      <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                  </span>
+                </summary>
+                <p className="mt-4 text-sm leading-relaxed text-muted-foreground md:text-base">
+                  {item.a}
+                </p>
+              </details>
             ))}
           </div>
         </div>

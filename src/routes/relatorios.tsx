@@ -72,7 +72,7 @@ type DadosPeriodo = {
   setores: { nome: string; valor: number; cor: string }[];
   leadsTemp: { nome: string; valor: number; cor: string; total: number }[];
   semana: { dia: string; valor: number }[];
-  statusCounts: Partial<Record<ConversationStatus, number>>;
+  statusCounts?: Partial<Record<ConversationStatus, number>>;
 };
 
 const semanaBase = [

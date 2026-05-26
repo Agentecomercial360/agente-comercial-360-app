@@ -293,10 +293,10 @@ function LandingPage() {
                           <div className="flex min-w-0 items-center gap-2.5">
                             <div className="min-w-0 leading-tight">
                               <div className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                Operação comercial
+                                Empresa ativa
                               </div>
                               <div className="font-display truncate text-[11px] font-bold tracking-tight">
-                                Visão geral
+                                Operação Comercial 360
                               </div>
                             </div>
                             <div className="hidden items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-700 sm:flex">

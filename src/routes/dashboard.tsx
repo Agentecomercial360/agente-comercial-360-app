@@ -69,6 +69,7 @@ type TopLead = {
   score: number | string;
   value: string;
   owner: string;
+  nextAction: string | null;
 };
 
 type TempBucket = { name: string; value: number; color: string };

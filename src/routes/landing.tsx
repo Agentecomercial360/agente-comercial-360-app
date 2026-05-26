@@ -406,15 +406,30 @@ function LandingPage() {
                 </div>
               </div>
 
-              {/* single floating badge — subtle premium accent */}
-              <div className="absolute -left-4 bottom-10 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
+              {/* floating cards — premium accents */}
+              <div className="absolute -left-4 bottom-16 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
                 <div className="flex items-center gap-2 text-xs">
                   <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
                     <TrendingUp className="size-4" />
                   </div>
                   <div>
-                    <div className="font-semibold">Lead quente · score 92</div>
-                    <div className="text-[11px] text-muted-foreground">IA recomendou follow-up</div>
+                    <div className="font-semibold">Lead convertido</div>
+                    <div className="text-[11px] text-emerald-600 font-semibold">+ R$ 4.820</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute -right-2 top-10 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
+                <div className="flex items-center gap-2 text-xs">
+                  <div
+                    className="flex size-8 items-center justify-center rounded-lg text-white"
+                    style={{ background: "var(--gradient-brand)" }}
+                  >
+                    <Bot className="size-4" />
+                  </div>
+                  <div>
+                    <div className="font-semibold">IA respondeu</div>
+                    <div className="text-[11px] text-muted-foreground">12 conversas</div>
                   </div>
                 </div>
               </div>

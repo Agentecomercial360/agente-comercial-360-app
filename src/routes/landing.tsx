@@ -447,17 +447,20 @@ function LandingPage() {
                       className="flex items-center gap-2 px-3 py-2 text-white"
                       style={{
                         background:
-                          "linear-gradient(180deg, oklch(0.42 0.16 158) 0%, oklch(0.38 0.15 158) 100%)",
+                          "linear-gradient(180deg, oklch(0.22 0.05 258) 0%, oklch(0.18 0.04 258) 100%)",
                       }}
                     >
-                      <div className="flex size-7 items-center justify-center rounded-full bg-white/20 text-[10px] font-bold">
-                        AC
+                      <div
+                        className="flex size-7 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                        style={{ background: "var(--gradient-brand)" }}
+                      >
+                        <Bot className="size-3.5" />
                       </div>
                       <div className="min-w-0 flex-1 leading-tight">
-                        <div className="truncate text-[10px] font-bold">Agente Comercial</div>
+                        <div className="truncate text-[10px] font-bold">Atendimento Inteligente</div>
                         <div className="flex items-center gap-1 text-[8px] text-white/85">
                           <span className="size-1.5 rounded-full bg-emerald-300" />
-                          online · IA respondendo
+                          IA respondendo · em tempo real
                         </div>
                       </div>
                     </div>
@@ -466,26 +469,32 @@ function LandingPage() {
                       className="space-y-2 p-2.5"
                       style={{
                         background:
-                          "linear-gradient(180deg, #ece5dd 0%, #e9e2d8 100%)",
+                          "linear-gradient(180deg, oklch(0.97 0.01 258) 0%, oklch(0.95 0.02 258) 100%)",
                         minHeight: "220px",
                       }}
                     >
-                      <div className="max-w-[80%] rounded-lg rounded-tl-sm bg-white px-2 py-1.5 text-[8px] text-slate-800 shadow-sm">
-                        Olá! Gostaria de saber mais sobre a solução.
+                      <div className="max-w-[82%] rounded-lg rounded-tl-sm border border-slate-200 bg-white px-2 py-1.5 text-[8px] text-slate-800 shadow-sm">
+                        Olá, preciso de um orçamento.
                         <div className="mt-0.5 text-right text-[6px] text-slate-400">09:41</div>
                       </div>
-                      <div className="ml-auto max-w-[85%] rounded-lg rounded-tr-sm bg-[#dcf8c6] px-2 py-1.5 text-[8px] text-slate-800 shadow-sm">
-                        Claro! Em segundos te envio um resumo personalizado para sua operação. 🚀
-                        <div className="mt-0.5 text-right text-[6px] text-emerald-700">09:41 ✓✓</div>
+                      <div
+                        className="ml-auto max-w-[85%] rounded-lg rounded-tr-sm px-2 py-1.5 text-[8px] text-white shadow-sm"
+                        style={{ background: "var(--gradient-brand)" }}
+                      >
+                        Claro, já identifiquei sua solicitação e encaminhei para o setor correto.
+                        <div className="mt-0.5 text-right text-[6px] text-white/80">09:41 ✓✓</div>
                       </div>
-                      <div className="ml-auto max-w-[85%] rounded-lg rounded-tr-sm bg-[#dcf8c6] px-2 py-1.5 text-[8px] text-slate-800 shadow-sm">
-                        Encaminhei seu contato ao responsável comercial. Posso agendar uma demo?
-                        <div className="mt-0.5 text-right text-[6px] text-emerald-700">09:41 ✓✓</div>
+                      <div
+                        className="ml-auto max-w-[85%] rounded-lg rounded-tr-sm px-2 py-1.5 text-[8px] text-white shadow-sm"
+                        style={{ background: "var(--gradient-brand)" }}
+                      >
+                        Um responsável comercial entra em contato em instantes.
+                        <div className="mt-0.5 text-right text-[6px] text-white/80">09:41 ✓✓</div>
                       </div>
-                      <div className="flex items-center gap-1 rounded-lg bg-white px-2 py-1.5 shadow-sm w-fit">
-                        <span className="size-1 animate-pulse rounded-full bg-slate-400" />
-                        <span className="size-1 animate-pulse rounded-full bg-slate-400" style={{ animationDelay: "0.15s" }} />
-                        <span className="size-1 animate-pulse rounded-full bg-slate-400" style={{ animationDelay: "0.3s" }} />
+                      <div className="flex w-fit items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 shadow-sm">
+                        <span className="size-1 animate-pulse rounded-full bg-primary/60" />
+                        <span className="size-1 animate-pulse rounded-full bg-primary/60" style={{ animationDelay: "0.15s" }} />
+                        <span className="size-1 animate-pulse rounded-full bg-primary/60" style={{ animationDelay: "0.3s" }} />
                       </div>
                     </div>
                   </div>

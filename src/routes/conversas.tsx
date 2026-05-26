@@ -371,7 +371,7 @@ function ConversasPage() {
 
   const confirmarEncaminhamento = () => {
     setItems((prev) =>
-      prev.map((c) => (c.id === selected.id ? { ...c, status: "Encaminhada" } : c)),
+      prev.map((c) => (c.id === selected.id ? { ...c, status: "encaminhada" as ConversationStatus } : c)),
     );
     setForwardOpen(false);
     toast.success(

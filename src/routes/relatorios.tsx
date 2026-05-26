@@ -15,6 +15,11 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
+import type { ConversationStatus } from "@/lib/conversation-status";
+import { CONVERSATION_STATUSES, getConversationStatusLabel } from "@/lib/conversation-status";
+
+const MOCK_BADGE =
+  "ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 ring-1 ring-amber-200";
 
 export const Route = createFileRoute("/relatorios")({
   component: RelatoriosPage,
@@ -67,6 +72,7 @@ type DadosPeriodo = {
   setores: { nome: string; valor: number; cor: string }[];
   leadsTemp: { nome: string; valor: number; cor: string; total: number }[];
   semana: { dia: string; valor: number }[];
+  statusCounts?: Partial<Record<ConversationStatus, number>>;
 };
 
 const semanaBase = [
@@ -257,33 +263,67 @@ function RelatoriosPage() {
         const startISO = start.toISOString();
         const endISO = end.toISOString();
 
-        const results = await Promise.allSettled([
-          supabase.from("companies").select("name").eq("id", companyId).single(),
+        // Helper para contagem de conversations por status canônico no período.
+        const countConversationsByStatus = (
+          status: ConversationStatus,
+          dateColumn: "updated_at" | "created_at",
+        ) =>
           supabase
             .from("conversations")
             .select("id", { count: "exact", head: true })
             .eq("company_id", companyId)
-            .gte("created_at", startISO)
-            .lte("created_at", endISO),
+            .eq("status", status)
+            .gte(dateColumn, startISO)
+            .lte(dateColumn, endISO);
+
+        const results = await Promise.allSettled([
+          supabase.from("companies").select("name").eq("id", companyId).single(),
+          // 1: atendimentos = conversations finalizadas no período (updated_at)
+          countConversationsByStatus("finalizada", "updated_at"),
+          // 2: oportunidades = leads criados no período
           supabase
             .from("leads")
             .select("id", { count: "exact", head: true })
             .eq("company_id", companyId)
             .gte("created_at", startISO)
             .lte("created_at", endISO),
+          // 3: leads quentes no período
           supabase
             .from("leads")
             .select("id", { count: "exact", head: true })
             .eq("company_id", companyId)
-            .gte("score", 80),
+            .gte("score", 80)
+            .gte("created_at", startISO)
+            .lte("created_at", endISO),
+          // 4: novos clientes no período
           supabase
             .from("customers")
             .select("id", { count: "exact", head: true })
-            .eq("company_id", companyId),
+            .eq("company_id", companyId)
+            .gte("created_at", startISO)
+            .lte("created_at", endISO),
+          // 5: sem_resposta no período
+          countConversationsByStatus("sem_resposta", "created_at"),
+          // 6-10: status canônicos adicionais (created_at)
+          countConversationsByStatus("aberta", "created_at"),
+          countConversationsByStatus("em_andamento", "created_at"),
+          countConversationsByStatus("aguardando_cliente", "created_at"),
+          countConversationsByStatus("aguardando_empresa", "created_at"),
+          countConversationsByStatus("encaminhada", "created_at"),
         ]);
 
         let failures = 0;
         const next: DadosPeriodo = { ...base };
+        const statusCounts: Partial<Record<ConversationStatus, number>> = {};
+
+        const readCount = (idx: number, fallback: number): number => {
+          const r = results[idx];
+          if (r.status === "fulfilled" && !r.value.error && typeof r.value.count === "number") {
+            return r.value.count;
+          }
+          failures++;
+          return fallback;
+        };
 
         const r0 = results[0];
         if (r0.status === "fulfilled" && !r0.value.error) {
@@ -291,32 +331,34 @@ function RelatoriosPage() {
           if (!cancelled) setCompanyName(name);
         } else failures++;
 
-        const r1 = results[1];
-        if (r1.status === "fulfilled" && !r1.value.error && typeof r1.value.count === "number") {
-          next.atendimentos = r1.value.count;
-        } else failures++;
-
-        const r2 = results[2];
-        if (r2.status === "fulfilled" && !r2.value.error && typeof r2.value.count === "number") {
-          next.oportunidades = r2.value.count;
-        } else failures++;
-
-        const r3 = results[3];
-        if (r3.status === "fulfilled" && !r3.value.error && typeof r3.value.count === "number") {
-          next.leadsQuentes = r3.value.count;
-        } else failures++;
-
-        const r4 = results[4];
-        if (r4.status === "fulfilled" && !r4.value.error && typeof r4.value.count === "number") {
-          next.novos = r4.value.count;
-        } else failures++;
+        next.atendimentos = readCount(1, base.atendimentos);
+        next.oportunidades = readCount(2, base.oportunidades);
+        next.leadsQuentes = readCount(3, base.leadsQuentes);
+        next.novos = readCount(4, base.novos);
+        next.semResposta = readCount(5, base.semResposta);
+        statusCounts.finalizada = next.atendimentos;
+        statusCounts.sem_resposta = next.semResposta;
+        statusCounts.aberta = readCount(6, 0);
+        statusCounts.em_andamento = readCount(7, 0);
+        statusCounts.aguardando_cliente = readCount(8, 0);
+        statusCounts.aguardando_empresa = readCount(9, 0);
+        statusCounts.encaminhada = readCount(10, 0);
+        next.statusCounts = statusCounts;
 
         next.resumo =
-          "As métricas principais (atendimentos, oportunidades, leads quentes e clientes cadastrados) já vêm do Supabase. Gráficos por setor, peças solicitadas, pendências e resumo executivo avançado ainda usam dados temporários até a próxima fase.";
+          `No período selecionado (${periodo.toLowerCase()}), a operação teve ` +
+          `${next.atendimentos} atendimento(s) finalizado(s), ` +
+          `${next.oportunidades} oportunidade(s) gerada(s), ` +
+          `${next.leadsQuentes} lead(s) quente(s) e ` +
+          `${next.semResposta} cliente(s) sem resposta. ` +
+          `Conversas em andamento: ${statusCounts.em_andamento ?? 0}; ` +
+          `aguardando cliente: ${statusCounts.aguardando_cliente ?? 0}; ` +
+          `aguardando empresa: ${statusCounts.aguardando_empresa ?? 0}; ` +
+          `encaminhadas: ${statusCounts.encaminhada ?? 0}.`;
 
         if (!cancelled) {
           setDadosRelatorio(next);
-          setRelatoriosLoadStatus(failures === 0 ? "loaded" : failures >= 5 ? "error" : "partial");
+          setRelatoriosLoadStatus(failures === 0 ? "loaded" : failures >= 6 ? "error" : "partial");
           setLoadingRelatorios(false);
         }
       } catch {
@@ -371,9 +413,22 @@ function RelatoriosPage() {
 
   const handleExport = () => {
     try {
-      const rows = [
-        ["Período", "Atendimentos", "Oportunidades geradas", "Leads quentes", "Clientes sem resposta", "Novos clientes", "Clientes recorrentes", "Resumo executivo"],
-        [periodo, d.atendimentos, d.oportunidades, d.leadsQuentes, d.semResposta, d.novos, d.recorrentes, d.resumo],
+      const sc = d.statusCounts ?? {};
+      const rows: (string | number)[][] = [
+        ["Métrica", "Valor", "Origem"],
+        ["Período", periodo, "Filtro"],
+        ["Empresa", companyName ?? "(não identificada)", "Supabase"],
+        ["Atendimentos finalizados", d.atendimentos, "Supabase (conversations.status=finalizada)"],
+        ["Oportunidades (leads no período)", d.oportunidades, "Supabase (leads.created_at)"],
+        ["Leads quentes (score>=80, no período)", d.leadsQuentes, "Supabase (leads)"],
+        ["Novos clientes no período", d.novos, "Supabase (customers.created_at)"],
+        ["Clientes sem resposta", d.semResposta, "Supabase (conversations.status=sem_resposta)"],
+        ["Conversas abertas", sc.aberta ?? 0, "Supabase (conversations.status=aberta)"],
+        ["Conversas em andamento", sc.em_andamento ?? 0, "Supabase (conversations.status=em_andamento)"],
+        ["Aguardando cliente", sc.aguardando_cliente ?? 0, "Supabase (conversations.status=aguardando_cliente)"],
+        ["Aguardando empresa", sc.aguardando_empresa ?? 0, "Supabase (conversations.status=aguardando_empresa)"],
+        ["Encaminhadas", sc.encaminhada ?? 0, "Supabase (conversations.status=encaminhada)"],
+        ["Resumo executivo", d.resumo, "Gerado a partir das métricas reais"],
       ];
       const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
       const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
@@ -386,7 +441,7 @@ function RelatoriosPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       toast.success(
-        "Relatório exportado localmente. Alguns blocos ainda usam dados temporários (setores, peças solicitadas, pendências e recomendações).",
+        "Relatório exportado com métricas reais. Blocos demonstrativos (setores, peças, pendências, recomendações) não estão no CSV.",
       );
     } catch {
       toast.error("Não foi possível exportar o relatório.");
@@ -409,8 +464,7 @@ function RelatoriosPage() {
         </div>
 
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          Relatórios usam métricas reais parciais do Supabase. Alguns gráficos e listas
-          (setores, peças solicitadas, pendências e recomendações) ainda usam dados temporários.
+          As métricas principais (atendimentos finalizados, oportunidades, leads quentes, novos clientes, sem resposta) e a contagem por status canônico vêm do Supabase. Blocos marcados como <span className="font-semibold">Demonstrativo</span> ainda são dados de exemplo e serão substituídos em fases seguintes.
         </div>
 
 
@@ -418,7 +472,7 @@ function RelatoriosPage() {
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
               <h2 className="text-xl font-bold text-slate-900">
-                Relatório Gerencial — {companyName ?? "União Auto Peças"}
+                Relatório Gerencial — {companyName ?? "sua empresa"}
               </h2>
 
               <p className="mt-1 text-sm text-slate-500">
@@ -479,7 +533,7 @@ function RelatoriosPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
-            <p className="text-sm font-semibold text-slate-700">Atendimentos por setor</p>
+            <p className="text-sm font-semibold text-slate-700">Atendimentos por setor<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {d.setores.map((s) => (
                 <div key={s.nome} className="rounded-lg bg-slate-50 p-3">
@@ -498,7 +552,7 @@ function RelatoriosPage() {
                 <span className="font-bold text-slate-900">{d.novos}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">Recorrentes</span>
+                <span className="text-slate-600">Recorrentes<span className={MOCK_BADGE}>Demonstrativo</span></span>
                 <span className="font-bold text-slate-900">{d.recorrentes}</span>
               </div>
             </div>
@@ -511,7 +565,7 @@ function RelatoriosPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold text-slate-700">Principais peças solicitadas</p>
+            <p className="text-sm font-semibold text-slate-700">Principais peças solicitadas<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <ul className="mt-2 space-y-1 text-sm text-slate-600">
               {pecas.map((p) => (
                 <li key={p} className="flex items-center gap-2">
@@ -529,19 +583,19 @@ function RelatoriosPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Pendências de vendas</p>
+            <p className="text-sm font-medium text-slate-500">Pendências de vendas<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <p className="mt-2 text-2xl font-bold text-slate-900">{d.pendVendas}</p>
             <p className="text-xs text-slate-500">clientes aguardando orçamento</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Solicitações administrativas</p>
+            <p className="text-sm font-medium text-slate-500">Solicitações administrativas<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <p className="mt-2 text-2xl font-bold text-slate-900">{d.solAdm}</p>
             <p className="text-xs text-slate-500">solicitações registradas</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Pendências financeiras</p>
+            <p className="text-sm font-medium text-slate-500">Pendências financeiras<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <p className="mt-2 text-2xl font-bold text-amber-600">{d.pendFin}</p>
             <p className="text-xs text-slate-500">pendências de cobrança</p>
           </div>
@@ -557,7 +611,7 @@ function RelatoriosPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <PieChart className="h-4 w-4 text-blue-600" />
-              <p className="text-sm font-semibold text-slate-700">Atendimentos por setor</p>
+              <p className="text-sm font-semibold text-slate-700">Atendimentos por setor<span className={MOCK_BADGE}>Demonstrativo</span></p>
             </div>
             <div className="mt-4 space-y-3">
               {d.setores.map((s) => {
@@ -580,7 +634,7 @@ function RelatoriosPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-blue-600" />
-              <p className="text-sm font-semibold text-slate-700">Leads por temperatura</p>
+              <p className="text-sm font-semibold text-slate-700">Leads por temperatura<span className={MOCK_BADGE}>Demonstrativo</span></p>
             </div>
             <div className="mt-4 space-y-3">
               {d.leadsTemp.map((l) => {
@@ -603,7 +657,7 @@ function RelatoriosPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-blue-600" />
-              <p className="text-sm font-semibold text-slate-700">Atendimentos — 7 dias</p>
+              <p className="text-sm font-semibold text-slate-700">Atendimentos — 7 dias<span className={MOCK_BADGE}>Demonstrativo</span></p>
             </div>
             <div className="mt-4 flex h-32 items-end gap-2">
               {d.semana.map((s) => (
@@ -627,12 +681,22 @@ function RelatoriosPage() {
               <h3 className="text-lg font-bold">Resumo executivo da IA</h3>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-blue-50">{d.resumo}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {CONVERSATION_STATUSES.map((s) => (
+                <span
+                  key={s}
+                  className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-blue-50 ring-1 ring-white/20"
+                >
+                  {getConversationStatusLabel(s)}: {d.statusCounts?.[s] ?? 0}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-blue-600" />
-              <h3 className="text-lg font-bold text-slate-900">Recomendações da IA</h3>
+              <h3 className="text-lg font-bold text-slate-900">Recomendações da IA<span className={MOCK_BADGE}>Demonstrativo</span></h3>
             </div>
             <ul className="mt-3 space-y-2">
               {d.recomendacoes.map((r) => (

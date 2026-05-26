@@ -203,7 +203,7 @@ function AtendimentosPage() {
   const finalizar = async (id: string | number) => {
     if (typeof id !== "string") {
       // mock local
-      setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status: "Finalizado" } : a)));
+      setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status: "finalizada" as ConversationStatus } : a)));
       toast.success("Atendimento marcado como finalizado (local)");
       return;
     }

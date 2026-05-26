@@ -119,6 +119,7 @@ function DashboardPage() {
   const [convWaitingClient, setConvWaitingClient] = useState<KpiValue>(DASH);
   const [convWaitingCompany, setConvWaitingCompany] = useState<KpiValue>(DASH);
   const [convFinished, setConvFinished] = useState<KpiValue>(DASH);
+  const [convNoResponse, setConvNoResponse] = useState<KpiValue>(DASH);
   const [messagesToday, setMessagesToday] = useState<KpiValue>(DASH);
   const [activeResponsibles, setActiveResponsibles] = useState<KpiValue>(DASH);
   const [activeKnowledge, setActiveKnowledge] = useState<KpiValue>(DASH);

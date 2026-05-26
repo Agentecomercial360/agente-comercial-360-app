@@ -391,6 +391,42 @@ function DashboardPage() {
     [weekActivity],
   );
   const weekAvg = weekActivity && weekActivity.length ? Math.round(weekTotal / 7) : 0;
+  const weekPeak = useMemo(() => {
+    if (!weekActivity || weekActivity.length === 0) return null;
+    return weekActivity.reduce((max, d) => (d.value > max.value ? d : max), weekActivity[0]);
+  }, [weekActivity]);
+
+  const tempInsight = useMemo(() => {
+    if (!tempBuckets) return null;
+    if (tempTotal === 0) return "Nenhum lead registrado ainda.";
+    const hotPct = Math.round(((tempBuckets[0]?.value ?? 0) / tempTotal) * 100);
+    if (hotPct >= 50) return `${hotPct}% dos leads estão em alta intenção de compra.`;
+    if (hotPct >= 20) return `${hotPct}% dos leads já demonstram intenção forte de compra.`;
+    return `A maior parte dos leads ainda está em fase de aquecimento (${hotPct}% quentes).`;
+  }, [tempBuckets, tempTotal]);
+
+  const num = (v: KpiValue) => (typeof v === "number" ? v : 0);
+  const execSummary = useMemo(() => {
+    const parts: string[] = [];
+    parts.push(`A operação possui ${num(totalLeads)} leads cadastrados`);
+    parts.push(`${num(hotLeads)} oportunidades quentes`);
+    parts.push(`${num(convOpen)} conversas em aberto`);
+    parts.push(`${num(convFinished)} finalizadas`);
+    if (typeof messagesToday === "number") {
+      parts.push(`${messagesToday} mensagens trocadas hoje`);
+    }
+    parts.push(`IA ${aiConfigured === "Sim" ? "configurada" : "ainda não configurada"}`);
+    parts.push(`${num(activeResponsibles)} responsáveis ativos`);
+    return parts.join(" · ") + ".";
+  }, [
+    totalLeads,
+    hotLeads,
+    convOpen,
+    convFinished,
+    messagesToday,
+    aiConfigured,
+    activeResponsibles,
+  ]);
 
   return (
     <DashboardLayout>

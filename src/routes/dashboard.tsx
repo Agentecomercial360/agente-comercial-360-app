@@ -832,8 +832,8 @@ function DashboardPage() {
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1 mb-4">
-              A classificação automática por setor será ativada quando o roteamento inteligente
-              estiver conectado.
+              O roteamento por setor permitirá identificar automaticamente se o atendimento é de
+              vendas, financeiro, administrativo ou orçamento.
             </p>
             <ul className="space-y-2">
               {plannedSectors.map((s) => (

@@ -186,10 +186,12 @@ function AtendimentosPage() {
     return items.filter((a) => {
       if (filtro !== "Todos") {
         if (setores.has(filtro) && a.setor !== filtro) return false;
-        if (filtroMap[filtro] && a.status !== filtroMap[filtro]) return false;
+        const allowed = filtroStatusMap[filtro];
+        if (allowed && !allowed.includes(a.status)) return false;
       }
       if (!q) return true;
-      return [a.cliente, a.telefone, a.mensagem, a.setor, a.status, a.responsavel, a.horario]
+      const statusLabel = getConversationStatusLabel(a.status).toLowerCase();
+      return [a.cliente, a.telefone, a.mensagem, a.setor, statusLabel, a.responsavel, a.horario]
         .some((v) => v.toLowerCase().includes(q));
     });
   }, [items, filtro, search]);

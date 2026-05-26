@@ -565,7 +565,7 @@ function RelatoriosPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold text-slate-700">Principais peças solicitadas</p>
+            <p className="text-sm font-semibold text-slate-700">Principais peças solicitadas<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <ul className="mt-2 space-y-1 text-sm text-slate-600">
               {pecas.map((p) => (
                 <li key={p} className="flex items-center gap-2">

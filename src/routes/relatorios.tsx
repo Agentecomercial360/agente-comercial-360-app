@@ -413,9 +413,22 @@ function RelatoriosPage() {
 
   const handleExport = () => {
     try {
-      const rows = [
-        ["Período", "Atendimentos", "Oportunidades geradas", "Leads quentes", "Clientes sem resposta", "Novos clientes", "Clientes recorrentes", "Resumo executivo"],
-        [periodo, d.atendimentos, d.oportunidades, d.leadsQuentes, d.semResposta, d.novos, d.recorrentes, d.resumo],
+      const sc = d.statusCounts ?? {};
+      const rows: (string | number)[][] = [
+        ["Métrica", "Valor", "Origem"],
+        ["Período", periodo, "Filtro"],
+        ["Empresa", companyName ?? "(não identificada)", "Supabase"],
+        ["Atendimentos finalizados", d.atendimentos, "Supabase (conversations.status=finalizada)"],
+        ["Oportunidades (leads no período)", d.oportunidades, "Supabase (leads.created_at)"],
+        ["Leads quentes (score>=80, no período)", d.leadsQuentes, "Supabase (leads)"],
+        ["Novos clientes no período", d.novos, "Supabase (customers.created_at)"],
+        ["Clientes sem resposta", d.semResposta, "Supabase (conversations.status=sem_resposta)"],
+        ["Conversas abertas", sc.aberta ?? 0, "Supabase (conversations.status=aberta)"],
+        ["Conversas em andamento", sc.em_andamento ?? 0, "Supabase (conversations.status=em_andamento)"],
+        ["Aguardando cliente", sc.aguardando_cliente ?? 0, "Supabase (conversations.status=aguardando_cliente)"],
+        ["Aguardando empresa", sc.aguardando_empresa ?? 0, "Supabase (conversations.status=aguardando_empresa)"],
+        ["Encaminhadas", sc.encaminhada ?? 0, "Supabase (conversations.status=encaminhada)"],
+        ["Resumo executivo", d.resumo, "Gerado a partir das métricas reais"],
       ];
       const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
       const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
@@ -428,7 +441,7 @@ function RelatoriosPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       toast.success(
-        "Relatório exportado localmente. Alguns blocos ainda usam dados temporários (setores, peças solicitadas, pendências e recomendações).",
+        "Relatório exportado com métricas reais. Blocos demonstrativos (setores, peças, pendências, recomendações) não estão no CSV.",
       );
     } catch {
       toast.error("Não foi possível exportar o relatório.");

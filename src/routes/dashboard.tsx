@@ -252,6 +252,7 @@ function DashboardPage() {
       applyCount(waitClientRes as never, setConvWaitingClient);
       applyCount(waitCompanyRes as never, setConvWaitingCompany);
       applyCount(finishedRes as never, setConvFinished);
+      applyCount(noResponseRes as never, setConvNoResponse);
       applyCount(msgTodayRes as never, setMessagesToday);
       applyCount(respRes as never, setActiveResponsibles);
       applyCount(kbRes as never, setActiveKnowledge);

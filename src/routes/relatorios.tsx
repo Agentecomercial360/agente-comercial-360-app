@@ -657,7 +657,7 @@ function RelatoriosPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-blue-600" />
-              <p className="text-sm font-semibold text-slate-700">Atendimentos — 7 dias</p>
+              <p className="text-sm font-semibold text-slate-700">Atendimentos — 7 dias<span className={MOCK_BADGE}>Demonstrativo</span></p>
             </div>
             <div className="mt-4 flex h-32 items-end gap-2">
               {d.semana.map((s) => (

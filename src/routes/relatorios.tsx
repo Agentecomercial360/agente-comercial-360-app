@@ -461,68 +461,21 @@ function RelatoriosPage() {
           ? "bg-slate-50 text-slate-600 border-slate-200"
           : "bg-rose-50 text-rose-700 border-rose-200";
 
-  const handleExport = () => {
+  const handleExportPDF = () => {
     try {
-      const sc = m.statusCounts;
-      const isPartial = relatoriosLoadStatus === "partial";
-      const isReal = relatoriosLoadStatus === "loaded" || relatoriosLoadStatus === "partial";
-
-      const rows: (string | number)[][] = [
-        ["Métrica", "Valor", "Origem"],
-        ["Período", periodo, "Filtro"],
-        ["Empresa", companyName ?? "(não identificada)", "Supabase"],
-        ["Status do carregamento", statusMessage, "Sistema"],
-      ];
-
-      if (!isReal) {
-        rows.push(["Aviso", "Métricas reais indisponíveis — exportação cancelada", "Sistema"]);
-        const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
-        const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "relatorio-agente-comercial-360.csv";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        toast.warning("Sem métricas reais para exportar. CSV gerado contém apenas status.");
+      if (typeof window === "undefined" || typeof window.print !== "function") {
+        toast.error("Seu navegador não suporta impressão. Tente abrir em outro navegador para gerar o PDF.");
         return;
       }
-
-      // Só exporta métricas que carregaram com sucesso.
-      const maybePush = (key: string, label: string, value: number, origem: string) => {
-        if (m.loadedKeys.has(key)) rows.push([label, value, origem]);
-      };
-      maybePush("finalizada", "Atendimentos finalizados", m.atendimentos, "Supabase (conversations.status=finalizada, created_at)");
-      maybePush("oportunidades", "Oportunidades (leads no período)", m.oportunidades, "Supabase (leads.created_at)");
-      maybePush("leadsQuentes", "Leads quentes (score>=80, no período)", m.leadsQuentes, "Supabase (leads.created_at, score>=80)");
-      maybePush("novos", "Novos clientes no período", m.novos, "Supabase (customers.created_at)");
-      maybePush("sem_resposta", "Clientes sem resposta", m.semResposta, "Supabase (conversations.status=sem_resposta, created_at)");
-      maybePush("aberta", "Conversas abertas", sc.aberta, "Supabase (conversations.status=aberta, created_at)");
-      maybePush("em_andamento", "Conversas em andamento", sc.em_andamento, "Supabase (conversations.status=em_andamento, created_at)");
-      maybePush("aguardando_cliente", "Aguardando cliente", sc.aguardando_cliente, "Supabase (conversations.status=aguardando_cliente, created_at)");
-      maybePush("aguardando_empresa", "Aguardando empresa", sc.aguardando_empresa, "Supabase (conversations.status=aguardando_empresa, created_at)");
-      maybePush("encaminhada", "Encaminhadas", sc.encaminhada, "Supabase (conversations.status=encaminhada, created_at)");
-      rows.push(["Resumo executivo", resumoExecutivo, "Gerado a partir das métricas reais"]);
-
-      const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
-      const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "relatorio-agente-comercial-360.csv";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success(
-        isPartial
-          ? "Relatório parcial exportado. Métricas com falha foram omitidas."
-          : "Relatório exportado com métricas reais do Supabase.",
-      );
+      const isReal = relatoriosLoadStatus === "loaded" || relatoriosLoadStatus === "partial";
+      if (!isReal) {
+        toast.warning("Sem métricas reais carregadas. Aguarde o carregamento ou faça login para gerar o PDF.");
+        return;
+      }
+      toast.info("Abrindo janela de impressão. Escolha 'Salvar como PDF' no destino.");
+      setTimeout(() => window.print(), 150);
     } catch {
-      toast.error("Não foi possível exportar o relatório.");
+      toast.error("Não foi possível abrir a janela de impressão.");
     }
   };
 

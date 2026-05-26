@@ -426,10 +426,10 @@ function ConversasPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {(() => {
             const counts = {
-              abertas: items.filter((c) => c.status === "Aberta").length,
-              aguardando: items.filter((c) => c.status === "Aguardando retorno").length,
-              encaminhadas: items.filter((c) => c.status === "Encaminhada").length,
-              finalizadas: items.filter((c) => c.status === "Finalizada").length,
+              abertas: items.filter((c) => c.status === "aberta").length,
+              aguardando: items.filter((c) => c.status === "aguardando_cliente" || c.status === "aguardando_empresa").length,
+              encaminhadas: items.filter((c) => c.status === "encaminhada").length,
+              finalizadas: items.filter((c) => c.status === "finalizada").length,
             };
             const cards = [
               { label: "Conversas abertas", value: counts.abertas, icon: MessageCircle },

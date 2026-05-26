@@ -108,15 +108,15 @@ function LandingPage() {
                 Plataforma SaaS de inteligência comercial
               </div>
 
-              <h1 className="font-display mt-7 text-[2.5rem] font-semibold leading-[1.04] tracking-[-0.03em] text-[oklch(0.18_0.04_258)] md:text-[3.6rem] lg:text-[4.25rem] lg:leading-[1.02]">
-                Centralize WhatsApp, IA e leads em uma{" "}
-                <span className="text-primary">operação comercial inteligente</span>
+              <h1 className="font-display mt-7 text-[2.6rem] font-semibold leading-[1.03] tracking-[-0.03em] text-[oklch(0.16_0.04_258)] md:text-[3.75rem] lg:text-[4.5rem] lg:leading-[1.02]">
+                Transforme conversas em{" "}
+                <span className="text-primary">vendas</span> com inteligência comercial
               </h1>
 
               <p className="mt-7 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-                O Agente Comercial 360 organiza atendimentos, identifica oportunidades,
-                distribui responsáveis e transforma conversas em dados para sua empresa
-                vender com mais controle.
+                Centralize WhatsApp, leads, responsáveis, IA, base de conhecimento e
+                relatórios em uma operação comercial organizada, escalável e pronta para
+                automações.
               </p>
 
               <div className="mt-10 flex flex-col gap-3 sm:flex-row">
@@ -128,27 +128,28 @@ function LandingPage() {
                     Solicitar demonstração <ArrowRight className="size-4" />
                   </Button>
                 </a>
-                <a href="#como-funciona">
+                <Link to="/login">
                   <Button
                     size="lg"
                     variant="outline"
                     className="h-12 w-full px-7 text-base sm:w-auto"
                   >
-                    Ver como funciona
+                    Entrar no painel
                   </Button>
-                </a>
+                </Link>
               </div>
 
-              {/* trust bar */}
-              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-[var(--border-premium)] pt-6 text-xs font-medium text-muted-foreground">
+              {/* mini indicadores */}
+              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-foreground/75">
                 {[
-                  { icon: Bot, label: "IA para atendimento comercial" },
-                  { icon: MessageSquare, label: "WhatsApp Cloud API" },
+                  { icon: Bot, label: "IA ativa" },
                   { icon: Users, label: "Leads organizados" },
                   { icon: Activity, label: "Relatórios em tempo real" },
                 ].map((b) => (
-                  <div key={b.label} className="inline-flex items-center gap-1.5">
-                    <b.icon className="size-3.5 text-primary" />
+                  <div key={b.label} className="inline-flex items-center gap-2">
+                    <span className="flex size-7 items-center justify-center rounded-lg bg-[var(--brand-blue-soft)] text-primary">
+                      <b.icon className="size-3.5" />
+                    </span>
                     {b.label}
                   </div>
                 ))}

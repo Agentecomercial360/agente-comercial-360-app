@@ -177,6 +177,7 @@ function DashboardPage() {
         waitClientRes,
         waitCompanyRes,
         finishedRes,
+        noResponseRes,
         msgTodayRes,
         respRes,
         kbRes,

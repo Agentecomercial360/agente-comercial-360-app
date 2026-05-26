@@ -534,12 +534,30 @@ function DashboardPage() {
                   Baseado nas mensagens registradas no Supabase
                 </p>
               </div>
-              <div className="text-right">
-                <div className="font-display text-2xl font-bold text-foreground leading-none">
-                  {weekActivity ? weekTotal : DASH}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-right">
+                  <div className="font-display text-lg font-bold leading-none text-foreground tabular-nums">
+                    {weekActivity ? weekTotal : DASH}
+                  </div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
+                    total
+                  </div>
                 </div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-1">
-                  mensagens · média {weekAvg}/dia
+                <div className="rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-right">
+                  <div className="font-display text-lg font-bold leading-none text-foreground tabular-nums">
+                    {weekActivity ? weekAvg : DASH}
+                  </div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
+                    média/dia
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-right">
+                  <div className="font-display text-lg font-bold leading-none text-foreground tabular-nums">
+                    {weekPeak && weekPeak.value > 0 ? `${weekPeak.day} · ${weekPeak.value}` : DASH}
+                  </div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
+                    pico
+                  </div>
                 </div>
               </div>
             </div>

@@ -19,7 +19,7 @@ import type { ConversationStatus } from "@/lib/conversation-status";
 import { CONVERSATION_STATUSES, getConversationStatusLabel } from "@/lib/conversation-status";
 
 const MOCK_BADGE =
-  "ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 ring-1 ring-amber-200";
+  "demo-badge ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 ring-1 ring-amber-200";
 
 export const Route = createFileRoute("/relatorios")({
   component: RelatoriosPage,
@@ -206,7 +206,7 @@ const PRINT_STYLES = `
 @media print {
   @page {
     size: A4;
-    margin: 16mm 14mm 22mm 14mm;
+    margin: 12mm 12mm 16mm 12mm;
   }
   html, body {
     background: #ffffff !important;
@@ -228,9 +228,18 @@ const PRINT_STYLES = `
     background: #ffffff !important;
     color: #0f172a !important;
     box-shadow: none !important;
-    font-size: 11pt !important;
-    line-height: 1.45 !important;
+    font-size: 9pt !important;
+    line-height: 1.35 !important;
   }
+  /* Espaçamentos mais compactos entre blocos */
+  .relatorio-print-area > * + * { margin-top: 8px !important; }
+  .relatorio-print-area .space-y-6 > * + * { margin-top: 8px !important; }
+  .relatorio-print-area .gap-4 { gap: 8px !important; }
+  .relatorio-print-area .p-5, 
+  .relatorio-print-area .p-6 { padding: 10px 12px !important; }
+  .relatorio-print-area .mt-3 { margin-top: 6px !important; }
+  .relatorio-print-area .mt-4 { margin-top: 8px !important; }
+
   .relatorio-print-area .rounded-2xl,
   .relatorio-print-area .rounded-xl,
   .relatorio-print-area .rounded-lg {
@@ -238,15 +247,26 @@ const PRINT_STYLES = `
     background: #ffffff !important;
     color: #0f172a !important;
     border: 1px solid #e2e8f0 !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important;
     page-break-inside: avoid;
   }
+  .relatorio-print-area h1 { font-size: 14pt !important; }
+  .relatorio-print-area h2 { font-size: 12pt !important; }
+  .relatorio-print-area h3 { font-size: 11pt !important; }
   .relatorio-print-area h1,
   .relatorio-print-area h2,
   .relatorio-print-area h3 {
     color: #0b2545 !important;
     letter-spacing: -0.01em !important;
+    margin: 0 !important;
   }
+  .relatorio-print-area .text-3xl { font-size: 16pt !important; }
+  .relatorio-print-area .text-2xl { font-size: 13pt !important; }
+  .relatorio-print-area .text-xl  { font-size: 11pt !important; }
+  .relatorio-print-area .text-lg  { font-size: 10.5pt !important; }
+  .relatorio-print-area .text-sm  { font-size: 8.5pt !important; }
+  .relatorio-print-area .text-xs  { font-size: 7.5pt !important; }
+
   .relatorio-print-area .text-white,
   .relatorio-print-area .text-blue-50 { color: #0f172a !important; }
   .relatorio-print-area .text-blue-600,
@@ -273,60 +293,71 @@ const PRINT_STYLES = `
     align-items: center !important;
     justify-content: space-between !important;
     gap: 16px !important;
-    padding-bottom: 12px !important;
+    padding-bottom: 8px !important;
     border-bottom: 2px solid #0b2545 !important;
-    margin-bottom: 16px !important;
+    margin: 0 0 10px 0 !important;
   }
-  .pdf-brand {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-  }
+  .pdf-brand { display: flex !important; align-items: center !important; gap: 10px !important; }
   .pdf-brand-logo {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 44px !important;
-    height: 44px !important;
-    border-radius: 10px !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 8px !important;
     background: #0b2545 !important;
     color: #ffffff !important;
     font-weight: 800 !important;
-    font-size: 13pt !important;
+    font-size: 11pt !important;
     letter-spacing: 0.5px !important;
   }
   .pdf-brand-name {
-    font-size: 13pt !important;
+    font-size: 12pt !important;
     font-weight: 700 !important;
     color: #0b2545 !important;
     line-height: 1.1 !important;
   }
   .pdf-brand-tag {
-    font-size: 8.5pt !important;
+    font-size: 7.5pt !important;
     color: #475569 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.12em !important;
+    margin-top: 2px !important;
   }
   .pdf-meta {
     text-align: right !important;
-    font-size: 9pt !important;
+    font-size: 8pt !important;
     color: #334155 !important;
     line-height: 1.4 !important;
   }
   .pdf-meta strong { color: #0b2545 !important; }
 
-  /* Rodapé fixo em cada página */
+  /* Rodapé fixo em cada página — texto único, sem grudar */
   .pdf-footer {
     position: fixed !important;
-    bottom: 6mm !important;
-    left: 14mm !important;
-    right: 14mm !important;
-    padding-top: 6px !important;
+    bottom: 4mm !important;
+    left: 12mm !important;
+    right: 12mm !important;
+    padding-top: 4px !important;
     border-top: 1px solid #cbd5e1 !important;
-    font-size: 8pt !important;
+    font-size: 7.5pt !important;
     color: #64748b !important;
-    display: flex !important;
-    justify-content: space-between !important;
+    text-align: center !important;
+  }
+
+  /* Blocos demonstrativos: visualmente discretos */
+  .relatorio-print-area .demo-block {
+    background: #fafafa !important;
+    border: 1px dashed #cbd5e1 !important;
+    color: #64748b !important;
+    opacity: 0.85 !important;
+  }
+  .relatorio-print-area .demo-block * { color: #64748b !important; }
+  .relatorio-print-area .demo-badge {
+    background: transparent !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #94a3b8 !important;
+    font-size: 6.5pt !important;
   }
 
   .no-print, .no-print * { display: none !important; visibility: hidden !important; }
@@ -614,8 +645,7 @@ function RelatoriosPage() {
 
         {/* Rodapé fixo do PDF */}
         <div className="print-only pdf-footer">
-          <span>Relatório gerado por Agente Comercial 360</span>
-          <span>{dataGeracao}</span>
+          Relatório gerado por Agente Comercial 360 • {dataGeracao}
         </div>
 
 
@@ -629,7 +659,7 @@ function RelatoriosPage() {
         </div>
 
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="no-print rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div>
               <h2 className="text-xl font-bold text-slate-900">
@@ -694,7 +724,7 @@ function RelatoriosPage() {
             <p className="text-xs text-slate-500">conversations.status = finalizada</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
             <p className="text-sm font-semibold text-slate-700">Atendimentos por setor<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {demo.setores.map((s) => (
@@ -726,7 +756,7 @@ function RelatoriosPage() {
             <p className="text-xs text-slate-500">oportunidades comerciais identificadas</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-semibold text-slate-700">Principais peças solicitadas<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <ul className="mt-2 space-y-1 text-sm text-slate-600">
               {pecas.map((p) => (
@@ -744,19 +774,19 @@ function RelatoriosPage() {
             <p className="text-xs text-slate-500">classificados como quentes</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Pendências de vendas<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <p className="mt-2 text-2xl font-bold text-slate-900">{demo.pendVendas}</p>
             <p className="text-xs text-slate-500">clientes aguardando orçamento</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Solicitações administrativas<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <p className="mt-2 text-2xl font-bold text-slate-900">{demo.solAdm}</p>
             <p className="text-xs text-slate-500">solicitações registradas</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Pendências financeiras<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <p className="mt-2 text-2xl font-bold text-amber-600">{demo.pendFin}</p>
             <p className="text-xs text-slate-500">pendências de cobrança</p>
@@ -770,7 +800,7 @@ function RelatoriosPage() {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <PieChart className="h-4 w-4 text-blue-600" />
               <p className="text-sm font-semibold text-slate-700">Atendimentos por setor<span className={MOCK_BADGE}>Demonstrativo</span></p>
@@ -793,7 +823,7 @@ function RelatoriosPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-blue-600" />
               <p className="text-sm font-semibold text-slate-700">Leads por temperatura<span className={MOCK_BADGE}>Demonstrativo</span></p>
@@ -816,7 +846,7 @@ function RelatoriosPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-blue-600" />
               <p className="text-sm font-semibold text-slate-700">Atendimentos — 7 dias<span className={MOCK_BADGE}>Demonstrativo</span></p>
@@ -855,7 +885,7 @@ function RelatoriosPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-blue-600" />
               <h3 className="text-lg font-bold text-slate-900">Recomendações da IA<span className={MOCK_BADGE}>Demonstrativo</span></h3>

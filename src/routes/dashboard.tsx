@@ -293,16 +293,19 @@ function DashboardPage() {
           interest: string | null;
           score: number | null;
           estimated_value: number | null;
+          next_action: string | null;
           customers: { name: string | null } | { name: string | null }[] | null;
         }>;
         const mapped: TopLead[] = rows.map((r) => {
           const cust = Array.isArray(r.customers) ? r.customers[0] : r.customers;
+          const action = r.next_action?.trim();
           return {
             name: cust?.name ?? DASH,
             item: r.interest ?? DASH,
             score: r.score ?? DASH,
             value: formatBRL(r.estimated_value),
             owner: DASH,
+            nextAction: action && action.length > 0 ? action : null,
           };
         });
         setTopLeads(mapped);

@@ -533,7 +533,7 @@ function RelatoriosPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
-            <p className="text-sm font-semibold text-slate-700">Atendimentos por setor</p>
+            <p className="text-sm font-semibold text-slate-700">Atendimentos por setor<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {d.setores.map((s) => (
                 <div key={s.nome} className="rounded-lg bg-slate-50 p-3">

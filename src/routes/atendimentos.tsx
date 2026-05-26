@@ -401,9 +401,9 @@ function AtendimentosPage() {
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${statusBadge[a.status] ?? "bg-slate-100 text-slate-700 ring-slate-200"}`}
+                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${getConversationStatusBadgeClass(a.status)}`}
                         >
-                          {a.status}
+                          {getConversationStatusLabel(a.status)}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-slate-700">{a.responsavel}</td>

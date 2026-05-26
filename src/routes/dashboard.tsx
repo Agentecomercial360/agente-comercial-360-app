@@ -52,20 +52,12 @@ type Kpi = {
 
 const DASH = "—";
 
-// Demonstrative — schema does not yet store sector/department classification.
-const sectorData = [
-  { name: "Vendas", value: 72 },
-  { name: "Financeiro", value: 18 },
-  { name: "Administrativo", value: 22 },
-  { name: "Orçamentos", value: 16 },
-];
-
-const nextActions = [
-  "Priorizar leads quentes aguardando orçamento",
-  "Responder clientes sem retorno",
-  "Encaminhar pendências financeiras",
-  "Conferir disponibilidade de itens mais solicitados",
-  "Revisar conversas abertas há mais de 24 horas",
+// Planned sectors — visible as "em preparação" until routing is connected.
+const plannedSectors = [
+  { name: "Vendas", desc: "Atendimento comercial e novos negócios" },
+  { name: "Financeiro", desc: "Boletos, pagamentos e cobranças" },
+  { name: "Administrativo", desc: "Suporte interno e documentos" },
+  { name: "Orçamentos", desc: "Propostas e cotações" },
 ];
 
 const TEMP_COLORS = {

@@ -198,6 +198,7 @@ function DashboardPage() {
         countQuery("conversations").eq("status", "aguardando_cliente"),
         countQuery("conversations").eq("status", "aguardando_empresa"),
         countQuery("conversations").eq("status", "finalizada"),
+        countQuery("conversations").eq("status", "sem_resposta"),
         countQuery("messages").gte("created_at", startOfToday.toISOString()),
         countQuery("responsibles").eq("is_active", true),
         countQuery("knowledge_base").eq("is_active", true),

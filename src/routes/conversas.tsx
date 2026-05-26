@@ -68,20 +68,7 @@ const summary = [
   { label: "Finalizadas hoje", value: 18, icon: CheckCircle2 },
 ];
 
-const filters = [
-  "Todas",
-  "Abertas",
-  "Aguardando resposta",
-  "Encaminhadas",
-  "Finalizadas",
-];
-
-type Status =
-  | "Aberta"
-  | "Aguardando retorno"
-  | "Encaminhada"
-  | "Financeiro"
-  | "Finalizada";
+type Status = ConversationStatus;
 
 type Conversa = {
   id: string | number;
@@ -102,7 +89,7 @@ const conversas: Conversa[] = [
     canal: "WhatsApp",
     ultimaMensagem: "Preciso de orçamento do kit embreagem.",
     horario: "09:41",
-    status: "Aberta",
+    status: "aberta",
     setor: "Vendas",
   },
   {
@@ -112,7 +99,7 @@ const conversas: Conversa[] = [
     canal: "WhatsApp",
     ultimaMensagem: "Vocês têm pastilha de freio do Onix?",
     horario: "10:12",
-    status: "Aguardando retorno",
+    status: "aguardando_cliente",
     setor: "Vendas",
   },
   {
@@ -122,7 +109,7 @@ const conversas: Conversa[] = [
     canal: "WhatsApp",
     ultimaMensagem: "Quero saber se tem bateria 60Ah.",
     horario: "11:05",
-    status: "Encaminhada",
+    status: "encaminhada",
     setor: "Vendas",
   },
   {
@@ -132,7 +119,7 @@ const conversas: Conversa[] = [
     canal: "WhatsApp",
     ultimaMensagem: "Tenho uma cobrança em aberto?",
     horario: "11:48",
-    status: "Financeiro",
+    status: "em_andamento",
     setor: "Financeiro",
   },
   {
@@ -142,18 +129,10 @@ const conversas: Conversa[] = [
     canal: "WhatsApp",
     ultimaMensagem: "Qual horário de funcionamento?",
     horario: "12:20",
-    status: "Finalizada",
+    status: "finalizada",
     setor: "Administrativo",
   },
 ];
-
-const statusBadge: Record<Status, string> = {
-  Aberta: "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
-  "Aguardando retorno": "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
-  Encaminhada: "bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200",
-  Financeiro: "bg-violet-100 text-violet-700 ring-1 ring-violet-200",
-  Finalizada: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
-};
 
 type Mensagem = { autor: "cliente" | "ia" | "atendente" | "sistema"; texto: string; hora: string };
 

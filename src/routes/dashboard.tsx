@@ -497,49 +497,25 @@ function DashboardPage() {
 
         {/* AI executive summary + next actions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 rounded-2xl border border-border p-6 shadow-[var(--shadow-soft)] bg-gradient-to-br from-[var(--brand-blue-soft)] via-card to-card relative overflow-hidden">
-            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
-            <div className="relative">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                  <Sparkles className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-foreground">
-                    Resumo demonstrativo da IA
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Conexão real será ativada na próxima etapa
-                  </p>
-                </div>
+        {/* Resumo executivo (gerado a partir dos dados reais) */}
+        <div className="rounded-2xl border border-border p-6 shadow-[var(--shadow-soft)] bg-gradient-to-br from-[var(--brand-blue-soft)] via-card to-card relative overflow-hidden">
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+          <div className="relative flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-semibold text-foreground">Resumo executivo</h3>
+                <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
+                  ao vivo
+                </span>
               </div>
-              <p className="mt-4 text-sm leading-relaxed text-foreground/90">
-                Os KPIs principais, leads por temperatura e atividade dos últimos 7 dias agora
-                leem dados reais do Supabase, filtrados pela empresa do usuário logado. O resumo
-                executivo e as próximas ações ainda são demonstrativos e serão ligados à IA na
-                próxima fase.
-              </p>
+              <p className="mt-2 text-sm leading-relaxed text-foreground/90">{execSummary}</p>
             </div>
-          </div>
-
-          <div className="rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
-            <div className="flex items-center gap-2 mb-1">
-              <ListChecks className="h-4 w-4 text-primary" />
-              <h3 className="text-base font-semibold text-foreground">
-                Próximas ações sugeridas
-              </h3>
-            </div>
-            <p className="text-[11px] text-amber-600 mb-3">Resumo demonstrativo da IA</p>
-            <ul className="space-y-2.5">
-              {nextActions.map((a, i) => (
-                <li key={i} className="flex gap-3 text-sm text-foreground/90">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                  <span className="leading-snug">{a}</span>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
+
 
         {/* Charts row: activity + temperature */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

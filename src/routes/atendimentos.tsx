@@ -257,13 +257,13 @@ function AtendimentosPage() {
   const dynamicCards = useMemo(
     () => [
       { label: "Atendimentos hoje", value: items.length, icon: Headphones },
-      { label: "Em andamento", value: items.filter((a) => a.status === "Em andamento").length, icon: Clock },
+      { label: "Em andamento", value: items.filter((a) => a.status === "em_andamento").length, icon: Clock },
       {
         label: "Aguardando resposta",
-        value: items.filter((a) => a.status === "Aguardando resposta").length,
+        value: items.filter((a) => a.status === "aguardando_cliente" || a.status === "aguardando_empresa").length,
         icon: AlertCircle,
       },
-      { label: "Finalizados", value: items.filter((a) => a.status === "Finalizado").length, icon: CheckCircle2 },
+      { label: "Finalizados", value: items.filter((a) => a.status === "finalizada").length, icon: CheckCircle2 },
     ],
     [items],
   );

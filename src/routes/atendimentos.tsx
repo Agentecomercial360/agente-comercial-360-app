@@ -67,18 +67,18 @@ type Atendimento = {
   telefone: string;
   mensagem: string;
   setor: string;
-  status: string;
+  status: ConversationStatus;
   responsavel: string;
   horario: string;
 };
 
 const atendimentosMock: Atendimento[] = [
-  { id: 1, cliente: "João Martins", telefone: "(15) 99999-1020", mensagem: "Preciso de orçamento do kit embreagem.", setor: "Vendas", status: "Em andamento", responsavel: "Amanda", horario: "09:41" },
-  { id: 2, cliente: "Carlos Souza", telefone: "(15) 98888-2211", mensagem: "Vocês têm pastilha de freio do Onix?", setor: "Vendas", status: "Sem resposta", responsavel: "Vinicius", horario: "10:12" },
-  { id: 3, cliente: "Fernanda Lima", telefone: "(15) 97777-3344", mensagem: "Quero saber se tem bateria 60Ah.", setor: "Vendas", status: "Aberto", responsavel: "Thaís", horario: "11:05" },
-  { id: 4, cliente: "Roberto Alves", telefone: "(15) 96666-4455", mensagem: "Tenho uma cobrança em aberto?", setor: "Financeiro", status: "Em andamento", responsavel: "Vinicius", horario: "11:48" },
-  { id: 5, cliente: "Mariana Costa", telefone: "(15) 95555-7788", mensagem: "Qual horário de funcionamento?", setor: "Administrativo", status: "Finalizado", responsavel: "Lorenzzo", horario: "12:20" },
-  { id: 6, cliente: "Pedro Henrique", telefone: "(15) 94444-8899", mensagem: "Preciso de amortecedor dianteiro.", setor: "Orçamentos", status: "Sem resposta", responsavel: "Vitor", horario: "13:02" },
+  { id: 1, cliente: "João Martins", telefone: "(15) 99999-1020", mensagem: "Preciso de orçamento do kit embreagem.", setor: "Vendas", status: "em_andamento", responsavel: "Amanda", horario: "09:41" },
+  { id: 2, cliente: "Carlos Souza", telefone: "(15) 98888-2211", mensagem: "Vocês têm pastilha de freio do Onix?", setor: "Vendas", status: "sem_resposta", responsavel: "Vinicius", horario: "10:12" },
+  { id: 3, cliente: "Fernanda Lima", telefone: "(15) 97777-3344", mensagem: "Quero saber se tem bateria 60Ah.", setor: "Vendas", status: "aberta", responsavel: "Thaís", horario: "11:05" },
+  { id: 4, cliente: "Roberto Alves", telefone: "(15) 96666-4455", mensagem: "Tenho uma cobrança em aberto?", setor: "Financeiro", status: "em_andamento", responsavel: "Vinicius", horario: "11:48" },
+  { id: 5, cliente: "Mariana Costa", telefone: "(15) 95555-7788", mensagem: "Qual horário de funcionamento?", setor: "Administrativo", status: "finalizada", responsavel: "Lorenzzo", horario: "12:20" },
+  { id: 6, cliente: "Pedro Henrique", telefone: "(15) 94444-8899", mensagem: "Preciso de amortecedor dianteiro.", setor: "Orçamentos", status: "sem_resposta", responsavel: "Vitor", horario: "13:02" },
 ];
 
 
@@ -89,15 +89,6 @@ const setorBadge: Record<string, string> = {
   Orçamentos: "bg-amber-50 text-amber-700 ring-amber-200",
 };
 
-const statusBadge: Record<string, string> = {
-  Aberto: "bg-sky-50 text-sky-700 ring-sky-200",
-  "Em andamento": "bg-indigo-50 text-indigo-700 ring-indigo-200",
-  "Aguardando resposta": "bg-amber-50 text-amber-700 ring-amber-200",
-  Encaminhado: "bg-purple-50 text-purple-700 ring-purple-200",
-  Finalizado: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  "Sem resposta": "bg-red-50 text-red-700 ring-red-200",
-};
-
 const prioridades = [
   "Responder clientes sem retorno",
   "Encaminhar orçamentos pendentes",
@@ -106,12 +97,12 @@ const prioridades = [
 ];
 
 const setores = new Set(["Vendas", "Financeiro", "Administrativo", "Orçamentos"]);
-const statuses = new Set(["Aberto", "Em andamento", "Finalizado", "Sem resposta"]);
-const filtroMap: Record<string, string> = {
-  Abertos: "Aberto",
-  "Em andamento": "Em andamento",
-  Finalizados: "Finalizado",
-  "Sem resposta": "Sem resposta",
+// Mapeia o rótulo do chip de filtro para um conjunto de status canônicos.
+const filtroStatusMap: Record<string, ConversationStatus[]> = {
+  Abertos: ["aberta"],
+  "Em andamento": ["em_andamento"],
+  Finalizados: ["finalizada"],
+  "Sem resposta": ["sem_resposta"],
 };
 
 function AtendimentosPage() {

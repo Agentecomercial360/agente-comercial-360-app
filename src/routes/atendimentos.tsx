@@ -486,7 +486,7 @@ function AtendimentosPage() {
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-500">Status</p>
-                  <p className="mt-0.5 font-medium text-slate-800">{selected.status}</p>
+                  <p className="mt-0.5 font-medium text-slate-800">{getConversationStatusLabel(selected.status)}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-500">Responsável</p>

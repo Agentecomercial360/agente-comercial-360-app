@@ -685,6 +685,12 @@ function DashboardPage() {
               </ClientOnly>
             </div>
 
+            {tempInsight ? (
+              <div className="mt-3 rounded-xl border border-border bg-muted/30 p-3 text-xs text-foreground/80">
+                <span className="font-semibold text-foreground">Insight:</span> {tempInsight}
+              </div>
+            ) : null}
+
             {tempBuckets && tempTotal > 0 ? (
               <div className="mt-3 grid grid-cols-3 gap-2">
                 {tempBuckets.map((d) => {

@@ -479,23 +479,47 @@ function RelatoriosPage() {
     }
   };
 
+  const dataGeracao = useMemo(
+    () =>
+      new Date().toLocaleString("pt-BR", {
+        dateStyle: "short",
+        timeStyle: "short",
+      }),
+    [periodo, m],
+  );
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div>
+      <style dangerouslySetInnerHTML={{ __html: PRINT_STYLES }} />
+      <div className="space-y-6 relatorio-print-area">
+        <div className="no-print">
           <h1 className="text-3xl font-bold text-slate-900">Relatórios</h1>
           <p className="mt-1 text-sm text-slate-500">
             Acompanhe indicadores, resumo executivo e recomendações da IA para a operação comercial.
           </p>
         </div>
 
-        <div className={`rounded-lg border px-3 py-2 text-xs font-medium ${statusTone}`}>
+        {/* Cabeçalho exclusivo do PDF impresso */}
+        <div className="print-only border-b border-slate-300 pb-3">
+          <h1 className="text-2xl font-bold text-slate-900">
+            Relatório Gerencial — {companyName ?? "sua empresa"}
+          </h1>
+          <p className="mt-1 text-sm text-slate-700">
+            Período: <strong>{periodo}</strong> · Gerado em: <strong>{dataGeracao}</strong>
+          </p>
+          <p className="mt-1 text-xs text-slate-600">
+            Métricas principais e contagens por status são extraídas do Supabase. Blocos marcados
+            como <strong>Demonstrativo</strong> são recursos em construção e ainda usam dados de exemplo.
+          </p>
+        </div>
+
+        <div className={`no-print rounded-lg border px-3 py-2 text-xs font-medium ${statusTone}`}>
           {statusMessage}
           {loadingRelatorios ? " (carregando...)" : ""}
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          As métricas principais (atendimentos finalizados, oportunidades, leads quentes, novos clientes, sem resposta) e a contagem por status canônico vêm exclusivamente do Supabase, usando <span className="font-mono">created_at</span>. Blocos marcados como <span className="font-semibold">Demonstrativo</span> ainda são dados de exemplo e não alimentam cards, resumo executivo ou CSV.
+        <div className="no-print rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+          As métricas principais (atendimentos finalizados, oportunidades, leads quentes, novos clientes, sem resposta) e a contagem por status canônico vêm exclusivamente do Supabase, usando <span className="font-mono">created_at</span>. Blocos marcados como <span className="font-semibold">Demonstrativo</span> ainda são dados de exemplo e não alimentam cards nem o resumo executivo.
         </div>
 
 
@@ -514,15 +538,15 @@ function RelatoriosPage() {
               </p>
             </div>
             <button
-              onClick={handleExport}
-              title="A exportação contém apenas métricas reais carregadas do Supabase."
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+              onClick={handleExportPDF}
+              title="Abre a janela de impressão do navegador. Escolha 'Salvar como PDF'."
+              className="no-print inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
             >
               <Download className="h-4 w-4" />
-              Exportar relatório
+              Exportar PDF
             </button>
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="no-print mt-4 flex flex-wrap gap-2">
             {periodos.map((p) => (
               <button
                 key={p}
@@ -538,6 +562,7 @@ function RelatoriosPage() {
             ))}
           </div>
         </div>
+
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((c) => (

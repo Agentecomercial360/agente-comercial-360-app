@@ -243,7 +243,7 @@ function ConversasPage() {
             canal: normalizeChannel(r.channel),
             ultimaMensagem: "Carregue a conversa para ver mensagens",
             horario: formatHorario(r.last_message_at, r.created_at),
-            status: normalizeStatus(r.status),
+            status: normalizeConversationStatus(r.status),
             setor: "—",
           };
         });

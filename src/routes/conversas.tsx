@@ -533,9 +533,9 @@ function ConversasPage() {
                             </p>
                             <div className="mt-2 flex items-center gap-2">
                               <span
-                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${statusBadge[c.status]}`}
+                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${getConversationStatusBadgeClass(c.status)}`}
                               >
-                                {c.status}
+                                {getConversationStatusLabel(c.status)}
                               </span>
                               <span className="text-[10px] text-muted-foreground">
                                 {c.setor}

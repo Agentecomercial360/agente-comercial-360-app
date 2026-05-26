@@ -575,9 +575,9 @@ function ConversasPage() {
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadge[selected.status]}`}
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getConversationStatusBadgeClass(selected.status)}`}
                     >
-                      {selected.status}
+                      {getConversationStatusLabel(selected.status)}
                     </span>
                     <span className="text-xs text-muted-foreground">
                       Responsável sugerido:{" "}

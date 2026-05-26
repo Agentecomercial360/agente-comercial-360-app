@@ -206,7 +206,7 @@ const PRINT_STYLES = `
 @media print {
   @page {
     size: A4;
-    margin: 16mm 14mm 22mm 14mm;
+    margin: 12mm 12mm 16mm 12mm;
   }
   html, body {
     background: #ffffff !important;
@@ -228,9 +228,18 @@ const PRINT_STYLES = `
     background: #ffffff !important;
     color: #0f172a !important;
     box-shadow: none !important;
-    font-size: 11pt !important;
-    line-height: 1.45 !important;
+    font-size: 9pt !important;
+    line-height: 1.35 !important;
   }
+  /* Espaçamentos mais compactos entre blocos */
+  .relatorio-print-area > * + * { margin-top: 8px !important; }
+  .relatorio-print-area .space-y-6 > * + * { margin-top: 8px !important; }
+  .relatorio-print-area .gap-4 { gap: 8px !important; }
+  .relatorio-print-area .p-5, 
+  .relatorio-print-area .p-6 { padding: 10px 12px !important; }
+  .relatorio-print-area .mt-3 { margin-top: 6px !important; }
+  .relatorio-print-area .mt-4 { margin-top: 8px !important; }
+
   .relatorio-print-area .rounded-2xl,
   .relatorio-print-area .rounded-xl,
   .relatorio-print-area .rounded-lg {
@@ -238,15 +247,26 @@ const PRINT_STYLES = `
     background: #ffffff !important;
     color: #0f172a !important;
     border: 1px solid #e2e8f0 !important;
-    border-radius: 8px !important;
+    border-radius: 6px !important;
     page-break-inside: avoid;
   }
+  .relatorio-print-area h1 { font-size: 14pt !important; }
+  .relatorio-print-area h2 { font-size: 12pt !important; }
+  .relatorio-print-area h3 { font-size: 11pt !important; }
   .relatorio-print-area h1,
   .relatorio-print-area h2,
   .relatorio-print-area h3 {
     color: #0b2545 !important;
     letter-spacing: -0.01em !important;
+    margin: 0 !important;
   }
+  .relatorio-print-area .text-3xl { font-size: 16pt !important; }
+  .relatorio-print-area .text-2xl { font-size: 13pt !important; }
+  .relatorio-print-area .text-xl  { font-size: 11pt !important; }
+  .relatorio-print-area .text-lg  { font-size: 10.5pt !important; }
+  .relatorio-print-area .text-sm  { font-size: 8.5pt !important; }
+  .relatorio-print-area .text-xs  { font-size: 7.5pt !important; }
+
   .relatorio-print-area .text-white,
   .relatorio-print-area .text-blue-50 { color: #0f172a !important; }
   .relatorio-print-area .text-blue-600,
@@ -273,60 +293,71 @@ const PRINT_STYLES = `
     align-items: center !important;
     justify-content: space-between !important;
     gap: 16px !important;
-    padding-bottom: 12px !important;
+    padding-bottom: 8px !important;
     border-bottom: 2px solid #0b2545 !important;
-    margin-bottom: 16px !important;
+    margin: 0 0 10px 0 !important;
   }
-  .pdf-brand {
-    display: flex !important;
-    align-items: center !important;
-    gap: 12px !important;
-  }
+  .pdf-brand { display: flex !important; align-items: center !important; gap: 10px !important; }
   .pdf-brand-logo {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 44px !important;
-    height: 44px !important;
-    border-radius: 10px !important;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 8px !important;
     background: #0b2545 !important;
     color: #ffffff !important;
     font-weight: 800 !important;
-    font-size: 13pt !important;
+    font-size: 11pt !important;
     letter-spacing: 0.5px !important;
   }
   .pdf-brand-name {
-    font-size: 13pt !important;
+    font-size: 12pt !important;
     font-weight: 700 !important;
     color: #0b2545 !important;
     line-height: 1.1 !important;
   }
   .pdf-brand-tag {
-    font-size: 8.5pt !important;
+    font-size: 7.5pt !important;
     color: #475569 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.12em !important;
+    margin-top: 2px !important;
   }
   .pdf-meta {
     text-align: right !important;
-    font-size: 9pt !important;
+    font-size: 8pt !important;
     color: #334155 !important;
     line-height: 1.4 !important;
   }
   .pdf-meta strong { color: #0b2545 !important; }
 
-  /* Rodapé fixo em cada página */
+  /* Rodapé fixo em cada página — texto único, sem grudar */
   .pdf-footer {
     position: fixed !important;
-    bottom: 6mm !important;
-    left: 14mm !important;
-    right: 14mm !important;
-    padding-top: 6px !important;
+    bottom: 4mm !important;
+    left: 12mm !important;
+    right: 12mm !important;
+    padding-top: 4px !important;
     border-top: 1px solid #cbd5e1 !important;
-    font-size: 8pt !important;
+    font-size: 7.5pt !important;
     color: #64748b !important;
-    display: flex !important;
-    justify-content: space-between !important;
+    text-align: center !important;
+  }
+
+  /* Blocos demonstrativos: visualmente discretos */
+  .relatorio-print-area .demo-block {
+    background: #fafafa !important;
+    border: 1px dashed #cbd5e1 !important;
+    color: #64748b !important;
+    opacity: 0.85 !important;
+  }
+  .relatorio-print-area .demo-block * { color: #64748b !important; }
+  .relatorio-print-area .demo-badge {
+    background: transparent !important;
+    border: 1px solid #cbd5e1 !important;
+    color: #94a3b8 !important;
+    font-size: 6.5pt !important;
   }
 
   .no-print, .no-print * { display: none !important; visibility: hidden !important; }

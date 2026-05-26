@@ -183,7 +183,6 @@ function AtendimentosPage() {
         });
         if (cancelled) return;
         setItems(mapped);
-        setSelectedId(mapped[0]?.id ?? null);
         setAtendimentosLoadStatus("loaded");
       } catch {
         if (!cancelled) setAtendimentosLoadStatus("error");

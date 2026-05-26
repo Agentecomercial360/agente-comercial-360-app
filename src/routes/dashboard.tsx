@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute, ClientOnly, Link } from "@tanstack/react-router";
 import {
   Headphones,
@@ -9,13 +9,14 @@ import {
   ListChecks,
   Building2,
   ChevronRight,
-  RefreshCw,
   Users,
   BookOpen,
   Bot,
   Clock,
   CheckCircle2,
   Inbox,
+  Activity,
+  Thermometer,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -25,8 +26,8 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   PieChart,
   Pie,
   Cell,
@@ -51,28 +52,12 @@ type Kpi = {
 
 const DASH = "—";
 
-// Demo data (clearly labeled as demonstrative in UI)
+// Demonstrative — schema does not yet store sector/department classification.
 const sectorData = [
   { name: "Vendas", value: 72 },
   { name: "Financeiro", value: 18 },
   { name: "Administrativo", value: 22 },
   { name: "Orçamentos", value: 16 },
-];
-
-const tempData = [
-  { name: "Quentes", value: 14, color: "oklch(0.6 0.22 25)" },
-  { name: "Mornos", value: 11, color: "oklch(0.72 0.18 70)" },
-  { name: "Frios", value: 7, color: "oklch(0.6 0.18 250)" },
-];
-
-const weekData = [
-  { day: "Seg", value: 92 },
-  { day: "Ter", value: 110 },
-  { day: "Qua", value: 98 },
-  { day: "Qui", value: 134 },
-  { day: "Sex", value: 121 },
-  { day: "Sáb", value: 86 },
-  { day: "Dom", value: 54 },
 ];
 
 const nextActions = [
@@ -83,6 +68,12 @@ const nextActions = [
   "Revisar conversas abertas há mais de 24 horas",
 ];
 
+const TEMP_COLORS = {
+  hot: "oklch(0.62 0.22 25)",
+  warm: "oklch(0.74 0.17 70)",
+  cold: "oklch(0.62 0.16 250)",
+} as const;
+
 type TopLead = {
   name: string;
   item: string;
@@ -91,17 +82,39 @@ type TopLead = {
   owner: string;
 };
 
-const CHART_H = "h-60";
+type TempBucket = { name: string; value: number; color: string };
+type DayPoint = { day: string; label: string; value: number };
+
+const CHART_H = "h-64";
 
 type LoadStatus = "loading" | "loaded" | "partial" | "unauthenticated" | "error";
 
 function formatBRL(v: number | null | undefined): string {
   if (v == null) return DASH;
   try {
-    return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+    return v.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+      maximumFractionDigits: 0,
+    });
   } catch {
     return `R$ ${v}`;
   }
+}
+
+const WEEKDAY_SHORT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+
+function buildLast7Days(): DayPoint[] {
+  const out: DayPoint[] = [];
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    out.push({ day: WEEKDAY_SHORT[d.getDay()], label: key, value: 0 });
+  }
+  return out;
 }
 
 function DashboardPage() {
@@ -122,6 +135,8 @@ function DashboardPage() {
   const [aiConfigured, setAiConfigured] = useState<KpiValue>(DASH);
 
   const [topLeads, setTopLeads] = useState<TopLead[]>([]);
+  const [tempBuckets, setTempBuckets] = useState<TempBucket[] | null>(null);
+  const [weekActivity, setWeekActivity] = useState<DayPoint[] | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -152,13 +167,21 @@ function DashboardPage() {
       const startOfToday = new Date();
       startOfToday.setHours(0, 0, 0, 0);
 
+      const sevenDaysAgo = new Date(startOfToday);
+      sevenDaysAgo.setDate(startOfToday.getDate() - 6);
+
       const countQuery = (table: string) =>
-        supabase.from(table).select("id", { count: "exact", head: true }).eq("company_id", companyId);
+        supabase
+          .from(table)
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", companyId);
 
       const [
         companyRes,
         totalLeadsRes,
         hotLeadsRes,
+        warmLeadsRes,
+        coldLeadsRes,
         openRes,
         waitClientRes,
         waitCompanyRes,
@@ -168,10 +191,17 @@ function DashboardPage() {
         kbRes,
         aiRes,
         topLeadsRes,
+        weekMsgsRes,
       ] = await Promise.allSettled([
         supabase.from("companies").select("name").eq("id", companyId).maybeSingle(),
         countQuery("leads"),
         countQuery("leads").gte("score", 80),
+        countQuery("leads").gte("score", 50).lt("score", 80),
+        supabase
+          .from("leads")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", companyId)
+          .or("score.is.null,score.lt.50"),
         countQuery("conversations").eq("status", "aberta"),
         countQuery("conversations").eq("status", "aguardando_cliente"),
         countQuery("conversations").eq("status", "aguardando_empresa"),
@@ -179,7 +209,10 @@ function DashboardPage() {
         countQuery("messages").gte("created_at", startOfToday.toISOString()),
         countQuery("responsibles").eq("is_active", true),
         countQuery("knowledge_base").eq("is_active", true),
-        supabase.from("ai_settings").select("id", { count: "exact", head: true }).eq("company_id", companyId),
+        supabase
+          .from("ai_settings")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", companyId),
         supabase
           .from("leads")
           .select("id, interest, score, estimated_value, customers ( name )")
@@ -187,12 +220,21 @@ function DashboardPage() {
           .gte("score", 80)
           .order("score", { ascending: false })
           .limit(5),
+        supabase
+          .from("messages")
+          .select("created_at")
+          .eq("company_id", companyId)
+          .gte("created_at", sevenDaysAgo.toISOString())
+          .limit(5000),
       ]);
 
       let failures = 0;
 
-      // Company
-      if (companyRes.status === "fulfilled" && !companyRes.value.error && companyRes.value.data?.name) {
+      if (
+        companyRes.status === "fulfilled" &&
+        !companyRes.value.error &&
+        companyRes.value.data?.name
+      ) {
         setCompanyName(companyRes.value.data.name as string);
       } else {
         setCompanyName(DASH);
@@ -221,7 +263,28 @@ function DashboardPage() {
       applyCount(respRes as never, setActiveResponsibles);
       applyCount(kbRes as never, setActiveKnowledge);
 
-      // AI configured = boolean
+      // Temperature buckets
+      const getCount = (
+        r: PromiseSettledResult<{ count: number | null; error: unknown }>,
+      ): number | null => {
+        if (r.status === "fulfilled" && !r.value.error) return r.value.count ?? 0;
+        return null;
+      };
+      const hot = getCount(hotLeadsRes as never);
+      const warm = getCount(warmLeadsRes as never);
+      const cold = getCount(coldLeadsRes as never);
+      if (hot != null && warm != null && cold != null) {
+        setTempBuckets([
+          { name: "Quentes", value: hot, color: TEMP_COLORS.hot },
+          { name: "Mornos", value: warm, color: TEMP_COLORS.warm },
+          { name: "Frios", value: cold, color: TEMP_COLORS.cold },
+        ]);
+      } else {
+        setTempBuckets(null);
+        failures++;
+      }
+
+      // AI configured
       if (aiRes.status === "fulfilled" && !aiRes.value.error) {
         setAiConfigured((aiRes.value.count ?? 0) > 0 ? "Sim" : "Não");
       } else {
@@ -230,7 +293,11 @@ function DashboardPage() {
       }
 
       // Top leads
-      if (topLeadsRes.status === "fulfilled" && !topLeadsRes.value.error && topLeadsRes.value.data) {
+      if (
+        topLeadsRes.status === "fulfilled" &&
+        !topLeadsRes.value.error &&
+        topLeadsRes.value.data
+      ) {
         const rows = topLeadsRes.value.data as Array<{
           id: string;
           interest: string | null;
@@ -254,6 +321,23 @@ function DashboardPage() {
         failures++;
       }
 
+      // Last 7 days activity
+      if (weekMsgsRes.status === "fulfilled" && !weekMsgsRes.value.error) {
+        const rows = (weekMsgsRes.value.data ?? []) as Array<{ created_at: string }>;
+        const skeleton = buildLast7Days();
+        const map = new Map(skeleton.map((d) => [d.label, d]));
+        for (const row of rows) {
+          if (!row.created_at) continue;
+          const key = new Date(row.created_at).toISOString().slice(0, 10);
+          const slot = map.get(key);
+          if (slot) slot.value += 1;
+        }
+        setWeekActivity(skeleton);
+      } else {
+        setWeekActivity(null);
+        failures++;
+      }
+
       setStatus(failures === 0 ? "loaded" : "partial");
       setLastUpdated(new Date());
     } catch {
@@ -272,7 +356,10 @@ function DashboardPage() {
       case "loaded":
         return { text: "Dados carregados do Supabase", color: "text-emerald-600" };
       case "partial":
-        return { text: "Carregamento parcial — algumas métricas indisponíveis", color: "text-amber-600" };
+        return {
+          text: "Carregamento parcial — algumas métricas indisponíveis",
+          color: "text-amber-600",
+        };
       case "error":
         return { text: "Não foi possível carregar os dados.", color: "text-rose-600" };
       case "unauthenticated":
@@ -303,12 +390,24 @@ function DashboardPage() {
     { label: "IA configurada", value: aiConfigured, icon: Bot },
   ];
 
+  const tempTotal = useMemo(
+    () => (tempBuckets ? tempBuckets.reduce((s, b) => s + b.value, 0) : 0),
+    [tempBuckets],
+  );
+  const weekTotal = useMemo(
+    () => (weekActivity ? weekActivity.reduce((s, d) => s + d.value, 0) : 0),
+    [weekActivity],
+  );
+  const weekAvg = weekActivity && weekActivity.length ? Math.round(weekTotal / 7) : 0;
+
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-7xl space-y-8">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">Dashboard Comercial</h1>
+            <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
+              Dashboard Comercial
+            </h1>
             <p className="mt-1.5 text-sm text-muted-foreground">
               Visão geral dos atendimentos, leads e oportunidades de {companyName}.
             </p>
@@ -317,15 +416,6 @@ function DashboardPage() {
               {updatedText && status !== "loading" ? ` · ${updatedText}` : ""}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={load}
-            disabled={loading}
-            className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-[var(--shadow-soft)] hover:bg-muted transition disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            {loading ? "Atualizando…" : "Atualizar"}
-          </button>
         </div>
 
         {/* KPIs principais */}
@@ -342,9 +432,15 @@ function DashboardPage() {
                     <Icon className="h-5 w-5" />
                   </div>
                 </div>
-                <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">{k.value}</div>
+                <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">
+                  {k.value}
+                </div>
                 <div className="mt-1 text-xs text-muted-foreground">{k.label}</div>
-                {k.hint ? <div className="mt-1 text-[10px] uppercase tracking-wide text-amber-600">{k.hint}</div> : null}
+                {k.hint ? (
+                  <div className="mt-1 text-[10px] uppercase tracking-wide text-amber-600">
+                    {k.hint}
+                  </div>
+                ) : null}
               </div>
             );
           })}
@@ -363,7 +459,9 @@ function DashboardPage() {
                   <Icon className="h-4 w-4 text-primary" />
                   <span className="text-[11px] leading-tight">{k.label}</span>
                 </div>
-                <div className="mt-2 font-display text-xl font-bold text-foreground">{k.value}</div>
+                <div className="mt-2 font-display text-xl font-bold text-foreground">
+                  {k.value}
+                </div>
               </div>
             );
           })}
@@ -379,13 +477,19 @@ function DashboardPage() {
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-foreground">Resumo demonstrativo da IA</h3>
-                  <p className="text-xs text-muted-foreground">Conexão real será ativada na próxima etapa</p>
+                  <h3 className="text-base font-semibold text-foreground">
+                    Resumo demonstrativo da IA
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Conexão real será ativada na próxima etapa
+                  </p>
                 </div>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-foreground/90">
-                Os KPIs principais agora leem dados reais do Supabase, filtrados pela empresa do usuário logado.
-                O resumo executivo e as próximas ações ainda são demonstrativos e serão ligados à IA na próxima fase.
+                Os KPIs principais, leads por temperatura e atividade dos últimos 7 dias agora
+                leem dados reais do Supabase, filtrados pela empresa do usuário logado. O resumo
+                executivo e as próximas ações ainda são demonstrativos e serão ligados à IA na
+                próxima fase.
               </p>
             </div>
           </div>
@@ -393,7 +497,9 @@ function DashboardPage() {
           <div className="rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
             <div className="flex items-center gap-2 mb-1">
               <ListChecks className="h-4 w-4 text-primary" />
-              <h3 className="text-base font-semibold text-foreground">Próximas ações sugeridas</h3>
+              <h3 className="text-base font-semibold text-foreground">
+                Próximas ações sugeridas
+              </h3>
             </div>
             <p className="text-[11px] text-amber-600 mb-3">Resumo demonstrativo da IA</p>
             <ul className="space-y-2.5">
@@ -407,69 +513,184 @@ function DashboardPage() {
           </div>
         </div>
 
-        {/* Charts (demonstrativos) */}
+        {/* Charts row: activity + temperature */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="text-base font-semibold text-foreground">Atendimentos por dia</h3>
+            <div className="flex items-start justify-between gap-3 mb-1">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-primary" />
+                  <h3 className="text-base font-semibold text-foreground">
+                    Atividade nos últimos 7 dias
+                  </h3>
+                  <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
+                    ao vivo
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Baseado nas mensagens registradas no Supabase
+                </p>
+              </div>
+              <div className="text-right">
+                <div className="font-display text-2xl font-bold text-foreground leading-none">
+                  {weekActivity ? weekTotal : DASH}
+                </div>
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-1">
+                  mensagens · média {weekAvg}/dia
+                </div>
+              </div>
             </div>
-            <p className="text-[11px] text-amber-600 mb-3">
-              Gráfico demonstrativo — conexão real será ativada na próxima etapa.
-            </p>
-            <div className={CHART_H}>
-              <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={weekData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 255)" />
-                    <XAxis dataKey="day" stroke="oklch(0.55 0.04 257)" fontSize={12} />
-                    <YAxis stroke="oklch(0.55 0.04 257)" fontSize={12} />
-                    <Tooltip
-                      contentStyle={{ borderRadius: 12, border: "1px solid oklch(0.92 0.01 255)", fontSize: 12 }}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="value"
-                      stroke="oklch(0.55 0.22 258)"
-                      strokeWidth={3}
-                      dot={{ r: 4, fill: "oklch(0.55 0.22 258)" }}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
+
+            <div className={`${CHART_H} mt-4`}>
+              <ClientOnly
+                fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}
+              >
+                {weekActivity == null ? (
+                  <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                    {loading ? "Carregando…" : "Sem dados disponíveis."}
+                  </div>
+                ) : weekTotal === 0 ? (
+                  <div className="flex h-full flex-col items-center justify-center text-center">
+                    <Inbox className="h-8 w-8 text-muted-foreground/60" />
+                    <p className="mt-2 text-sm font-medium text-foreground">
+                      Nenhuma mensagem nos últimos 7 dias
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Assim que o WhatsApp começar a registrar conversas, o gráfico aparece aqui.
+                    </p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={weekActivity} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="actFill" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="oklch(0.55 0.22 258)" stopOpacity={0.35} />
+                          <stop offset="100%" stopColor="oklch(0.55 0.22 258)" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.94 0.01 255)" vertical={false} />
+                      <XAxis
+                        dataKey="day"
+                        stroke="oklch(0.55 0.04 257)"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        stroke="oklch(0.55 0.04 257)"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        allowDecimals={false}
+                        width={32}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: 12,
+                          border: "1px solid oklch(0.92 0.01 255)",
+                          fontSize: 12,
+                          boxShadow: "var(--shadow-soft)",
+                        }}
+                        formatter={(v: number) => [`${v} mensagens`, "Atividade"]}
+                        labelFormatter={(l) => `${l}`}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke="oklch(0.55 0.22 258)"
+                        strokeWidth={2.5}
+                        fill="url(#actFill)"
+                        activeDot={{ r: 5 }}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
               </ClientOnly>
             </div>
           </div>
 
           <div className="rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
-            <h3 className="text-base font-semibold text-foreground">Leads por temperatura</h3>
-            <p className="text-[11px] text-amber-600 mb-3">
-              Gráfico demonstrativo — conexão real será ativada na próxima etapa.
+            <div className="flex items-center gap-2">
+              <Thermometer className="h-4 w-4 text-primary" />
+              <h3 className="text-base font-semibold text-foreground">Leads por temperatura</h3>
+              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
+                ao vivo
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5 mb-3">
+              Classificação por score do lead no Supabase
             </p>
+
             <div className={CHART_H}>
-              <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie data={tempData} dataKey="value" innerRadius={50} outerRadius={80} paddingAngle={3}>
-                      {tempData.map((d, i) => (
-                        <Cell key={i} fill={d.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
-                  </PieChart>
-                </ResponsiveContainer>
+              <ClientOnly
+                fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}
+              >
+                {tempBuckets == null ? (
+                  <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                    {loading ? "Carregando…" : "Sem dados disponíveis."}
+                  </div>
+                ) : tempTotal === 0 ? (
+                  <div className="flex h-full flex-col items-center justify-center text-center">
+                    <Flame className="h-8 w-8 text-muted-foreground/60" />
+                    <p className="mt-2 text-sm font-medium text-foreground">
+                      Nenhum lead cadastrado ainda
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      A distribuição aparece aqui quando houver leads com score.
+                    </p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={tempBuckets}
+                        dataKey="value"
+                        innerRadius={58}
+                        outerRadius={88}
+                        paddingAngle={3}
+                        stroke="none"
+                      >
+                        {tempBuckets.map((d, i) => (
+                          <Cell key={i} fill={d.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{ borderRadius: 12, fontSize: 12, boxShadow: "var(--shadow-soft)" }}
+                        formatter={(v: number, n) => [`${v} leads`, n as string]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
               </ClientOnly>
             </div>
-            <div className="space-y-1.5 mt-2">
-              {tempData.map((d) => (
-                <div key={d.name} className="flex items-center justify-between text-xs">
-                  <span className="flex items-center gap-2 text-muted-foreground">
-                    <span className="h-2 w-2 rounded-full" style={{ background: d.color }} />
-                    {d.name}
-                  </span>
-                  <span className="font-semibold text-foreground">{d.value}</span>
-                </div>
-              ))}
-            </div>
+
+            {tempBuckets && tempTotal > 0 ? (
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {tempBuckets.map((d) => {
+                  const pct = tempTotal ? Math.round((d.value / tempTotal) * 100) : 0;
+                  return (
+                    <div
+                      key={d.name}
+                      className="rounded-xl border border-border bg-muted/30 p-2.5 text-center"
+                    >
+                      <div className="flex items-center justify-center gap-1.5">
+                        <span
+                          className="h-2 w-2 rounded-full"
+                          style={{ background: d.color }}
+                        />
+                        <span className="text-[11px] font-medium text-muted-foreground">
+                          {d.name}
+                        </span>
+                      </div>
+                      <div className="mt-1 font-display text-lg font-bold text-foreground leading-none">
+                        {d.value}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5">{pct}%</div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -477,9 +698,14 @@ function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Flame className="h-4 w-4 text-rose-500" />
-                <h3 className="text-base font-semibold text-foreground">Top 5 leads quentes</h3>
+              <div>
+                <div className="flex items-center gap-2">
+                  <Flame className="h-4 w-4 text-rose-500" />
+                  <h3 className="text-base font-semibold text-foreground">Top 5 leads quentes</h3>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Leads com score ≥ 80, ordenados pelo maior potencial
+                </p>
               </div>
               <Link
                 to="/leads"
@@ -496,15 +722,25 @@ function DashboardPage() {
                     <th className="text-left font-medium px-4 py-2.5">Cliente</th>
                     <th className="text-left font-medium px-4 py-2.5">Interesse</th>
                     <th className="text-left font-medium px-4 py-2.5">Score</th>
-                    <th className="text-left font-medium px-4 py-2.5">Valor est.</th>
+                    <th className="text-right font-medium px-4 py-2.5">Valor est.</th>
                     <th className="text-left font-medium px-4 py-2.5">Responsável</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {topLeads.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-6 text-center text-sm text-muted-foreground">
-                        {loading ? "Carregando…" : "Nenhum lead quente encontrado."}
+                      <td colSpan={6} className="px-4 py-10 text-center">
+                        <div className="flex flex-col items-center gap-1">
+                          <Flame className="h-7 w-7 text-muted-foreground/50" />
+                          <p className="text-sm font-medium text-foreground">
+                            {loading ? "Carregando…" : "Nenhum lead quente encontrado"}
+                          </p>
+                          {!loading && (
+                            <p className="text-xs text-muted-foreground">
+                              Leads com score ≥ 80 aparecem aqui automaticamente.
+                            </p>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ) : (
@@ -514,11 +750,14 @@ function DashboardPage() {
                         <td className="px-4 py-3 font-medium text-foreground">{l.name}</td>
                         <td className="px-4 py-3 text-foreground/80">{l.item}</td>
                         <td className="px-4 py-3">
-                          <span className="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-semibold text-rose-600">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-rose-500 to-orange-500 px-2.5 py-0.5 text-xs font-bold text-white shadow-sm">
+                            <Flame className="h-3 w-3" />
                             {l.score}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-foreground/80">{l.value}</td>
+                        <td className="px-4 py-3 text-right font-medium text-foreground tabular-nums">
+                          {l.value}
+                        </td>
                         <td className="px-4 py-3 text-foreground/80">{l.owner}</td>
                       </tr>
                     ))
@@ -529,33 +768,61 @@ function DashboardPage() {
           </div>
 
           <div className="rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
-            <div className="flex items-center gap-2 mb-1">
-              <Building2 className="h-4 w-4 text-primary" />
-              <h3 className="text-base font-semibold text-foreground">Operação por setor</h3>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-primary" />
+                <h3 className="text-base font-semibold text-foreground">Operação por setor</h3>
+              </div>
+              <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 border border-amber-200">
+                Demonstrativo
+              </span>
             </div>
-            <p className="text-[11px] text-amber-600 mb-3">
-              Gráfico demonstrativo — conexão real será ativada na próxima etapa.
+            <p className="text-xs text-muted-foreground mt-1 mb-3">
+              Depende do roteamento por setor. A conexão real será ativada quando o atendimento
+              estiver classificando setor automaticamente.
             </p>
             <div className={CHART_H}>
-              <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
+              <ClientOnly
+                fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}
+              >
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={sectorData} layout="vertical" margin={{ left: 8 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.92 0.01 255)" horizontal={false} />
-                    <XAxis type="number" stroke="oklch(0.55 0.04 257)" fontSize={12} />
-                    <YAxis type="category" dataKey="name" stroke="oklch(0.55 0.04 257)" fontSize={12} width={90} />
-                    <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12 }} />
-                    <Bar dataKey="value" fill="oklch(0.55 0.22 258)" radius={[0, 8, 8, 0]} />
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="oklch(0.94 0.01 255)"
+                      horizontal={false}
+                    />
+                    <XAxis
+                      type="number"
+                      stroke="oklch(0.55 0.04 257)"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="name"
+                      stroke="oklch(0.55 0.04 257)"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      width={90}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        borderRadius: 12,
+                        fontSize: 12,
+                        boxShadow: "var(--shadow-soft)",
+                      }}
+                    />
+                    <Bar
+                      dataKey="value"
+                      fill="oklch(0.78 0.05 258)"
+                      radius={[0, 8, 8, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </ClientOnly>
-            </div>
-            <div className="mt-3 space-y-1.5">
-              {sectorData.map((s) => (
-                <div key={s.name} className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{s.name}</span>
-                  <span className="font-semibold text-foreground">{s.value} atendimentos</span>
-                </div>
-              ))}
             </div>
           </div>
         </div>

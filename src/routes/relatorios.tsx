@@ -552,7 +552,7 @@ function RelatoriosPage() {
                 <span className="font-bold text-slate-900">{d.novos}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">Recorrentes</span>
+                <span className="text-slate-600">Recorrentes<span className={MOCK_BADGE}>Demonstrativo</span></span>
                 <span className="font-bold text-slate-900">{d.recorrentes}</span>
               </div>
             </div>

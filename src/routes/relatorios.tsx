@@ -464,8 +464,7 @@ function RelatoriosPage() {
         </div>
 
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          Relatórios usam métricas reais parciais do Supabase. Alguns gráficos e listas
-          (setores, peças solicitadas, pendências e recomendações) ainda usam dados temporários.
+          As métricas principais (atendimentos finalizados, oportunidades, leads quentes, novos clientes, sem resposta) e a contagem por status canônico vêm do Supabase. Blocos marcados como <span className="font-semibold">Demonstrativo</span> ainda são dados de exemplo e serão substituídos em fases seguintes.
         </div>
 
 

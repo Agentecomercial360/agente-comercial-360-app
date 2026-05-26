@@ -16,7 +16,7 @@ import {
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 import type { ConversationStatus } from "@/lib/conversation-status";
-import { getConversationStatusLabel } from "@/lib/conversation-status";
+import { CONVERSATION_STATUSES, getConversationStatusLabel } from "@/lib/conversation-status";
 
 const MOCK_BADGE =
   "ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 ring-1 ring-amber-200";

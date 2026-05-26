@@ -65,3 +65,16 @@ Aplicadas em pontos específicos onde o front-end precisa escrever:
 - **SEMPRE** validar `company_id` em `WITH CHECK` de INSERT/UPDATE para evitar
   que um usuário grave em empresa que não é dele.
 - Mudanças de schema/policy devem ser registradas em [`sql-history.md`](./sql-history.md).
+
+## Observações sobre o front-end
+
+- O front-end aplica `company_id` como **filtro adicional** em todas as queries
+  (`.eq("company_id", companyId)`), para reduzir tráfego e tornar consultas
+  mais explícitas.
+- Esse filtro do front é uma **camada de conveniência**, não de segurança.
+  A segurança principal continua sendo garantida pelo **RLS via `company_users`**
+  no banco — mesmo que o front envie um `company_id` errado ou omita o filtro,
+  o RLS bloqueia o acesso a dados de outra empresa.
+- **Nunca usar `service_role` no front-end** sob nenhuma hipótese: ela ignora
+  RLS e expõe todos os tenants. O front só pode usar a `anon/publishable key`.
+

@@ -162,7 +162,7 @@ function AtendimentosPage() {
             telefone: cust?.phone ?? "—",
             mensagem: "Carregue o atendimento para ver mensagens",
             setor: "—",
-            status: normalizeStatus(r.status),
+            status: normalizeConversationStatus(r.status),
             responsavel: "—",
             horario: formatHorario(r.last_message_at, r.created_at),
           };

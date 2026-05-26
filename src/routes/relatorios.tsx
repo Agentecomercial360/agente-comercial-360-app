@@ -686,7 +686,7 @@ function RelatoriosPage() {
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-blue-600" />
-              <h3 className="text-lg font-bold text-slate-900">Recomendações da IA</h3>
+              <h3 className="text-lg font-bold text-slate-900">Recomendações da IA<span className={MOCK_BADGE}>Demonstrativo</span></h3>
             </div>
             <ul className="mt-3 space-y-2">
               {d.recomendacoes.map((r) => (

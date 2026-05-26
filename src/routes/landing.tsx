@@ -319,10 +319,10 @@ function LandingPage() {
                           {/* KPI CARDS */}
                           <div className="grid grid-cols-2 gap-1.5">
                             {[
-                              { icon: TrendingUp, label: "Leads quentes", value: "147", trend: "+24%" },
-                              { icon: MessageSquare, label: "Conversas", value: "1.284", trend: "+18%" },
-                              { icon: Bot, label: "Respostas IA", value: "92%", trend: "+12%" },
-                              { icon: Activity, label: "Conversão", value: "31%", trend: "+9%" },
+                              { icon: MessageSquare, label: "Conversas abertas", value: "26", trend: "+18%" },
+                              { icon: TrendingUp, label: "Leads quentes", value: "14", trend: "+24%" },
+                              { icon: Bot, label: "IA ativa", value: "On", trend: "auto" },
+                              { icon: Workflow, label: "Follow-ups", value: "8", trend: "hoje" },
                             ].map((k) => (
                               <div
                                 key={k.label}

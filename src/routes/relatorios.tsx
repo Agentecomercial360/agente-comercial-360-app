@@ -595,7 +595,7 @@ function RelatoriosPage() {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Pendências financeiras</p>
+            <p className="text-sm font-medium text-slate-500">Pendências financeiras<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <p className="mt-2 text-2xl font-bold text-amber-600">{d.pendFin}</p>
             <p className="text-xs text-slate-500">pendências de cobrança</p>
           </div>

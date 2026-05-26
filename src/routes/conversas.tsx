@@ -151,11 +151,21 @@ const mensagensIniciais: Record<string | number, Mensagem[]> = {
   ],
 };
 
-const filterToStatus: Record<string, Status[]> = {
-  Abertas: ["Aberta"],
-  "Aguardando resposta": ["Aguardando retorno"],
-  Encaminhadas: ["Encaminhada"],
-  Finalizadas: ["Finalizada"],
+const filters = [
+  "Todas",
+  "Abertas",
+  "Em andamento",
+  "Aguardando resposta",
+  "Encaminhadas",
+  "Finalizadas",
+];
+
+const filterToStatus: Record<string, ConversationStatus[]> = {
+  Abertas: ["aberta"],
+  "Em andamento": ["em_andamento"],
+  "Aguardando resposta": ["aguardando_cliente", "aguardando_empresa"],
+  Encaminhadas: ["encaminhada"],
+  Finalizadas: ["finalizada"],
 };
 
 const responsaveis = ["Amanda", "Thaís", "Vinicius", "Lorenzzo", "Vitor", "Ivan"];

@@ -85,76 +85,65 @@ function LandingPage() {
       </header>
 
       {/* HERO */}
-      <section id="top" className="relative overflow-hidden">
-        {/* decorative gradients */}
+      <section id="top" className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/60">
+        {/* single subtle premium glow */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10"
+          className="pointer-events-none absolute left-1/2 top-[-10%] -z-10 h-[620px] w-[1100px] -translate-x-1/2 rounded-full opacity-40 blur-3xl"
           style={{
             background:
-              "radial-gradient(70% 60% at 80% 0%, var(--brand-blue-soft) 0%, transparent 60%), radial-gradient(50% 50% at 10% 30%, var(--brand-blue-soft) 0%, transparent 60%)",
-          }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -top-40 right-[-10%] -z-10 h-[500px] w-[500px] rounded-full opacity-30 blur-3xl"
-          style={{ background: "var(--gradient-brand)" }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute bottom-[-20%] left-[-10%] -z-10 h-[400px] w-[400px] rounded-full opacity-20 blur-3xl"
-          style={{ background: "var(--gradient-brand)" }}
-        />
-        {/* subtle tech grid */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.18]"
-          style={{
-            backgroundImage:
-              "linear-gradient(to right, oklch(0.55 0.22 258 / 0.10) 1px, transparent 1px), linear-gradient(to bottom, oklch(0.55 0.22 258 / 0.10) 1px, transparent 1px)",
-            backgroundSize: "56px 56px",
-            maskImage:
-              "radial-gradient(ellipse at center, black 35%, transparent 75%)",
+              "radial-gradient(closest-side, var(--brand-blue-soft) 0%, transparent 70%)",
           }}
         />
 
-        <div className="mx-auto max-w-7xl px-6 pt-16 pb-20 md:pt-24 md:pb-28">
-          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-14">
+        <div className="mx-auto max-w-7xl px-6 pt-20 pb-24 md:pt-28 md:pb-32">
+          <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
             {/* LEFT */}
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3.5 py-1.5 text-xs font-medium text-foreground/80 shadow-[var(--shadow-soft)] backdrop-blur">
-                <Sparkles className="size-3.5 text-primary" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white px-3.5 py-1.5 text-xs font-medium text-foreground/75 shadow-[var(--shadow-soft)]">
+                <span className="relative flex size-1.5">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/70 opacity-60" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
+                </span>
                 Plataforma SaaS de inteligência comercial
               </div>
-              <h1 className="font-display mt-6 text-[2.6rem] font-semibold leading-[1.02] tracking-[-0.025em] text-[oklch(0.18_0.04_258)] md:text-6xl lg:text-[4.25rem]">
-                Transforme{" "}
-                <span
-                  className="bg-clip-text text-transparent"
-                  style={{ backgroundImage: "var(--gradient-brand)" }}
-                >
-                  conversas em vendas
-                </span>{" "}
-                com inteligência comercial
+
+              <h1 className="font-display mt-7 text-[2.5rem] font-semibold leading-[1.04] tracking-[-0.03em] text-[oklch(0.18_0.04_258)] md:text-[3.6rem] lg:text-[4.25rem] lg:leading-[1.02]">
+                Centralize WhatsApp, IA e leads em uma{" "}
+                <span className="text-primary">operação comercial inteligente</span>
               </h1>
-              <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
-                Centralize atendimentos, leads, responsáveis, IA, base de conhecimento e
-                relatórios em uma operação comercial organizada, rápida e escalável.
+
+              <p className="mt-7 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+                O Agente Comercial 360 organiza atendimentos, identifica oportunidades,
+                distribui responsáveis e transforma conversas em dados para sua empresa
+                vender com mais controle.
               </p>
-              <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+
+              <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                 <a href="#cta-final">
-                  <Button size="lg" className="h-12 w-full gap-2 px-7 text-base shadow-[var(--shadow-premium)] sm:w-auto">
+                  <Button
+                    size="lg"
+                    className="h-12 w-full gap-2 px-7 text-base shadow-[var(--shadow-premium)] sm:w-auto"
+                  >
                     Solicitar demonstração <ArrowRight className="size-4" />
                   </Button>
                 </a>
-                <Link to="/login">
-                  <Button size="lg" variant="outline" className="h-12 w-full px-7 text-base sm:w-auto">
-                    Entrar no painel
+                <a href="#como-funciona">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-12 w-full px-7 text-base sm:w-auto"
+                  >
+                    Ver como funciona
                   </Button>
-                </Link>
+                </a>
               </div>
-              <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+
+              {/* trust bar */}
+              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-[var(--border-premium)] pt-6 text-xs font-medium text-muted-foreground">
                 {[
-                  { icon: Bot, label: "IA ativa" },
+                  { icon: Bot, label: "IA para atendimento comercial" },
+                  { icon: MessageSquare, label: "WhatsApp Cloud API" },
                   { icon: Users, label: "Leads organizados" },
                   { icon: Activity, label: "Relatórios em tempo real" },
                 ].map((b) => (
@@ -166,36 +155,29 @@ function LandingPage() {
               </div>
             </div>
 
-            {/* RIGHT — premium product shot of the Agente Comercial 360 dashboard */}
-            <div className="relative lg:-mr-6 xl:-mr-12">
-              {/* layered glow */}
+            {/* RIGHT — premium product mockup */}
+            <div className="relative lg:-mr-4 xl:-mr-8">
+              {/* single soft glow behind mockup */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute -inset-12 -z-10 rounded-[3rem] opacity-50 blur-3xl"
-                style={{ background: "var(--gradient-brand)" }}
-              />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -right-20 top-1/4 -z-10 h-80 w-80 rounded-full opacity-40 blur-3xl"
-                style={{ background: "var(--gradient-brand)" }}
-              />
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -left-10 bottom-0 -z-10 h-56 w-56 rounded-full bg-primary/20 opacity-50 blur-3xl"
-              />
-
-              {/* outer ring for depth */}
-              <div
-                className="relative rounded-[2rem] p-[1px]"
+                className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] opacity-40 blur-3xl"
                 style={{
                   background:
-                    "linear-gradient(140deg, oklch(0.55 0.22 258 / 0.35), oklch(0.55 0.22 258 / 0.05) 40%, transparent 70%)",
-                  transform: "perspective(1800px) rotateY(-5deg) rotateX(2deg)",
+                    "radial-gradient(closest-side, var(--brand-blue-soft) 0%, transparent 75%)",
+                }}
+              />
+
+              {/* hairline ring */}
+              <div
+                className="relative rounded-[1.75rem] p-[1px]"
+                style={{
+                  background:
+                    "linear-gradient(160deg, oklch(0.55 0.22 258 / 0.30), oklch(0.55 0.22 258 / 0.04) 45%, transparent 75%)",
                 }}
               >
                 {/* browser frame */}
                 <div
-                  className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-white p-2"
+                  className="relative overflow-hidden rounded-[1.75rem] border border-white/70 bg-white p-2"
                   style={{ boxShadow: "var(--shadow-premium)" }}
                 >
                   {/* window chrome */}
@@ -213,8 +195,8 @@ function LandingPage() {
                   </div>
 
                   {/* app shell: sidebar + main */}
-                  <div className="overflow-hidden rounded-[1.5rem] bg-slate-50">
-                    <div className="grid grid-cols-[140px_1fr] md:grid-cols-[170px_1fr]">
+                  <div className="overflow-hidden rounded-[1.25rem] bg-slate-50">
+                    <div className="grid grid-cols-[150px_1fr] md:grid-cols-[180px_1fr]">
                       {/* SIDEBAR */}
                       <aside
                         className="flex flex-col gap-1.5 px-2.5 py-3 text-white"
@@ -302,12 +284,6 @@ function LandingPage() {
                               </span>
                               Sistema online
                             </div>
-                            <div
-                              className="flex items-center gap-1 rounded-md px-2 py-1 text-[9px] font-semibold text-white shadow-[0_4px_10px_-2px_oklch(0.55_0.22_258_/_0.5)]"
-                              style={{ background: "var(--gradient-brand)" }}
-                            >
-                              <Zap className="size-2.5" /> Atualizar
-                            </div>
                           </div>
                         </div>
 
@@ -327,19 +303,13 @@ function LandingPage() {
                             </div>
                           </div>
 
-                          {/* Banner verde Supabase */}
-                          <div className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[9px] font-medium text-emerald-700">
-                            <CheckCircle2 className="size-3 shrink-0" />
-                            Dados carregados do Supabase
-                          </div>
-
                           {/* KPI CARDS */}
                           <div className="grid grid-cols-4 gap-1.5">
                             {[
-                              { icon: Headphones, label: "Atendimentos hoje", value: "1" },
-                              { icon: TrendingUp, label: "Leads quentes", value: "1" },
-                              { icon: MessageSquare, label: "Conversas abertas", value: "1" },
-                              { icon: CheckCircle2, label: "Finalizados", value: "1" },
+                              { icon: Headphones, label: "Atendimentos hoje", value: "128" },
+                              { icon: TrendingUp, label: "Leads quentes", value: "24" },
+                              { icon: MessageSquare, label: "Conversas abertas", value: "47" },
+                              { icon: CheckCircle2, label: "Finalizados", value: "91" },
                             ].map((k) => (
                               <div
                                 key={k.label}
@@ -368,42 +338,46 @@ function LandingPage() {
                               <span>Status</span>
                               <span className="text-right">Score</span>
                             </div>
-                            <div className="grid grid-cols-[1.4fr_1.4fr_0.9fr_0.5fr] items-center gap-2 px-2.5 py-2">
-                              <div className="flex min-w-0 items-center gap-1.5">
-                                <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[8px] font-bold text-primary">
-                                  C
+                            {[
+                              { c: "União Auto Peças", m: "Kit embreagem para Gol 1.6", s: "Em negociação", sc: 92, color: "amber" },
+                              { c: "Marina Costa", m: "Orçamento freio dianteiro", s: "Aguardando", sc: 78, color: "blue" },
+                            ].map((row) => (
+                              <div key={row.c} className="grid grid-cols-[1.4fr_1.4fr_0.9fr_0.5fr] items-center gap-2 border-b border-[var(--border-premium)] px-2.5 py-2 last:border-0">
+                                <div className="flex min-w-0 items-center gap-1.5">
+                                  <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[8px] font-bold text-primary">
+                                    {row.c[0]}
+                                  </div>
+                                  <div className="min-w-0 truncate text-[9px] font-semibold">
+                                    {row.c}
+                                  </div>
                                 </div>
-                                <div className="min-w-0 truncate text-[9px] font-semibold">
-                                  Cliente Teste Auto Peças
+                                <div className="truncate text-[9px] text-muted-foreground">
+                                  {row.m}
+                                </div>
+                                <div>
+                                  <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${
+                                    row.color === "amber"
+                                      ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
+                                      : "bg-sky-50 text-sky-700 ring-1 ring-sky-200"
+                                  }`}>
+                                    {row.s}
+                                  </span>
+                                </div>
+                                <div className="text-right text-[10px] font-bold text-primary">
+                                  {row.sc}
                                 </div>
                               </div>
-                              <div className="truncate text-[9px] text-muted-foreground">
-                                Kit embreagem para Gol 1.6
-                              </div>
-                              <div>
-                                <span className="rounded-full bg-amber-50 px-1.5 py-0.5 text-[8px] font-semibold text-amber-700 ring-1 ring-amber-200">
-                                  Em negociação
-                                </span>
-                              </div>
-                              <div className="text-right text-[10px] font-bold text-primary">
-                                92
-                              </div>
-                            </div>
+                            ))}
                           </div>
 
                           {/* Resumo da IA — navy premium */}
                           <div
-                            className="relative overflow-hidden rounded-lg p-2.5 text-white shadow-[0_8px_24px_-8px_oklch(0.18_0.04_258_/_0.6)]"
+                            className="relative overflow-hidden rounded-lg p-2.5 text-white shadow-[0_8px_24px_-8px_oklch(0.18_0.04_258_/_0.5)]"
                             style={{
                               background:
-                                "linear-gradient(135deg, oklch(0.20 0.045 258) 0%, oklch(0.30 0.10 258) 100%)",
+                                "linear-gradient(135deg, oklch(0.20 0.045 258) 0%, oklch(0.28 0.09 258) 100%)",
                             }}
                           >
-                            <div
-                              aria-hidden
-                              className="pointer-events-none absolute -right-6 -top-6 size-20 rounded-full opacity-40 blur-2xl"
-                              style={{ background: "var(--gradient-brand)" }}
-                            />
                             <div className="relative flex items-start gap-2">
                               <div
                                 className="flex size-6 shrink-0 items-center justify-center rounded-md text-white"
@@ -419,7 +393,7 @@ function LandingPage() {
                                   </span>
                                 </div>
                                 <div className="text-[9px] leading-snug text-white/80">
-                                  A IA identificou uma oportunidade quente e recomendou follow-up comercial.
+                                  Oportunidade quente identificada. Follow-up comercial recomendado nas próximas 2h.
                                 </div>
                               </div>
                             </div>
@@ -431,29 +405,15 @@ function LandingPage() {
                 </div>
               </div>
 
-              {/* floating badges */}
-              <div className="absolute -left-5 top-[30%] hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
+              {/* single floating badge — subtle premium accent */}
+              <div className="absolute -left-4 bottom-10 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
                 <div className="flex items-center gap-2 text-xs">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-amber-100 text-amber-600">
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
                     <TrendingUp className="size-4" />
                   </div>
                   <div>
-                    <div className="font-semibold">Lead quente detectado</div>
-                    <div className="text-[11px] text-muted-foreground">score 92 · agora</div>
-                  </div>
-                </div>
-              </div>
-              <div className="absolute -right-4 bottom-12 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
-                <div className="flex items-center gap-2 text-xs">
-                  <div
-                    className="flex size-8 items-center justify-center rounded-lg text-white"
-                    style={{ background: "var(--gradient-brand)" }}
-                  >
-                    <Bot className="size-4" />
-                  </div>
-                  <div>
-                    <div className="font-semibold">IA recomendou follow-up</div>
-                    <div className="text-[11px] text-muted-foreground">Cliente Teste · Auto Peças</div>
+                    <div className="font-semibold">Lead quente · score 92</div>
+                    <div className="text-[11px] text-muted-foreground">IA recomendou follow-up</div>
                   </div>
                 </div>
               </div>

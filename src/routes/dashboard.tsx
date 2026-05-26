@@ -1,16 +1,21 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createFileRoute, ClientOnly, Link } from "@tanstack/react-router";
 import {
   Headphones,
   Flame,
   MessageSquare,
   UserX,
-  ArrowUpRight,
-  ArrowDownRight,
   Sparkles,
   ListChecks,
   Building2,
   ChevronRight,
+  RefreshCw,
+  Users,
+  BookOpen,
+  Bot,
+  Clock,
+  CheckCircle2,
+  Inbox,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -36,21 +41,17 @@ export const Route = createFileRoute("/dashboard")({
   }),
 });
 
+type KpiValue = number | string;
 type Kpi = {
   label: string;
-  value: number | string;
+  value: KpiValue;
   icon: typeof Headphones;
-  delta: string;
-  up: boolean;
+  hint?: string;
 };
 
-const kpisMock: Kpi[] = [
-  { label: "Atendimentos hoje", value: 128, icon: Headphones, delta: "+12%", up: true },
-  { label: "Leads quentes", value: 14, icon: Flame, delta: "+3", up: true },
-  { label: "Conversas abertas", value: 26, icon: MessageSquare, delta: "-2", up: false },
-  { label: "Clientes sem resposta", value: 9, icon: UserX, delta: "+1", up: false },
-];
+const DASH = "—";
 
+// Demo data (clearly labeled as demonstrative in UI)
 const sectorData = [
   { name: "Vendas", value: 72 },
   { name: "Financeiro", value: 18 },
@@ -77,213 +78,259 @@ const weekData = [
 const nextActions = [
   "Priorizar leads quentes aguardando orçamento",
   "Responder clientes sem retorno",
-  "Encaminhar pendências financeiras para Vinicius",
-  "Conferir disponibilidade das peças mais solicitadas",
+  "Encaminhar pendências financeiras",
+  "Conferir disponibilidade de itens mais solicitados",
   "Revisar conversas abertas há mais de 24 horas",
 ];
 
-type TopLead = { name: string; item: string; score: number; owner: string };
-
-const topLeadsMock: TopLead[] = [
-  { name: "João Martins", item: "Kit embreagem", score: 92, owner: "Amanda" },
-  { name: "Fernanda Lima", item: "Bateria 60Ah", score: 88, owner: "Thaís" },
-  { name: "Pedro Henrique", item: "Amortecedor dianteiro", score: 81, owner: "Vitor" },
-  { name: "Mariana Costa", item: "Alternador", score: 74, owner: "Vitor" },
-  { name: "Carlos Souza", item: "Pastilha de freio", score: 68, owner: "Vinicius" },
-];
+type TopLead = {
+  name: string;
+  item: string;
+  score: number | string;
+  value: string;
+  owner: string;
+};
 
 const CHART_H = "h-60";
 
 type LoadStatus = "loading" | "loaded" | "partial" | "unauthenticated" | "error";
 
+function formatBRL(v: number | null | undefined): string {
+  if (v == null) return DASH;
+  try {
+    return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+  } catch {
+    return `R$ ${v}`;
+  }
+}
+
 function DashboardPage() {
-  const [, setLoadingDashboard] = useState(true);
-  const [dashboardLoadStatus, setDashboardLoadStatus] = useState<LoadStatus>("loading");
-  const [companyName, setCompanyName] = useState<string>("União Auto Peças");
-  const [dashboardKpis, setDashboardKpis] = useState<Kpi[]>(kpisMock);
-  const [dashboardTopLeads, setDashboardTopLeads] = useState<TopLead[]>(topLeadsMock);
+  const [loading, setLoading] = useState(true);
+  const [status, setStatus] = useState<LoadStatus>("loading");
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [companyName, setCompanyName] = useState<string>(DASH);
 
-  useEffect(() => {
-    let cancelled = false;
+  const [totalLeads, setTotalLeads] = useState<KpiValue>(DASH);
+  const [hotLeads, setHotLeads] = useState<KpiValue>(DASH);
+  const [convOpen, setConvOpen] = useState<KpiValue>(DASH);
+  const [convWaitingClient, setConvWaitingClient] = useState<KpiValue>(DASH);
+  const [convWaitingCompany, setConvWaitingCompany] = useState<KpiValue>(DASH);
+  const [convFinished, setConvFinished] = useState<KpiValue>(DASH);
+  const [messagesToday, setMessagesToday] = useState<KpiValue>(DASH);
+  const [activeResponsibles, setActiveResponsibles] = useState<KpiValue>(DASH);
+  const [activeKnowledge, setActiveKnowledge] = useState<KpiValue>(DASH);
+  const [aiConfigured, setAiConfigured] = useState<KpiValue>(DASH);
 
-    async function load() {
-      try {
-        const { data: userData, error: userErr } = await supabase.auth.getUser();
-        if (userErr || !userData?.user) {
-          if (!cancelled) setDashboardLoadStatus("unauthenticated");
-          return;
-        }
+  const [topLeads, setTopLeads] = useState<TopLead[]>([]);
 
-        const { data: cu, error: cuErr } = await supabase
-          .from("company_users")
-          .select("company_id")
-          .eq("user_id", userData.user.id)
-          .eq("is_active", true)
-          .maybeSingle();
+  const load = useCallback(async () => {
+    setLoading(true);
+    setStatus("loading");
 
-        if (cuErr || !cu?.company_id) {
-          if (!cancelled) setDashboardLoadStatus("error");
-          return;
-        }
-
-        const companyId = cu.company_id as string;
-
-        const startOfToday = new Date();
-        startOfToday.setHours(0, 0, 0, 0);
-
-        const [companyRes, todayRes, hotRes, openRes, topLeadsRes] = await Promise.allSettled([
-          supabase.from("companies").select("name").eq("id", companyId).single(),
-          supabase
-            .from("conversations")
-            .select("id", { count: "exact", head: true })
-            .eq("company_id", companyId)
-            .gte("created_at", startOfToday.toISOString()),
-          supabase
-            .from("leads")
-            .select("id", { count: "exact", head: true })
-            .eq("company_id", companyId)
-            .gte("score", 80),
-          supabase
-            .from("conversations")
-            .select("id", { count: "exact", head: true })
-            .eq("company_id", companyId)
-            .in("status", ["aberta", "Aberta", "open", "active"]),
-          supabase
-            .from("leads")
-            .select("id, interest, score, customer_id, customers ( name )")
-            .eq("company_id", companyId)
-            .gte("score", 80)
-            .order("score", { ascending: false })
-            .limit(5),
-        ]);
-
-        if (cancelled) return;
-
-        let failures = 0;
-
-        // Company name
-        if (companyRes.status === "fulfilled" && !companyRes.value.error && companyRes.value.data?.name) {
-          setCompanyName(companyRes.value.data.name as string);
-        } else {
-          failures++;
-        }
-
-        // KPIs
-        const nextKpis: Kpi[] = [...kpisMock];
-
-        if (todayRes.status === "fulfilled" && !todayRes.value.error) {
-          nextKpis[0] = {
-            label: "Atendimentos hoje",
-            value: todayRes.value.count ?? 0,
-            icon: Headphones,
-            delta: "—",
-            up: true,
-          };
-        } else {
-          failures++;
-        }
-
-        if (hotRes.status === "fulfilled" && !hotRes.value.error) {
-          nextKpis[1] = {
-            label: "Leads quentes",
-            value: hotRes.value.count ?? 0,
-            icon: Flame,
-            delta: "—",
-            up: true,
-          };
-        } else {
-          failures++;
-        }
-
-        if (openRes.status === "fulfilled" && !openRes.value.error) {
-          nextKpis[2] = {
-            label: "Conversas abertas",
-            value: openRes.value.count ?? 0,
-            icon: MessageSquare,
-            delta: "—",
-            up: true,
-          };
-        } else {
-          failures++;
-        }
-
-        // KPI 4 (Clientes sem resposta) permanece como mock nesta etapa.
-        setDashboardKpis(nextKpis);
-
-        // Top leads
-        if (topLeadsRes.status === "fulfilled" && !topLeadsRes.value.error && topLeadsRes.value.data) {
-          const rows = topLeadsRes.value.data as Array<{
-            id: string;
-            interest: string | null;
-            score: number | null;
-            customers: { name: string | null } | { name: string | null }[] | null;
-          }>;
-
-          if (rows.length > 0) {
-            const mapped: TopLead[] = rows.map((r) => {
-              const cust = Array.isArray(r.customers) ? r.customers[0] : r.customers;
-              return {
-                name: cust?.name ?? "—",
-                item: r.interest ?? "—",
-                score: r.score ?? 0,
-                owner: "—",
-              };
-            });
-            setDashboardTopLeads(mapped);
-          }
-        } else {
-          failures++;
-        }
-
-        setDashboardLoadStatus(failures === 0 ? "loaded" : "partial");
-      } catch {
-        if (!cancelled) setDashboardLoadStatus("error");
-      } finally {
-        if (!cancelled) setLoadingDashboard(false);
+    try {
+      const { data: userData, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !userData?.user) {
+        setStatus("unauthenticated");
+        setLoading(false);
+        return;
       }
-    }
 
-    load();
-    return () => {
-      cancelled = true;
-    };
+      const { data: cu, error: cuErr } = await supabase
+        .from("company_users")
+        .select("company_id")
+        .eq("user_id", userData.user.id)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (cuErr || !cu?.company_id) {
+        setStatus("error");
+        setLoading(false);
+        return;
+      }
+
+      const companyId = cu.company_id as string;
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+
+      const countQuery = (table: string) =>
+        supabase.from(table).select("id", { count: "exact", head: true }).eq("company_id", companyId);
+
+      const [
+        companyRes,
+        totalLeadsRes,
+        hotLeadsRes,
+        openRes,
+        waitClientRes,
+        waitCompanyRes,
+        finishedRes,
+        msgTodayRes,
+        respRes,
+        kbRes,
+        aiRes,
+        topLeadsRes,
+      ] = await Promise.allSettled([
+        supabase.from("companies").select("name").eq("id", companyId).maybeSingle(),
+        countQuery("leads"),
+        countQuery("leads").gte("score", 80),
+        countQuery("conversations").eq("status", "aberta"),
+        countQuery("conversations").eq("status", "aguardando_cliente"),
+        countQuery("conversations").eq("status", "aguardando_empresa"),
+        countQuery("conversations").eq("status", "finalizada"),
+        countQuery("messages").gte("created_at", startOfToday.toISOString()),
+        countQuery("responsibles").eq("is_active", true),
+        countQuery("knowledge_base").eq("is_active", true),
+        supabase.from("ai_settings").select("id", { count: "exact", head: true }).eq("company_id", companyId),
+        supabase
+          .from("leads")
+          .select("id, interest, score, estimated_value, customers ( name )")
+          .eq("company_id", companyId)
+          .gte("score", 80)
+          .order("score", { ascending: false })
+          .limit(5),
+      ]);
+
+      let failures = 0;
+
+      // Company
+      if (companyRes.status === "fulfilled" && !companyRes.value.error && companyRes.value.data?.name) {
+        setCompanyName(companyRes.value.data.name as string);
+      } else {
+        setCompanyName(DASH);
+        failures++;
+      }
+
+      const applyCount = (
+        res: PromiseSettledResult<{ count: number | null; error: unknown }>,
+        setter: (v: KpiValue) => void,
+      ) => {
+        if (res.status === "fulfilled" && !res.value.error) {
+          setter(res.value.count ?? 0);
+        } else {
+          setter(DASH);
+          failures++;
+        }
+      };
+
+      applyCount(totalLeadsRes as never, setTotalLeads);
+      applyCount(hotLeadsRes as never, setHotLeads);
+      applyCount(openRes as never, setConvOpen);
+      applyCount(waitClientRes as never, setConvWaitingClient);
+      applyCount(waitCompanyRes as never, setConvWaitingCompany);
+      applyCount(finishedRes as never, setConvFinished);
+      applyCount(msgTodayRes as never, setMessagesToday);
+      applyCount(respRes as never, setActiveResponsibles);
+      applyCount(kbRes as never, setActiveKnowledge);
+
+      // AI configured = boolean
+      if (aiRes.status === "fulfilled" && !aiRes.value.error) {
+        setAiConfigured((aiRes.value.count ?? 0) > 0 ? "Sim" : "Não");
+      } else {
+        setAiConfigured(DASH);
+        failures++;
+      }
+
+      // Top leads
+      if (topLeadsRes.status === "fulfilled" && !topLeadsRes.value.error && topLeadsRes.value.data) {
+        const rows = topLeadsRes.value.data as Array<{
+          id: string;
+          interest: string | null;
+          score: number | null;
+          estimated_value: number | null;
+          customers: { name: string | null } | { name: string | null }[] | null;
+        }>;
+        const mapped: TopLead[] = rows.map((r) => {
+          const cust = Array.isArray(r.customers) ? r.customers[0] : r.customers;
+          return {
+            name: cust?.name ?? DASH,
+            item: r.interest ?? DASH,
+            score: r.score ?? DASH,
+            value: formatBRL(r.estimated_value),
+            owner: DASH,
+          };
+        });
+        setTopLeads(mapped);
+      } else {
+        setTopLeads([]);
+        failures++;
+      }
+
+      setStatus(failures === 0 ? "loaded" : "partial");
+      setLastUpdated(new Date());
+    } catch {
+      setStatus("error");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
+  useEffect(() => {
+    load();
+  }, [load]);
+
   const statusBadge = (() => {
-    switch (dashboardLoadStatus) {
+    switch (status) {
       case "loaded":
-        return { text: "Dados carregados do Supabase — Dashboard", color: "text-emerald-600" };
+        return { text: "Dados carregados do Supabase", color: "text-emerald-600" };
       case "partial":
-        return { text: "Dashboard parcialmente carregado do Supabase", color: "text-amber-600" };
+        return { text: "Carregamento parcial — algumas métricas indisponíveis", color: "text-amber-600" };
       case "error":
-        return {
-          text: "Não foi possível carregar métricas reais. Usando dados locais temporários.",
-          color: "text-rose-600",
-        };
+        return { text: "Não foi possível carregar os dados.", color: "text-rose-600" };
       case "unauthenticated":
-        return {
-          text: "Usuário não autenticado. Usando dados locais temporários.",
-          color: "text-amber-600",
-        };
+        return { text: "Usuário não autenticado.", color: "text-amber-600" };
       default:
         return { text: "Carregando métricas…", color: "text-muted-foreground" };
     }
   })();
 
+  const updatedText = lastUpdated
+    ? `Atualizado às ${lastUpdated.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`
+    : "";
+
+  const kpisPrimary: Kpi[] = [
+    { label: "Mensagens hoje", value: messagesToday, icon: Headphones },
+    { label: "Leads quentes (score ≥ 80)", value: hotLeads, icon: Flame },
+    { label: "Conversas abertas", value: convOpen, icon: MessageSquare },
+    { label: "Clientes sem resposta", value: DASH, icon: UserX, hint: "Regra em configuração" },
+  ];
+
+  const kpisSecondary: Kpi[] = [
+    { label: "Total de leads", value: totalLeads, icon: Flame },
+    { label: "Aguardando cliente", value: convWaitingClient, icon: Clock },
+    { label: "Aguardando empresa", value: convWaitingCompany, icon: Inbox },
+    { label: "Finalizadas", value: convFinished, icon: CheckCircle2 },
+    { label: "Responsáveis ativos", value: activeResponsibles, icon: Users },
+    { label: "Base de conhecimento ativa", value: activeKnowledge, icon: BookOpen },
+    { label: "IA configurada", value: aiConfigured, icon: Bot },
+  ];
+
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-7xl space-y-8">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">Dashboard Comercial</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            Visão geral dos atendimentos, leads e oportunidades da {companyName}.
-          </p>
-          <p className={`mt-1 text-xs font-medium ${statusBadge.color}`}>{statusBadge.text}</p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">Dashboard Comercial</h1>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              Visão geral dos atendimentos, leads e oportunidades de {companyName}.
+            </p>
+            <p className={`mt-1 text-xs font-medium ${statusBadge.color}`}>
+              {statusBadge.text}
+              {updatedText && status !== "loading" ? ` · ${updatedText}` : ""}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={load}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-medium text-foreground shadow-[var(--shadow-soft)] hover:bg-muted transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+            {loading ? "Atualizando…" : "Atualizar"}
+          </button>
         </div>
 
-        {/* KPIs */}
+        {/* KPIs principais */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {dashboardKpis.map((k) => {
+          {kpisPrimary.map((k) => {
             const Icon = k.icon;
             return (
               <div
@@ -294,17 +341,29 @@ function DashboardPage() {
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <span
-                    className={`inline-flex items-center gap-1 text-xs font-semibold ${
-                      k.up ? "text-emerald-600" : "text-rose-600"
-                    }`}
-                  >
-                    {k.up ? <ArrowUpRight className="h-3 w-3" /> : <ArrowDownRight className="h-3 w-3" />}
-                    {k.delta}
-                  </span>
                 </div>
                 <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">{k.value}</div>
                 <div className="mt-1 text-xs text-muted-foreground">{k.label}</div>
+                {k.hint ? <div className="mt-1 text-[10px] uppercase tracking-wide text-amber-600">{k.hint}</div> : null}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* KPIs secundários */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
+          {kpisSecondary.map((k) => {
+            const Icon = k.icon;
+            return (
+              <div
+                key={k.label}
+                className="rounded-xl bg-card p-4 border border-border shadow-[var(--shadow-soft)]"
+              >
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <Icon className="h-4 w-4 text-primary" />
+                  <span className="text-[11px] leading-tight">{k.label}</span>
+                </div>
+                <div className="mt-2 font-display text-xl font-bold text-foreground">{k.value}</div>
               </div>
             );
           })}
@@ -320,25 +379,23 @@ function DashboardPage() {
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div>
-                  <h3 className="text-base font-semibold text-foreground">Resumo executivo da IA</h3>
-                  <p className="text-xs text-muted-foreground">Atualizado agora</p>
+                  <h3 className="text-base font-semibold text-foreground">Resumo demonstrativo da IA</h3>
+                  <p className="text-xs text-muted-foreground">Conexão real será ativada na próxima etapa</p>
                 </div>
               </div>
               <p className="mt-4 text-sm leading-relaxed text-foreground/90">
-                O Dashboard já iniciou a leitura de métricas reais do Supabase para{" "}
-                <span className="font-semibold">atendimentos</span>,{" "}
-                <span className="font-semibold">leads quentes</span> e{" "}
-                <span className="font-semibold">conversas abertas</span>. Nesta etapa, gráficos avançados, clientes sem
-                resposta e operação por setor ainda usam dados temporários até a próxima fase da integração.
+                Os KPIs principais agora leem dados reais do Supabase, filtrados pela empresa do usuário logado.
+                O resumo executivo e as próximas ações ainda são demonstrativos e serão ligados à IA na próxima fase.
               </p>
             </div>
           </div>
 
           <div className="rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-1">
               <ListChecks className="h-4 w-4 text-primary" />
-              <h3 className="text-base font-semibold text-foreground">Próximas ações sugeridas pela IA</h3>
+              <h3 className="text-base font-semibold text-foreground">Próximas ações sugeridas</h3>
             </div>
+            <p className="text-[11px] text-amber-600 mb-3">Resumo demonstrativo da IA</p>
             <ul className="space-y-2.5">
               {nextActions.map((a, i) => (
                 <li key={i} className="flex gap-3 text-sm text-foreground/90">
@@ -350,15 +407,15 @@ function DashboardPage() {
           </div>
         </div>
 
-        {/* Charts */}
+        {/* Charts (demonstrativos) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-semibold text-foreground">Atendimentos por dia</h3>
-                <p className="text-xs text-muted-foreground">Últimos 7 dias (dados temporários)</p>
-              </div>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-base font-semibold text-foreground">Atendimentos por dia</h3>
             </div>
+            <p className="text-[11px] text-amber-600 mb-3">
+              Gráfico demonstrativo — conexão real será ativada na próxima etapa.
+            </p>
             <div className={CHART_H}>
               <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -367,11 +424,7 @@ function DashboardPage() {
                     <XAxis dataKey="day" stroke="oklch(0.55 0.04 257)" fontSize={12} />
                     <YAxis stroke="oklch(0.55 0.04 257)" fontSize={12} />
                     <Tooltip
-                      contentStyle={{
-                        borderRadius: 12,
-                        border: "1px solid oklch(0.92 0.01 255)",
-                        fontSize: 12,
-                      }}
+                      contentStyle={{ borderRadius: 12, border: "1px solid oklch(0.92 0.01 255)", fontSize: 12 }}
                     />
                     <Line
                       type="monotone"
@@ -389,7 +442,9 @@ function DashboardPage() {
 
           <div className="rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
             <h3 className="text-base font-semibold text-foreground">Leads por temperatura</h3>
-            <p className="text-xs text-muted-foreground mb-4">Distribuição atual (dados temporários)</p>
+            <p className="text-[11px] text-amber-600 mb-3">
+              Gráfico demonstrativo — conexão real será ativada na próxima etapa.
+            </p>
             <div className={CHART_H}>
               <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
                 <ResponsiveContainer width="100%" height="100%">
@@ -441,33 +496,46 @@ function DashboardPage() {
                     <th className="text-left font-medium px-4 py-2.5">Cliente</th>
                     <th className="text-left font-medium px-4 py-2.5">Interesse</th>
                     <th className="text-left font-medium px-4 py-2.5">Score</th>
+                    <th className="text-left font-medium px-4 py-2.5">Valor est.</th>
                     <th className="text-left font-medium px-4 py-2.5">Responsável</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {dashboardTopLeads.map((l, i) => (
-                    <tr key={`${l.name}-${i}`} className="hover:bg-muted/30 transition">
-                      <td className="px-4 py-3 text-muted-foreground">{i + 1}</td>
-                      <td className="px-4 py-3 font-medium text-foreground">{l.name}</td>
-                      <td className="px-4 py-3 text-foreground/80">{l.item}</td>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-semibold text-rose-600">
-                          {l.score}
-                        </span>
+                  {topLeads.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-6 text-center text-sm text-muted-foreground">
+                        {loading ? "Carregando…" : "Nenhum lead quente encontrado."}
                       </td>
-                      <td className="px-4 py-3 text-foreground/80">{l.owner}</td>
                     </tr>
-                  ))}
+                  ) : (
+                    topLeads.map((l, i) => (
+                      <tr key={`${l.name}-${i}`} className="hover:bg-muted/30 transition">
+                        <td className="px-4 py-3 text-muted-foreground">{i + 1}</td>
+                        <td className="px-4 py-3 font-medium text-foreground">{l.name}</td>
+                        <td className="px-4 py-3 text-foreground/80">{l.item}</td>
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-semibold text-rose-600">
+                            {l.score}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-foreground/80">{l.value}</td>
+                        <td className="px-4 py-3 text-foreground/80">{l.owner}</td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
           </div>
 
           <div className="rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-1">
               <Building2 className="h-4 w-4 text-primary" />
               <h3 className="text-base font-semibold text-foreground">Operação por setor</h3>
             </div>
+            <p className="text-[11px] text-amber-600 mb-3">
+              Gráfico demonstrativo — conexão real será ativada na próxima etapa.
+            </p>
             <div className={CHART_H}>
               <ClientOnly fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}>
                 <ResponsiveContainer width="100%" height="100%">

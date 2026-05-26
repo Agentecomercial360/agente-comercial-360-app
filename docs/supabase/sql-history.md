@@ -90,3 +90,41 @@ Ajuste do conjunto de valores aceitos na coluna `status` de `conversations`
 ```sql
 -- (colar SQL aqui)
 ```
+
+---
+
+## 8. Padronização de status de conversas
+
+Os status oficiais de `conversations.status` foram padronizados no **front-end**
+através do módulo `src/lib/conversation-status.ts`. Os valores canônicos são:
+
+- `aberta`
+- `em_andamento`
+- `aguardando_cliente`
+- `aguardando_empresa`
+- `encaminhada`
+- `sem_resposta`
+- `finalizada`
+
+Atualmente, valores legados que possam existir no banco (`open`, `pending`,
+`closed`, `andamento`, `waiting`, `Financeiro`, `Finalizado` etc.) são
+normalizados em tempo de leitura pelo front via `normalizeConversationStatus()`.
+Toda escrita feita pelo front (`UPDATE conversations SET status = ...`) já usa
+exclusivamente os valores canônicos.
+
+**Migração SQL futura (ainda não aplicada):** padronizar os registros existentes
+no banco para o vocabulário canônico e, opcionalmente, adicionar uma
+`CHECK constraint` ou `enum` restringindo os valores aceitos. Exemplo conceitual
+(NÃO executar sem revisão):
+
+```sql
+-- (colar SQL aqui quando a migração for planejada)
+-- UPDATE conversations SET status = 'aberta'        WHERE status IN ('open');
+-- UPDATE conversations SET status = 'em_andamento'  WHERE status IN ('andamento','pending');
+-- UPDATE conversations SET status = 'finalizada'    WHERE status IN ('closed','Finalizado');
+-- ALTER TABLE conversations
+--   ADD CONSTRAINT conversations_status_check
+--   CHECK (status IN ('aberta','em_andamento','aguardando_cliente',
+--                     'aguardando_empresa','encaminhada','sem_resposta','finalizada'));
+```
+

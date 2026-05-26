@@ -45,6 +45,8 @@ Passo a passo para provisionar uma nova empresa (tenant) no Agente Comercial 360
 
 - [ ] Logar com um usuário de **outra empresa** e confirmar que NENHUM dado da empresa nova aparece.
 - [ ] Tentar `UPDATE` direto via SQL com `auth.uid()` de outra empresa e confirmar que é bloqueado.
+- [ ] Validar que `conversations.status` usa apenas os status canônicos do projeto (`aberta`, `em_andamento`, `aguardando_cliente`, `aguardando_empresa`, `encaminhada`, `sem_resposta`, `finalizada`). Valores legados devem ser normalizados ou migrados — ver `sql-history.md` seção 8.
+
 
 ## 9. Validar segurança de chaves
 

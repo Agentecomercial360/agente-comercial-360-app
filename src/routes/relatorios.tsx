@@ -645,8 +645,7 @@ function RelatoriosPage() {
 
         {/* Rodapé fixo do PDF */}
         <div className="print-only pdf-footer">
-          <span>Relatório gerado por Agente Comercial 360</span>
-          <span>{dataGeracao}</span>
+          Relatório gerado por Agente Comercial 360 • {dataGeracao}
         </div>
 
 

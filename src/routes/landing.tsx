@@ -523,7 +523,7 @@ function LandingPage() {
               <CheckCircle2 className="size-3.5" /> A solução
             </div>
             <h2 className="font-display mt-5 text-3xl font-semibold tracking-tight md:text-4xl lg:text-5xl">
-              Tudo que sua operação comercial precisa em um só lugar
+              Tudo o que sua operação comercial precisa, em um só lugar
             </h2>
             <p className="mt-4 text-muted-foreground md:text-lg">
               O Agente Comercial 360 organiza pessoas, conversas e processos. Cada lead

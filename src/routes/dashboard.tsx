@@ -6,7 +6,6 @@ import {
   MessageSquare,
   UserX,
   Sparkles,
-  ListChecks,
   Building2,
   ChevronRight,
   Users,
@@ -20,8 +19,6 @@ import {
 } from "lucide-react";
 import {
   ResponsiveContainer,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   Tooltip,
@@ -52,20 +49,12 @@ type Kpi = {
 
 const DASH = "—";
 
-// Demonstrative — schema does not yet store sector/department classification.
-const sectorData = [
-  { name: "Vendas", value: 72 },
-  { name: "Financeiro", value: 18 },
-  { name: "Administrativo", value: 22 },
-  { name: "Orçamentos", value: 16 },
-];
-
-const nextActions = [
-  "Priorizar leads quentes aguardando orçamento",
-  "Responder clientes sem retorno",
-  "Encaminhar pendências financeiras",
-  "Conferir disponibilidade de itens mais solicitados",
-  "Revisar conversas abertas há mais de 24 horas",
+// Planned sectors — visible as "em preparação" until routing is connected.
+const plannedSectors = [
+  { name: "Vendas", desc: "Atendimento comercial e novos negócios" },
+  { name: "Financeiro", desc: "Boletos, pagamentos e cobranças" },
+  { name: "Administrativo", desc: "Suporte interno e documentos" },
+  { name: "Orçamentos", desc: "Propostas e cotações" },
 ];
 
 const TEMP_COLORS = {
@@ -399,6 +388,42 @@ function DashboardPage() {
     [weekActivity],
   );
   const weekAvg = weekActivity && weekActivity.length ? Math.round(weekTotal / 7) : 0;
+  const weekPeak = useMemo(() => {
+    if (!weekActivity || weekActivity.length === 0) return null;
+    return weekActivity.reduce((max, d) => (d.value > max.value ? d : max), weekActivity[0]);
+  }, [weekActivity]);
+
+  const tempInsight = useMemo(() => {
+    if (!tempBuckets) return null;
+    if (tempTotal === 0) return "Nenhum lead registrado ainda.";
+    const hotPct = Math.round(((tempBuckets[0]?.value ?? 0) / tempTotal) * 100);
+    if (hotPct >= 50) return `${hotPct}% dos leads estão em alta intenção de compra.`;
+    if (hotPct >= 20) return `${hotPct}% dos leads já demonstram intenção forte de compra.`;
+    return `A maior parte dos leads ainda está em fase de aquecimento (${hotPct}% quentes).`;
+  }, [tempBuckets, tempTotal]);
+
+  const num = (v: KpiValue) => (typeof v === "number" ? v : 0);
+  const execSummary = useMemo(() => {
+    const parts: string[] = [];
+    parts.push(`A operação possui ${num(totalLeads)} leads cadastrados`);
+    parts.push(`${num(hotLeads)} oportunidades quentes`);
+    parts.push(`${num(convOpen)} conversas em aberto`);
+    parts.push(`${num(convFinished)} finalizadas`);
+    if (typeof messagesToday === "number") {
+      parts.push(`${messagesToday} mensagens trocadas hoje`);
+    }
+    parts.push(`IA ${aiConfigured === "Sim" ? "configurada" : "ainda não configurada"}`);
+    parts.push(`${num(activeResponsibles)} responsáveis ativos`);
+    return parts.join(" · ") + ".";
+  }, [
+    totalLeads,
+    hotLeads,
+    convOpen,
+    convFinished,
+    messagesToday,
+    aiConfigured,
+    activeResponsibles,
+  ]);
 
   return (
     <DashboardLayout>
@@ -467,51 +492,26 @@ function DashboardPage() {
           })}
         </div>
 
-        {/* AI executive summary + next actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 rounded-2xl border border-border p-6 shadow-[var(--shadow-soft)] bg-gradient-to-br from-[var(--brand-blue-soft)] via-card to-card relative overflow-hidden">
-            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
-            <div className="relative">
-              <div className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                  <Sparkles className="h-4 w-4" />
-                </div>
-                <div>
-                  <h3 className="text-base font-semibold text-foreground">
-                    Resumo demonstrativo da IA
-                  </h3>
-                  <p className="text-xs text-muted-foreground">
-                    Conexão real será ativada na próxima etapa
-                  </p>
-                </div>
+        {/* Resumo executivo (real) */}
+        {/* Resumo executivo (gerado a partir dos dados reais) */}
+        <div className="rounded-2xl border border-border p-6 shadow-[var(--shadow-soft)] bg-gradient-to-br from-[var(--brand-blue-soft)] via-card to-card relative overflow-hidden">
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/10 blur-3xl" />
+          <div className="relative flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-semibold text-foreground">Resumo executivo</h3>
+                <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
+                  ao vivo
+                </span>
               </div>
-              <p className="mt-4 text-sm leading-relaxed text-foreground/90">
-                Os KPIs principais, leads por temperatura e atividade dos últimos 7 dias agora
-                leem dados reais do Supabase, filtrados pela empresa do usuário logado. O resumo
-                executivo e as próximas ações ainda são demonstrativos e serão ligados à IA na
-                próxima fase.
-              </p>
+              <p className="mt-2 text-sm leading-relaxed text-foreground/90">{execSummary}</p>
             </div>
-          </div>
-
-          <div className="rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
-            <div className="flex items-center gap-2 mb-1">
-              <ListChecks className="h-4 w-4 text-primary" />
-              <h3 className="text-base font-semibold text-foreground">
-                Próximas ações sugeridas
-              </h3>
-            </div>
-            <p className="text-[11px] text-amber-600 mb-3">Resumo demonstrativo da IA</p>
-            <ul className="space-y-2.5">
-              {nextActions.map((a, i) => (
-                <li key={i} className="flex gap-3 text-sm text-foreground/90">
-                  <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                  <span className="leading-snug">{a}</span>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
+
 
         {/* Charts row: activity + temperature */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -531,12 +531,30 @@ function DashboardPage() {
                   Baseado nas mensagens registradas no Supabase
                 </p>
               </div>
-              <div className="text-right">
-                <div className="font-display text-2xl font-bold text-foreground leading-none">
-                  {weekActivity ? weekTotal : DASH}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-right">
+                  <div className="font-display text-lg font-bold leading-none text-foreground tabular-nums">
+                    {weekActivity ? weekTotal : DASH}
+                  </div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
+                    total
+                  </div>
                 </div>
-                <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-1">
-                  mensagens · média {weekAvg}/dia
+                <div className="rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-right">
+                  <div className="font-display text-lg font-bold leading-none text-foreground tabular-nums">
+                    {weekActivity ? weekAvg : DASH}
+                  </div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
+                    média/dia
+                  </div>
+                </div>
+                <div className="rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-right">
+                  <div className="font-display text-lg font-bold leading-none text-foreground tabular-nums">
+                    {weekPeak && weekPeak.value > 0 ? `${weekPeak.day} · ${weekPeak.value}` : DASH}
+                  </div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground mt-0.5">
+                    pico
+                  </div>
                 </div>
               </div>
             </div>
@@ -664,6 +682,12 @@ function DashboardPage() {
               </ClientOnly>
             </div>
 
+            {tempInsight ? (
+              <div className="mt-3 rounded-xl border border-border bg-muted/30 p-3 text-xs text-foreground/80">
+                <span className="font-semibold text-foreground">Insight:</span> {tempInsight}
+              </div>
+            ) : null}
+
             {tempBuckets && tempTotal > 0 ? (
               <div className="mt-3 grid grid-cols-3 gap-2">
                 {tempBuckets.map((d) => {
@@ -694,14 +718,19 @@ function DashboardPage() {
           </div>
         </div>
 
-        {/* Top leads + Sector */}
+        {/* Oportunidades prioritárias + Operação por setor */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <div className="flex items-center gap-2">
                   <Flame className="h-4 w-4 text-rose-500" />
-                  <h3 className="text-base font-semibold text-foreground">Top 5 leads quentes</h3>
+                  <h3 className="text-base font-semibold text-foreground">
+                    Oportunidades prioritárias
+                  </h3>
+                  <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
+                    ao vivo
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Leads com score ≥ 80, ordenados pelo maior potencial
@@ -711,60 +740,70 @@ function DashboardPage() {
                 to="/leads"
                 className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
               >
-                Ver todos os leads <ChevronRight className="h-3.5 w-3.5" />
+                Ver todos <ChevronRight className="h-3.5 w-3.5" />
               </Link>
             </div>
-            <div className="overflow-hidden rounded-xl border border-border">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 text-xs text-muted-foreground">
-                  <tr>
-                    <th className="text-left font-medium px-4 py-2.5">#</th>
-                    <th className="text-left font-medium px-4 py-2.5">Cliente</th>
-                    <th className="text-left font-medium px-4 py-2.5">Interesse</th>
-                    <th className="text-left font-medium px-4 py-2.5">Score</th>
-                    <th className="text-right font-medium px-4 py-2.5">Valor est.</th>
-                    <th className="text-left font-medium px-4 py-2.5">Responsável</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {topLeads.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="px-4 py-10 text-center">
-                        <div className="flex flex-col items-center gap-1">
-                          <Flame className="h-7 w-7 text-muted-foreground/50" />
-                          <p className="text-sm font-medium text-foreground">
-                            {loading ? "Carregando…" : "Nenhum lead quente encontrado"}
-                          </p>
-                          {!loading && (
-                            <p className="text-xs text-muted-foreground">
-                              Leads com score ≥ 80 aparecem aqui automaticamente.
-                            </p>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    topLeads.map((l, i) => (
-                      <tr key={`${l.name}-${i}`} className="hover:bg-muted/30 transition">
-                        <td className="px-4 py-3 text-muted-foreground">{i + 1}</td>
-                        <td className="px-4 py-3 font-medium text-foreground">{l.name}</td>
-                        <td className="px-4 py-3 text-foreground/80">{l.item}</td>
-                        <td className="px-4 py-3">
-                          <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-rose-500 to-orange-500 px-2.5 py-0.5 text-xs font-bold text-white shadow-sm">
-                            <Flame className="h-3 w-3" />
-                            {l.score}
+
+            {topLeads.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-1.5 rounded-xl border border-dashed border-border bg-muted/20 py-10 text-center">
+                <Flame className="h-7 w-7 text-muted-foreground/50" />
+                <p className="text-sm font-medium text-foreground">
+                  {loading ? "Carregando…" : "Nenhuma oportunidade quente no momento"}
+                </p>
+                {!loading && (
+                  <p className="text-xs text-muted-foreground max-w-xs">
+                    Leads com score ≥ 80 aparecem aqui assim que forem qualificados.
+                  </p>
+                )}
+              </div>
+            ) : (
+              <ul className="space-y-2.5">
+                {topLeads.map((l, i) => {
+                  const scoreNum = typeof l.score === "number" ? l.score : 0;
+                  const tempColor =
+                    scoreNum >= 80
+                      ? "from-rose-500 to-orange-500"
+                      : scoreNum >= 50
+                        ? "from-amber-400 to-orange-400"
+                        : "from-sky-400 to-blue-500";
+                  const tempLabel = scoreNum >= 80 ? "Quente" : scoreNum >= 50 ? "Morno" : "Frio";
+                  return (
+                    <li
+                      key={`${l.name}-${i}`}
+                      className="group flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition hover:bg-muted/30 hover:shadow-[var(--shadow-soft)]"
+                    >
+                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--brand-blue-soft)] font-display text-sm font-bold text-primary">
+                        {i + 1}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="truncate text-sm font-semibold text-foreground">
+                            {l.name}
                           </span>
-                        </td>
-                        <td className="px-4 py-3 text-right font-medium text-foreground tabular-nums">
+                          <span
+                            className={`inline-flex items-center gap-1 rounded-full bg-gradient-to-r ${tempColor} px-2 py-0.5 text-[10px] font-bold text-white shadow-sm`}
+                          >
+                            <Flame className="h-3 w-3" />
+                            {tempLabel} · {l.score}
+                          </span>
+                        </div>
+                        <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                          {l.item}
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <div className="font-display text-sm font-bold text-foreground tabular-nums">
                           {l.value}
-                        </td>
-                        <td className="px-4 py-3 text-foreground/80">{l.owner}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                        </div>
+                        <div className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                          valor estimado
+                        </div>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
           </div>
 
           <div className="rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
@@ -773,57 +812,33 @@ function DashboardPage() {
                 <Building2 className="h-4 w-4 text-primary" />
                 <h3 className="text-base font-semibold text-foreground">Operação por setor</h3>
               </div>
-              <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 border border-amber-200">
-                Demonstrativo
+              <span className="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200">
+                Em preparação
               </span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1 mb-3">
-              Depende do roteamento por setor. A conexão real será ativada quando o atendimento
-              estiver classificando setor automaticamente.
+            <p className="text-xs text-muted-foreground mt-1 mb-4">
+              A classificação automática por setor será ativada quando o roteamento inteligente
+              estiver conectado.
             </p>
-            <div className={CHART_H}>
-              <ClientOnly
-                fallback={<div className="h-full w-full animate-pulse rounded-xl bg-muted" />}
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={sectorData} layout="vertical" margin={{ left: 8 }}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="oklch(0.94 0.01 255)"
-                      horizontal={false}
-                    />
-                    <XAxis
-                      type="number"
-                      stroke="oklch(0.55 0.04 257)"
-                      fontSize={12}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="name"
-                      stroke="oklch(0.55 0.04 257)"
-                      fontSize={12}
-                      tickLine={false}
-                      axisLine={false}
-                      width={90}
-                    />
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: 12,
-                        fontSize: 12,
-                        boxShadow: "var(--shadow-soft)",
-                      }}
-                    />
-                    <Bar
-                      dataKey="value"
-                      fill="oklch(0.78 0.05 258)"
-                      radius={[0, 8, 8, 0]}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ClientOnly>
-            </div>
+            <ul className="space-y-2">
+              {plannedSectors.map((s) => (
+                <li
+                  key={s.name}
+                  className="flex items-start gap-3 rounded-xl border border-dashed border-border bg-muted/20 p-3"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--brand-blue-soft)] text-primary">
+                    <Building2 className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold text-foreground">{s.name}</div>
+                    <div className="text-[11px] text-muted-foreground leading-snug">{s.desc}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-[10px] uppercase tracking-wide text-muted-foreground">
+              Recurso futuro · demonstrativo
+            </p>
           </div>
         </div>
       </div>

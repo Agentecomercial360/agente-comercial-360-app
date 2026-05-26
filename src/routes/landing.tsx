@@ -175,27 +175,34 @@ function LandingPage() {
               </div>
             </div>
 
-            {/* RIGHT — premium product mockup */}
+            {/* RIGHT — premium product + device composition */}
             <div className="relative lg:-mr-4 xl:-mr-8">
-              {/* single soft glow behind mockup */}
+              {/* layered ambient glows */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] opacity-40 blur-3xl"
+                className="pointer-events-none absolute -inset-16 -z-10 rounded-[3rem] opacity-70 blur-3xl"
                 style={{
                   background:
-                    "radial-gradient(closest-side, var(--brand-blue-soft) 0%, transparent 75%)",
+                    "radial-gradient(55% 60% at 70% 30%, oklch(0.55 0.22 258 / 0.35) 0%, transparent 70%), radial-gradient(50% 55% at 25% 80%, oklch(0.45 0.20 280 / 0.28) 0%, transparent 75%)",
+                }}
+              />
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -inset-4 -z-10 rounded-[2.5rem] opacity-60"
+                style={{
+                  background:
+                    "linear-gradient(135deg, oklch(0.97 0.02 258) 0%, oklch(0.94 0.04 270) 100%)",
                 }}
               />
 
-              {/* hairline ring */}
+              {/* LAPTOP / browser frame */}
               <div
                 className="relative rounded-[1.75rem] p-[1px]"
                 style={{
                   background:
-                    "linear-gradient(160deg, oklch(0.55 0.22 258 / 0.30), oklch(0.55 0.22 258 / 0.04) 45%, transparent 75%)",
+                    "linear-gradient(160deg, oklch(0.55 0.22 258 / 0.45), oklch(0.55 0.22 258 / 0.05) 45%, transparent 75%)",
                 }}
               >
-                {/* browser frame */}
                 <div
                   className="relative overflow-hidden rounded-[1.75rem] border border-white/70 bg-white p-2"
                   style={{ boxShadow: "var(--shadow-premium)" }}
@@ -286,10 +293,10 @@ function LandingPage() {
                           <div className="flex min-w-0 items-center gap-2.5">
                             <div className="min-w-0 leading-tight">
                               <div className="text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
-                                Empresa ativa
+                                Operação comercial
                               </div>
                               <div className="font-display truncate text-[11px] font-bold tracking-tight">
-                                União Auto Peças
+                                Visão geral
                               </div>
                             </div>
                             <div className="hidden items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[9px] font-semibold text-emerald-700 sm:flex">
@@ -308,28 +315,14 @@ function LandingPage() {
                         </div>
 
                         {/* CONTENT */}
-                        <div className="space-y-2.5 p-3">
-                          <div className="flex items-end justify-between gap-2">
-                            <div>
-                              <div className="font-display text-sm font-bold tracking-tight">
-                                Dashboard
-                              </div>
-                              <div className="text-[9px] text-muted-foreground">
-                                Visão geral da operação comercial em tempo real.
-                              </div>
-                            </div>
-                            <div className="hidden items-center gap-1 rounded-md border border-[var(--border-premium)] bg-white px-1.5 py-0.5 text-[9px] text-muted-foreground sm:flex">
-                              Hoje
-                            </div>
-                          </div>
-
+                        <div className="space-y-2.5 p-3 pr-[42%] md:pr-[38%]">
                           {/* KPI CARDS */}
-                          <div className="grid grid-cols-4 gap-1.5">
+                          <div className="grid grid-cols-2 gap-1.5">
                             {[
-                              { icon: TrendingUp, label: "Leads quentes", value: "14" },
-                              { icon: MessageSquare, label: "Conversas abertas", value: "26" },
-                              { icon: Bot, label: "IA ativa", value: "On" },
-                              { icon: Users, label: "Responsáveis", value: "12" },
+                              { icon: TrendingUp, label: "Leads quentes", value: "147", trend: "+24%" },
+                              { icon: MessageSquare, label: "Conversas", value: "1.284", trend: "+18%" },
+                              { icon: Bot, label: "Respostas IA", value: "92%", trend: "+12%" },
+                              { icon: Activity, label: "Conversão", value: "31%", trend: "+9%" },
                             ].map((k) => (
                               <div
                                 key={k.label}
@@ -343,54 +336,54 @@ function LandingPage() {
                                     <k.icon className="size-2.5" />
                                   </div>
                                 </div>
-                                <div className="font-display mt-1 text-lg font-bold tracking-tight">
-                                  {k.value}
+                                <div className="mt-1 flex items-baseline gap-1.5">
+                                  <div className="font-display text-base font-bold tracking-tight">
+                                    {k.value}
+                                  </div>
+                                  <div className="text-[8px] font-bold text-emerald-600">
+                                    {k.trend}
+                                  </div>
                                 </div>
                               </div>
                             ))}
                           </div>
 
-                          {/* Mini lista */}
-                          <div className="rounded-lg border border-[var(--border-premium)] bg-white shadow-[var(--shadow-soft)]">
-                            <div className="grid grid-cols-[1.4fr_1.4fr_0.9fr_0.5fr] gap-2 border-b border-[var(--border-premium)] px-2.5 py-1.5 text-[8px] font-semibold uppercase tracking-wider text-muted-foreground">
-                              <span>Cliente</span>
-                              <span>Mensagem</span>
-                              <span>Status</span>
-                              <span className="text-right">Score</span>
+                          {/* MINI CHART */}
+                          <div className="rounded-lg border border-[var(--border-premium)] bg-white p-2.5 shadow-[var(--shadow-soft)]">
+                            <div className="mb-1.5 flex items-center justify-between">
+                              <div className="text-[9px] font-bold tracking-tight">
+                                Performance da semana
+                              </div>
+                              <div className="text-[8px] font-semibold text-emerald-600">
+                                ↑ 28%
+                              </div>
                             </div>
-                            {[
-                              { c: "União Auto Peças", m: "Kit embreagem para Gol 1.6", s: "Em negociação", sc: 92, color: "amber" },
-                              { c: "Marina Costa", m: "Orçamento freio dianteiro", s: "Aguardando", sc: 78, color: "blue" },
-                            ].map((row) => (
-                              <div key={row.c} className="grid grid-cols-[1.4fr_1.4fr_0.9fr_0.5fr] items-center gap-2 border-b border-[var(--border-premium)] px-2.5 py-2 last:border-0">
-                                <div className="flex min-w-0 items-center gap-1.5">
-                                  <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[8px] font-bold text-primary">
-                                    {row.c[0]}
-                                  </div>
-                                  <div className="min-w-0 truncate text-[9px] font-semibold">
-                                    {row.c}
-                                  </div>
-                                </div>
-                                <div className="truncate text-[9px] text-muted-foreground">
-                                  {row.m}
-                                </div>
-                                <div>
-                                  <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${
-                                    row.color === "amber"
-                                      ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
-                                      : "bg-sky-50 text-sky-700 ring-1 ring-sky-200"
-                                  }`}>
-                                    {row.s}
-                                  </span>
-                                </div>
-                                <div className="text-right text-[10px] font-bold text-primary">
-                                  {row.sc}
-                                </div>
-                              </div>
-                            ))}
+                            <svg viewBox="0 0 200 56" className="h-10 w-full">
+                              <defs>
+                                <linearGradient id="hg" x1="0" x2="0" y1="0" y2="1">
+                                  <stop offset="0%" stopColor="oklch(0.55 0.22 258)" stopOpacity="0.35" />
+                                  <stop offset="100%" stopColor="oklch(0.55 0.22 258)" stopOpacity="0" />
+                                </linearGradient>
+                              </defs>
+                              <path
+                                d="M0,44 L20,38 L40,40 L60,30 L80,32 L100,22 L120,24 L140,14 L160,18 L180,8 L200,12 L200,56 L0,56 Z"
+                                fill="url(#hg)"
+                              />
+                              <path
+                                d="M0,44 L20,38 L40,40 L60,30 L80,32 L100,22 L120,24 L140,14 L160,18 L180,8 L200,12"
+                                fill="none"
+                                stroke="oklch(0.55 0.22 258)"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                              {[ [60,30],[100,22],[140,14],[180,8] ].map(([x,y]) => (
+                                <circle key={`${x}-${y}`} cx={x} cy={y} r="2" fill="white" stroke="oklch(0.55 0.22 258)" strokeWidth="1.2" />
+                              ))}
+                            </svg>
                           </div>
 
-                          {/* Resumo da IA — navy premium */}
+                          {/* Resumo IA */}
                           <div
                             className="relative overflow-hidden rounded-lg p-2.5 text-white shadow-[0_8px_24px_-8px_oklch(0.18_0.04_258_/_0.5)]"
                             style={{
@@ -413,7 +406,7 @@ function LandingPage() {
                                   </span>
                                 </div>
                                 <div className="text-[9px] leading-snug text-white/80">
-                                  Oportunidade quente identificada. Follow-up comercial recomendado nas próximas 2h.
+                                  8 oportunidades quentes identificadas. Follow-up recomendado nas próximas 2h.
                                 </div>
                               </div>
                             </div>
@@ -425,30 +418,132 @@ function LandingPage() {
                 </div>
               </div>
 
-              {/* floating cards — premium accents */}
-              <div className="absolute -left-4 bottom-16 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
-                <div className="flex items-center gap-2 text-xs">
-                  <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
-                    <TrendingUp className="size-4" />
-                  </div>
-                  <div>
-                    <div className="font-semibold">Lead convertido</div>
-                    <div className="text-[11px] text-emerald-600 font-semibold">+ R$ 4.820</div>
+              {/* SMARTPHONE — overlapping right side, WhatsApp-style conversation */}
+              <div
+                aria-hidden="false"
+                className="absolute right-2 top-1/2 hidden w-[180px] -translate-y-1/2 sm:block md:right-0 md:w-[200px] lg:-right-4 lg:w-[210px]"
+              >
+                <div
+                  className="rounded-[2rem] p-[2px]"
+                  style={{
+                    background:
+                      "linear-gradient(160deg, oklch(0.55 0.22 258 / 0.6), oklch(0.20 0.045 258 / 0.4) 60%, oklch(0.55 0.22 258 / 0.5))",
+                    boxShadow:
+                      "0 30px 60px -20px oklch(0.18 0.04 258 / 0.45), 0 0 0 1px oklch(1 0 0 / 0.4) inset",
+                  }}
+                >
+                  <div className="overflow-hidden rounded-[1.85rem] bg-slate-900">
+                    {/* status bar + notch */}
+                    <div className="relative flex items-center justify-between px-4 pb-1 pt-2 text-[8px] font-semibold text-white">
+                      <span>9:41</span>
+                      <span className="absolute left-1/2 top-1.5 h-3 w-12 -translate-x-1/2 rounded-full bg-black" />
+                      <span className="flex items-center gap-1">
+                        <span className="h-1.5 w-2 rounded-sm bg-white/80" />
+                        <span className="h-1.5 w-3 rounded-sm bg-white/80" />
+                      </span>
+                    </div>
+                    {/* chat header */}
+                    <div
+                      className="flex items-center gap-2 px-3 py-2 text-white"
+                      style={{
+                        background:
+                          "linear-gradient(180deg, oklch(0.42 0.16 158) 0%, oklch(0.38 0.15 158) 100%)",
+                      }}
+                    >
+                      <div className="flex size-7 items-center justify-center rounded-full bg-white/20 text-[10px] font-bold">
+                        AC
+                      </div>
+                      <div className="min-w-0 flex-1 leading-tight">
+                        <div className="truncate text-[10px] font-bold">Agente Comercial</div>
+                        <div className="flex items-center gap-1 text-[8px] text-white/85">
+                          <span className="size-1.5 rounded-full bg-emerald-300" />
+                          online · IA respondendo
+                        </div>
+                      </div>
+                    </div>
+                    {/* chat body */}
+                    <div
+                      className="space-y-2 p-2.5"
+                      style={{
+                        background:
+                          "linear-gradient(180deg, #ece5dd 0%, #e9e2d8 100%)",
+                        minHeight: "220px",
+                      }}
+                    >
+                      <div className="max-w-[80%] rounded-lg rounded-tl-sm bg-white px-2 py-1.5 text-[8px] text-slate-800 shadow-sm">
+                        Olá! Gostaria de saber mais sobre a solução.
+                        <div className="mt-0.5 text-right text-[6px] text-slate-400">09:41</div>
+                      </div>
+                      <div className="ml-auto max-w-[85%] rounded-lg rounded-tr-sm bg-[#dcf8c6] px-2 py-1.5 text-[8px] text-slate-800 shadow-sm">
+                        Claro! Em segundos te envio um resumo personalizado para sua operação. 🚀
+                        <div className="mt-0.5 text-right text-[6px] text-emerald-700">09:41 ✓✓</div>
+                      </div>
+                      <div className="ml-auto max-w-[85%] rounded-lg rounded-tr-sm bg-[#dcf8c6] px-2 py-1.5 text-[8px] text-slate-800 shadow-sm">
+                        Encaminhei seu contato ao responsável comercial. Posso agendar uma demo?
+                        <div className="mt-0.5 text-right text-[6px] text-emerald-700">09:41 ✓✓</div>
+                      </div>
+                      <div className="flex items-center gap-1 rounded-lg bg-white px-2 py-1.5 shadow-sm w-fit">
+                        <span className="size-1 animate-pulse rounded-full bg-slate-400" />
+                        <span className="size-1 animate-pulse rounded-full bg-slate-400" style={{ animationDelay: "0.15s" }} />
+                        <span className="size-1 animate-pulse rounded-full bg-slate-400" style={{ animationDelay: "0.3s" }} />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="absolute -right-2 top-10 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:block">
+              {/* FLOATING CARDS */}
+              {/* IA respondeu — top left */}
+              <div className="absolute -left-3 top-6 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:flex">
                 <div className="flex items-center gap-2 text-xs">
                   <div
                     className="flex size-8 items-center justify-center rounded-lg text-white"
                     style={{ background: "var(--gradient-brand)" }}
                   >
-                    <Bot className="size-4" />
+                    <Zap className="size-4" />
                   </div>
                   <div>
-                    <div className="font-semibold">IA respondeu</div>
-                    <div className="text-[11px] text-muted-foreground">12 conversas</div>
+                    <div className="text-[11px] font-semibold">IA respondeu em segundos</div>
+                    <div className="text-[10px] text-muted-foreground">tempo médio · 3s</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lead qualificado — middle left */}
+              <div className="absolute -left-6 top-1/2 hidden -translate-y-1/2 rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur lg:flex">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-violet-100 text-violet-600">
+                    <Sparkles className="size-4" />
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold">Lead qualificado</div>
+                    <div className="text-[10px] text-violet-600 font-semibold">score 94 · alta intenção</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Follow-up automatizado — bottom left */}
+              <div className="absolute -left-4 bottom-10 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:flex">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-sky-100 text-sky-600">
+                    <Workflow className="size-4" />
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold">Follow-up automatizado</div>
+                    <div className="text-[10px] text-muted-foreground">próximo em 2h</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Oportunidades — bottom right */}
+              <div className="absolute -right-2 bottom-4 hidden rounded-xl border border-[var(--border-premium)] bg-white/95 px-3 py-2 shadow-[var(--shadow-card)] backdrop-blur md:flex">
+                <div className="flex items-center gap-2 text-xs">
+                  <div className="flex size-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600">
+                    <TrendingUp className="size-4" />
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold">+ oportunidades</div>
+                    <div className="text-[11px] text-emerald-600 font-semibold">+R$ 128k este mês</div>
                   </div>
                 </div>
               </div>

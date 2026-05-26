@@ -629,7 +629,14 @@ function DashboardPage() {
                 )}
               </ClientOnly>
             </div>
+
+            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+              {weekActivity && weekTotal > 0 && weekTotal < 10
+                ? "Baixo volume de mensagens registrado nesta semana."
+                : "Conforme novas mensagens forem registradas, este gráfico mostrará a evolução da operação comercial."}
+            </p>
           </div>
+
 
           <div className="rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
             <div className="flex items-center gap-2">

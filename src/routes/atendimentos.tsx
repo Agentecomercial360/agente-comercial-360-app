@@ -230,7 +230,7 @@ function AtendimentosPage() {
         return;
       }
       setItems((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, status: normalizeStatus(data.status) } : a)),
+        prev.map((a) => (a.id === id ? { ...a, status: normalizeConversationStatus(data.status) } : a)),
       );
       toast.success("Atendimento finalizado no Supabase.");
     } catch {

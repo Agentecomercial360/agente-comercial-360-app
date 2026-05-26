@@ -374,7 +374,7 @@ function DashboardPage() {
     { label: "Mensagens hoje", value: messagesToday, icon: Headphones },
     { label: "Leads quentes (score ≥ 80)", value: hotLeads, icon: Flame },
     { label: "Conversas abertas", value: convOpen, icon: MessageSquare },
-    { label: "Clientes sem resposta", value: DASH, icon: UserX, hint: "Regra em configuração" },
+    { label: "Clientes sem resposta", value: convNoResponse, icon: UserX },
   ];
 
   const kpisSecondary: Kpi[] = [

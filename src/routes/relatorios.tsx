@@ -202,10 +202,47 @@ const pecas = [
   "Alternador",
 ];
 
-function csvEscape(v: string | number) {
-  const s = String(v);
-  return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+const PRINT_STYLES = `
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body { background: #ffffff !important; color: #0f172a !important; }
+  body * { visibility: hidden !important; }
+  .relatorio-print-area, .relatorio-print-area * { visibility: visible !important; }
+  .relatorio-print-area {
+    position: absolute !important;
+    inset: 0 !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+  }
+  .relatorio-print-area .rounded-2xl,
+  .relatorio-print-area .rounded-xl,
+  .relatorio-print-area .rounded-lg {
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #e2e8f0 !important;
+    page-break-inside: avoid;
+  }
+  .relatorio-print-area .text-white,
+  .relatorio-print-area .text-blue-50 { color: #0f172a !important; }
+  .relatorio-print-area .bg-gradient-to-br,
+  .relatorio-print-area .bg-gradient-to-t,
+  .relatorio-print-area .bg-gradient-to-r {
+    background: #ffffff !important;
+    background-image: none !important;
+  }
+  .relatorio-print-area .ring-1 { box-shadow: none !important; }
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
 }
+.print-only { display: none; }
+`;
 
 function RelatoriosPage() {
   const [periodo, setPeriodo] = useState<PeriodoKey>("Hoje");

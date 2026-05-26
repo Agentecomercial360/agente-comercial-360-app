@@ -204,8 +204,17 @@ const pecas = [
 
 const PRINT_STYLES = `
 @media print {
-  @page { size: A4; margin: 14mm; }
-  html, body { background: #ffffff !important; color: #0f172a !important; }
+  @page {
+    size: A4;
+    margin: 16mm 14mm 22mm 14mm;
+  }
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif !important;
+  }
   body * { visibility: hidden !important; }
   .relatorio-print-area, .relatorio-print-area * { visibility: visible !important; }
   .relatorio-print-area {
@@ -219,6 +228,8 @@ const PRINT_STYLES = `
     background: #ffffff !important;
     color: #0f172a !important;
     box-shadow: none !important;
+    font-size: 11pt !important;
+    line-height: 1.45 !important;
   }
   .relatorio-print-area .rounded-2xl,
   .relatorio-print-area .rounded-xl,
@@ -226,20 +237,106 @@ const PRINT_STYLES = `
     box-shadow: none !important;
     background: #ffffff !important;
     color: #0f172a !important;
-    border-color: #e2e8f0 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 8px !important;
     page-break-inside: avoid;
+  }
+  .relatorio-print-area h1,
+  .relatorio-print-area h2,
+  .relatorio-print-area h3 {
+    color: #0b2545 !important;
+    letter-spacing: -0.01em !important;
   }
   .relatorio-print-area .text-white,
   .relatorio-print-area .text-blue-50 { color: #0f172a !important; }
+  .relatorio-print-area .text-blue-600,
+  .relatorio-print-area .text-blue-700 { color: #1d4ed8 !important; }
   .relatorio-print-area .bg-gradient-to-br,
   .relatorio-print-area .bg-gradient-to-t,
   .relatorio-print-area .bg-gradient-to-r {
-    background: #ffffff !important;
+    background: #f8fafc !important;
     background-image: none !important;
+    border-left: 3px solid #1d4ed8 !important;
   }
   .relatorio-print-area .ring-1 { box-shadow: none !important; }
-  .no-print { display: none !important; }
+  .relatorio-print-area .bg-white\\/10 {
+    background: #eef2ff !important;
+    color: #0b2545 !important;
+  }
+  .relatorio-print-area .shadow,
+  .relatorio-print-area .shadow-sm,
+  .relatorio-print-area .shadow-lg { box-shadow: none !important; }
+
+  /* Cabeçalho institucional do PDF */
+  .pdf-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    padding-bottom: 12px !important;
+    border-bottom: 2px solid #0b2545 !important;
+    margin-bottom: 16px !important;
+  }
+  .pdf-brand {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+  .pdf-brand-logo {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 10px !important;
+    background: #0b2545 !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    font-size: 13pt !important;
+    letter-spacing: 0.5px !important;
+  }
+  .pdf-brand-name {
+    font-size: 13pt !important;
+    font-weight: 700 !important;
+    color: #0b2545 !important;
+    line-height: 1.1 !important;
+  }
+  .pdf-brand-tag {
+    font-size: 8.5pt !important;
+    color: #475569 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.12em !important;
+  }
+  .pdf-meta {
+    text-align: right !important;
+    font-size: 9pt !important;
+    color: #334155 !important;
+    line-height: 1.4 !important;
+  }
+  .pdf-meta strong { color: #0b2545 !important; }
+
+  /* Rodapé fixo em cada página */
+  .pdf-footer {
+    position: fixed !important;
+    bottom: 6mm !important;
+    left: 14mm !important;
+    right: 14mm !important;
+    padding-top: 6px !important;
+    border-top: 1px solid #cbd5e1 !important;
+    font-size: 8pt !important;
+    color: #64748b !important;
+    display: flex !important;
+    justify-content: space-between !important;
+  }
+
+  .no-print, .no-print * { display: none !important; visibility: hidden !important; }
   .print-only { display: block !important; }
+
+  /* Esconder overlays/badges do Lovable, se presentes */
+  [data-lovable-overlay],
+  [data-lovable-badge],
+  #lovable-badge,
+  iframe[src*="lovable"] { display: none !important; visibility: hidden !important; }
 }
 .print-only { display: none; }
 `;
@@ -499,19 +596,28 @@ function RelatoriosPage() {
           </p>
         </div>
 
-        {/* Cabeçalho exclusivo do PDF impresso */}
-        <div className="print-only border-b border-slate-300 pb-3">
-          <h1 className="text-2xl font-bold text-slate-900">
-            Relatório Gerencial — {companyName ?? "sua empresa"}
-          </h1>
-          <p className="mt-1 text-sm text-slate-700">
-            Período: <strong>{periodo}</strong> · Gerado em: <strong>{dataGeracao}</strong>
-          </p>
-          <p className="mt-1 text-xs text-slate-600">
-            Métricas principais e contagens por status são extraídas do Supabase. Blocos marcados
-            como <strong>Demonstrativo</strong> são recursos em construção e ainda usam dados de exemplo.
-          </p>
+        {/* Cabeçalho institucional do PDF */}
+        <div className="print-only pdf-header">
+          <div className="pdf-brand">
+            <span className="pdf-brand-logo" aria-hidden>AC</span>
+            <div>
+              <div className="pdf-brand-name">Agente Comercial 360</div>
+              <div className="pdf-brand-tag">Relatório Gerencial</div>
+            </div>
+          </div>
+          <div className="pdf-meta">
+            <div><strong>{companyName ?? "Empresa não identificada"}</strong></div>
+            <div>Período: <strong>{periodo}</strong></div>
+            <div>Gerado em: <strong>{dataGeracao}</strong></div>
+          </div>
         </div>
+
+        {/* Rodapé fixo do PDF */}
+        <div className="print-only pdf-footer">
+          <span>Relatório gerado por Agente Comercial 360</span>
+          <span>{dataGeracao}</span>
+        </div>
+
 
         <div className={`no-print rounded-lg border px-3 py-2 text-xs font-medium ${statusTone}`}>
           {statusMessage}

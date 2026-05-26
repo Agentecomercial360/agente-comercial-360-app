@@ -724,7 +724,7 @@ function RelatoriosPage() {
             <p className="text-xs text-slate-500">conversations.status = finalizada</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
             <p className="text-sm font-semibold text-slate-700">Atendimentos por setor<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
               {demo.setores.map((s) => (
@@ -756,7 +756,7 @@ function RelatoriosPage() {
             <p className="text-xs text-slate-500">oportunidades comerciais identificadas</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-semibold text-slate-700">Principais peças solicitadas<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <ul className="mt-2 space-y-1 text-sm text-slate-600">
               {pecas.map((p) => (
@@ -774,19 +774,19 @@ function RelatoriosPage() {
             <p className="text-xs text-slate-500">classificados como quentes</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Pendências de vendas<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <p className="mt-2 text-2xl font-bold text-slate-900">{demo.pendVendas}</p>
             <p className="text-xs text-slate-500">clientes aguardando orçamento</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Solicitações administrativas<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <p className="mt-2 text-2xl font-bold text-slate-900">{demo.solAdm}</p>
             <p className="text-xs text-slate-500">solicitações registradas</p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Pendências financeiras<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <p className="mt-2 text-2xl font-bold text-amber-600">{demo.pendFin}</p>
             <p className="text-xs text-slate-500">pendências de cobrança</p>

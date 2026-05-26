@@ -69,6 +69,7 @@ type TopLead = {
   score: number | string;
   value: string;
   owner: string;
+  nextAction: string | null;
 };
 
 type TempBucket = { name: string; value: number; color: string };
@@ -204,7 +205,7 @@ function DashboardPage() {
           .eq("company_id", companyId),
         supabase
           .from("leads")
-          .select("id, interest, score, estimated_value, customers ( name )")
+          .select("id, interest, score, estimated_value, next_action, customers ( name )")
           .eq("company_id", companyId)
           .gte("score", 80)
           .order("score", { ascending: false })
@@ -292,16 +293,19 @@ function DashboardPage() {
           interest: string | null;
           score: number | null;
           estimated_value: number | null;
+          next_action: string | null;
           customers: { name: string | null } | { name: string | null }[] | null;
         }>;
         const mapped: TopLead[] = rows.map((r) => {
           const cust = Array.isArray(r.customers) ? r.customers[0] : r.customers;
+          const action = r.next_action?.trim();
           return {
             name: cust?.name ?? DASH,
             item: r.interest ?? DASH,
             score: r.score ?? DASH,
             value: formatBRL(r.estimated_value),
             owner: DASH,
+            nextAction: action && action.length > 0 ? action : null,
           };
         });
         setTopLeads(mapped);
@@ -405,24 +409,28 @@ function DashboardPage() {
   const num = (v: KpiValue) => (typeof v === "number" ? v : 0);
   const execSummary = useMemo(() => {
     const parts: string[] = [];
-    parts.push(`A operação possui ${num(totalLeads)} leads cadastrados`);
-    parts.push(`${num(hotLeads)} oportunidades quentes`);
-    parts.push(`${num(convOpen)} conversas em aberto`);
-    parts.push(`${num(convFinished)} finalizadas`);
-    if (typeof messagesToday === "number") {
-      parts.push(`${messagesToday} mensagens trocadas hoje`);
-    }
+    parts.push(`A operação possui ${num(totalLeads)} lead(s) cadastrado(s)`);
+    parts.push(`${num(hotLeads)} oportunidade(s) quente(s)`);
+    parts.push(`${num(convFinished)} conversa(s) finalizada(s)`);
     parts.push(`IA ${aiConfigured === "Sim" ? "configurada" : "ainda não configurada"}`);
-    parts.push(`${num(activeResponsibles)} responsáveis ativos`);
-    return parts.join(" · ") + ".";
+    parts.push(`${num(activeResponsibles)} responsável(is) ativo(s)`);
+    if (typeof messagesToday === "number") {
+      parts.push(`${messagesToday} mensagem(ns) trocada(s) hoje`);
+    }
+    const base = parts.join(" · ") + ".";
+    const kb =
+      typeof activeKnowledge === "number"
+        ? ` A base de conhecimento possui ${activeKnowledge} registro(s) ativo(s).`
+        : "";
+    return base + kb;
   }, [
     totalLeads,
     hotLeads,
-    convOpen,
     convFinished,
     messagesToday,
     aiConfigured,
     activeResponsibles,
+    activeKnowledge,
   ]);
 
   return (
@@ -625,7 +633,14 @@ function DashboardPage() {
                 )}
               </ClientOnly>
             </div>
+
+            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+              {weekActivity && weekTotal > 0 && weekTotal < 10
+                ? "Baixo volume de mensagens registrado nesta semana."
+                : "Conforme novas mensagens forem registradas, este gráfico mostrará a evolução da operação comercial."}
+            </p>
           </div>
+
 
           <div className="rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
             <div className="flex items-center gap-2">
@@ -790,6 +805,10 @@ function DashboardPage() {
                         <div className="mt-0.5 truncate text-xs text-muted-foreground">
                           {l.item}
                         </div>
+                        <div className="mt-1 truncate text-[11px] text-foreground/80">
+                          <span className="font-semibold text-foreground">Próxima ação:</span>{" "}
+                          {l.nextAction ?? "ainda não definida."}
+                        </div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="font-display text-sm font-bold text-foreground tabular-nums">
@@ -817,8 +836,8 @@ function DashboardPage() {
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1 mb-4">
-              A classificação automática por setor será ativada quando o roteamento inteligente
-              estiver conectado.
+              O roteamento por setor permitirá identificar automaticamente se o atendimento é de
+              vendas, financeiro, administrativo ou orçamento.
             </p>
             <ul className="space-y-2">
               {plannedSectors.map((s) => (

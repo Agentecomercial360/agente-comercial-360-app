@@ -681,6 +681,16 @@ function RelatoriosPage() {
               <h3 className="text-lg font-bold">Resumo executivo da IA</h3>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-blue-50">{d.resumo}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {CONVERSATION_STATUSES.map((s) => (
+                <span
+                  key={s}
+                  className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-blue-50 ring-1 ring-white/20"
+                >
+                  {getConversationStatusLabel(s)}: {d.statusCounts?.[s] ?? 0}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">

@@ -15,6 +15,12 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
+import {
+  type ConversationStatus,
+  normalizeConversationStatus,
+  getConversationStatusLabel,
+  getConversationStatusBadgeClass,
+} from "@/lib/conversation-status";
 
 export const Route = createFileRoute("/atendimentos")({
   component: AtendimentosPage,
@@ -22,17 +28,6 @@ export const Route = createFileRoute("/atendimentos")({
 });
 
 type LoadStatus = "loading" | "loaded" | "empty" | "unauthenticated" | "error";
-
-function normalizeStatus(raw: unknown): string {
-  const s = String(raw ?? "").trim().toLowerCase();
-  if (["aberta", "aberto", "open", "active"].includes(s)) return "Aberto";
-  if (["em_andamento", "andamento", "in_progress"].includes(s)) return "Em andamento";
-  if (["aguardando_cliente", "aguardando_resposta", "waiting", "pending"].includes(s))
-    return "Aguardando resposta";
-  if (["sem_resposta", "no_response"].includes(s)) return "Sem resposta";
-  if (["finalizada", "finalizado", "closed", "finished"].includes(s)) return "Finalizado";
-  return "Aberto";
-}
 
 function formatHorario(lastMessageAt: string | null, createdAt: string | null): string {
   const iso = lastMessageAt ?? createdAt;
@@ -72,18 +67,18 @@ type Atendimento = {
   telefone: string;
   mensagem: string;
   setor: string;
-  status: string;
+  status: ConversationStatus;
   responsavel: string;
   horario: string;
 };
 
 const atendimentosMock: Atendimento[] = [
-  { id: 1, cliente: "João Martins", telefone: "(15) 99999-1020", mensagem: "Preciso de orçamento do kit embreagem.", setor: "Vendas", status: "Em andamento", responsavel: "Amanda", horario: "09:41" },
-  { id: 2, cliente: "Carlos Souza", telefone: "(15) 98888-2211", mensagem: "Vocês têm pastilha de freio do Onix?", setor: "Vendas", status: "Sem resposta", responsavel: "Vinicius", horario: "10:12" },
-  { id: 3, cliente: "Fernanda Lima", telefone: "(15) 97777-3344", mensagem: "Quero saber se tem bateria 60Ah.", setor: "Vendas", status: "Aberto", responsavel: "Thaís", horario: "11:05" },
-  { id: 4, cliente: "Roberto Alves", telefone: "(15) 96666-4455", mensagem: "Tenho uma cobrança em aberto?", setor: "Financeiro", status: "Em andamento", responsavel: "Vinicius", horario: "11:48" },
-  { id: 5, cliente: "Mariana Costa", telefone: "(15) 95555-7788", mensagem: "Qual horário de funcionamento?", setor: "Administrativo", status: "Finalizado", responsavel: "Lorenzzo", horario: "12:20" },
-  { id: 6, cliente: "Pedro Henrique", telefone: "(15) 94444-8899", mensagem: "Preciso de amortecedor dianteiro.", setor: "Orçamentos", status: "Sem resposta", responsavel: "Vitor", horario: "13:02" },
+  { id: 1, cliente: "João Martins", telefone: "(15) 99999-1020", mensagem: "Preciso de orçamento do kit embreagem.", setor: "Vendas", status: "em_andamento", responsavel: "Amanda", horario: "09:41" },
+  { id: 2, cliente: "Carlos Souza", telefone: "(15) 98888-2211", mensagem: "Vocês têm pastilha de freio do Onix?", setor: "Vendas", status: "sem_resposta", responsavel: "Vinicius", horario: "10:12" },
+  { id: 3, cliente: "Fernanda Lima", telefone: "(15) 97777-3344", mensagem: "Quero saber se tem bateria 60Ah.", setor: "Vendas", status: "aberta", responsavel: "Thaís", horario: "11:05" },
+  { id: 4, cliente: "Roberto Alves", telefone: "(15) 96666-4455", mensagem: "Tenho uma cobrança em aberto?", setor: "Financeiro", status: "em_andamento", responsavel: "Vinicius", horario: "11:48" },
+  { id: 5, cliente: "Mariana Costa", telefone: "(15) 95555-7788", mensagem: "Qual horário de funcionamento?", setor: "Administrativo", status: "finalizada", responsavel: "Lorenzzo", horario: "12:20" },
+  { id: 6, cliente: "Pedro Henrique", telefone: "(15) 94444-8899", mensagem: "Preciso de amortecedor dianteiro.", setor: "Orçamentos", status: "sem_resposta", responsavel: "Vitor", horario: "13:02" },
 ];
 
 
@@ -94,15 +89,6 @@ const setorBadge: Record<string, string> = {
   Orçamentos: "bg-amber-50 text-amber-700 ring-amber-200",
 };
 
-const statusBadge: Record<string, string> = {
-  Aberto: "bg-sky-50 text-sky-700 ring-sky-200",
-  "Em andamento": "bg-indigo-50 text-indigo-700 ring-indigo-200",
-  "Aguardando resposta": "bg-amber-50 text-amber-700 ring-amber-200",
-  Encaminhado: "bg-purple-50 text-purple-700 ring-purple-200",
-  Finalizado: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  "Sem resposta": "bg-red-50 text-red-700 ring-red-200",
-};
-
 const prioridades = [
   "Responder clientes sem retorno",
   "Encaminhar orçamentos pendentes",
@@ -111,12 +97,12 @@ const prioridades = [
 ];
 
 const setores = new Set(["Vendas", "Financeiro", "Administrativo", "Orçamentos"]);
-const statuses = new Set(["Aberto", "Em andamento", "Finalizado", "Sem resposta"]);
-const filtroMap: Record<string, string> = {
-  Abertos: "Aberto",
-  "Em andamento": "Em andamento",
-  Finalizados: "Finalizado",
-  "Sem resposta": "Sem resposta",
+// Mapeia o rótulo do chip de filtro para um conjunto de status canônicos.
+const filtroStatusMap: Record<string, ConversationStatus[]> = {
+  Abertos: ["aberta"],
+  "Em andamento": ["em_andamento"],
+  Finalizados: ["finalizada"],
+  "Sem resposta": ["sem_resposta"],
 };
 
 function AtendimentosPage() {
@@ -176,7 +162,7 @@ function AtendimentosPage() {
             telefone: cust?.phone ?? "—",
             mensagem: "Carregue o atendimento para ver mensagens",
             setor: "—",
-            status: normalizeStatus(r.status),
+            status: normalizeConversationStatus(r.status),
             responsavel: "—",
             horario: formatHorario(r.last_message_at, r.created_at),
           };
@@ -200,10 +186,12 @@ function AtendimentosPage() {
     return items.filter((a) => {
       if (filtro !== "Todos") {
         if (setores.has(filtro) && a.setor !== filtro) return false;
-        if (filtroMap[filtro] && a.status !== filtroMap[filtro]) return false;
+        const allowed = filtroStatusMap[filtro];
+        if (allowed && !allowed.includes(a.status)) return false;
       }
       if (!q) return true;
-      return [a.cliente, a.telefone, a.mensagem, a.setor, a.status, a.responsavel, a.horario]
+      const statusLabel = getConversationStatusLabel(a.status).toLowerCase();
+      return [a.cliente, a.telefone, a.mensagem, a.setor, statusLabel, a.responsavel, a.horario]
         .some((v) => v.toLowerCase().includes(q));
     });
   }, [items, filtro, search]);
@@ -215,7 +203,7 @@ function AtendimentosPage() {
   const finalizar = async (id: string | number) => {
     if (typeof id !== "string") {
       // mock local
-      setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status: "Finalizado" } : a)));
+      setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status: "finalizada" as ConversationStatus } : a)));
       toast.success("Atendimento marcado como finalizado (local)");
       return;
     }
@@ -242,7 +230,7 @@ function AtendimentosPage() {
         return;
       }
       setItems((prev) =>
-        prev.map((a) => (a.id === id ? { ...a, status: normalizeStatus(data.status) } : a)),
+        prev.map((a) => (a.id === id ? { ...a, status: normalizeConversationStatus(data.status) } : a)),
       );
       toast.success("Atendimento finalizado no Supabase.");
     } catch {
@@ -269,13 +257,13 @@ function AtendimentosPage() {
   const dynamicCards = useMemo(
     () => [
       { label: "Atendimentos hoje", value: items.length, icon: Headphones },
-      { label: "Em andamento", value: items.filter((a) => a.status === "Em andamento").length, icon: Clock },
+      { label: "Em andamento", value: items.filter((a) => a.status === "em_andamento").length, icon: Clock },
       {
         label: "Aguardando resposta",
-        value: items.filter((a) => a.status === "Aguardando resposta").length,
+        value: items.filter((a) => a.status === "aguardando_cliente" || a.status === "aguardando_empresa").length,
         icon: AlertCircle,
       },
-      { label: "Finalizados", value: items.filter((a) => a.status === "Finalizado").length, icon: CheckCircle2 },
+      { label: "Finalizados", value: items.filter((a) => a.status === "finalizada").length, icon: CheckCircle2 },
     ],
     [items],
   );
@@ -413,9 +401,9 @@ function AtendimentosPage() {
                       </td>
                       <td className="px-4 py-3">
                         <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${statusBadge[a.status] ?? "bg-slate-100 text-slate-700 ring-slate-200"}`}
+                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${getConversationStatusBadgeClass(a.status)}`}
                         >
-                          {a.status}
+                          {getConversationStatusLabel(a.status)}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-slate-700">{a.responsavel}</td>
@@ -498,7 +486,7 @@ function AtendimentosPage() {
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-500">Status</p>
-                  <p className="mt-0.5 font-medium text-slate-800">{selected.status}</p>
+                  <p className="mt-0.5 font-medium text-slate-800">{getConversationStatusLabel(selected.status)}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-500">Responsável</p>

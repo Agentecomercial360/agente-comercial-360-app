@@ -596,19 +596,28 @@ function RelatoriosPage() {
           </p>
         </div>
 
-        {/* Cabeçalho exclusivo do PDF impresso */}
-        <div className="print-only border-b border-slate-300 pb-3">
-          <h1 className="text-2xl font-bold text-slate-900">
-            Relatório Gerencial — {companyName ?? "sua empresa"}
-          </h1>
-          <p className="mt-1 text-sm text-slate-700">
-            Período: <strong>{periodo}</strong> · Gerado em: <strong>{dataGeracao}</strong>
-          </p>
-          <p className="mt-1 text-xs text-slate-600">
-            Métricas principais e contagens por status são extraídas do Supabase. Blocos marcados
-            como <strong>Demonstrativo</strong> são recursos em construção e ainda usam dados de exemplo.
-          </p>
+        {/* Cabeçalho institucional do PDF */}
+        <div className="print-only pdf-header">
+          <div className="pdf-brand">
+            <span className="pdf-brand-logo" aria-hidden>AC</span>
+            <div>
+              <div className="pdf-brand-name">Agente Comercial 360</div>
+              <div className="pdf-brand-tag">Relatório Gerencial</div>
+            </div>
+          </div>
+          <div className="pdf-meta">
+            <div><strong>{companyName ?? "Empresa não identificada"}</strong></div>
+            <div>Período: <strong>{periodo}</strong></div>
+            <div>Gerado em: <strong>{dataGeracao}</strong></div>
+          </div>
         </div>
+
+        {/* Rodapé fixo do PDF */}
+        <div className="print-only pdf-footer">
+          <span>Relatório gerado por Agente Comercial 360</span>
+          <span>{dataGeracao}</span>
+        </div>
+
 
         <div className={`no-print rounded-lg border px-3 py-2 text-xs font-medium ${statusTone}`}>
           {statusMessage}

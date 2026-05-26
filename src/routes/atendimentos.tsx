@@ -15,6 +15,12 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
+import {
+  type ConversationStatus,
+  normalizeConversationStatus,
+  getConversationStatusLabel,
+  getConversationStatusBadgeClass,
+} from "@/lib/conversation-status";
 
 export const Route = createFileRoute("/atendimentos")({
   component: AtendimentosPage,
@@ -22,17 +28,6 @@ export const Route = createFileRoute("/atendimentos")({
 });
 
 type LoadStatus = "loading" | "loaded" | "empty" | "unauthenticated" | "error";
-
-function normalizeStatus(raw: unknown): string {
-  const s = String(raw ?? "").trim().toLowerCase();
-  if (["aberta", "aberto", "open", "active"].includes(s)) return "Aberto";
-  if (["em_andamento", "andamento", "in_progress"].includes(s)) return "Em andamento";
-  if (["aguardando_cliente", "aguardando_resposta", "waiting", "pending"].includes(s))
-    return "Aguardando resposta";
-  if (["sem_resposta", "no_response"].includes(s)) return "Sem resposta";
-  if (["finalizada", "finalizado", "closed", "finished"].includes(s)) return "Finalizado";
-  return "Aberto";
-}
 
 function formatHorario(lastMessageAt: string | null, createdAt: string | null): string {
   const iso = lastMessageAt ?? createdAt;

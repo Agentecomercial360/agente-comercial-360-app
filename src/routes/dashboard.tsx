@@ -409,24 +409,28 @@ function DashboardPage() {
   const num = (v: KpiValue) => (typeof v === "number" ? v : 0);
   const execSummary = useMemo(() => {
     const parts: string[] = [];
-    parts.push(`A operação possui ${num(totalLeads)} leads cadastrados`);
-    parts.push(`${num(hotLeads)} oportunidades quentes`);
-    parts.push(`${num(convOpen)} conversas em aberto`);
-    parts.push(`${num(convFinished)} finalizadas`);
-    if (typeof messagesToday === "number") {
-      parts.push(`${messagesToday} mensagens trocadas hoje`);
-    }
+    parts.push(`A operação possui ${num(totalLeads)} lead(s) cadastrado(s)`);
+    parts.push(`${num(hotLeads)} oportunidade(s) quente(s)`);
+    parts.push(`${num(convFinished)} conversa(s) finalizada(s)`);
     parts.push(`IA ${aiConfigured === "Sim" ? "configurada" : "ainda não configurada"}`);
-    parts.push(`${num(activeResponsibles)} responsáveis ativos`);
-    return parts.join(" · ") + ".";
+    parts.push(`${num(activeResponsibles)} responsável(is) ativo(s)`);
+    if (typeof messagesToday === "number") {
+      parts.push(`${messagesToday} mensagem(ns) trocada(s) hoje`);
+    }
+    const base = parts.join(" · ") + ".";
+    const kb =
+      typeof activeKnowledge === "number"
+        ? ` A base de conhecimento possui ${activeKnowledge} registro(s) ativo(s).`
+        : "";
+    return base + kb;
   }, [
     totalLeads,
     hotLeads,
-    convOpen,
     convFinished,
     messagesToday,
     aiConfigured,
     activeResponsibles,
+    activeKnowledge,
   ]);
 
   return (

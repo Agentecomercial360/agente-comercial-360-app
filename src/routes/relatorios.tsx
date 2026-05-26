@@ -57,22 +57,53 @@ function getPeriodRange(periodo: "Hoje" | "Ontem" | "Últimos 7 dias" | "Último
 type PeriodoKey = "Hoje" | "Ontem" | "Últimos 7 dias" | "Últimos 30 dias";
 const periodos: PeriodoKey[] = ["Hoje", "Ontem", "Últimos 7 dias", "Últimos 30 dias"];
 
-type DadosPeriodo = {
-  atendimentos: number;
-  oportunidades: number;
-  leadsQuentes: number;
-  semResposta: number;
-  novos: number;
+// ============================================================
+// MÉTRICAS REAIS — vindas exclusivamente do Supabase.
+// Cards principais, resumo executivo e CSV usam apenas estes dados.
+// ============================================================
+type MetricasReais = {
+  atendimentos: number;       // conversations.status = 'finalizada' no período (created_at)
+  oportunidades: number;      // leads no período (created_at)
+  leadsQuentes: number;       // leads score>=80 no período (created_at)
+  novos: number;              // customers no período (created_at)
+  semResposta: number;        // conversations.status = 'sem_resposta' no período (created_at)
+  statusCounts: Record<ConversationStatus, number>;
+  loadedKeys: Set<string>;    // métricas que carregaram com sucesso
+};
+
+const ZERO_STATUS_COUNTS: Record<ConversationStatus, number> = {
+  aberta: 0,
+  em_andamento: 0,
+  aguardando_cliente: 0,
+  aguardando_empresa: 0,
+  encaminhada: 0,
+  sem_resposta: 0,
+  finalizada: 0,
+};
+
+const METRICAS_VAZIAS: MetricasReais = {
+  atendimentos: 0,
+  oportunidades: 0,
+  leadsQuentes: 0,
+  novos: 0,
+  semResposta: 0,
+  statusCounts: { ...ZERO_STATUS_COUNTS },
+  loadedKeys: new Set<string>(),
+};
+
+// ============================================================
+// BLOCOS DEMONSTRATIVOS — apenas para visuais marcados como "Demonstrativo".
+// NUNCA alimentam cards principais, resumo executivo ou CSV.
+// ============================================================
+type BlocoDemo = {
   recorrentes: number;
   pendVendas: number;
   solAdm: number;
   pendFin: number;
-  resumo: string;
   recomendacoes: string[];
   setores: { nome: string; valor: number; cor: string }[];
   leadsTemp: { nome: string; valor: number; cor: string; total: number }[];
   semana: { dia: string; valor: number }[];
-  statusCounts?: Partial<Record<ConversationStatus, number>>;
 };
 
 const semanaBase = [
@@ -87,7 +118,7 @@ const semanaBase = [
 
 const setoresCor = ["bg-blue-600", "bg-slate-700", "bg-emerald-600", "bg-amber-500"];
 
-function buildSetores(total: number): DadosPeriodo["setores"] {
+function buildSetores(total: number): BlocoDemo["setores"] {
   return [
     { nome: "Vendas", valor: Math.round(total * 0.56), cor: setoresCor[0] },
     { nome: "Administrativo", valor: Math.round(total * 0.17), cor: setoresCor[1] },
@@ -96,26 +127,21 @@ function buildSetores(total: number): DadosPeriodo["setores"] {
   ];
 }
 
-const dadosPorPeriodo: Record<PeriodoKey, DadosPeriodo> = {
+const recomendacoesDemo = [
+  "Priorizar os leads quentes identificados no período",
+  "Retornar clientes sem resposta",
+  "Revisar pendências financeiras abertas",
+  "Validar disponibilidade das peças mais solicitadas",
+  "Acompanhar responsáveis com maior volume de atendimentos",
+];
+
+const blocosDemoPorPeriodo: Record<PeriodoKey, BlocoDemo> = {
   Hoje: {
-    atendimentos: 128,
-    oportunidades: 32,
-    leadsQuentes: 14,
-    semResposta: 9,
-    novos: 41,
     recorrentes: 87,
     pendVendas: 6,
     solAdm: 11,
     pendFin: 6,
-    resumo:
-      "A operação apresentou alto volume de atendimentos comerciais hoje, com destaque para solicitações de orçamento e peças de reposição. A IA identificou 14 leads quentes e 9 clientes sem resposta.",
-    recomendacoes: [
-      "Priorizar os 14 leads quentes identificados hoje",
-      "Retornar 9 clientes sem resposta",
-      "Revisar pendências financeiras abertas",
-      "Validar disponibilidade das peças mais solicitadas",
-      "Acompanhar responsáveis com maior volume de atendimentos",
-    ],
+    recomendacoes: recomendacoesDemo,
     setores: buildSetores(128),
     leadsTemp: [
       { nome: "Quentes", valor: 14, cor: "bg-red-500", total: 60 },
@@ -125,24 +151,11 @@ const dadosPorPeriodo: Record<PeriodoKey, DadosPeriodo> = {
     semana: semanaBase,
   },
   Ontem: {
-    atendimentos: 96,
-    oportunidades: 24,
-    leadsQuentes: 10,
-    semResposta: 7,
-    novos: 28,
     recorrentes: 68,
     pendVendas: 5,
     solAdm: 8,
     pendFin: 4,
-    resumo:
-      "Ontem a operação manteve bom ritmo de atendimentos comerciais, com foco em orçamentos. A IA identificou 10 leads quentes e 7 clientes sem resposta.",
-    recomendacoes: [
-      "Priorizar os 10 leads quentes de ontem",
-      "Retornar 7 clientes sem resposta",
-      "Revisar pendências financeiras abertas",
-      "Validar disponibilidade das peças mais solicitadas",
-      "Acompanhar responsáveis com maior volume de atendimentos",
-    ],
+    recomendacoes: recomendacoesDemo,
     setores: buildSetores(96),
     leadsTemp: [
       { nome: "Quentes", valor: 10, cor: "bg-red-500", total: 45 },
@@ -152,24 +165,11 @@ const dadosPorPeriodo: Record<PeriodoKey, DadosPeriodo> = {
     semana: semanaBase.map((d) => ({ ...d, valor: Math.round(d.valor * 0.75) })),
   },
   "Últimos 7 dias": {
-    atendimentos: 742,
-    oportunidades: 186,
-    leadsQuentes: 71,
-    semResposta: 34,
-    novos: 219,
     recorrentes: 523,
     pendVendas: 28,
     solAdm: 52,
     pendFin: 22,
-    resumo:
-      "Nos últimos 7 dias, a operação manteve alto volume de atendimentos e oportunidades comerciais. A IA identificou 71 leads quentes e recomenda priorizar contatos com maior score.",
-    recomendacoes: [
-      "Priorizar os 71 leads quentes do período",
-      "Retornar 34 clientes sem resposta",
-      "Revisar pendências financeiras abertas",
-      "Validar disponibilidade das peças mais solicitadas",
-      "Acompanhar responsáveis com maior volume de atendimentos",
-    ],
+    recomendacoes: recomendacoesDemo,
     setores: buildSetores(742),
     leadsTemp: [
       { nome: "Quentes", valor: 71, cor: "bg-red-500", total: 280 },
@@ -179,24 +179,11 @@ const dadosPorPeriodo: Record<PeriodoKey, DadosPeriodo> = {
     semana: semanaBase.map((d) => ({ ...d, valor: Math.round(d.valor * 0.85) })),
   },
   "Últimos 30 dias": {
-    atendimentos: 3180,
-    oportunidades: 824,
-    leadsQuentes: 296,
-    semResposta: 118,
-    novos: 871,
     recorrentes: 2309,
     pendVendas: 112,
     solAdm: 214,
     pendFin: 96,
-    resumo:
-      "Nos últimos 30 dias, a operação registrou volume consistente de atendimentos e forte geração de oportunidades. A IA identificou 296 leads quentes e recomenda atuação imediata sobre os clientes sem resposta.",
-    recomendacoes: [
-      "Priorizar os 296 leads quentes do período",
-      "Retornar 118 clientes sem resposta",
-      "Revisar pendências financeiras abertas",
-      "Validar disponibilidade das peças mais solicitadas",
-      "Acompanhar responsáveis com maior volume de atendimentos",
-    ],
+    recomendacoes: recomendacoesDemo,
     setores: buildSetores(3180),
     leadsTemp: [
       { nome: "Quentes", valor: 296, cor: "bg-red-500", total: 1100 },
@@ -226,19 +213,20 @@ function RelatoriosPage() {
   const [relatoriosLoadStatus, setRelatoriosLoadStatus] =
     useState<RelatoriosLoadStatus>("loading");
   const [companyName, setCompanyName] = useState<string | null>(null);
-  const [dadosRelatorio, setDadosRelatorio] = useState<DadosPeriodo>(dadosPorPeriodo[periodo]);
+  const [metricas, setMetricas] = useState<MetricasReais>(METRICAS_VAZIAS);
+
+  const demo = blocosDemoPorPeriodo[periodo];
 
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
       setLoadingRelatorios(true);
       setRelatoriosLoadStatus("loading");
-      const base = dadosPorPeriodo[periodo];
+      setMetricas(METRICAS_VAZIAS);
       try {
         const { data: userData, error: userErr } = await supabase.auth.getUser();
         if (userErr || !userData?.user) {
           if (!cancelled) {
-            setDadosRelatorio(base);
             setRelatoriosLoadStatus("unauthenticated");
             setLoadingRelatorios(false);
           }
@@ -253,7 +241,6 @@ function RelatoriosPage() {
         const companyId = (cu as { company_id?: string } | null)?.company_id;
         if (!companyId) {
           if (!cancelled) {
-            setDadosRelatorio(base);
             setRelatoriosLoadStatus("error");
             setLoadingRelatorios(false);
           }
@@ -263,31 +250,25 @@ function RelatoriosPage() {
         const startISO = start.toISOString();
         const endISO = end.toISOString();
 
-        // Helper para contagem de conversations por status canônico no período.
-        const countConversationsByStatus = (
-          status: ConversationStatus,
-          dateColumn: "updated_at" | "created_at",
-        ) =>
+        // conversations.created_at — sem updated_at (coluna não existe).
+        const countConversationsByStatus = (status: ConversationStatus) =>
           supabase
             .from("conversations")
             .select("id", { count: "exact", head: true })
             .eq("company_id", companyId)
             .eq("status", status)
-            .gte(dateColumn, startISO)
-            .lte(dateColumn, endISO);
+            .gte("created_at", startISO)
+            .lte("created_at", endISO);
 
         const results = await Promise.allSettled([
           supabase.from("companies").select("name").eq("id", companyId).single(),
-          // 1: atendimentos = conversations finalizadas no período (updated_at)
-          countConversationsByStatus("finalizada", "updated_at"),
-          // 2: oportunidades = leads criados no período
+          countConversationsByStatus("finalizada"),
           supabase
             .from("leads")
             .select("id", { count: "exact", head: true })
             .eq("company_id", companyId)
             .gte("created_at", startISO)
             .lte("created_at", endISO),
-          // 3: leads quentes no período
           supabase
             .from("leads")
             .select("id", { count: "exact", head: true })
@@ -295,75 +276,91 @@ function RelatoriosPage() {
             .gte("score", 80)
             .gte("created_at", startISO)
             .lte("created_at", endISO),
-          // 4: novos clientes no período
           supabase
             .from("customers")
             .select("id", { count: "exact", head: true })
             .eq("company_id", companyId)
             .gte("created_at", startISO)
             .lte("created_at", endISO),
-          // 5: sem_resposta no período
-          countConversationsByStatus("sem_resposta", "created_at"),
-          // 6-10: status canônicos adicionais (created_at)
-          countConversationsByStatus("aberta", "created_at"),
-          countConversationsByStatus("em_andamento", "created_at"),
-          countConversationsByStatus("aguardando_cliente", "created_at"),
-          countConversationsByStatus("aguardando_empresa", "created_at"),
-          countConversationsByStatus("encaminhada", "created_at"),
+          countConversationsByStatus("sem_resposta"),
+          countConversationsByStatus("aberta"),
+          countConversationsByStatus("em_andamento"),
+          countConversationsByStatus("aguardando_cliente"),
+          countConversationsByStatus("aguardando_empresa"),
+          countConversationsByStatus("encaminhada"),
         ]);
 
-        let failures = 0;
-        const next: DadosPeriodo = { ...base };
-        const statusCounts: Partial<Record<ConversationStatus, number>> = {};
+        const labels = [
+          "companies",
+          "finalizada",
+          "oportunidades",
+          "leadsQuentes",
+          "novos",
+          "sem_resposta",
+          "aberta",
+          "em_andamento",
+          "aguardando_cliente",
+          "aguardando_empresa",
+          "encaminhada",
+        ];
 
-        const readCount = (idx: number, fallback: number): number => {
+        let failures = 0;
+        const loadedKeys = new Set<string>();
+        const readCount = (idx: number): number => {
           const r = results[idx];
           if (r.status === "fulfilled" && !r.value.error && typeof r.value.count === "number") {
+            loadedKeys.add(labels[idx]);
             return r.value.count;
           }
           failures++;
-          return fallback;
+          if (r.status === "fulfilled" && r.value.error) {
+            console.error(`[Relatórios] Falha em ${labels[idx]}:`, r.value.error.message);
+          } else if (r.status === "rejected") {
+            console.error(`[Relatórios] Falha em ${labels[idx]}:`, r.reason);
+          }
+          return 0;
         };
 
         const r0 = results[0];
         if (r0.status === "fulfilled" && !r0.value.error) {
           const name = (r0.value.data as { name?: string } | null)?.name ?? null;
           if (!cancelled) setCompanyName(name);
-        } else failures++;
+          loadedKeys.add("companies");
+        } else {
+          failures++;
+          if (!cancelled) setCompanyName(null);
+        }
 
-        next.atendimentos = readCount(1, base.atendimentos);
-        next.oportunidades = readCount(2, base.oportunidades);
-        next.leadsQuentes = readCount(3, base.leadsQuentes);
-        next.novos = readCount(4, base.novos);
-        next.semResposta = readCount(5, base.semResposta);
-        statusCounts.finalizada = next.atendimentos;
-        statusCounts.sem_resposta = next.semResposta;
-        statusCounts.aberta = readCount(6, 0);
-        statusCounts.em_andamento = readCount(7, 0);
-        statusCounts.aguardando_cliente = readCount(8, 0);
-        statusCounts.aguardando_empresa = readCount(9, 0);
-        statusCounts.encaminhada = readCount(10, 0);
-        next.statusCounts = statusCounts;
-
-        next.resumo =
-          `No período selecionado (${periodo.toLowerCase()}), a operação teve ` +
-          `${next.atendimentos} atendimento(s) finalizado(s), ` +
-          `${next.oportunidades} oportunidade(s) gerada(s), ` +
-          `${next.leadsQuentes} lead(s) quente(s) e ` +
-          `${next.semResposta} cliente(s) sem resposta. ` +
-          `Conversas em andamento: ${statusCounts.em_andamento ?? 0}; ` +
-          `aguardando cliente: ${statusCounts.aguardando_cliente ?? 0}; ` +
-          `aguardando empresa: ${statusCounts.aguardando_empresa ?? 0}; ` +
-          `encaminhadas: ${statusCounts.encaminhada ?? 0}.`;
+        const statusCounts: Record<ConversationStatus, number> = { ...ZERO_STATUS_COUNTS };
+        const atendimentos = readCount(1);
+        const oportunidades = readCount(2);
+        const leadsQuentes = readCount(3);
+        const novos = readCount(4);
+        const semResposta = readCount(5);
+        statusCounts.finalizada = atendimentos;
+        statusCounts.sem_resposta = semResposta;
+        statusCounts.aberta = readCount(6);
+        statusCounts.em_andamento = readCount(7);
+        statusCounts.aguardando_cliente = readCount(8);
+        statusCounts.aguardando_empresa = readCount(9);
+        statusCounts.encaminhada = readCount(10);
 
         if (!cancelled) {
-          setDadosRelatorio(next);
+          setMetricas({
+            atendimentos,
+            oportunidades,
+            leadsQuentes,
+            novos,
+            semResposta,
+            statusCounts,
+            loadedKeys,
+          });
           setRelatoriosLoadStatus(failures === 0 ? "loaded" : failures >= 6 ? "error" : "partial");
           setLoadingRelatorios(false);
         }
-      } catch {
+      } catch (err) {
+        console.error("[Relatórios] Erro inesperado:", err);
         if (!cancelled) {
-          setDadosRelatorio(base);
           setRelatoriosLoadStatus("error");
           setLoadingRelatorios(false);
         }
@@ -375,22 +372,38 @@ function RelatoriosPage() {
     };
   }, [periodo]);
 
-  const d = dadosRelatorio;
+  const m = metricas;
+
+  // Resumo executivo: APENAS métricas reais. Nunca usa dadosPorPeriodo.
+  const resumoExecutivo = useMemo(
+    () =>
+      `No período selecionado (${periodo.toLowerCase()}), a operação teve ` +
+      `${m.atendimentos} atendimento(s) finalizado(s), ` +
+      `${m.oportunidades} oportunidade(s) gerada(s), ` +
+      `${m.leadsQuentes} lead(s) quente(s) e ` +
+      `${m.semResposta} cliente(s) sem resposta. ` +
+      `Conversas em andamento: ${m.statusCounts.em_andamento}; ` +
+      `aguardando cliente: ${m.statusCounts.aguardando_cliente}; ` +
+      `aguardando empresa: ${m.statusCounts.aguardando_empresa}; ` +
+      `encaminhadas: ${m.statusCounts.encaminhada}.`,
+    [periodo, m],
+  );
+
   const cards = useMemo(
     () => [
       {
         label: periodo === "Hoje" || periodo === "Ontem" ? "Atendimentos do dia" : "Atendimentos do período",
-        value: d.atendimentos,
+        value: m.atendimentos,
         icon: Activity,
       },
-      { label: "Oportunidades geradas", value: d.oportunidades, icon: Target },
-      { label: "Leads quentes", value: d.leadsQuentes, icon: Flame },
-      { label: "Clientes sem resposta", value: d.semResposta, icon: UserX },
+      { label: "Oportunidades geradas", value: m.oportunidades, icon: Target },
+      { label: "Leads quentes", value: m.leadsQuentes, icon: Flame },
+      { label: "Clientes sem resposta", value: m.semResposta, icon: UserX },
     ],
-    [periodo, d],
+    [periodo, m],
   );
-  const maxSemana = Math.max(...d.semana.map((s) => s.valor));
-  const totalSetores = d.setores.reduce((a, s) => a + s.valor, 0) || 1;
+  const maxSemana = Math.max(...demo.semana.map((s) => s.valor));
+  const totalSetores = demo.setores.reduce((a, s) => a + s.valor, 0) || 1;
 
   const statusMessage =
     relatoriosLoadStatus === "loading"
@@ -398,10 +411,10 @@ function RelatoriosPage() {
       : relatoriosLoadStatus === "loaded"
         ? "Dados carregados do Supabase — Relatórios"
         : relatoriosLoadStatus === "partial"
-          ? "Relatórios parcialmente carregados do Supabase"
+          ? "Relatórios parcialmente carregados — métricas com falha aparecem como 0"
           : relatoriosLoadStatus === "unauthenticated"
-            ? "Usuário não autenticado. Usando dados locais temporários."
-            : "Não foi possível carregar métricas reais. Usando dados locais temporários.";
+            ? "Usuário não autenticado. Faça login para visualizar métricas reais."
+            : "Não foi possível carregar métricas reais. Cards exibidos como 0.";
   const statusTone =
     relatoriosLoadStatus === "loaded"
       ? "bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -413,23 +426,49 @@ function RelatoriosPage() {
 
   const handleExport = () => {
     try {
-      const sc = d.statusCounts ?? {};
+      const sc = m.statusCounts;
+      const isPartial = relatoriosLoadStatus === "partial";
+      const isReal = relatoriosLoadStatus === "loaded" || relatoriosLoadStatus === "partial";
+
       const rows: (string | number)[][] = [
         ["Métrica", "Valor", "Origem"],
         ["Período", periodo, "Filtro"],
         ["Empresa", companyName ?? "(não identificada)", "Supabase"],
-        ["Atendimentos finalizados", d.atendimentos, "Supabase (conversations.status=finalizada)"],
-        ["Oportunidades (leads no período)", d.oportunidades, "Supabase (leads.created_at)"],
-        ["Leads quentes (score>=80, no período)", d.leadsQuentes, "Supabase (leads)"],
-        ["Novos clientes no período", d.novos, "Supabase (customers.created_at)"],
-        ["Clientes sem resposta", d.semResposta, "Supabase (conversations.status=sem_resposta)"],
-        ["Conversas abertas", sc.aberta ?? 0, "Supabase (conversations.status=aberta)"],
-        ["Conversas em andamento", sc.em_andamento ?? 0, "Supabase (conversations.status=em_andamento)"],
-        ["Aguardando cliente", sc.aguardando_cliente ?? 0, "Supabase (conversations.status=aguardando_cliente)"],
-        ["Aguardando empresa", sc.aguardando_empresa ?? 0, "Supabase (conversations.status=aguardando_empresa)"],
-        ["Encaminhadas", sc.encaminhada ?? 0, "Supabase (conversations.status=encaminhada)"],
-        ["Resumo executivo", d.resumo, "Gerado a partir das métricas reais"],
+        ["Status do carregamento", statusMessage, "Sistema"],
       ];
+
+      if (!isReal) {
+        rows.push(["Aviso", "Métricas reais indisponíveis — exportação cancelada", "Sistema"]);
+        const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
+        const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "relatorio-agente-comercial-360.csv";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.warning("Sem métricas reais para exportar. CSV gerado contém apenas status.");
+        return;
+      }
+
+      // Só exporta métricas que carregaram com sucesso.
+      const maybePush = (key: string, label: string, value: number, origem: string) => {
+        if (m.loadedKeys.has(key)) rows.push([label, value, origem]);
+      };
+      maybePush("finalizada", "Atendimentos finalizados", m.atendimentos, "Supabase (conversations.status=finalizada, created_at)");
+      maybePush("oportunidades", "Oportunidades (leads no período)", m.oportunidades, "Supabase (leads.created_at)");
+      maybePush("leadsQuentes", "Leads quentes (score>=80, no período)", m.leadsQuentes, "Supabase (leads.created_at, score>=80)");
+      maybePush("novos", "Novos clientes no período", m.novos, "Supabase (customers.created_at)");
+      maybePush("sem_resposta", "Clientes sem resposta", m.semResposta, "Supabase (conversations.status=sem_resposta, created_at)");
+      maybePush("aberta", "Conversas abertas", sc.aberta, "Supabase (conversations.status=aberta, created_at)");
+      maybePush("em_andamento", "Conversas em andamento", sc.em_andamento, "Supabase (conversations.status=em_andamento, created_at)");
+      maybePush("aguardando_cliente", "Aguardando cliente", sc.aguardando_cliente, "Supabase (conversations.status=aguardando_cliente, created_at)");
+      maybePush("aguardando_empresa", "Aguardando empresa", sc.aguardando_empresa, "Supabase (conversations.status=aguardando_empresa, created_at)");
+      maybePush("encaminhada", "Encaminhadas", sc.encaminhada, "Supabase (conversations.status=encaminhada, created_at)");
+      rows.push(["Resumo executivo", resumoExecutivo, "Gerado a partir das métricas reais"]);
+
       const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
       const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
       const url = URL.createObjectURL(blob);
@@ -441,7 +480,9 @@ function RelatoriosPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       toast.success(
-        "Relatório exportado com métricas reais. Blocos demonstrativos (setores, peças, pendências, recomendações) não estão no CSV.",
+        isPartial
+          ? "Relatório parcial exportado. Métricas com falha foram omitidas."
+          : "Relatório exportado com métricas reais do Supabase.",
       );
     } catch {
       toast.error("Não foi possível exportar o relatório.");
@@ -464,7 +505,7 @@ function RelatoriosPage() {
         </div>
 
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          As métricas principais (atendimentos finalizados, oportunidades, leads quentes, novos clientes, sem resposta) e a contagem por status canônico vêm do Supabase. Blocos marcados como <span className="font-semibold">Demonstrativo</span> ainda são dados de exemplo e serão substituídos em fases seguintes.
+          As métricas principais (atendimentos finalizados, oportunidades, leads quentes, novos clientes, sem resposta) e a contagem por status canônico vêm exclusivamente do Supabase, usando <span className="font-mono">created_at</span>. Blocos marcados como <span className="font-semibold">Demonstrativo</span> ainda são dados de exemplo e não alimentam cards, resumo executivo ou CSV.
         </div>
 
 
@@ -484,11 +525,11 @@ function RelatoriosPage() {
             </div>
             <button
               onClick={handleExport}
-              title="A exportação inclui métricas reais parciais e alguns blocos temporários."
+              title="A exportação contém apenas métricas reais carregadas do Supabase."
               className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
             >
               <Download className="h-4 w-4" />
-              Exportar relatório parcial
+              Exportar relatório
             </button>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -527,15 +568,15 @@ function RelatoriosPage() {
 
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Total de atendimentos</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{d.atendimentos.toLocaleString("pt-BR")}</p>
-            <p className="text-xs text-slate-500">atendimentos registrados</p>
+            <p className="text-sm font-medium text-slate-500">Total de atendimentos finalizados</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{m.atendimentos.toLocaleString("pt-BR")}</p>
+            <p className="text-xs text-slate-500">conversations.status = finalizada</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
             <p className="text-sm font-semibold text-slate-700">Atendimentos por setor<span className={MOCK_BADGE}>Demonstrativo</span></p>
             <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {d.setores.map((s) => (
+              {demo.setores.map((s) => (
                 <div key={s.nome} className="rounded-lg bg-slate-50 p-3">
                   <p className="text-xs text-slate-500">{s.nome}</p>
                   <p className="mt-1 text-xl font-bold text-slate-900">{s.valor}</p>
@@ -549,18 +590,18 @@ function RelatoriosPage() {
             <div className="mt-3 space-y-2">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-600">Novos clientes</span>
-                <span className="font-bold text-slate-900">{d.novos}</span>
+                <span className="font-bold text-slate-900">{m.novos}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-slate-600">Recorrentes<span className={MOCK_BADGE}>Demonstrativo</span></span>
-                <span className="font-bold text-slate-900">{d.recorrentes}</span>
+                <span className="font-bold text-slate-900">{demo.recorrentes}</span>
               </div>
             </div>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Oportunidades de vendas</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{d.oportunidades}</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{m.oportunidades}</p>
             <p className="text-xs text-slate-500">oportunidades comerciais identificadas</p>
           </div>
 
@@ -578,31 +619,31 @@ function RelatoriosPage() {
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Leads quentes</p>
-            <p className="mt-2 text-2xl font-bold text-red-600">{d.leadsQuentes}</p>
+            <p className="mt-2 text-2xl font-bold text-red-600">{m.leadsQuentes}</p>
             <p className="text-xs text-slate-500">classificados como quentes</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Pendências de vendas<span className={MOCK_BADGE}>Demonstrativo</span></p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{d.pendVendas}</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{demo.pendVendas}</p>
             <p className="text-xs text-slate-500">clientes aguardando orçamento</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Solicitações administrativas<span className={MOCK_BADGE}>Demonstrativo</span></p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{d.solAdm}</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{demo.solAdm}</p>
             <p className="text-xs text-slate-500">solicitações registradas</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Pendências financeiras<span className={MOCK_BADGE}>Demonstrativo</span></p>
-            <p className="mt-2 text-2xl font-bold text-amber-600">{d.pendFin}</p>
+            <p className="mt-2 text-2xl font-bold text-amber-600">{demo.pendFin}</p>
             <p className="text-xs text-slate-500">pendências de cobrança</p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-medium text-slate-500">Clientes sem resposta</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{d.semResposta}</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{m.semResposta}</p>
             <p className="text-xs text-slate-500">aguardando retorno</p>
           </div>
         </div>
@@ -614,7 +655,7 @@ function RelatoriosPage() {
               <p className="text-sm font-semibold text-slate-700">Atendimentos por setor<span className={MOCK_BADGE}>Demonstrativo</span></p>
             </div>
             <div className="mt-4 space-y-3">
-              {d.setores.map((s) => {
+              {demo.setores.map((s) => {
                 const pct = Math.round((s.valor / totalSetores) * 100);
                 return (
                   <div key={s.nome}>
@@ -637,7 +678,7 @@ function RelatoriosPage() {
               <p className="text-sm font-semibold text-slate-700">Leads por temperatura<span className={MOCK_BADGE}>Demonstrativo</span></p>
             </div>
             <div className="mt-4 space-y-3">
-              {d.leadsTemp.map((l) => {
+              {demo.leadsTemp.map((l) => {
                 const pct = Math.round((l.valor / l.total) * 100);
                 return (
                   <div key={l.nome}>
@@ -660,7 +701,7 @@ function RelatoriosPage() {
               <p className="text-sm font-semibold text-slate-700">Atendimentos — 7 dias<span className={MOCK_BADGE}>Demonstrativo</span></p>
             </div>
             <div className="mt-4 flex h-32 items-end gap-2">
-              {d.semana.map((s) => (
+              {demo.semana.map((s) => (
                 <div key={s.dia} className="flex flex-1 flex-col items-center gap-1">
                   <div
                     className="w-full rounded-t bg-gradient-to-t from-blue-600 to-blue-400"
@@ -678,16 +719,16 @@ function RelatoriosPage() {
           <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-600 to-slate-900 p-6 text-white shadow-sm">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
-              <h3 className="text-lg font-bold">Resumo executivo da IA</h3>
+              <h3 className="text-lg font-bold">Resumo executivo</h3>
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-blue-50">{d.resumo}</p>
+            <p className="mt-3 text-sm leading-relaxed text-blue-50">{resumoExecutivo}</p>
             <div className="mt-4 flex flex-wrap gap-2">
               {CONVERSATION_STATUSES.map((s) => (
                 <span
                   key={s}
                   className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-blue-50 ring-1 ring-white/20"
                 >
-                  {getConversationStatusLabel(s)}: {d.statusCounts?.[s] ?? 0}
+                  {getConversationStatusLabel(s)}: {m.statusCounts[s]}
                 </span>
               ))}
             </div>
@@ -699,7 +740,7 @@ function RelatoriosPage() {
               <h3 className="text-lg font-bold text-slate-900">Recomendações da IA<span className={MOCK_BADGE}>Demonstrativo</span></h3>
             </div>
             <ul className="mt-3 space-y-2">
-              {d.recomendacoes.map((r) => (
+              {demo.recomendacoes.map((r) => (
                 <li key={r} className="flex items-start gap-2 text-sm text-slate-700">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-600" />
                   {r}
@@ -715,10 +756,11 @@ function RelatoriosPage() {
             <div>
               <p className="text-sm font-semibold text-amber-900">Observação</p>
               <p className="mt-1 text-sm text-amber-800">
-                As métricas principais de atendimentos, oportunidades, leads quentes e clientes
-                cadastrados já podem ser carregadas do Supabase. Nesta etapa, gráficos por setor,
-                peças solicitadas, pendências, clientes sem resposta e resumo executivo avançado
-                ainda usam dados temporários até a próxima fase.
+                Os cards principais, contagens por status canônico e resumo executivo são 100%
+                Supabase (filtrados por <span className="font-mono">created_at</span>). Blocos
+                marcados como Demonstrativo (setores, peças, pendências, recorrentes,
+                temperatura, gráfico semanal, recomendações) ainda usam dados de exemplo e serão
+                substituídos em fases seguintes.
               </p>
 
             </div>

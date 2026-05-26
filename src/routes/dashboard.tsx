@@ -6,7 +6,6 @@ import {
   MessageSquare,
   UserX,
   Sparkles,
-  ListChecks,
   Building2,
   ChevronRight,
   Users,
@@ -20,8 +19,6 @@ import {
 } from "lucide-react";
 import {
   ResponsiveContainer,
-  BarChart,
-  Bar,
   XAxis,
   YAxis,
   Tooltip,

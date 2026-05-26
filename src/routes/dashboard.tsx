@@ -794,6 +794,10 @@ function DashboardPage() {
                         <div className="mt-0.5 truncate text-xs text-muted-foreground">
                           {l.item}
                         </div>
+                        <div className="mt-1 truncate text-[11px] text-foreground/80">
+                          <span className="font-semibold text-foreground">Próxima ação:</span>{" "}
+                          {l.nextAction ?? "ainda não definida."}
+                        </div>
                       </div>
                       <div className="text-right shrink-0">
                         <div className="font-display text-sm font-bold text-foreground tabular-nums">

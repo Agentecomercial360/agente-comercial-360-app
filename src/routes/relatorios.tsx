@@ -202,10 +202,47 @@ const pecas = [
   "Alternador",
 ];
 
-function csvEscape(v: string | number) {
-  const s = String(v);
-  return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+const PRINT_STYLES = `
+@media print {
+  @page { size: A4; margin: 14mm; }
+  html, body { background: #ffffff !important; color: #0f172a !important; }
+  body * { visibility: hidden !important; }
+  .relatorio-print-area, .relatorio-print-area * { visibility: visible !important; }
+  .relatorio-print-area {
+    position: absolute !important;
+    inset: 0 !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+  }
+  .relatorio-print-area .rounded-2xl,
+  .relatorio-print-area .rounded-xl,
+  .relatorio-print-area .rounded-lg {
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border-color: #e2e8f0 !important;
+    page-break-inside: avoid;
+  }
+  .relatorio-print-area .text-white,
+  .relatorio-print-area .text-blue-50 { color: #0f172a !important; }
+  .relatorio-print-area .bg-gradient-to-br,
+  .relatorio-print-area .bg-gradient-to-t,
+  .relatorio-print-area .bg-gradient-to-r {
+    background: #ffffff !important;
+    background-image: none !important;
+  }
+  .relatorio-print-area .ring-1 { box-shadow: none !important; }
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
 }
+.print-only { display: none; }
+`;
 
 function RelatoriosPage() {
   const [periodo, setPeriodo] = useState<PeriodoKey>("Hoje");
@@ -424,88 +461,65 @@ function RelatoriosPage() {
           ? "bg-slate-50 text-slate-600 border-slate-200"
           : "bg-rose-50 text-rose-700 border-rose-200";
 
-  const handleExport = () => {
+  const handleExportPDF = () => {
     try {
-      const sc = m.statusCounts;
-      const isPartial = relatoriosLoadStatus === "partial";
-      const isReal = relatoriosLoadStatus === "loaded" || relatoriosLoadStatus === "partial";
-
-      const rows: (string | number)[][] = [
-        ["Métrica", "Valor", "Origem"],
-        ["Período", periodo, "Filtro"],
-        ["Empresa", companyName ?? "(não identificada)", "Supabase"],
-        ["Status do carregamento", statusMessage, "Sistema"],
-      ];
-
-      if (!isReal) {
-        rows.push(["Aviso", "Métricas reais indisponíveis — exportação cancelada", "Sistema"]);
-        const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
-        const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "relatorio-agente-comercial-360.csv";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        toast.warning("Sem métricas reais para exportar. CSV gerado contém apenas status.");
+      if (typeof window === "undefined" || typeof window.print !== "function") {
+        toast.error("Seu navegador não suporta impressão. Tente abrir em outro navegador para gerar o PDF.");
         return;
       }
-
-      // Só exporta métricas que carregaram com sucesso.
-      const maybePush = (key: string, label: string, value: number, origem: string) => {
-        if (m.loadedKeys.has(key)) rows.push([label, value, origem]);
-      };
-      maybePush("finalizada", "Atendimentos finalizados", m.atendimentos, "Supabase (conversations.status=finalizada, created_at)");
-      maybePush("oportunidades", "Oportunidades (leads no período)", m.oportunidades, "Supabase (leads.created_at)");
-      maybePush("leadsQuentes", "Leads quentes (score>=80, no período)", m.leadsQuentes, "Supabase (leads.created_at, score>=80)");
-      maybePush("novos", "Novos clientes no período", m.novos, "Supabase (customers.created_at)");
-      maybePush("sem_resposta", "Clientes sem resposta", m.semResposta, "Supabase (conversations.status=sem_resposta, created_at)");
-      maybePush("aberta", "Conversas abertas", sc.aberta, "Supabase (conversations.status=aberta, created_at)");
-      maybePush("em_andamento", "Conversas em andamento", sc.em_andamento, "Supabase (conversations.status=em_andamento, created_at)");
-      maybePush("aguardando_cliente", "Aguardando cliente", sc.aguardando_cliente, "Supabase (conversations.status=aguardando_cliente, created_at)");
-      maybePush("aguardando_empresa", "Aguardando empresa", sc.aguardando_empresa, "Supabase (conversations.status=aguardando_empresa, created_at)");
-      maybePush("encaminhada", "Encaminhadas", sc.encaminhada, "Supabase (conversations.status=encaminhada, created_at)");
-      rows.push(["Resumo executivo", resumoExecutivo, "Gerado a partir das métricas reais"]);
-
-      const csv = rows.map((r) => r.map(csvEscape).join(",")).join("\n");
-      const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "relatorio-agente-comercial-360.csv";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      toast.success(
-        isPartial
-          ? "Relatório parcial exportado. Métricas com falha foram omitidas."
-          : "Relatório exportado com métricas reais do Supabase.",
-      );
+      const isReal = relatoriosLoadStatus === "loaded" || relatoriosLoadStatus === "partial";
+      if (!isReal) {
+        toast.warning("Sem métricas reais carregadas. Aguarde o carregamento ou faça login para gerar o PDF.");
+        return;
+      }
+      toast.info("Abrindo janela de impressão. Escolha 'Salvar como PDF' no destino.");
+      setTimeout(() => window.print(), 150);
     } catch {
-      toast.error("Não foi possível exportar o relatório.");
+      toast.error("Não foi possível abrir a janela de impressão.");
     }
   };
 
+  const dataGeracao = useMemo(
+    () =>
+      new Date().toLocaleString("pt-BR", {
+        dateStyle: "short",
+        timeStyle: "short",
+      }),
+    [periodo, m],
+  );
+
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div>
+      <style dangerouslySetInnerHTML={{ __html: PRINT_STYLES }} />
+      <div className="space-y-6 relatorio-print-area">
+        <div className="no-print">
           <h1 className="text-3xl font-bold text-slate-900">Relatórios</h1>
           <p className="mt-1 text-sm text-slate-500">
             Acompanhe indicadores, resumo executivo e recomendações da IA para a operação comercial.
           </p>
         </div>
 
-        <div className={`rounded-lg border px-3 py-2 text-xs font-medium ${statusTone}`}>
+        {/* Cabeçalho exclusivo do PDF impresso */}
+        <div className="print-only border-b border-slate-300 pb-3">
+          <h1 className="text-2xl font-bold text-slate-900">
+            Relatório Gerencial — {companyName ?? "sua empresa"}
+          </h1>
+          <p className="mt-1 text-sm text-slate-700">
+            Período: <strong>{periodo}</strong> · Gerado em: <strong>{dataGeracao}</strong>
+          </p>
+          <p className="mt-1 text-xs text-slate-600">
+            Métricas principais e contagens por status são extraídas do Supabase. Blocos marcados
+            como <strong>Demonstrativo</strong> são recursos em construção e ainda usam dados de exemplo.
+          </p>
+        </div>
+
+        <div className={`no-print rounded-lg border px-3 py-2 text-xs font-medium ${statusTone}`}>
           {statusMessage}
           {loadingRelatorios ? " (carregando...)" : ""}
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          As métricas principais (atendimentos finalizados, oportunidades, leads quentes, novos clientes, sem resposta) e a contagem por status canônico vêm exclusivamente do Supabase, usando <span className="font-mono">created_at</span>. Blocos marcados como <span className="font-semibold">Demonstrativo</span> ainda são dados de exemplo e não alimentam cards, resumo executivo ou CSV.
+        <div className="no-print rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+          As métricas principais (atendimentos finalizados, oportunidades, leads quentes, novos clientes, sem resposta) e a contagem por status canônico vêm exclusivamente do Supabase, usando <span className="font-mono">created_at</span>. Blocos marcados como <span className="font-semibold">Demonstrativo</span> ainda são dados de exemplo e não alimentam cards nem o resumo executivo.
         </div>
 
 
@@ -524,15 +538,15 @@ function RelatoriosPage() {
               </p>
             </div>
             <button
-              onClick={handleExport}
-              title="A exportação contém apenas métricas reais carregadas do Supabase."
-              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+              onClick={handleExportPDF}
+              title="Abre a janela de impressão do navegador. Escolha 'Salvar como PDF'."
+              className="no-print inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
             >
               <Download className="h-4 w-4" />
-              Exportar relatório
+              Exportar PDF
             </button>
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <div className="no-print mt-4 flex flex-wrap gap-2">
             {periodos.map((p) => (
               <button
                 key={p}
@@ -548,6 +562,7 @@ function RelatoriosPage() {
             ))}
           </div>
         </div>
+
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((c) => (

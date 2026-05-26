@@ -154,6 +154,25 @@ function LandingPage() {
                   </div>
                 ))}
               </div>
+
+              {/* stats — prova de tração */}
+              <div className="mt-10 grid grid-cols-2 gap-6 border-t border-[var(--border-premium)] pt-7 sm:grid-cols-4">
+                {[
+                  { v: "+10k", l: "Conversas processadas" },
+                  { v: "+85%", l: "Resposta em até 2min" },
+                  { v: "+30%", l: "Conversão de leads" },
+                  { v: "24/7", l: "IA disponível" },
+                ].map((s) => (
+                  <div key={s.l}>
+                    <div className="font-display text-3xl font-bold tracking-tight text-[oklch(0.16_0.04_258)] md:text-4xl">
+                      {s.v}
+                    </div>
+                    <div className="mt-1 text-xs leading-snug text-muted-foreground">
+                      {s.l}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* RIGHT — premium product mockup */}

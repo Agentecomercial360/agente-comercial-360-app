@@ -407,71 +407,71 @@ function LeadsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] overflow-hidden">
-            {filtered.length === 0 ? (
-              <div className="p-12 text-center">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
-                  <Search className="h-5 w-5" />
-                </div>
-                <h3 className="mt-4 font-display text-lg font-semibold text-foreground">Nenhum lead encontrado</h3>
-                <p className="mt-1 text-sm text-muted-foreground">Revise os filtros ou tente outro termo de busca.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/40 text-left">
-                      {["Cliente","Telefone","Peça/produto","Veículo","Ano","Temperatura","Score","Status","Responsável","Próxima ação",""].map((h) => (
-                        <th key={h} className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((l) => (
-                      <tr key={l.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition">
-                        <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">{l.cliente}</td>
-                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{l.telefone}</td>
-                        <td className="px-4 py-3 text-foreground whitespace-nowrap">{l.peca}</td>
-                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{l.veiculo}</td>
-                        <td className="px-4 py-3 text-muted-foreground">{l.ano ? l.ano : "—"}</td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${tempBadge[l.temperatura]}`}>{l.temperatura}</span>
-                        </td>
-                        <td className="px-4 py-3 font-display font-bold text-foreground">{l.score}</td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${statusBadge[l.status]}`}>{l.status}</span>
-                        </td>
-                        <td className="px-4 py-3 text-foreground whitespace-nowrap">{l.responsavel}</td>
-                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{l.proximaAcao}</td>
-                        <td className="px-4 py-3">
-                          <button
-                            onClick={() => setSelectedId(l.id)}
-                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap"
-                          >
-                            Ver detalhes
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          <div className="rounded-2xl border border-border bg-gradient-to-br from-[var(--brand-blue-soft)] to-card p-6 shadow-[var(--shadow-soft)] h-fit">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <Sparkles className="h-4 w-4" />
-              </div>
-              <h3 className="text-base font-semibold text-foreground">Resumo da IA</h3>
+        <div className="rounded-2xl border border-border bg-gradient-to-br from-[var(--brand-blue-soft)] to-card p-4 sm:p-5 shadow-[var(--shadow-soft)]">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+              <Sparkles className="h-4 w-4" />
             </div>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              A IA identificou <span className="font-semibold text-foreground">{hotLeads} {hotLeads === 1 ? "lead quente" : "leads quentes"}</span> e{" "}
-              <span className="font-semibold text-foreground">{noOwnerLeads} {noOwnerLeads === 1 ? "oportunidade sem responsável" : "oportunidades sem responsável"}</span>. Priorize contatos com maior score e clientes aguardando orçamento.
-            </p>
+            <div className="min-w-0">
+              <h3 className="text-base font-semibold text-foreground">Resumo da IA</h3>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                A IA identificou <span className="font-semibold text-foreground">{hotLeads} {hotLeads === 1 ? "lead quente" : "leads quentes"}</span> e{" "}
+                <span className="font-semibold text-foreground">{noOwnerLeads} {noOwnerLeads === 1 ? "oportunidade sem responsável" : "oportunidades sem responsável"}</span>. Priorize contatos com maior score e clientes aguardando orçamento.
+              </p>
+            </div>
           </div>
+        </div>
+
+        <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] overflow-hidden">
+          {filtered.length === 0 ? (
+            <div className="p-12 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+                <Search className="h-5 w-5" />
+              </div>
+              <h3 className="mt-4 font-display text-lg font-semibold text-foreground">Nenhum lead encontrado</h3>
+              <p className="mt-1 text-sm text-muted-foreground">Revise os filtros ou tente outro termo de busca.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/40 text-left">
+                    {["Cliente","Telefone","Peça/produto","Veículo","Ano","Temperatura","Score","Status","Responsável","Próxima ação",""].map((h) => (
+                      <th key={h} className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((l) => (
+                    <tr key={l.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition">
+                      <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">{l.cliente}</td>
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{l.telefone}</td>
+                      <td className="px-4 py-3 text-foreground whitespace-nowrap">{l.peca}</td>
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{l.veiculo}</td>
+                      <td className="px-4 py-3 text-muted-foreground">{l.ano ? l.ano : "—"}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${tempBadge[l.temperatura]}`}>{l.temperatura}</span>
+                      </td>
+                      <td className="px-4 py-3 font-display font-bold text-foreground">{l.score}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${statusBadge[l.status]}`}>{l.status}</span>
+                      </td>
+                      <td className="px-4 py-3 text-foreground whitespace-nowrap">{l.responsavel}</td>
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{l.proximaAcao}</td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => setSelectedId(l.id)}
+                          className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap"
+                        >
+                          Ver detalhes
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 

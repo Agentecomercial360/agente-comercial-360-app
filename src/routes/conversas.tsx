@@ -872,7 +872,7 @@ function KanbanView({
             return (
               <div
                 key={status}
-                className="flex flex-col w-72 shrink-0 rounded-xl bg-muted/30 border border-border"
+                className="flex flex-col w-80 shrink-0 rounded-xl bg-muted/30 border border-border"
               >
                 <div className="flex items-center justify-between px-3 py-2.5 border-b border-border">
                   <span
@@ -887,17 +887,20 @@ function KanbanView({
                 <div className="flex flex-col gap-2 p-2 max-h-[640px] overflow-y-auto">
                   {colItems.length === 0 ? (
                     <div className="px-2 py-6 text-center text-[11px] text-muted-foreground">
-                      Sem conversas
+                      Sem conversas nesta etapa
                     </div>
                   ) : (
                     colItems.map((c) => {
                       const isActive = c.id === selectedId;
+                      const setorLabel =
+                        c.setor && c.setor !== "—" ? c.setor : "Setor não definido";
+                      const responsavelLabel = "Responsável não definido";
                       return (
                         <button
                           key={c.id}
                           type="button"
                           onClick={() => onSelect(c.id)}
-                          className={`text-left rounded-lg border bg-card p-3 transition shadow-sm hover:shadow-md ${
+                          className={`text-left rounded-lg border bg-card p-3 transition shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/30 ${
                             isActive
                               ? "border-primary ring-1 ring-primary/30"
                               : "border-border"
@@ -907,27 +910,33 @@ function KanbanView({
                             <span className="font-semibold text-sm text-foreground truncate">
                               {c.cliente}
                             </span>
-                            <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                              {c.horario}
-                            </span>
+                            {c.horario ? (
+                              <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                                {c.horario}
+                              </span>
+                            ) : null}
                           </div>
-                          <div className="mt-1 text-[11px] text-muted-foreground">
-                            {c.telefone}
-                          </div>
-                          <div className="mt-1 text-[11px] text-muted-foreground">
-                            Canal: {c.canal}
+                          <div className="mt-1 text-[11px] text-muted-foreground truncate">
+                            {c.canal} • {c.telefone}
                           </div>
                           <p className="mt-2 text-xs text-foreground/80 line-clamp-2">
                             {c.ultimaMensagem || "Histórico disponível no painel"}
                           </p>
-                          <div className="mt-2 flex items-center justify-between gap-2">
+                          <div className="mt-2 space-y-0.5">
+                            <div className="text-[11px] text-muted-foreground truncate">
+                              <span className="text-foreground/70 font-medium">Responsável:</span>{" "}
+                              {responsavelLabel}
+                            </div>
+                            <div className="text-[11px] text-muted-foreground truncate">
+                              <span className="text-foreground/70 font-medium">Setor:</span>{" "}
+                              {setorLabel}
+                            </div>
+                          </div>
+                          <div className="mt-2 pt-2 border-t border-border/60 flex items-center justify-end">
                             <span
-                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${getConversationStatusBadgeClass(c.status)}`}
+                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getConversationStatusBadgeClass(c.status)}`}
                             >
                               {getConversationStatusLabel(c.status)}
-                            </span>
-                            <span className="text-[10px] text-muted-foreground truncate">
-                              {c.setor && c.setor !== "—" ? c.setor : "Sem setor"}
                             </span>
                           </div>
                         </button>

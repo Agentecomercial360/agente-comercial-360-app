@@ -12,6 +12,8 @@ import {
   X,
   CheckCheck,
   UserPlus,
+  Loader2,
+  Activity,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
@@ -291,52 +293,140 @@ function AtendimentosPage() {
   return (
     <DashboardLayout>
       <Toaster position="top-right" richColors />
-      <div className="space-y-6">
-        <div>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h1 className="text-3xl font-bold text-slate-900">Atendimentos</h1>
-            <span className={`text-xs font-medium ${statusColor}`}>{statusMsg}</span>
-          </div>
-          <p className="mt-1 text-sm text-slate-500">
-            Acompanhe os atendimentos recebidos, setores identificados e responsáveis vinculados.
-          </p>
-        </div>
+      <div className="mx-auto max-w-7xl space-y-6">
+        {/* Hero header */}
+        <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-white via-card to-[var(--brand-blue-soft)]/70 shadow-[var(--shadow-card)]">
+          <div className="pointer-events-none absolute -top-32 -right-20 h-80 w-80 rounded-full bg-primary/15 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.6),transparent_60%)]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+          <div className="relative px-6 py-7 md:px-9 md:py-8">
+            <div className="flex flex-wrap items-start justify-between gap-6">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50/90 text-emerald-700 border border-emerald-200/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider shadow-sm">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                    </span>
+                    Operação ativa
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider shadow-sm">
+                    <Activity className="h-3 w-3" /> Atendimentos centralizados
+                  </span>
+                </div>
+                <h1 className="mt-4 font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+                  Atendimentos
+                </h1>
+                <p className="mt-2 max-w-2xl text-sm md:text-[15px] text-muted-foreground leading-relaxed">
+                  Organize solicitações, status e responsáveis em uma visão operacional clara.
+                </p>
+              </div>
 
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800">
-          Painel de atendimentos ativo. As conversas estão organizadas por status, prioridade e evolução operacional.
-        </div>
+              <div className="shrink-0 w-full sm:w-auto">
+                <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-white/90 backdrop-blur-xl px-5 py-4 shadow-[var(--shadow-card)] min-w-[240px]">
+                  <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary/60 via-primary to-emerald-400" />
+                  <div className="pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full bg-primary/10 blur-2xl" />
+                  <div className="relative flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md ring-4 ring-primary/10">
+                      <Headphones className="h-5 w-5" />
+                    </div>
+                    <div className="leading-tight">
+                      <div className="font-display text-3xl font-bold tracking-tight text-foreground tabular-nums">
+                        {items.length}
+                      </div>
+                      <div className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+                        {items.length === 1 ? "Atendimento no painel" : "Atendimentos no painel"}
+                      </div>
+                    </div>
+                  </div>
 
+                  <div className="relative mt-3 grid grid-cols-2 gap-2 border-t border-border/60 pt-3">
+                    {[
+                      { label: "Abertos", value: items.filter((a) => a.status === "aberta" || a.status === "em_andamento" || a.status === "aguardando_cliente" || a.status === "aguardando_empresa").length, dot: "bg-blue-500" },
+                      { label: "Finalizados", value: items.filter((a) => a.status === "finalizada").length, dot: "bg-emerald-500" },
+                    ].map((m) => (
+                      <div key={m.label} className="flex flex-col items-start">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />
+                          <span className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground">{m.label}</span>
+                        </div>
+                        <div className="mt-0.5 font-display text-base font-bold text-foreground tabular-nums leading-none">
+                          {m.value}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
 
-        {/* Cards */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {dynamicCards.map((c) => (
-            <div
-              key={c.label}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-500">{c.label}</span>
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                  <c.icon className="h-5 w-5" />
+                  <div className="relative mt-3 flex items-center justify-between">
+                    {atendimentosLoadStatus === "loading" ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
+                        <Loader2 className="h-3 w-3 animate-spin" /> Sincronizando…
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                        </span>
+                        Atualizado agora
+                      </span>
+                    )}
+                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-semibold">Painel ao vivo</span>
+                  </div>
                 </div>
               </div>
-              <p className="mt-3 text-3xl font-bold text-slate-900">{c.value}</p>
             </div>
-          ))}
+          </div>
         </div>
+
+        {/* KPI Cards */}
+        {(() => {
+          const themes = [
+            { icon: "bg-blue-50 text-blue-600", accent: "bg-blue-500", ring: "group-hover:ring-blue-200" },
+            { icon: "bg-amber-50 text-amber-600", accent: "bg-amber-500", ring: "group-hover:ring-amber-200" },
+            { icon: "bg-rose-50 text-rose-600", accent: "bg-rose-500", ring: "group-hover:ring-rose-200" },
+            { icon: "bg-emerald-50 text-emerald-600", accent: "bg-emerald-500", ring: "group-hover:ring-emerald-200" },
+          ];
+          return (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {dynamicCards.map((c, i) => {
+            const Icon = c.icon;
+            const t = themes[i % themes.length];
+            return (
+              <div
+                key={c.label}
+                className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-card/60 p-5 border border-border/70 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] hover:-translate-y-0.5 transition-all duration-200"
+              >
+                <span className={`absolute left-0 top-0 bottom-0 w-1 ${t.accent}`} />
+                <span className={`pointer-events-none absolute -top-10 -right-10 h-24 w-24 rounded-full ${t.accent} opacity-[0.07] blur-2xl group-hover:opacity-[0.14] transition-opacity`} />
+                <div className="relative flex items-start justify-between">
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${t.icon} ring-4 ring-transparent ${t.ring} shadow-sm transition`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span className={`inline-flex h-2 w-2 rounded-full ${t.accent} shadow-[0_0_0_4px_rgba(255,255,255,0.6)] opacity-70`} />
+                </div>
+                <div className="relative mt-4 font-display text-3xl font-bold tracking-tight text-foreground tabular-nums">{c.value}</div>
+                <div className="relative mt-1 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">{c.label}</div>
+              </div>
+            );
+          })}
+        </div>
+          );
+        })()}
 
 
         {/* Filtros */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="rounded-2xl border border-border/70 bg-card p-4 shadow-[var(--shadow-soft)]">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="relative md:w-96">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Buscar por cliente, telefone ou mensagem..."
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm text-slate-700 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none"
+                className="w-full rounded-xl border border-border bg-background py-3 pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
               />
             </div>
           </div>
@@ -345,10 +435,10 @@ function AtendimentosPage() {
               <button
                 key={f}
                 onClick={() => setFiltro(f)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
                   filtro === f
-                    ? "bg-slate-900 text-white"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "bg-muted/60 text-muted-foreground hover:bg-muted"
                 }`}
               >
                 {f}

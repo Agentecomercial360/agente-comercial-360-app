@@ -503,7 +503,7 @@ function AtendimentosPage() {
                                 : setorBadge[a.setor] ?? "bg-slate-100 text-slate-700 ring-slate-200"
                             }`}
                           >
-                            {setorVazio ? "Não definido" : a.setor}
+                            {setorVazio ? "A definir" : a.setor}
                           </span>
                         </td>
                         <td className="px-4 py-4">
@@ -515,7 +515,7 @@ function AtendimentosPage() {
                           </span>
                         </td>
                         <td className={`px-4 py-4 ${responsavelVazio ? "text-slate-400 italic" : "text-slate-700"}`}>
-                          {responsavelVazio ? "Não atribuído" : a.responsavel}
+                          {responsavelVazio ? "A atribuir" : a.responsavel}
                         </td>
                         <td className="px-4 py-4 text-slate-500 tabular-nums">{a.horario}</td>
                         <td className="px-4 py-4 text-right">

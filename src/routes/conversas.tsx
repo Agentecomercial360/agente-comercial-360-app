@@ -15,6 +15,8 @@ import {
   Loader2,
   List as ListIcon,
   LayoutGrid,
+  Briefcase,
+  Inbox,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
@@ -875,12 +877,26 @@ function KanbanView({
     finalizada: "bg-emerald-500",
   };
 
+  const columnSurface: Record<ConversationStatus, string> = {
+    aberta: "bg-blue-50/60",
+    em_andamento: "bg-orange-50/60",
+    aguardando_cliente: "bg-amber-50/60",
+    aguardando_empresa: "bg-purple-50/60",
+    encaminhada: "bg-indigo-50/70",
+    sem_resposta: "bg-red-50/60",
+    finalizada: "bg-emerald-50/60",
+  };
+
   const priorityBadge = (status: ConversationStatus) => {
     switch (status) {
       case "sem_resposta":
-        return { label: "Atenção", cls: "bg-red-50 text-red-700 border-red-200" };
+        return { label: "Atenção necessária", cls: "bg-red-50 text-red-700 border-red-200" };
       case "aguardando_cliente":
         return { label: "Aguardando cliente", cls: "bg-amber-50 text-amber-700 border-amber-200" };
+      case "aguardando_empresa":
+        return { label: "Aguardando empresa", cls: "bg-purple-50 text-purple-700 border-purple-200" };
+      case "encaminhada":
+        return { label: "Encaminhada", cls: "bg-indigo-50 text-indigo-700 border-indigo-200" };
       case "finalizada":
         return { label: "Concluída", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" };
       case "aberta":
@@ -920,10 +936,10 @@ function KanbanView({
               return (
                 <div
                   key={status}
-                  className="flex flex-col w-80 shrink-0 rounded-xl bg-muted/30 border border-border overflow-hidden"
+                  className={`flex flex-col w-80 shrink-0 rounded-xl border border-border overflow-hidden ${columnSurface[status]}`}
                 >
                   <div className={`h-1 w-full ${columnAccent[status]}`} />
-                  <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-card/80">
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-border/70 bg-card/70 backdrop-blur-sm">
                     <span className="text-[11px] font-bold uppercase tracking-wide text-foreground">
                       {getConversationStatusLabel(status)}
                     </span>
@@ -931,10 +947,11 @@ function KanbanView({
                       {colItems.length}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-2 p-2 max-h-[520px] overflow-y-auto">
+                  <div className="flex flex-col gap-2.5 p-2.5 max-h-[560px] overflow-y-auto">
                     {colItems.length === 0 ? (
-                      <div className="px-2 py-3 text-center text-[11px] text-muted-foreground">
-                        Sem conversas nesta etapa
+                      <div className="flex flex-col items-center justify-center gap-1.5 px-2 py-8 text-center text-muted-foreground/80">
+                        <Inbox className="h-4 w-4 opacity-60" />
+                        <span className="text-[11px]">Nenhum atendimento nesta etapa</span>
                       </div>
                     ) : (
                       colItems.map((c) => {
@@ -946,10 +963,10 @@ function KanbanView({
                         return (
                           <div
                             key={c.id}
-                            className={`group rounded-xl border bg-card p-3.5 transition shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] hover:-translate-y-px hover:border-primary/20 ${
+                            className={`group rounded-xl border bg-card p-3.5 transition shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] hover:-translate-y-px hover:border-primary/30 ${
                               isActive
-                                ? "border-primary ring-1 ring-primary/30"
-                                : "border-border/80"
+                                ? "border-primary ring-2 ring-primary/25 bg-blue-50/70 shadow-[var(--shadow-card)]"
+                                : "border-border/70"
                             }`}
                           >
                             <button
@@ -957,6 +974,7 @@ function KanbanView({
                               onClick={() => onSelect(c.id)}
                               className="w-full text-left focus:outline-none"
                             >
+                              {/* Cliente em destaque + badge prioridade */}
                               <div className="flex items-start justify-between gap-2">
                                 <span className="font-semibold text-sm text-foreground truncate">
                                   {c.cliente}
@@ -969,36 +987,46 @@ function KanbanView({
                                   </span>
                                 ) : null}
                               </div>
-                              <div className="mt-1 text-[11px] text-muted-foreground truncate">
-                                {c.canal} • {c.telefone}
+
+                              {/* Canal + telefone com ícones */}
+                              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                                <span className="inline-flex items-center gap-1 truncate">
+                                  <MessageCircle className="h-3 w-3 text-emerald-600/80" />
+                                  {c.canal}
+                                </span>
+                                <span className="inline-flex items-center gap-1 truncate">
+                                  <Phone className="h-3 w-3 text-foreground/50" />
+                                  {c.telefone}
+                                </span>
                               </div>
-                              <p className="mt-2 text-xs text-foreground/80 line-clamp-2">
+
+                              {/* Histórico/última mensagem */}
+                              <p className="mt-2.5 text-xs text-foreground/75 line-clamp-2 leading-relaxed bg-muted/40 rounded-md px-2 py-1.5 border border-border/40">
                                 {c.ultimaMensagem || "Histórico disponível no painel"}
                               </p>
-                              <div className="mt-2 space-y-0.5">
-                                <div className="text-[11px] text-muted-foreground truncate">
-                                  <span className="text-foreground/70 font-medium">Responsável:</span>{" "}
-                                  {responsavelLabel}
+
+                              {/* Responsável e setor */}
+                              <div className="mt-2.5 space-y-1">
+                                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground truncate">
+                                  <UserCheck className="h-3 w-3 text-foreground/50 shrink-0" />
+                                  <span className="text-foreground/70 font-medium">Responsável:</span>
+                                  <span className="truncate">{responsavelLabel}</span>
                                 </div>
-                                <div className="text-[11px] text-muted-foreground truncate">
-                                  <span className="text-foreground/70 font-medium">Setor:</span>{" "}
-                                  {setorLabel}
+                                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground truncate">
+                                  <Briefcase className="h-3 w-3 text-foreground/50 shrink-0" />
+                                  <span className="text-foreground/70 font-medium">Setor:</span>
+                                  <span className="truncate">{setorLabel}</span>
                                 </div>
-                                {c.horario ? (
-                                  <div className="text-[11px] text-muted-foreground truncate">
-                                    <span className="text-foreground/70 font-medium">Atualizado:</span>{" "}
-                                    {c.horario}
-                                  </div>
-                                ) : null}
                               </div>
-                              <div className="mt-2.5 pt-2.5 border-t border-dashed border-border/40 flex items-center justify-between gap-2">
-                                <span
-                                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getConversationStatusBadgeClass(c.status)}`}
-                                >
-                                  {getConversationStatusLabel(c.status)}
+
+                              {/* Rodapé: atualização + ação */}
+                              <div className="mt-3 pt-2.5 border-t border-dashed border-border/50 flex items-center justify-between gap-2">
+                                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground truncate">
+                                  <Clock className="h-3 w-3 text-foreground/50" />
+                                  {c.horario || "—"}
                                 </span>
-                                <span className="text-[11px] font-semibold text-primary hover:underline">
-                                  Ver conversa →
+                                <span className="text-[11px] font-semibold text-primary group-hover:underline whitespace-nowrap">
+                                  Ver atendimento →
                                 </span>
                               </div>
                             </button>
@@ -1016,5 +1044,7 @@ function KanbanView({
     </div>
   );
 }
+
+
 
 

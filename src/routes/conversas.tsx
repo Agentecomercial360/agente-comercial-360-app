@@ -923,31 +923,33 @@ function KanbanView({
                   className="flex flex-col w-80 shrink-0 rounded-xl bg-muted/30 border border-border overflow-hidden"
                 >
                   <div className={`h-1 w-full ${columnAccent[status]}`} />
-                  <div className="flex items-center justify-between px-3 py-2.5 border-b border-border bg-card/60">
-                    <span className="text-xs font-semibold text-foreground">
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-card/80">
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-foreground">
                       {getConversationStatusLabel(status)}
-                      <span className="text-muted-foreground"> · {colItems.length}</span>
+                    </span>
+                    <span className="inline-flex items-center justify-center rounded-full bg-muted text-muted-foreground text-[10px] font-bold px-2 py-0.5 min-w-[1.5rem]">
+                      {colItems.length}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-2 p-2 max-h-[640px] overflow-y-auto">
+                  <div className="flex flex-col gap-2 p-2 max-h-[520px] overflow-y-auto">
                     {colItems.length === 0 ? (
-                      <div className="px-2 py-6 text-center text-[11px] text-muted-foreground">
+                      <div className="px-2 py-3 text-center text-[11px] text-muted-foreground">
                         Sem conversas nesta etapa
                       </div>
                     ) : (
                       colItems.map((c) => {
                         const isActive = c.id === selectedId;
                         const setorLabel =
-                          c.setor && c.setor !== "—" ? c.setor : "Setor não definido";
-                        const responsavelLabel = "Responsável não definido";
+                          c.setor && c.setor !== "—" ? c.setor : "A definir";
+                        const responsavelLabel = "A definir";
                         const prio = priorityBadge(c.status);
                         return (
                           <div
                             key={c.id}
-                            className={`group rounded-lg border bg-card p-3 transition shadow-sm hover:shadow-md ${
+                            className={`group rounded-xl border bg-card p-3.5 transition shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] hover:-translate-y-px hover:border-primary/20 ${
                               isActive
                                 ? "border-primary ring-1 ring-primary/30"
-                                : "border-border"
+                                : "border-border/80"
                             }`}
                           >
                             <button
@@ -989,7 +991,7 @@ function KanbanView({
                                   </div>
                                 ) : null}
                               </div>
-                              <div className="mt-2 pt-2 border-t border-border/60 flex items-center justify-between gap-2">
+                              <div className="mt-2.5 pt-2.5 border-t border-dashed border-border/40 flex items-center justify-between gap-2">
                                 <span
                                   className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getConversationStatusBadgeClass(c.status)}`}
                                 >

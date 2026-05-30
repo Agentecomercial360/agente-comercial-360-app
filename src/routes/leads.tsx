@@ -355,31 +355,127 @@ function LeadsPage() {
   return (
     <DashboardLayout>
       <Toaster />
-      <div className="mx-auto max-w-7xl space-y-8">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">Leads</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            Visualize oportunidades comerciais, temperatura dos leads e próximas ações.
-          </p>
-          <div className="mt-3">{statusIndicator}</div>
+      <div className="mx-auto max-w-7xl space-y-6">
+        {/* Hero header */}
+        <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-white via-card to-[var(--brand-blue-soft)]/70 shadow-[var(--shadow-card)]">
+          <div className="pointer-events-none absolute -top-32 -right-20 h-80 w-80 rounded-full bg-primary/15 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-rose-400/10 blur-3xl" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.6),transparent_60%)]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+          <div className="relative px-6 py-7 md:px-9 md:py-8">
+            <div className="flex flex-wrap items-start justify-between gap-6">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50/90 text-emerald-700 border border-emerald-200/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider shadow-sm">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                    </span>
+                    Painel ativo
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider shadow-sm">
+                    <Sparkles className="h-3 w-3" /> Oportunidades organizadas
+                  </span>
+                </div>
+                <h1 className="mt-4 font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">Leads</h1>
+                <p className="mt-2 max-w-2xl text-sm md:text-[15px] text-muted-foreground leading-relaxed">
+                  Acompanhe oportunidades comerciais por temperatura, status e próxima ação.
+                </p>
+              </div>
+
+              <div className="shrink-0 w-full sm:w-auto">
+                <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-white/90 backdrop-blur-xl px-5 py-4 shadow-[var(--shadow-card)] min-w-[240px]">
+                  <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary/60 via-primary to-rose-400" />
+                  <div className="pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full bg-primary/10 blur-2xl" />
+                  <div className="relative flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md ring-4 ring-primary/10">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div className="leading-tight">
+                      <div className="font-display text-3xl font-bold tracking-tight text-foreground tabular-nums">
+                        {totalLeads}
+                      </div>
+                      <div className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+                        {totalLeads === 1 ? "Lead no painel" : "Leads no painel"}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="relative mt-3 grid grid-cols-2 gap-2 border-t border-border/60 pt-3">
+                    {[
+                      { label: "Quentes", value: hotLeads, dot: "bg-rose-500" },
+                      { label: "Sem responsável", value: noOwnerLeads, dot: "bg-amber-500" },
+                    ].map((m) => (
+                      <div key={m.label} className="flex flex-col items-start">
+                        <div className="flex items-center gap-1.5">
+                          <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />
+                          <span className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground">{m.label}</span>
+                        </div>
+                        <div className="mt-0.5 font-display text-base font-bold text-foreground tabular-nums leading-none">
+                          {m.value}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="relative mt-3 flex items-center justify-between">
+                    {loadingLeads ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
+                        <Loader2 className="h-3 w-3 animate-spin" /> Sincronizando…
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
+                        <span className="relative flex h-1.5 w-1.5">
+                          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                        </span>
+                        Atualizado agora
+                      </span>
+                    )}
+                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-semibold">Painel ao vivo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
+        {/* KPIs */}
+        {(() => {
+          const themes = [
+            { icon: "bg-blue-50 text-blue-600", accent: "bg-blue-500", ring: "group-hover:ring-blue-200" },
+            { icon: "bg-rose-50 text-rose-600", accent: "bg-rose-500", ring: "group-hover:ring-rose-200" },
+            { icon: "bg-emerald-50 text-emerald-600", accent: "bg-emerald-500", ring: "group-hover:ring-emerald-200" },
+            { icon: "bg-amber-50 text-amber-600", accent: "bg-amber-500", ring: "group-hover:ring-amber-200" },
+          ];
+          return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {summary.map((s) => {
+          {summary.map((s, i) => {
             const Icon = s.icon;
+            const t = themes[i % themes.length];
             return (
-              <div key={s.label} className="rounded-2xl bg-card p-5 border border-border shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
-                  <Icon className="h-5 w-5" />
+              <div
+                key={s.label}
+                className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-card/60 p-5 border border-border/70 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] hover:-translate-y-0.5 transition-all duration-200"
+              >
+                <span className={`absolute left-0 top-0 bottom-0 w-1 ${t.accent}`} />
+                <span className={`pointer-events-none absolute -top-10 -right-10 h-24 w-24 rounded-full ${t.accent} opacity-[0.07] blur-2xl group-hover:opacity-[0.14] transition-opacity`} />
+                <div className="relative flex items-start justify-between">
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${t.icon} ring-4 ring-transparent ${t.ring} shadow-sm transition`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <span className={`inline-flex h-2 w-2 rounded-full ${t.accent} shadow-[0_0_0_4px_rgba(255,255,255,0.6)] opacity-70`} />
                 </div>
-                <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">{s.value}</div>
-                <div className="mt-1 text-xs text-muted-foreground">{s.label}</div>
+                <div className="relative mt-4 font-display text-3xl font-bold tracking-tight text-foreground tabular-nums">{s.value}</div>
+                <div className="relative mt-1 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">{s.label}</div>
               </div>
             );
           })}
         </div>
+          );
+        })()}
 
-        <div className="rounded-2xl bg-card p-4 border border-border shadow-[var(--shadow-soft)] space-y-3">
+        <div className="rounded-2xl bg-card p-4 border border-border/70 shadow-[var(--shadow-soft)] space-y-3">
           <div className="flex flex-wrap gap-2">
             {filters.map((f) => (
               <button
@@ -388,7 +484,7 @@ function LeadsPage() {
                 className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
                   activeFilter === f
                     ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-muted text-muted-foreground hover:bg-muted/70"
+                    : "bg-muted/60 text-muted-foreground hover:bg-muted"
                 }`}
               >
                 {f}
@@ -402,19 +498,25 @@ function LeadsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar por cliente, telefone ou peça..."
-              className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+              className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
             />
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-gradient-to-br from-[var(--brand-blue-soft)] to-card p-4 sm:p-5 shadow-[var(--shadow-soft)]">
-          <div className="flex items-start gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+        <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-gradient-to-br from-[var(--brand-blue-soft)]/80 via-card to-card p-5 shadow-[var(--shadow-soft)]">
+          <div className="pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full bg-primary/10 blur-3xl" />
+          <div className="relative flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md ring-4 ring-primary/10">
               <Sparkles className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <h3 className="text-base font-semibold text-foreground">Resumo da IA</h3>
-              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-semibold text-foreground">Resumo da IA</h3>
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                  ao vivo
+                </span>
+              </div>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
                 A IA identificou <span className="font-semibold text-foreground">{hotLeads} {hotLeads === 1 ? "lead quente" : "leads quentes"}</span> e{" "}
                 <span className="font-semibold text-foreground">{noOwnerLeads} {noOwnerLeads === 1 ? "oportunidade sem responsável" : "oportunidades sem responsável"}</span>. Priorize contatos com maior score e clientes aguardando orçamento.
               </p>

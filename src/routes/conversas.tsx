@@ -946,10 +946,10 @@ function KanbanView({
                         return (
                           <div
                             key={c.id}
-                            className={`group rounded-lg border bg-card p-3 transition shadow-sm hover:shadow-md ${
+                            className={`group rounded-xl border bg-card p-3.5 transition shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] hover:-translate-y-px hover:border-primary/20 ${
                               isActive
                                 ? "border-primary ring-1 ring-primary/30"
-                                : "border-border"
+                                : "border-border/80"
                             }`}
                           >
                             <button

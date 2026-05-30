@@ -467,10 +467,18 @@ function DashboardPage() {
                 key={k.label}
                 className="rounded-2xl bg-card p-5 border border-border shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex items-start justify-between gap-2">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
                     <Icon className="h-5 w-5" />
                   </div>
+                  {k.to && k.cta ? (
+                    <Link
+                      to={k.to}
+                      className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-primary hover:underline"
+                    >
+                      {k.cta} <ChevronRight className="h-3 w-3" />
+                    </Link>
+                  ) : null}
                 </div>
                 <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">
                   {k.value}

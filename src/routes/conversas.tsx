@@ -415,89 +415,75 @@ function ConversasPage() {
     <DashboardLayout>
       <Toaster position="top-right" richColors />
       <div className="mx-auto max-w-7xl space-y-4">
-        {/* Hero header */}
-        <div className="relative overflow-hidden rounded-3xl border border-border/70 bg-gradient-to-br from-white via-card to-[var(--brand-blue-soft)]/70 shadow-[var(--shadow-card)]">
-          <div className="pointer-events-none absolute -top-32 -right-20 h-80 w-80 rounded-full bg-primary/15 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-emerald-400/10 blur-3xl" />
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.6),transparent_60%)]" />
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
-          <div className="relative px-6 py-7 md:px-9 md:py-8">
-            <div className="flex flex-wrap items-start justify-between gap-6">
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50/90 text-emerald-700 border border-emerald-200/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider shadow-sm">
-                    <span className="relative flex h-1.5 w-1.5">
-                      <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                    </span>
-                    Ao vivo
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider shadow-sm">
-                    <Sparkles className="h-3 w-3" /> Operação centralizada
-                  </span>
-                </div>
-                <h1 className="mt-4 font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">
-                  Conversas
-                </h1>
-                <p className="mt-2 max-w-2xl text-sm md:text-[15px] text-muted-foreground leading-relaxed">
-                  Centralize atendimentos, histórico, status e próximos passos em um único painel inteligente.
-                </p>
+        {/* HERO PREMIUM */}
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 p-6 shadow-sm">
+          <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-blue-500/20 blur-3xl" />
+          <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-indigo-500/20 blur-3xl" />
+          <div className="relative flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div className="max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-300 ring-1 ring-emerald-400/30">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Ao vivo
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
+                  <Sparkles className="h-3 w-3" /> Operação centralizada
+                </span>
+                <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
+                  Painel ativo
+                </span>
               </div>
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-white md:text-4xl">
+                Conversas
+              </h1>
+              <p className="mt-2 text-sm leading-relaxed text-blue-100/90">
+                Histórico de mensagens, interações com clientes e respostas sugeridas pela IA — tudo centralizado em um único painel.
+              </p>
+            </div>
 
-              <div className="shrink-0 w-full sm:w-auto">
-                <div className="relative overflow-hidden rounded-2xl border border-border/70 bg-white/90 backdrop-blur-xl px-5 py-4 shadow-[var(--shadow-card)] min-w-[240px]">
-                  <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-primary/60 via-primary to-emerald-400" />
-                  <div className="pointer-events-none absolute -top-10 -right-10 h-28 w-28 rounded-full bg-primary/10 blur-2xl" />
-                  <div className="relative flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md ring-4 ring-primary/10">
-                      <MessageCircle className="h-5 w-5" />
-                    </div>
-                    <div className="leading-tight">
-                      <div className="font-display text-3xl font-bold tracking-tight text-foreground tabular-nums">
-                        {items.length}
-                      </div>
-                      <div className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
-                        {items.length === 1 ? "Atendimento no painel" : "Atendimentos no painel"}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="relative mt-3 grid grid-cols-3 gap-2 border-t border-border/60 pt-3">
-                    {[
-                      { label: "Abertas", value: items.filter((c) => c.status === "aberta").length, dot: "bg-blue-500" },
-                      { label: "Aguardando", value: items.filter((c) => c.status === "aguardando_cliente" || c.status === "aguardando_empresa").length, dot: "bg-amber-500" },
-                      { label: "Finalizadas", value: items.filter((c) => c.status === "finalizada").length, dot: "bg-emerald-500" },
-                    ].map((m) => (
-                      <div key={m.label} className="flex flex-col items-start">
-                        <div className="flex items-center gap-1.5">
-                          <span className={`h-1.5 w-1.5 rounded-full ${m.dot}`} />
-                          <span className="text-[9px] uppercase tracking-wider font-semibold text-muted-foreground">{m.label}</span>
-                        </div>
-                        <div className="mt-0.5 font-display text-base font-bold text-foreground tabular-nums leading-none">
-                          {m.value}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="relative mt-3 flex items-center justify-between">
-                    {loadingConversations ? (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
-                        <Loader2 className="h-3 w-3 animate-spin" /> Sincronizando…
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50/80 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
-                        <span className="relative flex h-1.5 w-1.5">
-                          <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-                          <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                        </span>
-                        Atualizado agora
-                      </span>
-                    )}
-                    <span className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-semibold">Painel ao vivo</span>
+            <div className="w-full rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm md:w-80">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/20">
+                  <MessageCircle className="h-5 w-5" />
+                </div>
+                <div className="leading-tight">
+                  <div className="text-2xl font-bold tracking-tight text-white tabular-nums">{items.length}</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-blue-200/70">
+                    Atendimentos ativos
                   </div>
                 </div>
               </div>
+              <div className="mt-3 grid grid-cols-3 gap-3 border-t border-white/10 pt-3">
+                {[
+                  { label: "Abertas", value: items.filter((c) => c.status === "aberta").length, dot: "bg-blue-400" },
+                  { label: "Aguardando", value: items.filter((c) => c.status === "aguardando_cliente" || c.status === "aguardando_empresa").length, dot: "bg-amber-400" },
+                  { label: "Finalizadas", value: items.filter((c) => c.status === "finalizada").length, dot: "bg-emerald-400" },
+                ].map((mm) => (
+                  <div key={mm.label}>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`h-1.5 w-1.5 rounded-full ${mm.dot}`} />
+                      <p className="text-[9px] font-semibold uppercase tracking-wide text-blue-200/70">{mm.label}</p>
+                    </div>
+                    <p className="mt-0.5 text-base font-bold text-white tabular-nums">{mm.value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 flex items-center justify-between">
+                {loadingConversations ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-semibold text-blue-100 ring-1 ring-white/20">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Sincronizando…
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold text-emerald-300 ring-1 ring-emerald-400/30">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                    Atualizado agora
+                  </span>
+                )}
+                <span className="text-[9px] font-semibold uppercase tracking-wide text-blue-200/60">Painel ao vivo</span>
+              </div>
+              <p className="mt-3 text-[11px] leading-relaxed text-blue-100/80">
+                Acompanhamento contínuo das interações com clientes.
+              </p>
             </div>
           </div>
         </div>

@@ -685,16 +685,26 @@ function DashboardPage() {
 
 
           <div className="rounded-2xl bg-card p-6 border border-border shadow-[var(--shadow-soft)]">
-            <div className="flex items-center gap-2">
-              <Thermometer className="h-4 w-4 text-primary" />
-              <h3 className="text-base font-semibold text-foreground">Leads por temperatura</h3>
-              <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
-                ao vivo
-              </span>
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Thermometer className="h-4 w-4 text-primary" />
+                  <h3 className="text-base font-semibold text-foreground">Leads por temperatura</h3>
+                  <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 border border-emerald-200">
+                    ao vivo
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5 mb-3">
+                  Classificação por score do lead no Supabase
+                </p>
+              </div>
+              <Link
+                to="/leads"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+              >
+                Ver leads <ChevronRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
-            <p className="text-xs text-muted-foreground mt-0.5 mb-3">
-              Classificação por score do lead no Supabase
-            </p>
 
             <div className={CHART_H}>
               <ClientOnly

@@ -583,16 +583,8 @@ function ConversasPage() {
                       <span className="inline-flex items-center gap-1 text-muted-foreground">
                         <Loader2 className="h-3 w-3 animate-spin" /> Carregando mensagens...
                       </span>
-                    ) : messagesLoadStatus === "loaded" ? (
-                      <span className="text-emerald-700">Mensagens carregadas do Supabase</span>
-                    ) : messagesLoadStatus === "empty" ? (
-                      <span className="text-amber-700">
-                        Nenhuma mensagem real encontrada para esta conversa
-                      </span>
-                    ) : messagesLoadStatus === "error" ? (
-                      <span className="text-red-700">
-                        Não foi possível carregar mensagens reais. Usando mensagens locais temporárias.
-                      </span>
+                    ) : messagesLoadStatus === "loaded" || messagesLoadStatus === "empty" ? (
+                      <span className="text-emerald-700">Histórico de atendimento</span>
                     ) : null}
                   </span>
                 </div>

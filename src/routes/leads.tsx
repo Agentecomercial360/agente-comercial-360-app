@@ -326,7 +326,7 @@ function LeadsPage() {
     if (leadsLoadStatus === "loaded") {
       return (
         <div className="inline-flex items-center gap-2 rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
-          Leads são carregados do Supabase ({leads.length}). <strong>Marcar como negociação</strong> já é salvo no Supabase. Encaminhamento, WhatsApp e follow-up ainda são recursos futuros (locais).
+          Painel de leads ativo. As oportunidades comerciais estão organizadas por temperatura, status e próxima ação.
         </div>
       );
     }
@@ -550,11 +550,12 @@ function LeadsPage() {
 
                 <button
                   onClick={() => forwardLead(selected.id)}
-                  title="Encaminhamento ainda é local — não altera o Supabase nesta fase."
+                  title="Encaminhamento por setor — disponível na próxima etapa."
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted transition"
                 >
                   <ArrowRightLeft className="h-4 w-4" />
-                  Encaminhar localmente (em breve)
+                  Encaminhamento por setor
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">— Disponível na próxima etapa</span>
                 </button>
                 <button
                   onClick={() => setSelectedId(null)}

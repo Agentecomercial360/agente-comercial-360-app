@@ -247,7 +247,7 @@ function ConversasPage() {
             cliente: cust?.name ?? "Cliente sem nome",
             telefone: cust?.phone ?? "—",
             canal: normalizeChannel(r.channel),
-            ultimaMensagem: "Histórico disponível no painel",
+            ultimaMensagem: "Histórico do atendimento disponível",
             horario: formatHorario(r.last_message_at, r.created_at),
             status: normalizeConversationStatus(r.status),
             setor: "—",

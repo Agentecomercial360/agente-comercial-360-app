@@ -45,9 +45,9 @@ function formatHorario(lastMessageAt: string | null, createdAt: string | null): 
 
 
 const cards = [
-  { label: "Atendimentos hoje", value: 128, icon: Headphones },
+  { label: "Total de atendimentos", value: 128, icon: Headphones },
   { label: "Em andamento", value: 26, icon: Clock },
-  { label: "Aguardando resposta", value: 9, icon: AlertCircle },
+  { label: "Aguardando cliente", value: 9, icon: AlertCircle },
   { label: "Finalizados", value: 93, icon: CheckCircle2 },
 ];
 
@@ -162,7 +162,7 @@ function AtendimentosPage() {
             id: String(r.id),
             cliente: cust?.name ?? "Cliente sem nome",
             telefone: cust?.phone ?? "—",
-            mensagem: "Carregue o atendimento para ver mensagens",
+            mensagem: "Histórico do atendimento disponível",
             setor: "—",
             status: normalizeConversationStatus(r.status),
             responsavel: "—",
@@ -258,10 +258,10 @@ function AtendimentosPage() {
 
   const dynamicCards = useMemo(
     () => [
-      { label: "Atendimentos hoje", value: items.length, icon: Headphones },
+      { label: "Total de atendimentos", value: items.length, icon: Headphones },
       { label: "Em andamento", value: items.filter((a) => a.status === "em_andamento").length, icon: Clock },
       {
-        label: "Aguardando resposta",
+        label: "Aguardando cliente",
         value: items.filter((a) => a.status === "aguardando_cliente" || a.status === "aguardando_empresa").length,
         icon: AlertCircle,
       },
@@ -475,37 +475,60 @@ function AtendimentosPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filtered.map((a) => (
-                    <tr key={a.id} className="hover:bg-slate-50">
-                      <td className="px-4 py-3 font-semibold text-slate-900">{a.cliente}</td>
-                      <td className="px-4 py-3 text-slate-600">{a.telefone}</td>
-                      <td className="px-4 py-3 max-w-xs truncate text-slate-600">{a.mensagem}</td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${setorBadge[a.setor] ?? "bg-slate-100 text-slate-700 ring-slate-200"}`}
-                        >
-                          {a.setor}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${getConversationStatusBadgeClass(a.status)}`}
-                        >
-                          {getConversationStatusLabel(a.status)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-slate-700">{a.responsavel}</td>
-                      <td className="px-4 py-3 text-slate-500">{a.horario}</td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          onClick={() => setSelectedId(a.id)}
-                          className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700"
-                        >
-                          Ver atendimento
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filtered.map((a) => {
+                    const isSelected = selectedId === a.id;
+                    const initial = (a.cliente?.trim()?.charAt(0) || "?").toUpperCase();
+                    const setorVazio = !a.setor || a.setor === "—";
+                    const responsavelVazio = !a.responsavel || a.responsavel === "—";
+                    return (
+                      <tr
+                        key={a.id}
+                        className={`transition-colors ${isSelected ? "bg-blue-50/60" : "hover:bg-slate-50/80"}`}
+                      >
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-blue-50 text-[11px] font-bold text-blue-700 ring-1 ring-blue-200/70">
+                              {initial}
+                            </span>
+                            <span className="font-semibold text-slate-900">{a.cliente}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-slate-600 tabular-nums">{a.telefone}</td>
+                        <td className="px-4 py-4 max-w-xs truncate text-slate-600">{a.mensagem}</td>
+                        <td className="px-4 py-4">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${
+                              setorVazio
+                                ? "bg-slate-50 text-slate-500 ring-slate-200 italic"
+                                : setorBadge[a.setor] ?? "bg-slate-100 text-slate-700 ring-slate-200"
+                            }`}
+                          >
+                            {setorVazio ? "Não definido" : a.setor}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <span
+                            className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-sm ${getConversationStatusBadgeClass(a.status)}`}
+                          >
+                            <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+                            {getConversationStatusLabel(a.status)}
+                          </span>
+                        </td>
+                        <td className={`px-4 py-4 ${responsavelVazio ? "text-slate-400 italic" : "text-slate-700"}`}>
+                          {responsavelVazio ? "Não atribuído" : a.responsavel}
+                        </td>
+                        <td className="px-4 py-4 text-slate-500 tabular-nums">{a.horario}</td>
+                        <td className="px-4 py-4 text-right">
+                          <button
+                            onClick={() => setSelectedId(a.id)}
+                            className="inline-flex items-center gap-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-700 hover:shadow transition"
+                          >
+                            Ver detalhes <span aria-hidden>→</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -520,8 +543,7 @@ function AtendimentosPage() {
               <h3 className="text-lg font-bold">Resumo da IA</h3>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-blue-50">
-              A IA identificou maior volume de atendimentos no setor de vendas. Existem 9 clientes
-              aguardando resposta e 6 atendimentos relacionados a orçamento de peças.
+              A análise operacional identificou oportunidades de retorno, atendimentos aguardando resposta e solicitações relacionadas a orçamento de peças.
             </p>
           </div>
 

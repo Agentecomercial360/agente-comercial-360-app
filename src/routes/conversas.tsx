@@ -517,9 +517,8 @@ function ConversasPage() {
         ) : null}
 
         {viewMode === "lista" && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-        {/* Two column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Conversation list */}
           <div className="lg:col-span-1 rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] overflow-hidden">
             <div className="px-4 py-3 border-b border-border bg-muted/40">

@@ -453,8 +453,7 @@ function ConversasPage() {
           </div>
         </div>
 
-          )}
-        </div>
+
 
         {/* Summary cards */}
         {(() => {

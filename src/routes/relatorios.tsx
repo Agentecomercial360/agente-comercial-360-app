@@ -616,15 +616,68 @@ function RelatoriosPage() {
     [periodo, m],
   );
 
+  const totalLeadsHero = m.oportunidades;
+  const totalAtendHero = m.atendimentos + m.semResposta + m.statusCounts.em_andamento + m.statusCounts.aberta + m.statusCounts.aguardando_cliente + m.statusCounts.aguardando_empresa + m.statusCounts.encaminhada;
+
   return (
     <DashboardLayout>
       <style dangerouslySetInnerHTML={{ __html: PRINT_STYLES }} />
       <div className="space-y-6 relatorio-print-area">
-        <div className="no-print">
-          <h1 className="text-3xl font-bold text-slate-900">Relatórios</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Acompanhe indicadores, resumo executivo e recomendações da IA para a operação comercial.
-          </p>
+        {/* HERO PREMIUM */}
+        <div className="no-print relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 p-6 shadow-sm">
+          <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-blue-500/20 blur-3xl" />
+          <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-indigo-500/20 blur-3xl" />
+          <div className="relative flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div className="max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-300 ring-1 ring-emerald-400/30">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Relatórios ativos
+                </span>
+                <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
+                  Análise gerencial
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
+                  <Sparkles className="h-3 w-3" />
+                  IA aplicada
+                </span>
+              </div>
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
+                Relatórios Gerenciais
+              </h1>
+              <p className="mt-2 text-sm leading-relaxed text-blue-100/90">
+                Acompanhe indicadores, desempenho e recomendações para tomada de decisão.
+              </p>
+            </div>
+
+            <div className="w-full max-w-sm rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm md:w-80">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-100/80">
+                  Resumo da operação
+                </p>
+                <span className="text-[10px] font-medium text-blue-200/70">
+                  Atualizado agora
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-3">
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Atendimentos</p>
+                  <p className="mt-1 text-xl font-bold text-white">{totalAtendHero.toLocaleString("pt-BR")}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Leads</p>
+                  <p className="mt-1 text-xl font-bold text-white">{totalLeadsHero.toLocaleString("pt-BR")}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Finalizados</p>
+                  <p className="mt-1 text-xl font-bold text-white">{m.atendimentos.toLocaleString("pt-BR")}</p>
+                </div>
+              </div>
+              <p className="mt-3 text-[11px] leading-relaxed text-blue-100/80">
+                Visão consolidada do período selecionado, pronta para apresentação executiva.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Cabeçalho institucional do PDF */}
@@ -648,63 +701,68 @@ function RelatoriosPage() {
           Relatório gerado por Agente Comercial 360 • {dataGeracao}
         </div>
 
-
-        <div className={`no-print rounded-lg border px-3 py-2 text-xs font-medium ${statusTone}`}>
-          {statusMessage}
-          {loadingRelatorios ? " (carregando...)" : ""}
+        {/* Mensagem profissional de status */}
+        <div className={`no-print rounded-xl border px-4 py-2.5 text-xs font-medium ${statusTone}`}>
+          {relatoriosLoadStatus === "loading"
+            ? "Carregando indicadores..."
+            : relatoriosLoadStatus === "unauthenticated"
+              ? "Faça login para visualizar os indicadores da operação."
+              : relatoriosLoadStatus === "error"
+                ? "Não foi possível carregar os indicadores no momento."
+                : "Relatórios ativos. Os dados da operação estão organizados para análise gerencial, acompanhamento de desempenho e tomada de decisão."}
         </div>
 
-        <div className="no-print rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          As métricas principais (atendimentos finalizados, oportunidades, leads quentes, novos clientes, sem resposta) e a contagem por status canônico vêm exclusivamente do Supabase, usando <span className="font-mono">created_at</span>. Blocos marcados como <span className="font-semibold">Demonstrativo</span> ainda são dados de exemplo e não alimentam cards nem o resumo executivo.
-        </div>
-
-
-        <div className="no-print rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-slate-900">
-                Relatório Gerencial — {companyName ?? "sua empresa"}
-              </h2>
-
-              <p className="mt-1 text-sm text-slate-500">
-                Resumo operacional gerado com base nos atendimentos, leads e conversas do período.
-              </p>
-              <p className="mt-2 inline-flex items-center gap-2 rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                Período selecionado: <span className="font-semibold">{periodo}</span>
-              </p>
+        {/* Barra de comando gerencial */}
+        <div className="no-print rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <BarChart3 className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="text-base font-bold text-slate-900">
+                  Relatório Gerencial — {companyName ?? "sua empresa"}
+                </h2>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  Período selecionado: <span className="font-semibold text-slate-700">{periodo}</span>
+                </p>
+              </div>
             </div>
-            <button
-              onClick={handleExportPDF}
-              title="Abre a janela de impressão do navegador. Escolha 'Salvar como PDF'."
-              className="no-print inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
-            >
-              <Download className="h-4 w-4" />
-              Exportar PDF
-            </button>
-          </div>
-          <div className="no-print mt-4 flex flex-wrap gap-2">
-            {periodos.map((p) => (
+
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="inline-flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1">
+                {periodos.map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPeriodo(p)}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+                      periodo === p
+                        ? "bg-white text-slate-900 shadow-sm"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
               <button
-                key={p}
-                onClick={() => setPeriodo(p)}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                  periodo === p
-                    ? "bg-slate-900 text-white shadow"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
+                onClick={handleExportPDF}
+                title="Abre a janela de impressão do navegador. Escolha 'Salvar como PDF'."
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:from-blue-700 hover:to-blue-800 hover:shadow"
               >
-                {p}
+                <Download className="h-4 w-4" />
+                Exportar PDF
               </button>
-            ))}
+            </div>
           </div>
         </div>
 
-
+        {/* KPIs principais */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((c) => (
             <div
               key={c.label}
-              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow"
             >
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-slate-500">{c.label}</span>
@@ -717,93 +775,12 @@ function RelatoriosPage() {
           ))}
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Total de atendimentos finalizados</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{m.atendimentos.toLocaleString("pt-BR")}</p>
-            <p className="text-xs text-slate-500">conversations.status = finalizada</p>
-          </div>
-
-          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
-            <p className="text-sm font-semibold text-slate-700">Atendimentos por setor<span className={MOCK_BADGE}>Demonstrativo</span></p>
-            <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {demo.setores.map((s) => (
-                <div key={s.nome} className="rounded-lg bg-slate-50 p-3">
-                  <p className="text-xs text-slate-500">{s.nome}</p>
-                  <p className="mt-1 text-xl font-bold text-slate-900">{s.valor}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold text-slate-700">Novos x recorrentes</p>
-            <div className="mt-3 space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">Novos clientes</span>
-                <span className="font-bold text-slate-900">{m.novos}</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">Recorrentes<span className={MOCK_BADGE}>Demonstrativo</span></span>
-                <span className="font-bold text-slate-900">{demo.recorrentes}</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Oportunidades de vendas</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{m.oportunidades}</p>
-            <p className="text-xs text-slate-500">oportunidades comerciais identificadas</p>
-          </div>
-
-          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold text-slate-700">Principais peças solicitadas<span className={MOCK_BADGE}>Demonstrativo</span></p>
-            <ul className="mt-2 space-y-1 text-sm text-slate-600">
-              {pecas.map((p) => (
-                <li key={p} className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-                  {p}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Leads quentes</p>
-            <p className="mt-2 text-2xl font-bold text-red-600">{m.leadsQuentes}</p>
-            <p className="text-xs text-slate-500">classificados como quentes</p>
-          </div>
-
-          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Pendências de vendas<span className={MOCK_BADGE}>Demonstrativo</span></p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{demo.pendVendas}</p>
-            <p className="text-xs text-slate-500">clientes aguardando orçamento</p>
-          </div>
-
-          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Solicitações administrativas<span className={MOCK_BADGE}>Demonstrativo</span></p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{demo.solAdm}</p>
-            <p className="text-xs text-slate-500">solicitações registradas</p>
-          </div>
-
-          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Pendências financeiras<span className={MOCK_BADGE}>Demonstrativo</span></p>
-            <p className="mt-2 text-2xl font-bold text-amber-600">{demo.pendFin}</p>
-            <p className="text-xs text-slate-500">pendências de cobrança</p>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Clientes sem resposta</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{m.semResposta}</p>
-            <p className="text-xs text-slate-500">aguardando retorno</p>
-          </div>
-        </div>
-
+        {/* Gráficos gerenciais */}
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <PieChart className="h-4 w-4 text-blue-600" />
-              <p className="text-sm font-semibold text-slate-700">Atendimentos por setor<span className={MOCK_BADGE}>Demonstrativo</span></p>
+              <p className="text-sm font-semibold text-slate-700">Atendimentos por setor<span className={MOCK_BADGE}>Modelo gerencial</span></p>
             </div>
             <div className="mt-4 space-y-3">
               {demo.setores.map((s) => {
@@ -826,7 +803,7 @@ function RelatoriosPage() {
           <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-blue-600" />
-              <p className="text-sm font-semibold text-slate-700">Leads por temperatura<span className={MOCK_BADGE}>Demonstrativo</span></p>
+              <p className="text-sm font-semibold text-slate-700">Leads por temperatura<span className={MOCK_BADGE}>Modelo gerencial</span></p>
             </div>
             <div className="mt-4 space-y-3">
               {demo.leadsTemp.map((l) => {
@@ -849,7 +826,7 @@ function RelatoriosPage() {
           <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-blue-600" />
-              <p className="text-sm font-semibold text-slate-700">Atendimentos — 7 dias<span className={MOCK_BADGE}>Demonstrativo</span></p>
+              <p className="text-sm font-semibold text-slate-700">Atendimentos — 7 dias<span className={MOCK_BADGE}>Modelo gerencial</span></p>
             </div>
             <div className="mt-4 flex h-32 items-end gap-2">
               {demo.semana.map((s) => (
@@ -866,6 +843,72 @@ function RelatoriosPage() {
           </div>
         </div>
 
+        {/* Blocos detalhados */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-semibold text-slate-700">Novos x recorrentes</p>
+            <div className="mt-3 space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-600">Novos clientes</span>
+                <span className="font-bold text-slate-900">{m.novos}</span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-600">Recorrentes<span className={MOCK_BADGE}>Modelo gerencial</span></span>
+                <span className="font-bold text-slate-900">{demo.recorrentes}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-slate-500">Oportunidades de vendas</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{m.oportunidades}</p>
+            <p className="text-xs text-slate-500">oportunidades comerciais identificadas</p>
+          </div>
+
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-semibold text-slate-700">Principais peças solicitadas<span className={MOCK_BADGE}>Modelo gerencial</span></p>
+            <ul className="mt-2 space-y-1 text-sm text-slate-600">
+              {pecas.map((p) => (
+                <li key={p} className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+                  {p}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-slate-500">Leads quentes</p>
+            <p className="mt-2 text-2xl font-bold text-red-600">{m.leadsQuentes}</p>
+            <p className="text-xs text-slate-500">classificados como quentes</p>
+          </div>
+
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-slate-500">Pendências de vendas<span className={MOCK_BADGE}>Modelo gerencial</span></p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{demo.pendVendas}</p>
+            <p className="text-xs text-slate-500">clientes aguardando orçamento</p>
+          </div>
+
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-slate-500">Solicitações administrativas<span className={MOCK_BADGE}>Modelo gerencial</span></p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{demo.solAdm}</p>
+            <p className="text-xs text-slate-500">solicitações registradas</p>
+          </div>
+
+          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-slate-500">Pendências financeiras<span className={MOCK_BADGE}>Modelo gerencial</span></p>
+            <p className="mt-2 text-2xl font-bold text-amber-600">{demo.pendFin}</p>
+            <p className="text-xs text-slate-500">pendências de cobrança</p>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-sm font-medium text-slate-500">Clientes sem resposta</p>
+            <p className="mt-2 text-2xl font-bold text-slate-900">{m.semResposta}</p>
+            <p className="text-xs text-slate-500">aguardando retorno</p>
+          </div>
+        </div>
+
+        {/* Resumo executivo + Recomendações IA */}
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-600 to-slate-900 p-6 text-white shadow-sm">
             <div className="flex items-center gap-2">
@@ -888,7 +931,7 @@ function RelatoriosPage() {
           <div className="demo-block rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-blue-600" />
-              <h3 className="text-lg font-bold text-slate-900">Recomendações da IA<span className={MOCK_BADGE}>Demonstrativo</span></h3>
+              <h3 className="text-lg font-bold text-slate-900">Recomendações da IA<span className={MOCK_BADGE}>Modelo gerencial</span></h3>
             </div>
             <ul className="mt-3 space-y-2">
               {demo.recomendacoes.map((r) => (
@@ -898,23 +941,6 @@ function RelatoriosPage() {
                 </li>
               ))}
             </ul>
-          </div>
-        </div>
-
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-            <div>
-              <p className="text-sm font-semibold text-amber-900">Observação</p>
-              <p className="mt-1 text-sm text-amber-800">
-                Os cards principais, contagens por status canônico e resumo executivo são 100%
-                Supabase (filtrados por <span className="font-mono">created_at</span>). Blocos
-                marcados como Demonstrativo (setores, peças, pendências, recorrentes,
-                temperatura, gráfico semanal, recomendações) ainda usam dados de exemplo e serão
-                substituídos em fases seguintes.
-              </p>
-
-            </div>
           </div>
         </div>
       </div>

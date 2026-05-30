@@ -725,7 +725,12 @@ function ConversasPage() {
                     ) : null}
                   </span>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-3 rounded-xl bg-muted/30 border border-border/60 p-4 max-h-[440px] overflow-y-auto">
+                  {mensagens.length === 0 && !loadingMessages && (
+                    <div className="py-8 text-center text-xs text-muted-foreground">
+                      Nenhuma mensagem registrada ainda.
+                    </div>
+                  )}
                   {mensagens.map((m, i) => {
                     const isLeft = m.autor === "cliente" || m.autor === "sistema";
                     const label =
@@ -742,17 +747,17 @@ function ConversasPage() {
                         className={`flex ${isLeft ? "justify-start" : "justify-end"}`}
                       >
                         <div
-                          className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
+                          className={`max-w-[78%] rounded-2xl px-3.5 py-2 text-sm shadow-sm ${
                             isLeft
-                              ? "bg-muted text-foreground rounded-tl-sm"
+                              ? "bg-card border border-border text-foreground rounded-tl-sm"
                               : "bg-primary text-primary-foreground rounded-tr-sm"
                           }`}
                         >
-                          <div className="text-[10px] font-semibold uppercase tracking-wide opacity-70 mb-1">
+                          <div className={`text-[10px] font-semibold uppercase tracking-wide mb-0.5 ${isLeft ? "text-muted-foreground" : "opacity-80"}`}>
                             {label}
                           </div>
-                          <p className="leading-relaxed">{m.texto}</p>
-                          <div className="mt-1 text-[10px] opacity-60 text-right">
+                          <p className="leading-relaxed whitespace-pre-wrap">{m.texto}</p>
+                          <div className={`mt-1 text-[10px] text-right ${isLeft ? "text-muted-foreground" : "opacity-70"}`}>
                             {m.hora}
                           </div>
                         </div>
@@ -760,7 +765,7 @@ function ConversasPage() {
                     );
                   })}
                 </div>
-                <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
+                <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary transition">
                   <input
                     type="text"
                     value={draft}
@@ -776,11 +781,12 @@ function ConversasPage() {
                   />
                   <button
                     onClick={enviar}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition"
+                    className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition shadow-sm"
                   >
-                    <Send className="h-4 w-4" />
+                    <Send className="h-3.5 w-3.5" /> Enviar
                   </button>
                 </div>
+
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

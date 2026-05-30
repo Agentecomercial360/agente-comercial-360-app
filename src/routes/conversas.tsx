@@ -754,8 +754,8 @@ function ConversasPage() {
               </div>
             </div>
           )}
-        </div>
-      </div>
+          </div>
+        )}
 
       {/* Forward modal */}
       {forwardOpen && selected && (

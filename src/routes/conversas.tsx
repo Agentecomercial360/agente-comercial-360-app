@@ -247,7 +247,7 @@ function ConversasPage() {
             cliente: cust?.name ?? "Cliente sem nome",
             telefone: cust?.phone ?? "—",
             canal: normalizeChannel(r.channel),
-            ultimaMensagem: "Histórico disponível no painel",
+            ultimaMensagem: "Histórico do atendimento disponível",
             horario: formatHorario(r.last_message_at, r.created_at),
             status: normalizeConversationStatus(r.status),
             setor: "—",
@@ -1007,14 +1007,14 @@ function KanbanView({
 
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Acompanhe cada conversa por etapa, identifique gargalos e priorize retornos.
+            Acompanhe cada atendimento por etapa, identifique gargalos e priorize retornos importantes.
           </p>
         </div>
         <div className="flex items-center gap-3 rounded-xl bg-card/70 border border-border/70 px-3 py-2 shadow-sm">
           <div className="text-right">
             <div className="text-xs font-medium text-muted-foreground">Total</div>
             <div className="text-base font-bold text-foreground leading-tight">
-              {total} {total === 1 ? "conversa" : "conversas"}
+              {total} {total === 1 ? "atendimento" : "atendimentos"}
             </div>
           </div>
           <div className="h-8 w-px bg-border/70" />
@@ -1067,8 +1067,8 @@ function KanbanView({
                       colItems.map((c) => {
                         const isActive = c.id === selectedId;
                         const setorLabel =
-                          c.setor && c.setor !== "—" ? c.setor : "A definir";
-                        const responsavelLabel = "A definir";
+                          c.setor && c.setor !== "—" ? c.setor : "Não definido";
+                        const responsavelLabel = "Não atribuído";
                         const prio = priorityBadge(c.status);
                         const initial = getInitial(c.cliente);
                         return (
@@ -1118,7 +1118,7 @@ function KanbanView({
 
                               {/* Histórico/última mensagem */}
                               <p className="mt-2.5 text-xs text-foreground/75 line-clamp-2 leading-relaxed bg-muted/50 rounded-md px-2 py-1.5 border border-border/40">
-                                {c.ultimaMensagem || "Histórico disponível no painel"}
+                                {c.ultimaMensagem || "Histórico do atendimento disponível"}
                               </p>
 
                               {/* Responsável e setor */}

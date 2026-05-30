@@ -1001,6 +1001,10 @@ function KanbanView({
               </span>
               Ao vivo
             </span>
+            <span className="inline-flex items-center rounded-full bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+              Operação ativa
+            </span>
+
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
             Acompanhe cada conversa por etapa, identifique gargalos e priorize retornos.

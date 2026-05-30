@@ -543,8 +543,7 @@ function AtendimentosPage() {
               <h3 className="text-lg font-bold">Resumo da IA</h3>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-blue-50">
-              A IA identificou maior volume de atendimentos no setor de vendas. Existem 9 clientes
-              aguardando resposta e 6 atendimentos relacionados a orçamento de peças.
+              A análise operacional identificou oportunidades de retorno, atendimentos aguardando resposta e solicitações relacionadas a orçamento de peças.
             </p>
           </div>
 

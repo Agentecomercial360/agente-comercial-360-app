@@ -671,20 +671,27 @@ function ConversasPage() {
           {/* Conversation details */}
           {selected && (
             <div className="lg:col-span-2 space-y-4">
-              <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-5">
+              <div className="rounded-2xl bg-gradient-to-br from-card via-card to-[var(--brand-blue-soft)]/30 border border-border shadow-[var(--shadow-soft)] p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <h2 className="font-display text-xl font-bold tracking-tight text-foreground">
-                      {selected.cliente}
-                    </h2>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1">
-                        <Phone className="h-3 w-3" /> {selected.telefone}
-                      </span>
-                      <span>·</span>
-                      <span>Canal: {selected.canal}</span>
-                      <span>·</span>
-                      <span>Setor: {selected.setor}</span>
+                  <div className="flex items-start gap-3 min-w-0">
+                    <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-bold ring-2 ring-card shadow-sm ${avatarColor(selected.cliente)}`}>
+                      {getInitial(selected.cliente)}
+                    </span>
+                    <div className="min-w-0">
+                      <h2 className="font-display text-xl font-bold tracking-tight text-foreground truncate">
+                        {selected.cliente}
+                      </h2>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border px-2 py-0.5 text-[11px] font-medium text-foreground">
+                          <Phone className="h-3 w-3 text-muted-foreground" /> {selected.telefone}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border px-2 py-0.5 text-[11px] font-medium text-foreground">
+                          <MessageCircle className="h-3 w-3 text-muted-foreground" /> {selected.canal}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border px-2 py-0.5 text-[11px] font-medium text-foreground">
+                          <Briefcase className="h-3 w-3 text-muted-foreground" /> {selected.setor && selected.setor !== "—" ? selected.setor : "Não definido"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
@@ -693,13 +700,15 @@ function ConversasPage() {
                     >
                       {getConversationStatusLabel(selected.status)}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-card border border-border rounded-full px-2.5 py-1">
+                      <UserCheck className="h-3 w-3 text-primary" />
                       Responsável sugerido:{" "}
                       <span className="font-semibold text-foreground">Amanda</span>
                     </span>
                   </div>
                 </div>
               </div>
+
 
               <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-5">
                 <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">

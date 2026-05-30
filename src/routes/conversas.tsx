@@ -448,22 +448,50 @@ function ConversasPage() {
         </div>
 
 
-        {/* Filters + search */}
+        {/* View selector + Filters + search */}
         <div className="rounded-2xl bg-card p-4 border border-border shadow-[var(--shadow-soft)] space-y-3">
-          <div className="flex flex-wrap gap-2">
-            {filters.map((f) => (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex rounded-xl border border-border bg-muted/40 p-1">
               <button
-                key={f}
-                onClick={() => setActiveFilter(f)}
-                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
-                  activeFilter === f
+                type="button"
+                onClick={() => setViewMode("lista")}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  viewMode === "lista"
                     ? "bg-primary text-primary-foreground shadow-sm"
-                    : "bg-muted text-muted-foreground hover:bg-muted/70"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
+                aria-pressed={viewMode === "lista"}
               >
-                {f}
+                <ListIcon className="h-3.5 w-3.5" /> Lista
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => setViewMode("kanban")}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                  viewMode === "kanban"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                aria-pressed={viewMode === "kanban"}
+              >
+                <LayoutGrid className="h-3.5 w-3.5" /> Kanban
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {filters.map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setActiveFilter(f)}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+                    activeFilter === f
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "bg-muted text-muted-foreground hover:bg-muted/70"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -476,6 +504,19 @@ function ConversasPage() {
             />
           </div>
         </div>
+
+        {viewMode === "kanban" ? (
+          <KanbanView
+            conversas={filtered}
+            selectedId={selectedId}
+            onSelect={(id) => {
+              setSelectedId(id);
+              setViewMode("lista");
+            }}
+          />
+        ) : null}
+
+        {viewMode === "lista" && (
 
         {/* Two column layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

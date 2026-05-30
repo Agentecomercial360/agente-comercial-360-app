@@ -498,11 +498,9 @@ function DashboardPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
           {kpisSecondary.map((k) => {
             const Icon = k.icon;
-            return (
-              <div
-                key={k.label}
-                className="rounded-xl bg-card p-4 border border-border shadow-[var(--shadow-soft)]"
-              >
+            const showCta = k.label === "IA configurada" && k.value === "Não";
+            const content = (
+              <>
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Icon className="h-4 w-4 text-primary" />
                   <span className="text-[11px] leading-tight">{k.label}</span>
@@ -510,6 +508,29 @@ function DashboardPage() {
                 <div className="mt-2 font-display text-xl font-bold text-foreground">
                   {k.value}
                 </div>
+                {showCta ? (
+                  <div className="mt-1.5 inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary">
+                    Configurar IA <ChevronRight className="h-3 w-3" />
+                  </div>
+                ) : null}
+              </>
+            );
+            const baseClass =
+              "block rounded-xl bg-card p-4 border border-border shadow-[var(--shadow-soft)]";
+            if (k.to) {
+              return (
+                <Link
+                  key={k.label}
+                  to={k.to}
+                  className={`${baseClass} transition hover:bg-muted/30 hover:shadow-[var(--shadow-card)]`}
+                >
+                  {content}
+                </Link>
+              );
+            }
+            return (
+              <div key={k.label} className={baseClass}>
+                {content}
               </div>
             );
           })}

@@ -15,6 +15,8 @@ import {
   Loader2,
   List as ListIcon,
   LayoutGrid,
+  Briefcase,
+  Inbox,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";

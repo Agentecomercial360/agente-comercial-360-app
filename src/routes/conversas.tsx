@@ -60,6 +60,32 @@ function formatHorario(lastMessageAt: string | null, createdAt: string | null): 
     : d.toLocaleDateString("pt-BR");
 }
 
+function getInitial(name: string) {
+  const trimmed = (name || "").trim();
+  if (!trimmed) return "?";
+  const parts = trimmed.split(/\s+/);
+  const first = parts[0]?.[0] ?? "";
+  const second = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return (first + second).toUpperCase() || "?";
+}
+
+const AVATAR_PALETTE = [
+  "bg-blue-100 text-blue-700",
+  "bg-emerald-100 text-emerald-700",
+  "bg-amber-100 text-amber-700",
+  "bg-purple-100 text-purple-700",
+  "bg-rose-100 text-rose-700",
+  "bg-indigo-100 text-indigo-700",
+  "bg-teal-100 text-teal-700",
+];
+
+function avatarColor(name: string) {
+  let h = 0;
+  for (let i = 0; i < (name || "").length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+  return AVATAR_PALETTE[Math.abs(h) % AVATAR_PALETTE.length];
+}
+
+
 
 export const Route = createFileRoute("/conversas")({
   component: ConversasPage,
@@ -389,27 +415,45 @@ function ConversasPage() {
     <DashboardLayout>
       <Toaster position="top-right" richColors />
       <div className="mx-auto max-w-7xl space-y-4">
-        <div className="space-y-2">
-          <div>
-            <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
-              Conversas
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Consulte o histórico de mensagens, interações com clientes e respostas
-              sugeridas pela IA.
-            </p>
+        <div className="rounded-2xl border border-border bg-gradient-to-br from-card via-card to-[var(--brand-blue-soft)]/40 shadow-[var(--shadow-soft)] px-5 py-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+                  Conversas
+                </h1>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                  </span>
+                  Ao vivo
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Histórico de mensagens, interações com clientes e respostas sugeridas pela IA — tudo centralizado em um único painel.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1.5 text-xs text-muted-foreground">
+                <MessageCircle className="h-3.5 w-3.5 text-primary" />
+                <span className="font-semibold text-foreground">{items.length}</span>
+                <span>{items.length === 1 ? "atendimento" : "atendimentos"}</span>
+              </div>
+              {loadingConversations ? (
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Carregando…
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Painel ativo
+                </div>
+              )}
+            </div>
           </div>
-
-          {loadingConversations ? (
-            <div className="rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs inline-flex items-center gap-1.5 text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" /> Carregando conversas...
-            </div>
-          ) : (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
-              Painel de conversas ativo. Os atendimentos estão centralizados com histórico, status e acompanhamento por cliente.
-            </div>
-          )}
         </div>
+
+
 
         {/* Summary cards */}
         {(() => {
@@ -472,13 +516,13 @@ function ConversasPage() {
         {/* View selector + Filters + search */}
         <div className="rounded-2xl bg-card p-4 border border-border shadow-[var(--shadow-soft)] space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="inline-flex rounded-xl border border-border bg-muted/40 p-1">
+            <div className="inline-flex rounded-xl border border-border bg-muted/50 p-1 shadow-inner">
               <button
                 type="button"
                 onClick={() => setViewMode("lista")}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
                   viewMode === "lista"
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
                 aria-pressed={viewMode === "lista"}
@@ -488,9 +532,9 @@ function ConversasPage() {
               <button
                 type="button"
                 onClick={() => setViewMode("kanban")}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
                   viewMode === "kanban"
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
                 aria-pressed={viewMode === "kanban"}
@@ -498,6 +542,7 @@ function ConversasPage() {
                 <LayoutGrid className="h-3.5 w-3.5" /> Kanban
               </button>
             </div>
+
             <div className="flex flex-wrap gap-2">
               {filters.map((f) => (
                 <button
@@ -542,10 +587,13 @@ function ConversasPage() {
 
           {/* Conversation list */}
           <div className="lg:col-span-1 rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] overflow-hidden">
-            <div className="px-4 py-3 border-b border-border bg-muted/40">
+            <div className="px-4 py-3 border-b border-border bg-gradient-to-r from-muted/50 to-transparent flex items-center justify-between">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Lista de conversas
               </h3>
+              <span className="text-[10px] font-semibold text-muted-foreground bg-card border border-border rounded-full px-2 py-0.5">
+                {filtered.length}
+              </span>
             </div>
             {filtered.length === 0 ? (
               <div className="p-8 text-center">
@@ -562,40 +610,54 @@ function ConversasPage() {
                 {filtered.map((c) => {
                   const isActive = c.id === selectedId;
                   return (
-                    <li key={c.id}>
+                    <li key={c.id} className="relative">
+                      {isActive && (
+                        <span className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
+                      )}
                       <button
                         onClick={() => setSelectedId(c.id)}
                         className={`w-full text-left px-4 py-3.5 transition ${
-                          isActive ? "bg-[var(--brand-blue-soft)]" : "hover:bg-muted/40"
+                          isActive
+                            ? "bg-[var(--brand-blue-soft)]/70"
+                            : "hover:bg-muted/40"
                         }`}
                       >
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-3">
+                          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold ring-2 ring-card ${avatarColor(c.cliente)}`}>
+                            {getInitial(c.cliente)}
+                          </span>
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-foreground truncate">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className={`truncate font-semibold ${isActive ? "text-primary" : "text-foreground"}`}>
                                 {c.cliente}
                               </span>
+                              <span className="text-[11px] text-muted-foreground whitespace-nowrap font-medium">
+                                {c.horario}
+                              </span>
                             </div>
-                            <div className="mt-0.5 text-xs text-muted-foreground">
-                              {c.telefone} · {c.canal}
+                            <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                              <Phone className="h-3 w-3" />
+                              <span className="truncate">{c.telefone}</span>
+                              <span className="opacity-50">·</span>
+                              <span>{c.canal}</span>
                             </div>
-                            <p className="mt-1.5 text-sm text-foreground/80 truncate">
+                            <p className="mt-1.5 text-sm text-foreground/75 truncate leading-snug">
                               {c.ultimaMensagem}
                             </p>
-                            <div className="mt-2 flex items-center gap-2">
+                            <div className="mt-2 flex items-center gap-1.5 flex-wrap">
                               <span
                                 className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${getConversationStatusBadgeClass(c.status)}`}
                               >
                                 {getConversationStatusLabel(c.status)}
                               </span>
-                              <span className="text-[10px] text-muted-foreground">
-                                {c.setor}
-                              </span>
+                              {c.setor && c.setor !== "—" && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                  <Briefcase className="h-2.5 w-2.5" />
+                                  {c.setor}
+                                </span>
+                              )}
                             </div>
                           </div>
-                          <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-                            {c.horario}
-                          </span>
                         </div>
                       </button>
                     </li>
@@ -605,23 +667,31 @@ function ConversasPage() {
             )}
           </div>
 
+
           {/* Conversation details */}
           {selected && (
             <div className="lg:col-span-2 space-y-4">
-              <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-5">
+              <div className="rounded-2xl bg-gradient-to-br from-card via-card to-[var(--brand-blue-soft)]/30 border border-border shadow-[var(--shadow-soft)] p-5">
                 <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div>
-                    <h2 className="font-display text-xl font-bold tracking-tight text-foreground">
-                      {selected.cliente}
-                    </h2>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1">
-                        <Phone className="h-3 w-3" /> {selected.telefone}
-                      </span>
-                      <span>·</span>
-                      <span>Canal: {selected.canal}</span>
-                      <span>·</span>
-                      <span>Setor: {selected.setor}</span>
+                  <div className="flex items-start gap-3 min-w-0">
+                    <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-bold ring-2 ring-card shadow-sm ${avatarColor(selected.cliente)}`}>
+                      {getInitial(selected.cliente)}
+                    </span>
+                    <div className="min-w-0">
+                      <h2 className="font-display text-xl font-bold tracking-tight text-foreground truncate">
+                        {selected.cliente}
+                      </h2>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border px-2 py-0.5 text-[11px] font-medium text-foreground">
+                          <Phone className="h-3 w-3 text-muted-foreground" /> {selected.telefone}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border px-2 py-0.5 text-[11px] font-medium text-foreground">
+                          <MessageCircle className="h-3 w-3 text-muted-foreground" /> {selected.canal}
+                        </span>
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border px-2 py-0.5 text-[11px] font-medium text-foreground">
+                          <Briefcase className="h-3 w-3 text-muted-foreground" /> {selected.setor && selected.setor !== "—" ? selected.setor : "Não definido"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
@@ -630,13 +700,15 @@ function ConversasPage() {
                     >
                       {getConversationStatusLabel(selected.status)}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground bg-card border border-border rounded-full px-2.5 py-1">
+                      <UserCheck className="h-3 w-3 text-primary" />
                       Responsável sugerido:{" "}
                       <span className="font-semibold text-foreground">Amanda</span>
                     </span>
                   </div>
                 </div>
               </div>
+
 
               <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-5">
                 <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
@@ -653,7 +725,12 @@ function ConversasPage() {
                     ) : null}
                   </span>
                 </div>
-                <div className="space-y-3">
+                <div className="space-y-3 rounded-xl bg-muted/30 border border-border/60 p-4 max-h-[440px] overflow-y-auto">
+                  {mensagens.length === 0 && !loadingMessages && (
+                    <div className="py-8 text-center text-xs text-muted-foreground">
+                      Nenhuma mensagem registrada ainda.
+                    </div>
+                  )}
                   {mensagens.map((m, i) => {
                     const isLeft = m.autor === "cliente" || m.autor === "sistema";
                     const label =
@@ -670,17 +747,17 @@ function ConversasPage() {
                         className={`flex ${isLeft ? "justify-start" : "justify-end"}`}
                       >
                         <div
-                          className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm ${
+                          className={`max-w-[78%] rounded-2xl px-3.5 py-2 text-sm shadow-sm ${
                             isLeft
-                              ? "bg-muted text-foreground rounded-tl-sm"
+                              ? "bg-card border border-border text-foreground rounded-tl-sm"
                               : "bg-primary text-primary-foreground rounded-tr-sm"
                           }`}
                         >
-                          <div className="text-[10px] font-semibold uppercase tracking-wide opacity-70 mb-1">
+                          <div className={`text-[10px] font-semibold uppercase tracking-wide mb-0.5 ${isLeft ? "text-muted-foreground" : "opacity-80"}`}>
                             {label}
                           </div>
-                          <p className="leading-relaxed">{m.texto}</p>
-                          <div className="mt-1 text-[10px] opacity-60 text-right">
+                          <p className="leading-relaxed whitespace-pre-wrap">{m.texto}</p>
+                          <div className={`mt-1 text-[10px] text-right ${isLeft ? "text-muted-foreground" : "opacity-70"}`}>
                             {m.hora}
                           </div>
                         </div>
@@ -688,7 +765,7 @@ function ConversasPage() {
                     );
                   })}
                 </div>
-                <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
+                <div className="mt-4 flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary transition">
                   <input
                     type="text"
                     value={draft}
@@ -704,11 +781,12 @@ function ConversasPage() {
                   />
                   <button
                     onClick={enviar}
-                    className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition"
+                    className="inline-flex items-center gap-1.5 h-9 px-3 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:opacity-90 transition shadow-sm"
                   >
-                    <Send className="h-4 w-4" />
+                    <Send className="h-3.5 w-3.5" /> Enviar
                   </button>
                 </div>
+
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -961,29 +1039,8 @@ function KanbanView({
     }
   };
 
-  const getInitial = (name: string) => {
-    const trimmed = (name || "").trim();
-    if (!trimmed) return "?";
-    const parts = trimmed.split(/\s+/);
-    const first = parts[0]?.[0] ?? "";
-    const second = parts.length > 1 ? parts[parts.length - 1][0] : "";
-    return (first + second).toUpperCase() || "?";
-  };
 
-  const avatarPalette = [
-    "bg-blue-100 text-blue-700",
-    "bg-emerald-100 text-emerald-700",
-    "bg-amber-100 text-amber-700",
-    "bg-purple-100 text-purple-700",
-    "bg-rose-100 text-rose-700",
-    "bg-indigo-100 text-indigo-700",
-    "bg-teal-100 text-teal-700",
-  ];
-  const avatarColor = (name: string) => {
-    let h = 0;
-    for (let i = 0; i < (name || "").length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
-    return avatarPalette[Math.abs(h) % avatarPalette.length];
-  };
+
 
   return (
     <div className="space-y-4">

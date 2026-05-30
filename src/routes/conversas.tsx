@@ -867,30 +867,65 @@ function KanbanView({
 
   const total = conversas.length;
 
-  const columnAccent: Record<ConversationStatus, string> = {
-    aberta: "bg-blue-500",
-    em_andamento: "bg-orange-500",
-    aguardando_cliente: "bg-amber-400",
-    aguardando_empresa: "bg-purple-500",
-    encaminhada: "bg-indigo-700",
-    sem_resposta: "bg-red-500",
-    finalizada: "bg-emerald-500",
-  };
-
-  const columnSurface: Record<ConversationStatus, string> = {
-    aberta: "bg-blue-50/60",
-    em_andamento: "bg-orange-50/60",
-    aguardando_cliente: "bg-amber-50/60",
-    aguardando_empresa: "bg-purple-50/60",
-    encaminhada: "bg-indigo-50/70",
-    sem_resposta: "bg-red-50/60",
-    finalizada: "bg-emerald-50/60",
+  const columnTheme: Record<
+    ConversationStatus,
+    { accent: string; surface: string; header: string; chip: string; dot: string }
+  > = {
+    aberta: {
+      accent: "bg-blue-500",
+      surface: "bg-blue-50/40",
+      header: "bg-blue-100/70 text-blue-800",
+      chip: "bg-blue-600 text-white",
+      dot: "bg-blue-500",
+    },
+    em_andamento: {
+      accent: "bg-orange-500",
+      surface: "bg-orange-50/40",
+      header: "bg-orange-100/70 text-orange-800",
+      chip: "bg-orange-500 text-white",
+      dot: "bg-orange-500",
+    },
+    aguardando_cliente: {
+      accent: "bg-amber-400",
+      surface: "bg-amber-50/40",
+      header: "bg-amber-100/70 text-amber-800",
+      chip: "bg-amber-500 text-white",
+      dot: "bg-amber-400",
+    },
+    aguardando_empresa: {
+      accent: "bg-purple-500",
+      surface: "bg-purple-50/40",
+      header: "bg-purple-100/70 text-purple-800",
+      chip: "bg-purple-600 text-white",
+      dot: "bg-purple-500",
+    },
+    encaminhada: {
+      accent: "bg-indigo-700",
+      surface: "bg-indigo-50/50",
+      header: "bg-indigo-100/70 text-indigo-800",
+      chip: "bg-indigo-700 text-white",
+      dot: "bg-indigo-600",
+    },
+    sem_resposta: {
+      accent: "bg-red-500",
+      surface: "bg-red-50/40",
+      header: "bg-red-100/70 text-red-800",
+      chip: "bg-red-600 text-white",
+      dot: "bg-red-500",
+    },
+    finalizada: {
+      accent: "bg-emerald-500",
+      surface: "bg-emerald-50/40",
+      header: "bg-emerald-100/70 text-emerald-800",
+      chip: "bg-emerald-600 text-white",
+      dot: "bg-emerald-500",
+    },
   };
 
   const priorityBadge = (status: ConversationStatus) => {
     switch (status) {
       case "sem_resposta":
-        return { label: "Atenção necessária", cls: "bg-red-50 text-red-700 border-red-200" };
+        return { label: "Atenção", cls: "bg-red-50 text-red-700 border-red-200" };
       case "aguardando_cliente":
         return { label: "Aguardando cliente", cls: "bg-amber-50 text-amber-700 border-amber-200" };
       case "aguardando_empresa":
@@ -907,23 +942,66 @@ function KanbanView({
     }
   };
 
+  const getInitial = (name: string) => {
+    const trimmed = (name || "").trim();
+    if (!trimmed) return "?";
+    const parts = trimmed.split(/\s+/);
+    const first = parts[0]?.[0] ?? "";
+    const second = parts.length > 1 ? parts[parts.length - 1][0] : "";
+    return (first + second).toUpperCase() || "?";
+  };
+
+  const avatarPalette = [
+    "bg-blue-100 text-blue-700",
+    "bg-emerald-100 text-emerald-700",
+    "bg-amber-100 text-amber-700",
+    "bg-purple-100 text-purple-700",
+    "bg-rose-100 text-rose-700",
+    "bg-indigo-100 text-indigo-700",
+    "bg-teal-100 text-teal-700",
+  ];
+  const avatarColor = (name: string) => {
+    let h = 0;
+    for (let i = 0; i < (name || "").length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+    return avatarPalette[Math.abs(h) % avatarPalette.length];
+  };
+
   return (
     <div className="space-y-4">
       {/* Kanban header */}
-      <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] px-5 py-4 flex flex-wrap items-start justify-between gap-3">
+      <div className="rounded-2xl bg-gradient-to-br from-card to-muted/30 border border-border shadow-[var(--shadow-soft)] px-5 py-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="font-display text-lg font-semibold text-foreground">
-            Visão Kanban dos atendimentos
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="font-display text-lg font-semibold text-foreground">
+              Visão Kanban dos atendimentos
+            </h2>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+              </span>
+              Ao vivo
+            </span>
+          </div>
           <p className="mt-1 text-sm text-muted-foreground">
             Acompanhe cada conversa por etapa, identifique gargalos e priorize retornos.
           </p>
         </div>
-        <div className="text-right">
-          <div className="text-sm font-semibold text-foreground">
-            Total: {total} {total === 1 ? "conversa" : "conversas"}
+        <div className="flex items-center gap-3 rounded-xl bg-card/70 border border-border/70 px-3 py-2 shadow-sm">
+          <div className="text-right">
+            <div className="text-xs font-medium text-muted-foreground">Total</div>
+            <div className="text-base font-bold text-foreground leading-tight">
+              {total} {total === 1 ? "conversa" : "conversas"}
+            </div>
           </div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Atualizado agora</div>
+          <div className="h-8 w-px bg-border/70" />
+          <div className="text-right">
+            <div className="text-xs font-medium text-muted-foreground">Status</div>
+            <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Atualizado agora
+            </div>
+          </div>
         </div>
       </div>
 
@@ -933,25 +1011,34 @@ function KanbanView({
           <div className="flex gap-4 min-w-max pb-2">
             {KANBAN_COLUMNS.map((status) => {
               const colItems = grouped[status];
+              const theme = columnTheme[status];
               return (
                 <div
                   key={status}
-                  className={`flex flex-col w-80 shrink-0 rounded-xl border border-border overflow-hidden ${columnSurface[status]}`}
+                  className={`flex flex-col w-80 min-w-[20rem] shrink-0 rounded-xl border border-border/70 overflow-hidden ${theme.surface}`}
                 >
-                  <div className={`h-1 w-full ${columnAccent[status]}`} />
-                  <div className="flex items-center justify-between px-3 py-2 border-b border-border/70 bg-card/70 backdrop-blur-sm">
-                    <span className="text-[11px] font-bold uppercase tracking-wide text-foreground">
+                  <div className={`h-1 w-full ${theme.accent}`} />
+                  <div className={`flex items-center justify-between px-3 py-2.5 border-b border-border/60 ${theme.header}`}>
+                    <span className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider">
+                      <span className={`h-1.5 w-1.5 rounded-full ${theme.dot}`} />
                       {getConversationStatusLabel(status)}
                     </span>
-                    <span className="inline-flex items-center justify-center rounded-full bg-muted text-muted-foreground text-[10px] font-bold px-2 py-0.5 min-w-[1.5rem]">
+                    <span className={`inline-flex items-center justify-center rounded-full text-[10px] font-bold px-2 py-0.5 min-w-[1.5rem] shadow-sm ${theme.chip}`}>
                       {colItems.length}
                     </span>
                   </div>
                   <div className="flex flex-col gap-2.5 p-2.5 max-h-[560px] overflow-y-auto">
                     {colItems.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center gap-1.5 px-2 py-8 text-center text-muted-foreground/80">
-                        <Inbox className="h-4 w-4 opacity-60" />
-                        <span className="text-[11px]">Nenhum atendimento nesta etapa</span>
+                      <div className="flex flex-col items-center justify-center gap-2 px-3 py-10 text-center">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-card border border-dashed border-border/70 text-muted-foreground/70">
+                          <Inbox className="h-4 w-4" />
+                        </div>
+                        <span className="text-[12px] font-medium text-foreground/70">
+                          Nenhum atendimento nesta etapa
+                        </span>
+                        <span className="text-[10.5px] text-muted-foreground leading-snug max-w-[180px]">
+                          Novas conversas neste status aparecerão aqui automaticamente.
+                        </span>
                       </div>
                     ) : (
                       colItems.map((c) => {
@@ -960,12 +1047,13 @@ function KanbanView({
                           c.setor && c.setor !== "—" ? c.setor : "A definir";
                         const responsavelLabel = "A definir";
                         const prio = priorityBadge(c.status);
+                        const initial = getInitial(c.cliente);
                         return (
                           <div
                             key={c.id}
-                            className={`group rounded-xl border bg-card p-3.5 transition shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] hover:-translate-y-px hover:border-primary/30 ${
+                            className={`group rounded-xl border bg-card p-3.5 transition-all duration-150 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] hover:-translate-y-0.5 hover:border-primary/30 ${
                               isActive
-                                ? "border-primary ring-2 ring-primary/25 bg-blue-50/70 shadow-[var(--shadow-card)]"
+                                ? "border-primary ring-2 ring-primary/25 bg-blue-50/60 shadow-[var(--shadow-card)]"
                                 : "border-border/70"
                             }`}
                           >
@@ -976,9 +1064,14 @@ function KanbanView({
                             >
                               {/* Cliente em destaque + badge prioridade */}
                               <div className="flex items-start justify-between gap-2">
-                                <span className="font-semibold text-sm text-foreground truncate">
-                                  {c.cliente}
-                                </span>
+                                <div className="flex items-center gap-2 min-w-0">
+                                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10.5px] font-bold ${avatarColor(c.cliente)}`}>
+                                    {initial}
+                                  </span>
+                                  <span className="font-semibold text-sm text-foreground truncate leading-tight">
+                                    {c.cliente}
+                                  </span>
+                                </div>
                                 {prio ? (
                                   <span
                                     className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-semibold whitespace-nowrap ${prio.cls}`}
@@ -989,7 +1082,7 @@ function KanbanView({
                               </div>
 
                               {/* Canal + telefone com ícones */}
-                              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
+                              <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-muted-foreground">
                                 <span className="inline-flex items-center gap-1 truncate">
                                   <MessageCircle className="h-3 w-3 text-emerald-600/80" />
                                   {c.canal}
@@ -1001,7 +1094,7 @@ function KanbanView({
                               </div>
 
                               {/* Histórico/última mensagem */}
-                              <p className="mt-2.5 text-xs text-foreground/75 line-clamp-2 leading-relaxed bg-muted/40 rounded-md px-2 py-1.5 border border-border/40">
+                              <p className="mt-2.5 text-xs text-foreground/75 line-clamp-2 leading-relaxed bg-muted/50 rounded-md px-2 py-1.5 border border-border/40">
                                 {c.ultimaMensagem || "Histórico disponível no painel"}
                               </p>
 

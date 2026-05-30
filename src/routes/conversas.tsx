@@ -836,3 +836,112 @@ function ConversasPage() {
   );
 }
 
+const KANBAN_COLUMNS: ConversationStatus[] = CONVERSATION_STATUSES;
+
+function KanbanView({
+  conversas,
+  selectedId,
+  onSelect,
+}: {
+  conversas: Conversa[];
+  selectedId: string | number | null;
+  onSelect: (id: string | number) => void;
+}) {
+  const grouped = useMemo(() => {
+    const map: Record<ConversationStatus, Conversa[]> = {
+      aberta: [],
+      em_andamento: [],
+      aguardando_cliente: [],
+      aguardando_empresa: [],
+      encaminhada: [],
+      sem_resposta: [],
+      finalizada: [],
+    };
+    for (const c of conversas) {
+      map[c.status]?.push(c);
+    }
+    return map;
+  }, [conversas]);
+
+  return (
+    <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-4">
+      <div className="overflow-x-auto">
+        <div className="flex gap-4 min-w-max pb-2">
+          {KANBAN_COLUMNS.map((status) => {
+            const colItems = grouped[status];
+            return (
+              <div
+                key={status}
+                className="flex flex-col w-72 shrink-0 rounded-xl bg-muted/30 border border-border"
+              >
+                <div className="flex items-center justify-between px-3 py-2.5 border-b border-border">
+                  <span
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${getConversationStatusBadgeClass(status)}`}
+                  >
+                    {getConversationStatusLabel(status)}
+                  </span>
+                  <span className="text-[11px] font-semibold text-muted-foreground">
+                    {colItems.length}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-2 p-2 max-h-[640px] overflow-y-auto">
+                  {colItems.length === 0 ? (
+                    <div className="px-2 py-6 text-center text-[11px] text-muted-foreground">
+                      Sem conversas
+                    </div>
+                  ) : (
+                    colItems.map((c) => {
+                      const isActive = c.id === selectedId;
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => onSelect(c.id)}
+                          className={`text-left rounded-lg border bg-card p-3 transition shadow-sm hover:shadow-md ${
+                            isActive
+                              ? "border-primary ring-1 ring-primary/30"
+                              : "border-border"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <span className="font-semibold text-sm text-foreground truncate">
+                              {c.cliente}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                              {c.horario}
+                            </span>
+                          </div>
+                          <div className="mt-1 text-[11px] text-muted-foreground">
+                            {c.telefone}
+                          </div>
+                          <div className="mt-1 text-[11px] text-muted-foreground">
+                            Canal: {c.canal}
+                          </div>
+                          <p className="mt-2 text-xs text-foreground/80 line-clamp-2">
+                            {c.ultimaMensagem || "Histórico disponível no painel"}
+                          </p>
+                          <div className="mt-2 flex items-center justify-between gap-2">
+                            <span
+                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${getConversationStatusBadgeClass(c.status)}`}
+                            >
+                              {getConversationStatusLabel(c.status)}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground truncate">
+                              {c.setor && c.setor !== "—" ? c.setor : "Sem setor"}
+                            </span>
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+

@@ -415,25 +415,44 @@ function ConversasPage() {
     <DashboardLayout>
       <Toaster position="top-right" richColors />
       <div className="mx-auto max-w-7xl space-y-4">
-        <div className="space-y-2">
-          <div>
-            <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
-              Conversas
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Consulte o histórico de mensagens, interações com clientes e respostas
-              sugeridas pela IA.
-            </p>
+        <div className="rounded-2xl border border-border bg-gradient-to-br from-card via-card to-[var(--brand-blue-soft)]/40 shadow-[var(--shadow-soft)] px-5 py-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+                  Conversas
+                </h1>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                  </span>
+                  Ao vivo
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Histórico de mensagens, interações com clientes e respostas sugeridas pela IA — tudo centralizado em um único painel.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1.5 text-xs text-muted-foreground">
+                <MessageCircle className="h-3.5 w-3.5 text-primary" />
+                <span className="font-semibold text-foreground">{items.length}</span>
+                <span>{items.length === 1 ? "atendimento" : "atendimentos"}</span>
+              </div>
+              {loadingConversations ? (
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
+                  <Loader2 className="h-3 w-3 animate-spin" /> Carregando…
+                </div>
+              ) : (
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
+                  <CheckCircle2 className="h-3.5 w-3.5" /> Painel ativo
+                </div>
+              )}
+            </div>
           </div>
+        </div>
 
-          {loadingConversations ? (
-            <div className="rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs inline-flex items-center gap-1.5 text-muted-foreground">
-              <Loader2 className="h-3 w-3 animate-spin" /> Carregando conversas...
-            </div>
-          ) : (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
-              Painel de conversas ativo. Os atendimentos estão centralizados com histórico, status e acompanhamento por cliente.
-            </div>
           )}
         </div>
 

@@ -940,8 +940,8 @@ function KanbanView({
                       colItems.map((c) => {
                         const isActive = c.id === selectedId;
                         const setorLabel =
-                          c.setor && c.setor !== "—" ? c.setor : "Setor não definido";
-                        const responsavelLabel = "Responsável não definido";
+                          c.setor && c.setor !== "—" ? c.setor : "A definir";
+                        const responsavelLabel = "A definir";
                         const prio = priorityBadge(c.status);
                         return (
                           <div

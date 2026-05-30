@@ -440,7 +440,7 @@ function ConversasPage() {
                   Conversas
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm md:text-[15px] text-muted-foreground leading-relaxed">
-                  Histórico de mensagens, interações com clientes e respostas sugeridas pela IA — tudo centralizado em um único painel premium.
+                  Centralize atendimentos, histórico, status e próximos passos em um único painel inteligente.
                 </p>
               </div>
 
@@ -457,7 +457,7 @@ function ConversasPage() {
                         {items.length}
                       </div>
                       <div className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
-                        {items.length === 1 ? "Atendimento ativo" : "Atendimentos ativos"}
+                        {items.length === 1 ? "Atendimento no painel" : "Atendimentos no painel"}
                       </div>
                     </div>
                   </div>

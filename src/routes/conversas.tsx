@@ -587,10 +587,13 @@ function ConversasPage() {
 
           {/* Conversation list */}
           <div className="lg:col-span-1 rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] overflow-hidden">
-            <div className="px-4 py-3 border-b border-border bg-muted/40">
+            <div className="px-4 py-3 border-b border-border bg-gradient-to-r from-muted/50 to-transparent flex items-center justify-between">
               <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 Lista de conversas
               </h3>
+              <span className="text-[10px] font-semibold text-muted-foreground bg-card border border-border rounded-full px-2 py-0.5">
+                {filtered.length}
+              </span>
             </div>
             {filtered.length === 0 ? (
               <div className="p-8 text-center">
@@ -607,40 +610,54 @@ function ConversasPage() {
                 {filtered.map((c) => {
                   const isActive = c.id === selectedId;
                   return (
-                    <li key={c.id}>
+                    <li key={c.id} className="relative">
+                      {isActive && (
+                        <span className="absolute left-0 top-0 bottom-0 w-1 bg-primary rounded-r-full" />
+                      )}
                       <button
                         onClick={() => setSelectedId(c.id)}
                         className={`w-full text-left px-4 py-3.5 transition ${
-                          isActive ? "bg-[var(--brand-blue-soft)]" : "hover:bg-muted/40"
+                          isActive
+                            ? "bg-[var(--brand-blue-soft)]/70"
+                            : "hover:bg-muted/40"
                         }`}
                       >
-                        <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-3">
+                          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold ring-2 ring-card ${avatarColor(c.cliente)}`}>
+                            {getInitial(c.cliente)}
+                          </span>
                           <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-foreground truncate">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className={`truncate font-semibold ${isActive ? "text-primary" : "text-foreground"}`}>
                                 {c.cliente}
                               </span>
+                              <span className="text-[11px] text-muted-foreground whitespace-nowrap font-medium">
+                                {c.horario}
+                              </span>
                             </div>
-                            <div className="mt-0.5 text-xs text-muted-foreground">
-                              {c.telefone} · {c.canal}
+                            <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                              <Phone className="h-3 w-3" />
+                              <span className="truncate">{c.telefone}</span>
+                              <span className="opacity-50">·</span>
+                              <span>{c.canal}</span>
                             </div>
-                            <p className="mt-1.5 text-sm text-foreground/80 truncate">
+                            <p className="mt-1.5 text-sm text-foreground/75 truncate leading-snug">
                               {c.ultimaMensagem}
                             </p>
-                            <div className="mt-2 flex items-center gap-2">
+                            <div className="mt-2 flex items-center gap-1.5 flex-wrap">
                               <span
                                 className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${getConversationStatusBadgeClass(c.status)}`}
                               >
                                 {getConversationStatusLabel(c.status)}
                               </span>
-                              <span className="text-[10px] text-muted-foreground">
-                                {c.setor}
-                              </span>
+                              {c.setor && c.setor !== "—" && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                  <Briefcase className="h-2.5 w-2.5" />
+                                  {c.setor}
+                                </span>
+                              )}
                             </div>
                           </div>
-                          <span className="text-[11px] text-muted-foreground whitespace-nowrap">
-                            {c.horario}
-                          </span>
                         </div>
                       </button>
                     </li>
@@ -649,6 +666,7 @@ function ConversasPage() {
               </ul>
             )}
           </div>
+
 
           {/* Conversation details */}
           {selected && (

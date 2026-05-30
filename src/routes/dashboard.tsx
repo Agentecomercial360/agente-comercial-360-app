@@ -40,11 +40,14 @@ export const Route = createFileRoute("/dashboard")({
 });
 
 type KpiValue = number | string;
+type KpiRoute = "/leads" | "/conversas" | "/atendimentos" | "/relatorios" | "/ia" | "/base-conhecimento" | "/responsaveis";
 type Kpi = {
   label: string;
   value: KpiValue;
   icon: typeof Headphones;
   hint?: string;
+  to?: KpiRoute;
+  cta?: string;
 };
 
 const DASH = "—";

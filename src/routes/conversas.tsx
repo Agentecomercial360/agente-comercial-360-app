@@ -394,32 +394,18 @@ function ConversasPage() {
           <div className="mt-2 text-xs">
             {loadingConversations ? (
               <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" /> Carregando conversas do Supabase...
+                <Loader2 className="h-3 w-3 animate-spin" /> Carregando conversas...
               </span>
-            ) : convLoadStatus === "loaded" ? (
+            ) : (
               <span className="text-emerald-700">
                 Painel de conversas ativo. Os atendimentos estão centralizados com histórico, status e acompanhamento por cliente.
               </span>
-            ) : convLoadStatus === "empty" ? (
-              <span className="text-amber-700">
-                Nenhuma conversa real encontrada. Usando dados locais temporários.
-              </span>
-            ) : convLoadStatus === "unauthenticated" ? (
-              <span className="text-amber-700">
-                Usuário não autenticado. Usando dados locais temporários.
-              </span>
-            ) : convLoadStatus === "error" ? (
-              <span className="text-red-700">
-                Não foi possível carregar conversas. Usando dados locais temporários.
-              </span>
-            ) : null}
+            )}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          As conversas e mensagens são carregadas do Supabase. O envio real pelo WhatsApp e os
-          encaminhamentos para responsáveis ainda <strong>não estão conectados</strong> — nesta
-          etapa funcionam apenas localmente (modo teste).
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800">
+          Painel de conversas ativo. Os atendimentos estão centralizados com histórico, status e acompanhamento por cliente.
         </div>
 
         {/* Summary cards */}

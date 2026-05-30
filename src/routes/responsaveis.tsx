@@ -451,7 +451,7 @@ function ResponsaveisPage() {
             if (responsiblesLoadStatus === "loaded") {
               return (
                 <p className="mt-2 text-xs font-medium text-emerald-600">
-                  Dados carregados do Supabase — {loadedCount} {loadedCount === 1 ? "responsável" : "responsáveis"}
+                  Gestão de responsáveis ativa. A equipe está organizada por setor, função e disponibilidade operacional.
                 </p>
               );
             }
@@ -476,7 +476,7 @@ function ResponsaveisPage() {
             );
           })()}
           <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
-            Responsáveis são carregados e salvos no Supabase. Adições, edições e ativações feitas nesta tela serão persistidas para a empresa vinculada ao usuário logado.
+            Gestão de responsáveis ativa. A equipe está organizada por setor, função e disponibilidade operacional.
             {saveError && (
               <span className="ml-1 font-semibold text-red-700">• {saveError}</span>
             )}

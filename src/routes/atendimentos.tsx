@@ -272,7 +272,7 @@ function AtendimentosPage() {
     atendimentosLoadStatus === "loading"
       ? "Carregando atendimentos do Supabase..."
       : atendimentosLoadStatus === "loaded"
-        ? `Dados carregados do Supabase — ${items.length} atendimentos`
+        ? "Painel de atendimentos ativo. As conversas estão organizadas por status, prioridade e evolução operacional."
         : atendimentosLoadStatus === "empty"
           ? "Nenhum atendimento real encontrado. Usando dados locais temporários."
           : atendimentosLoadStatus === "unauthenticated"
@@ -303,9 +303,7 @@ function AtendimentosPage() {
         </div>
 
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800">
-          Atendimentos são carregados do Supabase. <strong>Finalizar atendimento</strong> já é
-          salvo no Supabase. <strong>Encaminhamentos</strong> ainda são locais e não alteram o
-          banco nesta fase.
+          Painel de atendimentos ativo. As conversas estão organizadas por status, prioridade e evolução operacional.
         </div>
 
 

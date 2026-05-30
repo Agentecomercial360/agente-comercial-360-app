@@ -353,7 +353,7 @@ function IAPage() {
               return (
                 <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  Dados carregados do Supabase — IA
+                  Configuração da IA ativa. O assistente está preparado para seguir as regras, linguagem e orientações da empresa.
                 </div>
               );
             }
@@ -570,7 +570,7 @@ function IAPage() {
                 <h3 className="text-sm font-semibold text-emerald-800">Persistência ativa</h3>
               </div>
               <p className="text-xs leading-relaxed text-emerald-700">
-                As configurações da IA são carregadas e salvas no Supabase. Alterações feitas nesta tela serão persistidas para a empresa vinculada ao usuário logado.
+                Configuração da IA ativa. O assistente está preparado para seguir as regras, linguagem e orientações da empresa.
               </p>
               {saveError && (
                 <p className="mt-2 text-xs font-medium text-red-700">{saveError}</p>

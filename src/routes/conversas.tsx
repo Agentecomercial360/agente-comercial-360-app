@@ -398,7 +398,7 @@ function ConversasPage() {
               </span>
             ) : convLoadStatus === "loaded" ? (
               <span className="text-emerald-700">
-                Dados carregados do Supabase — {items.length} conversas
+                Painel de conversas ativo. Os atendimentos estão centralizados com histórico, status e acompanhamento por cliente.
               </span>
             ) : convLoadStatus === "empty" ? (
               <span className="text-amber-700">

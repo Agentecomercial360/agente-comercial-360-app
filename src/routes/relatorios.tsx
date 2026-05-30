@@ -574,7 +574,7 @@ function RelatoriosPage() {
     relatoriosLoadStatus === "loading"
       ? "Carregando relatórios do Supabase..."
       : relatoriosLoadStatus === "loaded"
-        ? "Dados carregados do Supabase — Relatórios"
+        ? "Relatórios ativos. Os dados da operação estão organizados para análise gerencial e tomada de decisão."
         : relatoriosLoadStatus === "partial"
           ? "Relatórios parcialmente carregados — métricas com falha aparecem como 0"
           : relatoriosLoadStatus === "unauthenticated"

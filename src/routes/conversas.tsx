@@ -13,6 +13,8 @@ import {
   ArrowRight,
   X,
   Loader2,
+  List as ListIcon,
+  LayoutGrid,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";

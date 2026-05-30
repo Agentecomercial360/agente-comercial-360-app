@@ -1014,7 +1014,7 @@ function KanbanView({
           <div className="text-right">
             <div className="text-xs font-medium text-muted-foreground">Total</div>
             <div className="text-base font-bold text-foreground leading-tight">
-              {total} {total === 1 ? "conversa" : "conversas"}
+              {total} {total === 1 ? "atendimento" : "atendimentos"}
             </div>
           </div>
           <div className="h-8 w-px bg-border/70" />

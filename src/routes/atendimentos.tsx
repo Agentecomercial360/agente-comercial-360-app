@@ -162,7 +162,7 @@ function AtendimentosPage() {
             id: String(r.id),
             cliente: cust?.name ?? "Cliente sem nome",
             telefone: cust?.phone ?? "—",
-            mensagem: "Carregue o atendimento para ver mensagens",
+            mensagem: "Histórico do atendimento disponível",
             setor: "—",
             status: normalizeConversationStatus(r.status),
             responsavel: "—",

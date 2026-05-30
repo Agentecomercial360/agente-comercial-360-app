@@ -782,7 +782,7 @@ function DashboardPage() {
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5 mb-3">
-                  Classificação por score do lead no Supabase
+                  Classificação por temperatura comercial dos leads
                 </p>
               </div>
               <Link

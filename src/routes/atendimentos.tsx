@@ -12,6 +12,8 @@ import {
   X,
   CheckCheck,
   UserPlus,
+  Loader2,
+  Activity,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";

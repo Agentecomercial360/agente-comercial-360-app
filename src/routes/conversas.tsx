@@ -516,13 +516,13 @@ function ConversasPage() {
         {/* View selector + Filters + search */}
         <div className="rounded-2xl bg-card p-4 border border-border shadow-[var(--shadow-soft)] space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="inline-flex rounded-xl border border-border bg-muted/40 p-1">
+            <div className="inline-flex rounded-xl border border-border bg-muted/50 p-1 shadow-inner">
               <button
                 type="button"
                 onClick={() => setViewMode("lista")}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
                   viewMode === "lista"
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
                 aria-pressed={viewMode === "lista"}
@@ -532,9 +532,9 @@ function ConversasPage() {
               <button
                 type="button"
                 onClick={() => setViewMode("kanban")}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
                   viewMode === "kanban"
-                    ? "bg-primary text-primary-foreground shadow-sm"
+                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
                 aria-pressed={viewMode === "kanban"}
@@ -542,6 +542,7 @@ function ConversasPage() {
                 <LayoutGrid className="h-3.5 w-3.5" /> Kanban
               </button>
             </div>
+
             <div className="flex flex-wrap gap-2">
               {filters.map((f) => (
                 <button

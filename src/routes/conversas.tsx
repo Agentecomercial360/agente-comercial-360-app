@@ -991,7 +991,7 @@ function KanbanView({
                                   </div>
                                 ) : null}
                               </div>
-                              <div className="mt-2 pt-2 border-t border-border/60 flex items-center justify-between gap-2">
+                              <div className="mt-2.5 pt-2.5 border-t border-dashed border-border/40 flex items-center justify-between gap-2">
                                 <span
                                   className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getConversationStatusBadgeClass(c.status)}`}
                                 >

@@ -245,7 +245,7 @@ function LeadsPage() {
     { label: "Total de leads", value: totalLeads, icon: Users },
     { label: "Leads quentes", value: hotLeads, icon: Flame },
     { label: "Leads em negociação", value: negotiatingLeads, icon: Handshake },
-    { label: "Leads sem responsável", value: noOwnerLeads, icon: UserX },
+    { label: "Aguardando responsável", value: noOwnerLeads, icon: UserX },
   ];
 
   async function markNegotiating(id: string | number) {
@@ -395,8 +395,8 @@ function LeadsPage() {
                       <div className="font-display text-3xl font-bold tracking-tight text-foreground tabular-nums">
                         {totalLeads}
                       </div>
-                      <div className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
-                        {totalLeads === 1 ? "Lead no painel" : "Leads no painel"}
+                    <div className="text-[10px] uppercase tracking-[0.12em] text-muted-foreground font-semibold">
+                        {totalLeads === 1 ? "oportunidade no painel" : "oportunidades no painel"}
                       </div>
                     </div>
                   </div>
@@ -404,7 +404,7 @@ function LeadsPage() {
                   <div className="relative mt-3 grid grid-cols-2 gap-2 border-t border-border/60 pt-3">
                     {[
                       { label: "Quentes", value: hotLeads, dot: "bg-rose-500" },
-                      { label: "Sem responsável", value: noOwnerLeads, dot: "bg-amber-500" },
+                      { label: "para priorizar", value: noOwnerLeads, dot: "bg-amber-500" },
                     ].map((m) => (
                       <div key={m.label} className="flex flex-col items-start">
                         <div className="flex items-center gap-1.5">
@@ -558,7 +558,7 @@ function LeadsPage() {
                       <td className="px-4 py-3">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold whitespace-nowrap ${statusBadge[l.status]}`}>{l.status}</span>
                       </td>
-                      <td className="px-4 py-3 text-foreground whitespace-nowrap">{l.responsavel}</td>
+                      <td className="px-4 py-3 text-foreground whitespace-nowrap">{l.responsavel === "—" ? "Não atribuído" : l.responsavel}</td>
                       <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">{l.proximaAcao}</td>
                       <td className="px-4 py-3">
                         <button

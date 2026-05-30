@@ -564,19 +564,20 @@ function ConversasPage() {
                 return (
                   <div
                     key={s.label}
-                    className="group relative overflow-hidden rounded-2xl bg-card p-5 border border-border shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] hover:-translate-y-0.5 transition-all duration-200"
+                    className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-card to-card/60 p-5 border border-border/70 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] hover:-translate-y-0.5 transition-all duration-200"
                   >
                     <span className={`absolute left-0 top-0 bottom-0 w-1 ${s.theme.accent}`} />
-                    <div className="flex items-start justify-between">
-                      <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${s.theme.icon} ring-4 ring-transparent ${s.theme.ring} transition`}>
+                    <span className={`pointer-events-none absolute -top-10 -right-10 h-24 w-24 rounded-full ${s.theme.accent} opacity-[0.07] blur-2xl group-hover:opacity-[0.14] transition-opacity`} />
+                    <div className="relative flex items-start justify-between">
+                      <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${s.theme.icon} ring-4 ring-transparent ${s.theme.ring} shadow-sm transition`}>
                         <Icon className="h-5 w-5" />
                       </div>
-                      <span className={`h-1.5 w-1.5 rounded-full ${s.theme.accent} opacity-60`} />
+                      <span className={`inline-flex h-2 w-2 rounded-full ${s.theme.accent} shadow-[0_0_0_4px_rgba(255,255,255,0.6)] opacity-70`} />
                     </div>
-                    <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground tabular-nums">
+                    <div className="relative mt-4 font-display text-3xl font-bold tracking-tight text-foreground tabular-nums">
                       {s.value}
                     </div>
-                    <div className="mt-1 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">{s.label}</div>
+                    <div className="relative mt-1 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">{s.label}</div>
                   </div>
                 );
               })}

@@ -354,7 +354,7 @@ function DashboardPage() {
   const statusBadge = (() => {
     switch (status) {
       case "loaded":
-        return { text: "Dados carregados do Supabase", color: "text-emerald-600" };
+        return { text: "Dashboard ativo. Os principais indicadores da operação comercial estão organizados para acompanhamento em tempo real.", color: "text-emerald-600" };
       case "partial":
         return {
           text: "Carregamento parcial — algumas métricas indisponíveis",

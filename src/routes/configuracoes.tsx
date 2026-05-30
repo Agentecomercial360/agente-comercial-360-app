@@ -270,7 +270,7 @@ function ConfiguracoesPage() {
             )}
             {companyLoadStatus === "loaded" && (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 ring-1 ring-emerald-200">
-                Dados carregados do Supabase — {empresa.nome}
+                Configurações da empresa ativas. Os dados principais estão organizados para personalizar a operação no sistema.
               </span>
             )}
             {companyLoadStatus === "unauthenticated" && (

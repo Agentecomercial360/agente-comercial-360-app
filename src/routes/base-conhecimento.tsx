@@ -463,7 +463,7 @@ function BaseConhecimentoPage() {
               return (
                 <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
                   <CheckCircle2 className="h-3.5 w-3.5" />
-                  Dados carregados do Supabase — {items.length} conhecimento{items.length === 1 ? "" : "s"}
+                  Base de conhecimento ativa. As informações da empresa estão organizadas para apoiar o atendimento e a IA.
                   {activeCompanyName ? ` (${activeCompanyName})` : ""}
                 </div>
               );
@@ -698,7 +698,7 @@ function BaseConhecimentoPage() {
                 <h3 className="text-sm font-semibold text-emerald-800">Persistência ativa</h3>
               </div>
               <p className="text-xs leading-relaxed text-emerald-700">
-                A Base de Conhecimento é carregada e salva no Supabase. Novos conhecimentos, edições e desativações feitas nesta tela são persistidos para a empresa vinculada ao usuário logado. Desativar não apaga o registro, apenas oculta da base ativa.
+                Base de conhecimento ativa. As informações da empresa estão organizadas para apoiar o atendimento e a IA.
               </p>
               {saveError && (
                 <p className="mt-2 text-xs font-medium text-rose-700">{saveError}</p>

@@ -1118,7 +1118,7 @@ function KanbanView({
 
                               {/* Histórico/última mensagem */}
                               <p className="mt-2.5 text-xs text-foreground/75 line-clamp-2 leading-relaxed bg-muted/50 rounded-md px-2 py-1.5 border border-border/40">
-                                {c.ultimaMensagem || "Histórico disponível no painel"}
+                                {c.ultimaMensagem || "Histórico do atendimento disponível"}
                               </p>
 
                               {/* Responsável e setor */}

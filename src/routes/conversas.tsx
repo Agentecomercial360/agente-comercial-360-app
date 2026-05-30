@@ -188,6 +188,7 @@ function ConversasPage() {
   const [messagesLoadStatus, setMessagesLoadStatus] = useState<
     "idle" | "loading" | "loaded" | "empty" | "error"
   >("idle");
+  const [viewMode, setViewMode] = useState<"lista" | "kanban">("lista");
 
   useEffect(() => {
     let cancelled = false;

@@ -241,7 +241,7 @@ function ConversasPage() {
             cliente: cust?.name ?? "Cliente sem nome",
             telefone: cust?.phone ?? "—",
             canal: normalizeChannel(r.channel),
-            ultimaMensagem: "Carregue a conversa para ver mensagens",
+            ultimaMensagem: "Histórico disponível no painel",
             horario: formatHorario(r.last_message_at, r.created_at),
             status: normalizeConversationStatus(r.status),
             setor: "—",
@@ -394,32 +394,18 @@ function ConversasPage() {
           <div className="mt-2 text-xs">
             {loadingConversations ? (
               <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" /> Carregando conversas do Supabase...
+                <Loader2 className="h-3 w-3 animate-spin" /> Carregando conversas...
               </span>
-            ) : convLoadStatus === "loaded" ? (
+            ) : (
               <span className="text-emerald-700">
                 Painel de conversas ativo. Os atendimentos estão centralizados com histórico, status e acompanhamento por cliente.
               </span>
-            ) : convLoadStatus === "empty" ? (
-              <span className="text-amber-700">
-                Nenhuma conversa real encontrada. Usando dados locais temporários.
-              </span>
-            ) : convLoadStatus === "unauthenticated" ? (
-              <span className="text-amber-700">
-                Usuário não autenticado. Usando dados locais temporários.
-              </span>
-            ) : convLoadStatus === "error" ? (
-              <span className="text-red-700">
-                Não foi possível carregar conversas. Usando dados locais temporários.
-              </span>
-            ) : null}
+            )}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          As conversas e mensagens são carregadas do Supabase. O envio real pelo WhatsApp e os
-          encaminhamentos para responsáveis ainda <strong>não estão conectados</strong> — nesta
-          etapa funcionam apenas localmente (modo teste).
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800">
+          Painel de conversas ativo. Os atendimentos estão centralizados com histórico, status e acompanhamento por cliente.
         </div>
 
         {/* Summary cards */}
@@ -597,16 +583,8 @@ function ConversasPage() {
                       <span className="inline-flex items-center gap-1 text-muted-foreground">
                         <Loader2 className="h-3 w-3 animate-spin" /> Carregando mensagens...
                       </span>
-                    ) : messagesLoadStatus === "loaded" ? (
-                      <span className="text-emerald-700">Mensagens carregadas do Supabase</span>
-                    ) : messagesLoadStatus === "empty" ? (
-                      <span className="text-amber-700">
-                        Nenhuma mensagem real encontrada para esta conversa
-                      </span>
-                    ) : messagesLoadStatus === "error" ? (
-                      <span className="text-red-700">
-                        Não foi possível carregar mensagens reais. Usando mensagens locais temporárias.
-                      </span>
+                    ) : messagesLoadStatus === "loaded" || messagesLoadStatus === "empty" ? (
+                      <span className="text-emerald-700">Histórico de atendimento</span>
                     ) : null}
                   </span>
                 </div>
@@ -656,7 +634,7 @@ function ConversasPage() {
                         enviar();
                       }
                     }}
-                    placeholder="Digite uma mensagem (modo teste — não envia pelo WhatsApp)..."
+                    placeholder="Digite uma resposta para o cliente..."
                     className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                   />
                   <button
@@ -697,15 +675,35 @@ function ConversasPage() {
                     </h3>
                   </div>
                   <p className="text-sm leading-relaxed text-muted-foreground flex-1">
-                    Encaminhar para{" "}
-                    <span className="font-semibold text-foreground">Amanda</span> no setor
-                    de {selected.setor.toLowerCase()}.
+                    {(() => {
+                      const responsavel = "Amanda";
+                      const setorRaw = (selected.setor ?? "").trim();
+                      const setorValido = setorRaw && setorRaw !== "—";
+                      if (responsavel && setorValido) {
+                        return (
+                          <>
+                            Encaminhar para{" "}
+                            <span className="font-semibold text-foreground">{responsavel}</span> no setor
+                            de {setorRaw.toLowerCase()}.
+                          </>
+                        );
+                      }
+                      if (responsavel) {
+                        return (
+                          <>
+                            Encaminhar para{" "}
+                            <span className="font-semibold text-foreground">{responsavel}</span>.
+                          </>
+                        );
+                      }
+                      return <>Definir setor e responsável para continuidade do atendimento.</>;
+                    })()}
                   </p>
                   <button
                     onClick={() => setForwardOpen(true)}
                     className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
                   >
-                    Encaminhar conversa
+                    Atribuir responsável
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>

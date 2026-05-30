@@ -634,7 +634,7 @@ function ConversasPage() {
                         enviar();
                       }
                     }}
-                    placeholder="Digite uma mensagem (modo teste — não envia pelo WhatsApp)..."
+                    placeholder="Digite uma resposta para o cliente..."
                     className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                   />
                   <button

@@ -675,15 +675,35 @@ function ConversasPage() {
                     </h3>
                   </div>
                   <p className="text-sm leading-relaxed text-muted-foreground flex-1">
-                    Encaminhar para{" "}
-                    <span className="font-semibold text-foreground">Amanda</span> no setor
-                    de {selected.setor.toLowerCase()}.
+                    {(() => {
+                      const responsavel = "Amanda";
+                      const setorRaw = (selected.setor ?? "").trim();
+                      const setorValido = setorRaw && setorRaw !== "—";
+                      if (responsavel && setorValido) {
+                        return (
+                          <>
+                            Encaminhar para{" "}
+                            <span className="font-semibold text-foreground">{responsavel}</span> no setor
+                            de {setorRaw.toLowerCase()}.
+                          </>
+                        );
+                      }
+                      if (responsavel) {
+                        return (
+                          <>
+                            Encaminhar para{" "}
+                            <span className="font-semibold text-foreground">{responsavel}</span>.
+                          </>
+                        );
+                      }
+                      return <>Definir setor e responsável para continuidade do atendimento.</>;
+                    })()}
                   </p>
                   <button
                     onClick={() => setForwardOpen(true)}
                     className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-sm"
                   >
-                    Encaminhar conversa
+                    Atribuir responsável
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>

@@ -20,6 +20,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 import {
   type ConversationStatus,
+  CONVERSATION_STATUSES,
   normalizeConversationStatus,
   getConversationStatusLabel,
   getConversationStatusBadgeClass,

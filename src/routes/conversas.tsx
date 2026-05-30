@@ -931,9 +931,9 @@ function KanbanView({
                       {colItems.length}
                     </span>
                   </div>
-                  <div className="flex flex-col gap-2 p-2 max-h-[640px] overflow-y-auto">
+                  <div className="flex flex-col gap-2 p-2 max-h-[520px] overflow-y-auto">
                     {colItems.length === 0 ? (
-                      <div className="px-2 py-6 text-center text-[11px] text-muted-foreground">
+                      <div className="px-2 py-3 text-center text-[11px] text-muted-foreground">
                         Sem conversas nesta etapa
                       </div>
                     ) : (

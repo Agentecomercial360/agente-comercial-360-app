@@ -863,90 +863,152 @@ function KanbanView({
     return map;
   }, [conversas]);
 
+  const total = conversas.length;
+
+  const columnAccent: Record<ConversationStatus, string> = {
+    aberta: "bg-blue-500",
+    em_andamento: "bg-orange-500",
+    aguardando_cliente: "bg-amber-400",
+    aguardando_empresa: "bg-purple-500",
+    encaminhada: "bg-indigo-700",
+    sem_resposta: "bg-red-500",
+    finalizada: "bg-emerald-500",
+  };
+
+  const priorityBadge = (status: ConversationStatus) => {
+    switch (status) {
+      case "sem_resposta":
+        return { label: "Atenção", cls: "bg-red-50 text-red-700 border-red-200" };
+      case "aguardando_cliente":
+        return { label: "Aguardando cliente", cls: "bg-amber-50 text-amber-700 border-amber-200" };
+      case "finalizada":
+        return { label: "Concluída", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+      case "aberta":
+      case "em_andamento":
+        return { label: "Em acompanhamento", cls: "bg-blue-50 text-blue-700 border-blue-200" };
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-4">
-      <div className="overflow-x-auto">
-        <div className="flex gap-4 min-w-max pb-2">
-          {KANBAN_COLUMNS.map((status) => {
-            const colItems = grouped[status];
-            return (
-              <div
-                key={status}
-                className="flex flex-col w-80 shrink-0 rounded-xl bg-muted/30 border border-border"
-              >
-                <div className="flex items-center justify-between px-3 py-2.5 border-b border-border">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold ${getConversationStatusBadgeClass(status)}`}
-                  >
-                    {getConversationStatusLabel(status)}
-                  </span>
-                  <span className="text-[11px] font-semibold text-muted-foreground">
-                    {colItems.length}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-2 p-2 max-h-[640px] overflow-y-auto">
-                  {colItems.length === 0 ? (
-                    <div className="px-2 py-6 text-center text-[11px] text-muted-foreground">
-                      Sem conversas nesta etapa
-                    </div>
-                  ) : (
-                    colItems.map((c) => {
-                      const isActive = c.id === selectedId;
-                      const setorLabel =
-                        c.setor && c.setor !== "—" ? c.setor : "Setor não definido";
-                      const responsavelLabel = "Responsável não definido";
-                      return (
-                        <button
-                          key={c.id}
-                          type="button"
-                          onClick={() => onSelect(c.id)}
-                          className={`text-left rounded-lg border bg-card p-3 transition shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-primary/30 ${
-                            isActive
-                              ? "border-primary ring-1 ring-primary/30"
-                              : "border-border"
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <span className="font-semibold text-sm text-foreground truncate">
-                              {c.cliente}
-                            </span>
-                            {c.horario ? (
-                              <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                                {c.horario}
-                              </span>
-                            ) : null}
-                          </div>
-                          <div className="mt-1 text-[11px] text-muted-foreground truncate">
-                            {c.canal} • {c.telefone}
-                          </div>
-                          <p className="mt-2 text-xs text-foreground/80 line-clamp-2">
-                            {c.ultimaMensagem || "Histórico disponível no painel"}
-                          </p>
-                          <div className="mt-2 space-y-0.5">
-                            <div className="text-[11px] text-muted-foreground truncate">
-                              <span className="text-foreground/70 font-medium">Responsável:</span>{" "}
-                              {responsavelLabel}
-                            </div>
-                            <div className="text-[11px] text-muted-foreground truncate">
-                              <span className="text-foreground/70 font-medium">Setor:</span>{" "}
-                              {setorLabel}
-                            </div>
-                          </div>
-                          <div className="mt-2 pt-2 border-t border-border/60 flex items-center justify-end">
-                            <span
-                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getConversationStatusBadgeClass(c.status)}`}
+    <div className="space-y-4">
+      {/* Kanban header */}
+      <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] px-5 py-4 flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="font-display text-lg font-semibold text-foreground">
+            Visão Kanban dos atendimentos
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Acompanhe cada conversa por etapa, identifique gargalos e priorize retornos.
+          </p>
+        </div>
+        <div className="text-right">
+          <div className="text-sm font-semibold text-foreground">
+            Total: {total} {total === 1 ? "conversa" : "conversas"}
+          </div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Atualizado agora</div>
+        </div>
+      </div>
+
+      {/* Kanban board */}
+      <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-4">
+        <div className="overflow-x-auto">
+          <div className="flex gap-4 min-w-max pb-2">
+            {KANBAN_COLUMNS.map((status) => {
+              const colItems = grouped[status];
+              return (
+                <div
+                  key={status}
+                  className="flex flex-col w-80 shrink-0 rounded-xl bg-muted/30 border border-border overflow-hidden"
+                >
+                  <div className={`h-1 w-full ${columnAccent[status]}`} />
+                  <div className="flex items-center justify-between px-3 py-2.5 border-b border-border bg-card/60">
+                    <span className="text-xs font-semibold text-foreground">
+                      {getConversationStatusLabel(status)}
+                      <span className="text-muted-foreground"> · {colItems.length}</span>
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-2 p-2 max-h-[640px] overflow-y-auto">
+                    {colItems.length === 0 ? (
+                      <div className="px-2 py-6 text-center text-[11px] text-muted-foreground">
+                        Sem conversas nesta etapa
+                      </div>
+                    ) : (
+                      colItems.map((c) => {
+                        const isActive = c.id === selectedId;
+                        const setorLabel =
+                          c.setor && c.setor !== "—" ? c.setor : "Setor não definido";
+                        const responsavelLabel = "Responsável não definido";
+                        const prio = priorityBadge(c.status);
+                        return (
+                          <div
+                            key={c.id}
+                            className={`group rounded-lg border bg-card p-3 transition shadow-sm hover:shadow-md ${
+                              isActive
+                                ? "border-primary ring-1 ring-primary/30"
+                                : "border-border"
+                            }`}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => onSelect(c.id)}
+                              className="w-full text-left focus:outline-none"
                             >
-                              {getConversationStatusLabel(c.status)}
-                            </span>
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="font-semibold text-sm text-foreground truncate">
+                                  {c.cliente}
+                                </span>
+                                {prio ? (
+                                  <span
+                                    className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[9px] font-semibold whitespace-nowrap ${prio.cls}`}
+                                  >
+                                    {prio.label}
+                                  </span>
+                                ) : null}
+                              </div>
+                              <div className="mt-1 text-[11px] text-muted-foreground truncate">
+                                {c.canal} • {c.telefone}
+                              </div>
+                              <p className="mt-2 text-xs text-foreground/80 line-clamp-2">
+                                {c.ultimaMensagem || "Histórico disponível no painel"}
+                              </p>
+                              <div className="mt-2 space-y-0.5">
+                                <div className="text-[11px] text-muted-foreground truncate">
+                                  <span className="text-foreground/70 font-medium">Responsável:</span>{" "}
+                                  {responsavelLabel}
+                                </div>
+                                <div className="text-[11px] text-muted-foreground truncate">
+                                  <span className="text-foreground/70 font-medium">Setor:</span>{" "}
+                                  {setorLabel}
+                                </div>
+                                {c.horario ? (
+                                  <div className="text-[11px] text-muted-foreground truncate">
+                                    <span className="text-foreground/70 font-medium">Atualizado:</span>{" "}
+                                    {c.horario}
+                                  </div>
+                                ) : null}
+                              </div>
+                              <div className="mt-2 pt-2 border-t border-border/60 flex items-center justify-between gap-2">
+                                <span
+                                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${getConversationStatusBadgeClass(c.status)}`}
+                                >
+                                  {getConversationStatusLabel(c.status)}
+                                </span>
+                                <span className="text-[11px] font-semibold text-primary hover:underline">
+                                  Ver conversa →
+                                </span>
+                              </div>
+                            </button>
                           </div>
-                        </button>
-                      );
-                    })
-                  )}
+                        );
+                      })
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>

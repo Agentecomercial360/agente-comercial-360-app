@@ -659,7 +659,7 @@ function DashboardPage() {
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Baseado nas mensagens registradas no Supabase
+                  Baseado nas mensagens registradas no sistema
                 </p>
                 <Link
                   to="/relatorios"
@@ -782,7 +782,7 @@ function DashboardPage() {
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5 mb-3">
-                  Classificação por score do lead no Supabase
+                  Classificação por temperatura comercial dos leads
                 </p>
               </div>
               <Link
@@ -971,12 +971,11 @@ function DashboardPage() {
                 <h3 className="text-base font-semibold text-foreground">Operação por setor</h3>
               </div>
               <span className="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200">
-                Em preparação
+                Estrutura inicial
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1 mb-4">
-              O roteamento por setor permitirá identificar automaticamente se o atendimento é de
-              vendas, financeiro, administrativo ou orçamento.
+              Estrutura inicial para organizar atendimentos por vendas, financeiro, administrativo e orçamentos.
             </p>
             <ul className="space-y-2">
               {plannedSectors.map((s) => (
@@ -995,7 +994,7 @@ function DashboardPage() {
               ))}
             </ul>
             <p className="mt-4 text-[10px] uppercase tracking-wide text-muted-foreground">
-              Recurso futuro · demonstrativo
+              MODELO OPERACIONAL INICIAL
             </p>
           </div>
         </div>

@@ -923,10 +923,12 @@ function KanbanView({
                   className="flex flex-col w-80 shrink-0 rounded-xl bg-muted/30 border border-border overflow-hidden"
                 >
                   <div className={`h-1 w-full ${columnAccent[status]}`} />
-                  <div className="flex items-center justify-between px-3 py-2.5 border-b border-border bg-card/60">
-                    <span className="text-xs font-semibold text-foreground">
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-border bg-card/80">
+                    <span className="text-[11px] font-bold uppercase tracking-wide text-foreground">
                       {getConversationStatusLabel(status)}
-                      <span className="text-muted-foreground"> · {colItems.length}</span>
+                    </span>
+                    <span className="inline-flex items-center justify-center rounded-full bg-muted text-muted-foreground text-[10px] font-bold px-2 py-0.5 min-w-[1.5rem]">
+                      {colItems.length}
                     </span>
                   </div>
                   <div className="flex flex-col gap-2 p-2 max-h-[640px] overflow-y-auto">

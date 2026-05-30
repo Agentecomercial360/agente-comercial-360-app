@@ -987,29 +987,8 @@ function KanbanView({
     }
   };
 
-  const getInitial = (name: string) => {
-    const trimmed = (name || "").trim();
-    if (!trimmed) return "?";
-    const parts = trimmed.split(/\s+/);
-    const first = parts[0]?.[0] ?? "";
-    const second = parts.length > 1 ? parts[parts.length - 1][0] : "";
-    return (first + second).toUpperCase() || "?";
-  };
 
-  const avatarPalette = [
-    "bg-blue-100 text-blue-700",
-    "bg-emerald-100 text-emerald-700",
-    "bg-amber-100 text-amber-700",
-    "bg-purple-100 text-purple-700",
-    "bg-rose-100 text-rose-700",
-    "bg-indigo-100 text-indigo-700",
-    "bg-teal-100 text-teal-700",
-  ];
-  const avatarColor = (name: string) => {
-    let h = 0;
-    for (let i = 0; i < (name || "").length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
-    return avatarPalette[Math.abs(h) % avatarPalette.length];
-  };
+
 
   return (
     <div className="space-y-4">

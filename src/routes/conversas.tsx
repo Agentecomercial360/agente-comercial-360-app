@@ -415,45 +415,58 @@ function ConversasPage() {
     <DashboardLayout>
       <Toaster position="top-right" richColors />
       <div className="mx-auto max-w-7xl space-y-4">
-        <div className="rounded-2xl border border-border bg-gradient-to-br from-card via-card to-[var(--brand-blue-soft)]/40 shadow-[var(--shadow-soft)] px-5 py-4">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+        {/* Hero header */}
+        <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-card via-card to-[var(--brand-blue-soft)]/60 shadow-[var(--shadow-card)]">
+          <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-20 h-56 w-56 rounded-full bg-emerald-500/5 blur-3xl" />
+          <div className="relative px-6 py-6 md:px-8 md:py-7">
+            <div className="flex flex-wrap items-start justify-between gap-5">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                    </span>
+                    Ao vivo
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 text-primary border border-primary/20 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider">
+                    <Sparkles className="h-3 w-3" /> Operação centralizada
+                  </span>
+                </div>
+                <h1 className="mt-3 font-display text-3xl md:text-4xl font-bold tracking-tight text-foreground">
                   Conversas
                 </h1>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                  </span>
-                  Ao vivo
-                </span>
+                <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground leading-relaxed">
+                  Histórico de mensagens, interações com clientes e respostas sugeridas pela IA — tudo centralizado em um único painel premium.
+                </p>
               </div>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Histórico de mensagens, interações com clientes e respostas sugeridas pela IA — tudo centralizado em um único painel.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1.5 text-xs text-muted-foreground">
-                <MessageCircle className="h-3.5 w-3.5 text-primary" />
-                <span className="font-semibold text-foreground">{items.length}</span>
-                <span>{items.length === 1 ? "atendimento" : "atendimentos"}</span>
+
+              <div className="flex flex-col items-end gap-2 shrink-0">
+                <div className="flex items-center gap-3 rounded-2xl border border-border bg-card/80 backdrop-blur px-4 py-3 shadow-[var(--shadow-soft)]">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <MessageCircle className="h-5 w-5" />
+                  </div>
+                  <div className="leading-tight">
+                    <div className="font-display text-2xl font-bold text-foreground">{items.length}</div>
+                    <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                      {items.length === 1 ? "Atendimento" : "Atendimentos"}
+                    </div>
+                  </div>
+                </div>
+                {loadingConversations ? (
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1 text-[11px] text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" /> Sincronizando…
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold text-emerald-700">
+                    <CheckCircle2 className="h-3 w-3" /> Atualizado agora
+                  </div>
+                )}
               </div>
-              {loadingConversations ? (
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
-                  <Loader2 className="h-3 w-3 animate-spin" /> Carregando…
-                </div>
-              ) : (
-                <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> Painel ativo
-                </div>
-              )}
             </div>
           </div>
         </div>
-
-
 
         {/* Summary cards */}
         {(() => {
@@ -463,24 +476,46 @@ function ConversasPage() {
             encaminhadas: items.filter((c) => c.status === "encaminhada").length,
             finalizadas: items.filter((c) => c.status === "finalizada").length,
           };
-          const cards = [
-            { label: "Conversas abertas", value: counts.abertas, icon: MessageCircle },
-            { label: "Aguardando resposta", value: counts.aguardando, icon: Clock },
-            { label: "Encaminhadas", value: counts.encaminhadas, icon: UserCheck },
-            { label: "Finalizadas", value: counts.finalizadas, icon: CheckCircle2 },
+          type KpiTheme = { icon: string; accent: string; ring: string };
+          const cards: { label: string; value: number; icon: typeof MessageCircle; theme: KpiTheme }[] = [
+            {
+              label: "Conversas abertas",
+              value: counts.abertas,
+              icon: MessageCircle,
+              theme: { icon: "bg-blue-50 text-blue-600", accent: "bg-blue-500", ring: "group-hover:ring-blue-200" },
+            },
+            {
+              label: "Aguardando resposta",
+              value: counts.aguardando,
+              icon: Clock,
+              theme: { icon: "bg-amber-50 text-amber-600", accent: "bg-amber-500", ring: "group-hover:ring-amber-200" },
+            },
+            {
+              label: "Encaminhadas",
+              value: counts.encaminhadas,
+              icon: UserCheck,
+              theme: { icon: "bg-purple-50 text-purple-600", accent: "bg-purple-500", ring: "group-hover:ring-purple-200" },
+            },
+            {
+              label: "Finalizadas",
+              value: counts.finalizadas,
+              icon: CheckCircle2,
+              theme: { icon: "bg-emerald-50 text-emerald-600", accent: "bg-emerald-500", ring: "group-hover:ring-emerald-200" },
+            },
           ];
           const isKanban = viewMode === "kanban";
           return (
-            <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 ${isKanban ? "" : ""}`}>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               {cards.map((s) => {
                 const Icon = s.icon;
                 if (isKanban) {
                   return (
                     <div
                       key={s.label}
-                      className="flex items-center gap-3 rounded-xl bg-card px-3 py-2.5 border border-border shadow-[var(--shadow-soft)]"
+                      className="group relative flex items-center gap-3 rounded-xl bg-card px-3 py-2.5 border border-border shadow-[var(--shadow-soft)] overflow-hidden"
                     >
-                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--brand-blue-soft)] text-primary shrink-0">
+                      <span className={`absolute left-0 top-0 bottom-0 w-0.5 ${s.theme.accent}`} />
+                      <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${s.theme.icon} shrink-0`}>
                         <Icon className="h-4 w-4" />
                       </div>
                       <div className="min-w-0">
@@ -495,15 +530,19 @@ function ConversasPage() {
                 return (
                   <div
                     key={s.label}
-                    className="rounded-2xl bg-card p-5 border border-border shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition"
+                    className="group relative overflow-hidden rounded-2xl bg-card p-5 border border-border shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] hover:-translate-y-0.5 transition-all duration-200"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
-                      <Icon className="h-5 w-5" />
+                    <span className={`absolute left-0 top-0 bottom-0 w-1 ${s.theme.accent}`} />
+                    <div className="flex items-start justify-between">
+                      <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${s.theme.icon} ring-4 ring-transparent ${s.theme.ring} transition`}>
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <span className={`h-1.5 w-1.5 rounded-full ${s.theme.accent} opacity-60`} />
                     </div>
-                    <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">
+                    <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground tabular-nums">
                       {s.value}
                     </div>
-                    <div className="mt-1 text-xs text-muted-foreground">{s.label}</div>
+                    <div className="mt-1 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">{s.label}</div>
                   </div>
                 );
               })}
@@ -511,47 +550,50 @@ function ConversasPage() {
           );
         })()}
 
-
-
         {/* View selector + Filters + search */}
-        <div className="rounded-2xl bg-card p-4 border border-border shadow-[var(--shadow-soft)] space-y-3">
+        <div className="rounded-2xl bg-card p-4 md:p-5 border border-border shadow-[var(--shadow-soft)] space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="inline-flex rounded-xl border border-border bg-muted/50 p-1 shadow-inner">
-              <button
-                type="button"
-                onClick={() => setViewMode("lista")}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
-                  viewMode === "lista"
-                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-                aria-pressed={viewMode === "lista"}
-              >
-                <ListIcon className="h-3.5 w-3.5" /> Lista
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("kanban")}
-                className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
-                  viewMode === "kanban"
-                    ? "bg-card text-foreground shadow-sm ring-1 ring-border"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-                aria-pressed={viewMode === "kanban"}
-              >
-                <LayoutGrid className="h-3.5 w-3.5" /> Kanban
-              </button>
+            <div className="flex items-center gap-3">
+              <span className="hidden md:inline text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Visualização
+              </span>
+              <div className="inline-flex rounded-xl border border-border bg-muted/60 p-1 shadow-inner">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("lista")}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-semibold transition-all ${
+                    viewMode === "lista"
+                      ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  aria-pressed={viewMode === "lista"}
+                >
+                  <ListIcon className="h-3.5 w-3.5" /> Lista
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("kanban")}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-1.5 text-xs font-semibold transition-all ${
+                    viewMode === "kanban"
+                      ? "bg-card text-foreground shadow-sm ring-1 ring-border"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  aria-pressed={viewMode === "kanban"}
+                >
+                  <LayoutGrid className="h-3.5 w-3.5" /> Kanban
+                </button>
+              </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {filters.map((f) => (
                 <button
                   key={f}
                   onClick={() => setActiveFilter(f)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition ${
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all ${
                     activeFilter === f
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-muted text-muted-foreground hover:bg-muted/70"
+                      ? "bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20"
+                      : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
                   {f}
@@ -559,17 +601,28 @@ function ConversasPage() {
               ))}
             </div>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="relative group">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar conversa por cliente, telefone ou mensagem..."
-              className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
+              className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition shadow-sm"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition"
+                aria-label="Limpar busca"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
           </div>
         </div>
+
 
         {viewMode === "kanban" ? (
           <KanbanView

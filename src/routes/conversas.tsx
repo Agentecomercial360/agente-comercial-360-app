@@ -388,66 +388,85 @@ function ConversasPage() {
   return (
     <DashboardLayout>
       <Toaster position="top-right" richColors />
-      <div className="mx-auto max-w-7xl space-y-8">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
-            Conversas
-          </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            Consulte o histórico de mensagens, interações com clientes e respostas
-            sugeridas pela IA.
-          </p>
-          <div className="mt-2 text-xs">
-            {loadingConversations ? (
-              <span className="inline-flex items-center gap-1.5 text-muted-foreground">
-                <Loader2 className="h-3 w-3 animate-spin" /> Carregando conversas...
-              </span>
-            ) : (
-              <span className="text-emerald-700">
-                Painel de conversas ativo. Os atendimentos estão centralizados com histórico, status e acompanhamento por cliente.
-              </span>
-            )}
+      <div className="mx-auto max-w-7xl space-y-4">
+        <div className="space-y-2">
+          <div>
+            <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+              Conversas
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Consulte o histórico de mensagens, interações com clientes e respostas
+              sugeridas pela IA.
+            </p>
           </div>
-        </div>
 
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-800">
-          Painel de conversas ativo. Os atendimentos estão centralizados com histórico, status e acompanhamento por cliente.
+          {loadingConversations ? (
+            <div className="rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs inline-flex items-center gap-1.5 text-muted-foreground">
+              <Loader2 className="h-3 w-3 animate-spin" /> Carregando conversas...
+            </div>
+          ) : (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+              Painel de conversas ativo. Os atendimentos estão centralizados com histórico, status e acompanhamento por cliente.
+            </div>
+          )}
         </div>
 
         {/* Summary cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {(() => {
-            const counts = {
-              abertas: items.filter((c) => c.status === "aberta").length,
-              aguardando: items.filter((c) => c.status === "aguardando_cliente" || c.status === "aguardando_empresa").length,
-              encaminhadas: items.filter((c) => c.status === "encaminhada").length,
-              finalizadas: items.filter((c) => c.status === "finalizada").length,
-            };
-            const cards = [
-              { label: "Conversas abertas", value: counts.abertas, icon: MessageCircle },
-              { label: "Aguardando resposta", value: counts.aguardando, icon: Clock },
-              { label: "Encaminhadas para humano", value: counts.encaminhadas, icon: UserCheck },
-              { label: "Finalizadas hoje", value: counts.finalizadas, icon: CheckCircle2 },
-            ];
-            return cards.map((s) => {
-              const Icon = s.icon;
-              return (
-                <div
-                  key={s.label}
-                  className="rounded-2xl bg-card p-5 border border-border shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
-                    <Icon className="h-5 w-5" />
+        {(() => {
+          const counts = {
+            abertas: items.filter((c) => c.status === "aberta").length,
+            aguardando: items.filter((c) => c.status === "aguardando_cliente" || c.status === "aguardando_empresa").length,
+            encaminhadas: items.filter((c) => c.status === "encaminhada").length,
+            finalizadas: items.filter((c) => c.status === "finalizada").length,
+          };
+          const cards = [
+            { label: "Conversas abertas", value: counts.abertas, icon: MessageCircle },
+            { label: "Aguardando resposta", value: counts.aguardando, icon: Clock },
+            { label: "Encaminhadas", value: counts.encaminhadas, icon: UserCheck },
+            { label: "Finalizadas", value: counts.finalizadas, icon: CheckCircle2 },
+          ];
+          const isKanban = viewMode === "kanban";
+          return (
+            <div className={`grid grid-cols-2 lg:grid-cols-4 gap-3 ${isKanban ? "" : ""}`}>
+              {cards.map((s) => {
+                const Icon = s.icon;
+                if (isKanban) {
+                  return (
+                    <div
+                      key={s.label}
+                      className="flex items-center gap-3 rounded-xl bg-card px-3 py-2.5 border border-border shadow-[var(--shadow-soft)]"
+                    >
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--brand-blue-soft)] text-primary shrink-0">
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-display text-lg font-bold leading-none text-foreground">
+                          {s.value}
+                        </div>
+                        <div className="mt-0.5 text-[11px] text-muted-foreground truncate">{s.label}</div>
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <div
+                    key={s.label}
+                    className="rounded-2xl bg-card p-5 border border-border shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">
+                      {s.value}
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">{s.label}</div>
                   </div>
-                  <div className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground">
-                    {s.value}
-                  </div>
-                  <div className="mt-1 text-xs text-muted-foreground">{s.label}</div>
-                </div>
-              );
-            });
-          })()}
-        </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+
 
 
         {/* View selector + Filters + search */}
@@ -982,6 +1001,10 @@ function KanbanView({
               </span>
               Ao vivo
             </span>
+            <span className="inline-flex items-center rounded-full bg-primary/10 text-primary border border-primary/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide">
+              Operação ativa
+            </span>
+
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
             Acompanhe cada conversa por etapa, identifique gargalos e priorize retornos.

@@ -374,20 +374,20 @@ function DashboardPage() {
     : "";
 
   const kpisPrimary: Kpi[] = [
-    { label: "Mensagens hoje", value: messagesToday, icon: Headphones },
-    { label: "Leads quentes (score ≥ 80)", value: hotLeads, icon: Flame },
-    { label: "Conversas abertas", value: convOpen, icon: MessageSquare },
-    { label: "Clientes sem resposta", value: convNoResponse, icon: UserX },
+    { label: "Mensagens hoje", value: messagesToday, icon: Headphones, to: "/atendimentos", cta: "Ver atendimentos" },
+    { label: "Leads quentes (score ≥ 80)", value: hotLeads, icon: Flame, to: "/leads", cta: "Ver leads" },
+    { label: "Conversas abertas", value: convOpen, icon: MessageSquare, to: "/conversas", cta: "Ver conversas" },
+    { label: "Clientes sem resposta", value: convNoResponse, icon: UserX, to: "/conversas", cta: "Ver conversas" },
   ];
 
   const kpisSecondary: Kpi[] = [
-    { label: "Total de leads", value: totalLeads, icon: Flame },
-    { label: "Aguardando cliente", value: convWaitingClient, icon: Clock },
-    { label: "Aguardando empresa", value: convWaitingCompany, icon: Inbox },
-    { label: "Finalizadas", value: convFinished, icon: CheckCircle2 },
-    { label: "Responsáveis ativos", value: activeResponsibles, icon: Users },
-    { label: "Base de conhecimento ativa", value: activeKnowledge, icon: BookOpen },
-    { label: "IA configurada", value: aiConfigured, icon: Bot },
+    { label: "Total de leads", value: totalLeads, icon: Flame, to: "/leads" },
+    { label: "Aguardando cliente", value: convWaitingClient, icon: Clock, to: "/conversas" },
+    { label: "Aguardando empresa", value: convWaitingCompany, icon: Inbox, to: "/conversas" },
+    { label: "Finalizadas", value: convFinished, icon: CheckCircle2, to: "/conversas" },
+    { label: "Responsáveis ativos", value: activeResponsibles, icon: Users, to: "/responsaveis" },
+    { label: "Base de conhecimento ativa", value: activeKnowledge, icon: BookOpen, to: "/base-conhecimento" },
+    { label: "IA configurada", value: aiConfigured, icon: Bot, to: "/ia", cta: aiConfigured === "Não" ? "Configurar IA" : "Acessar" },
   ];
 
   const tempTotal = useMemo(

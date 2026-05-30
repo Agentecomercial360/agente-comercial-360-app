@@ -659,7 +659,7 @@ function DashboardPage() {
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Baseado nas mensagens registradas no Supabase
+                  Baseado nas mensagens registradas no sistema
                 </p>
                 <Link
                   to="/relatorios"

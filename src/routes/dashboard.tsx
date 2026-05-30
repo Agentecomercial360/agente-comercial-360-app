@@ -574,6 +574,12 @@ function DashboardPage() {
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Baseado nas mensagens registradas no Supabase
                 </p>
+                <Link
+                  to="/relatorios"
+                  className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                >
+                  Ver relatório <ChevronRight className="h-3.5 w-3.5" />
+                </Link>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <div className="rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-right">

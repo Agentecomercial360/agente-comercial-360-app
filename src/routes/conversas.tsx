@@ -1007,7 +1007,7 @@ function KanbanView({
 
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Acompanhe cada conversa por etapa, identifique gargalos e priorize retornos.
+            Acompanhe cada atendimento por etapa, identifique gargalos e priorize retornos importantes.
           </p>
         </div>
         <div className="flex items-center gap-3 rounded-xl bg-card/70 border border-border/70 px-3 py-2 shadow-sm">

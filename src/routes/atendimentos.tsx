@@ -45,9 +45,9 @@ function formatHorario(lastMessageAt: string | null, createdAt: string | null): 
 
 
 const cards = [
-  { label: "Atendimentos hoje", value: 128, icon: Headphones },
+  { label: "Total de atendimentos", value: 128, icon: Headphones },
   { label: "Em andamento", value: 26, icon: Clock },
-  { label: "Aguardando resposta", value: 9, icon: AlertCircle },
+  { label: "Aguardando cliente", value: 9, icon: AlertCircle },
   { label: "Finalizados", value: 93, icon: CheckCircle2 },
 ];
 

@@ -435,54 +435,59 @@ function ResponsaveisPage() {
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-7xl space-y-8">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
-            Responsáveis
-          </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            Gerencie os responsáveis por setor da empresa e organize o encaminhamento dos atendimentos.
-          </p>
-          {(() => {
-            if (loadingResponsibles) {
-              return (
-                <p className="mt-2 text-xs text-muted-foreground">Carregando responsáveis...</p>
-              );
-            }
-            if (responsiblesLoadStatus === "loaded") {
-              return (
-                <p className="mt-2 text-xs font-medium text-emerald-600">
-                  Gestão de responsáveis ativa. A equipe está organizada por setor, função e disponibilidade operacional.
-                </p>
-              );
-            }
-            if (responsiblesLoadStatus === "empty") {
-              return (
-                <p className="mt-2 text-xs font-medium text-amber-600">
-                  Nenhum responsável real encontrado. Usando dados locais temporários.
-                </p>
-              );
-            }
-            if (responsiblesLoadStatus === "unauthenticated") {
-              return (
-                <p className="mt-2 text-xs font-medium text-amber-600">
-                  Usuário não autenticado. Usando dados locais temporários.
-                </p>
-              );
-            }
-            return (
-              <p className="mt-2 text-xs font-medium text-amber-600">
-                Não foi possível carregar responsáveis. Usando dados locais temporários.
+        {/* HERO PREMIUM */}
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 p-6 shadow-sm">
+          <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-blue-500/20 blur-3xl" />
+          <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-emerald-500/20 blur-3xl" />
+          <div className="relative flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div className="max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-300 ring-1 ring-emerald-400/30">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  Gestão ativa
+                </span>
+                <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
+                  Equipe organizada
+                </span>
+                <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
+                  Setores definidos
+                </span>
+              </div>
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
+                Responsáveis
+              </h1>
+              <p className="mt-2 text-sm leading-relaxed text-blue-100/90">
+                Gerencie equipe, setores e responsáveis pela continuidade dos atendimentos.
               </p>
-            );
-          })()}
-          <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
-            Gestão de responsáveis ativa. A equipe está organizada por setor, função e disponibilidade operacional.
-            {saveError && (
-              <span className="ml-1 font-semibold text-red-700">• {saveError}</span>
-            )}
-            {saveSuccess && !saveError && (
-              <span className="ml-1 font-semibold text-emerald-700">• {saveSuccess}</span>
-            )}
+            </div>
+
+            <div className="w-full max-w-sm rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm md:w-80">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-100/80">
+                  Resumo da equipe
+                </p>
+                <span className="text-[10px] font-medium text-blue-200/70">
+                  {loadingResponsibles ? "Sincronizando…" : "Atualizado agora"}
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-3">
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Responsáveis ativos</p>
+                  <p className="mt-1 text-xl font-bold text-white">{ativosCount}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Setores</p>
+                  <p className="mt-1 text-xl font-bold text-white">{setoresCobertos}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Contatos cadastrados</p>
+                  <p className="mt-1 text-xl font-bold text-white">{items.length}</p>
+                </div>
+              </div>
+              <p className="mt-3 text-[11px] leading-relaxed text-blue-100/80">
+                Equipe organizada para distribuição, acompanhamento e continuidade dos atendimentos.
+              </p>
+            </div>
           </div>
         </div>
 

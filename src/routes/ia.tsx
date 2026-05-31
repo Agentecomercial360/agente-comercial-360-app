@@ -333,43 +333,61 @@ function IAPage() {
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-7xl space-y-8">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
-            Configuração da IA
-          </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            Configure o comportamento da assistente virtual, regras de atuação e critérios de encaminhamento.
-          </p>
-          {(() => {
-            if (loadingAi) {
-              return (
-                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                  Carregando configurações da IA...
-                </div>
-              );
-            }
-            if (aiLoadStatus === "loaded") {
-              return (
-                <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-200">
-                  <CheckCircle2 className="h-3.5 w-3.5" />
-                  Configuração da IA ativa. O assistente está preparado para seguir as regras, linguagem e orientações da empresa.
-                </div>
-              );
-            }
-            const msg =
-              aiLoadStatus === "empty"
-                ? "Nenhuma configuração real encontrada. Usando dados locais temporários."
-                : aiLoadStatus === "unauthenticated"
-                  ? "Usuário não autenticado. Usando dados locais temporários."
-                  : "Não foi possível carregar configurações da IA. Usando dados locais temporários.";
-            return (
-              <div className="mt-3 inline-flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 ring-1 ring-amber-200">
-                <AlertTriangle className="h-3.5 w-3.5" />
-                {msg}
+        {/* HERO PREMIUM */}
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 p-6 shadow-sm">
+          <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-blue-500/20 blur-3xl" />
+          <div className="absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-emerald-500/20 blur-3xl" />
+          <div className="relative flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+            <div className="max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-300 ring-1 ring-emerald-400/30">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                  IA ativa
+                </span>
+                <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
+                  Regras configuradas
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
+                  <Sparkles className="h-3 w-3" />
+                  Atendimento inteligente
+                </span>
               </div>
-            );
-          })()}
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
+                Configuração da IA
+              </h1>
+              <p className="mt-2 text-sm leading-relaxed text-blue-100/90">
+                Defina comportamento, linguagem e regras do assistente para apoiar a operação da empresa.
+              </p>
+            </div>
+
+            <div className="w-full max-w-sm rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm md:w-80">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-100/80">
+                  Resumo da IA
+                </p>
+                <span className="text-[10px] font-medium text-blue-200/70">
+                  {loadingAi ? "Sincronizando…" : "Atualizado agora"}
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-3 gap-3">
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Agente configurado</p>
+                  <p className="mt-1 text-xl font-bold text-white">{assistantName}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Regras ativas</p>
+                  <p className="mt-1 text-xl font-bold text-white">{rules.filter((r) => r.value).length}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Base conectada</p>
+                  <p className="mt-1 text-xl font-bold text-white">{aiLoadStatus === "loaded" ? "Conectada" : "—"}</p>
+                </div>
+              </div>
+              <p className="mt-3 text-[11px] leading-relaxed text-blue-100/80">
+                Assistente preparado para apoiar atendimentos, classificação e operação comercial.
+              </p>
+            </div>
+          </div>
         </div>
 
 

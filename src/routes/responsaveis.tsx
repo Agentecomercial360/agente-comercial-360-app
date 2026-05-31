@@ -616,7 +616,7 @@ function ResponsaveisPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                          {r.funcao}
+                          {formatFuncao(r.funcao)}
                         </td>
                         <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                           {r.telefone}

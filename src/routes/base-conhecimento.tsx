@@ -494,7 +494,7 @@ function BaseConhecimentoPage() {
                 </div>
               </div>
               <p className="mt-3 text-[11px] leading-relaxed text-blue-100/80">
-                Informações estruturadas para apoiar o atendimento e orientar a IA.
+                Informações estruturadas para apoiar respostas, classificar solicitações e orientar a IA com mais precisão.
               </p>
             </div>
           </div>

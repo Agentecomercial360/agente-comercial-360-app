@@ -254,51 +254,115 @@ function ConfiguracoesPage() {
   return (
     <DashboardLayout>
       <div className="mx-auto max-w-7xl space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight text-foreground">
-            Configurações
-          </h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            Gerencie os dados da empresa, preferências do sistema e parâmetros gerais da operação.
-          </p>
-          <div className="mt-3 text-xs">
-            {companyLoadStatus === "loading" && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-muted-foreground">
-                Carregando empresa vinculada...
-              </span>
-            )}
-            {companyLoadStatus === "loaded" && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700 ring-1 ring-emerald-200">
-                Configurações da empresa ativas. Os dados principais estão organizados para personalizar a operação no sistema.
-              </span>
-            )}
-            {companyLoadStatus === "unauthenticated" && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 ring-1 ring-amber-200">
-                Empresa mockada — usuário não autenticado
-              </span>
-            )}
-            {companyLoadStatus === "error" && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-amber-700 ring-1 ring-amber-200">
-                Usando dados locais temporários
-              </span>
-            )}
+        {/* HERO PREMIUM */}
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#070b1f] via-[#0b1a3a] to-[#062a2a] p-5 shadow-2xl shadow-emerald-900/20">
+          <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
+          <div className="absolute -bottom-28 -left-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.06),transparent_60%)]" />
+          <div className="relative flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-2xl">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-300 ring-1 ring-emerald-400/40 backdrop-blur-sm">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Configuração ativa
+                </span>
+                <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-100 ring-1 ring-white/20 backdrop-blur-sm">
+                  Parâmetros do sistema
+                </span>
+                <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-100 ring-1 ring-white/20 backdrop-blur-sm">
+                  Integrações preparadas
+                </span>
+              </div>
+              <h1 className="mt-2 text-2xl font-bold tracking-tight text-white">
+                Configurações
+              </h1>
+              <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-blue-100/85">
+                Gerencie os dados da empresa, preferências do sistema e parâmetros gerais da operação.
+              </p>
+              {companyLoadStatus !== "loaded" && (
+                <div className="mt-3 text-xs">
+                  {companyLoadStatus === "loading" && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-blue-100 ring-1 ring-white/20">
+                      Carregando empresa vinculada...
+                    </span>
+                  )}
+                  {companyLoadStatus === "unauthenticated" && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-2.5 py-1 text-amber-200 ring-1 ring-amber-300/40">
+                      Empresa mockada — usuário não autenticado
+                    </span>
+                  )}
+                  {companyLoadStatus === "error" && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-2.5 py-1 text-amber-200 ring-1 ring-amber-300/40">
+                      Usando dados locais temporários
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="w-full max-w-md rounded-2xl border border-white/15 bg-white/[0.07] p-3.5 shadow-xl shadow-black/30 backdrop-blur-xl lg:w-96">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="rounded-lg bg-emerald-500/20 p-1.5 ring-1 ring-emerald-400/30">
+                    <Sparkles className="h-4 w-4 text-emerald-300" />
+                  </div>
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-blue-100/90">
+                    Resumo da configuração
+                  </p>
+                </div>
+                <span className="text-[10px] font-medium text-blue-200/70">
+                  {loadingCompany ? "Sincronizando…" : "Atualizado"}
+                </span>
+              </div>
+
+              <div className="mt-2 space-y-1.5">
+                <div className="flex items-center justify-between gap-3 rounded-lg bg-white/5 px-2.5 py-1.5 ring-1 ring-white/10">
+                  <span className="text-xs text-blue-100/80">Empresa</span>
+                  <span className="text-xs font-semibold text-white truncate max-w-[55%] text-right">{empresa.nome}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 rounded-lg bg-white/5 px-2.5 py-1.5 ring-1 ring-white/10">
+                  <span className="text-xs text-blue-100/80">Status</span>
+                  <span className="inline-flex items-center rounded-full bg-emerald-400/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-200 ring-1 ring-emerald-300/40">
+                    {empresa.status}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-3 rounded-lg bg-white/5 px-2.5 py-1.5 ring-1 ring-white/10">
+                  <span className="text-xs text-blue-100/80">Segmento</span>
+                  <span className="text-xs font-semibold text-white">{empresa.segmento}</span>
+                </div>
+                <div className="flex items-center justify-between gap-3 rounded-lg bg-white/5 px-2.5 py-1.5 ring-1 ring-white/10">
+                  <span className="text-xs text-blue-100/80">Integrações</span>
+                  <span className="text-xs font-semibold text-white">3 preparadas</span>
+                </div>
+              </div>
+
+              <p className="mt-2 text-[11px] leading-relaxed text-blue-100/70">
+                Ambiente configurado para personalização da operação, integrações futuras e controle seguro de acesso.
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* Summary cards */}
+        {/* Summary cards - premium accent */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {summary.map((s) => {
+          {summary.map((s, i) => {
             const Icon = s.icon;
+            const accents = [
+              { border: "border-l-emerald-500", icon: "bg-emerald-50 text-emerald-600 ring-emerald-100" },
+              { border: "border-l-blue-500", icon: "bg-blue-50 text-blue-600 ring-blue-100" },
+              { border: "border-l-violet-500", icon: "bg-violet-50 text-violet-600 ring-violet-100" },
+              { border: "border-l-amber-500", icon: "bg-amber-50 text-amber-600 ring-amber-100" },
+            ];
+            const a = accents[i % accents.length];
             return (
               <div
                 key={s.label}
-                className="rounded-2xl bg-card p-5 border border-border shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-card)] transition"
+                className={`rounded-2xl border border-slate-200 border-l-4 ${a.border} bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md`}
               >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
+                <div className={`flex h-10 w-10 items-center justify-center rounded-xl ring-1 ${a.icon}`}>
                   <Icon className="h-5 w-5" />
                 </div>
-                <div className="mt-4 font-display text-2xl font-bold tracking-tight text-foreground">
+                <div className="mt-4 font-display text-2xl font-bold tracking-tight text-foreground truncate">
                   {s.value}
                 </div>
                 <div className="mt-1 text-xs text-muted-foreground">{s.label}</div>

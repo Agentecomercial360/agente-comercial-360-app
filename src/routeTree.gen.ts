@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WhatsappOficialRouteImport } from './routes/whatsapp-oficial'
 import { Route as ResponsaveisRouteImport } from './routes/responsaveis'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as LoginRouteImport } from './routes/login'
@@ -22,6 +23,11 @@ import { Route as BaseConhecimentoRouteImport } from './routes/base-conhecimento
 import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
+  id: '/whatsapp-oficial',
+  path: '/whatsapp-oficial',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResponsaveisRoute = ResponsaveisRouteImport.update({
   id: '/responsaveis',
   path: '/responsaveis',
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
+  '/whatsapp-oficial': typeof WhatsappOficialRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
+  '/whatsapp-oficial': typeof WhatsappOficialRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
+  '/whatsapp-oficial': typeof WhatsappOficialRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/relatorios'
     | '/responsaveis'
+    | '/whatsapp-oficial'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/relatorios'
     | '/responsaveis'
+    | '/whatsapp-oficial'
   id:
     | '__root__'
     | '/'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/relatorios'
     | '/responsaveis'
+    | '/whatsapp-oficial'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -184,10 +196,18 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RelatoriosRoute: typeof RelatoriosRoute
   ResponsaveisRoute: typeof ResponsaveisRoute
+  WhatsappOficialRoute: typeof WhatsappOficialRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/whatsapp-oficial': {
+      id: '/whatsapp-oficial'
+      path: '/whatsapp-oficial'
+      fullPath: '/whatsapp-oficial'
+      preLoaderRoute: typeof WhatsappOficialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/responsaveis': {
       id: '/responsaveis'
       path: '/responsaveis'
@@ -288,17 +308,8 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RelatoriosRoute: RelatoriosRoute,
   ResponsaveisRoute: ResponsaveisRoute,
+  WhatsappOficialRoute: WhatsappOficialRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

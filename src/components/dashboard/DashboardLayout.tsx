@@ -12,6 +12,7 @@ import {
   RefreshCw,
   Bot,
   Calendar,
+  Plug,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";

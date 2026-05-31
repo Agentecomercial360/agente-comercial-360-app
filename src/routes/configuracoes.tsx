@@ -382,19 +382,22 @@ function ConfiguracoesPage() {
         {/* Main content grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Dados da empresa */}
-          <div className="lg:col-span-2 rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-6">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
-                <Building2 className="h-4 w-4" />
+          <div className="lg:col-span-2 rounded-2xl border border-slate-200 bg-card p-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-5">
+              <div className="rounded-xl bg-blue-50 p-2.5 ring-1 ring-blue-100">
+                <Building2 className="h-5 w-5 text-blue-600" />
               </div>
-              <h3 className="text-base font-semibold text-foreground">Dados da empresa</h3>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Dados da empresa</h3>
+                <p className="text-xs text-slate-500">Informações principais da operação</p>
+              </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
               {empresaFields.map((campo) => {
                 const Icon = campo.icon;
                 return (
                   <div key={campo.key} className="space-y-1.5">
-                    <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                       <Icon className="h-3.5 w-3.5" />
                       {campo.label}
                     </label>
@@ -405,7 +408,7 @@ function ConfiguracoesPage() {
                         setEmpresa((prev) => ({ ...prev, [campo.key]: e.target.value }));
                         setSaved(false);
                       }}
-                      className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+                      className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 focus:bg-white transition"
                     />
                   </div>
                 );
@@ -416,19 +419,22 @@ function ConfiguracoesPage() {
           {/* Preferências + Segurança */}
           <div className="space-y-4">
             {/* Preferências do sistema */}
-            <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
-                  <Paintbrush className="h-4 w-4" />
+            <div className="rounded-2xl border border-slate-200 bg-card p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="rounded-xl bg-violet-50 p-2.5 ring-1 ring-violet-100">
+                  <Paintbrush className="h-5 w-5 text-violet-600" />
                 </div>
-                <h3 className="text-base font-semibold text-foreground">Preferências do sistema</h3>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Preferências do sistema</h3>
+                  <p className="text-xs text-slate-500">Parâmetros gerais</p>
+                </div>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 {prefFields.map((pref) => {
                   const Icon = pref.icon;
                   return (
                     <div key={pref.key} className="space-y-1.5">
-                      <label className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                      <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                         <Icon className="h-3.5 w-3.5" />
                         {pref.label}
                       </label>
@@ -439,7 +445,7 @@ function ConfiguracoesPage() {
                           setPreferencias((prev) => ({ ...prev, [pref.key]: e.target.value }));
                           setSaved(false);
                         }}
-                        className="w-full rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition"
+                        className="h-10 w-full rounded-lg border border-slate-200 bg-slate-50/60 px-3.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-violet-500/30 focus:border-violet-500 focus:bg-white transition"
                       />
                     </div>
                   );
@@ -448,24 +454,33 @@ function ConfiguracoesPage() {
             </div>
 
             {/* Segurança e acesso */}
-            <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-6">
-              <div className="flex items-center gap-2 mb-5">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
-                  <ShieldCheck className="h-4 w-4" />
+            <div className="rounded-2xl border border-slate-200 bg-card p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="rounded-xl bg-emerald-50 p-2.5 ring-1 ring-emerald-100">
+                  <ShieldCheck className="h-5 w-5 text-emerald-600" />
                 </div>
-                <h3 className="text-base font-semibold text-foreground">Segurança e acesso</h3>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Segurança e acesso</h3>
+                  <p className="text-xs text-slate-500">Controles ativos no ambiente</p>
+                </div>
               </div>
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 {seguranca.map((item, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <Lock className="h-4 w-4 mt-0.5 shrink-0 text-primary" />
-                    {item}
+                  <li
+                    key={i}
+                    className="flex items-start gap-2.5 rounded-lg bg-slate-50/70 px-3 py-2.5 ring-1 ring-slate-100"
+                  >
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/30">
+                      <Lock className="h-3 w-3 text-emerald-600" />
+                    </span>
+                    <span className="text-sm text-slate-700">{item}</span>
                   </li>
                 ))}
               </ul>
             </div>
           </div>
         </div>
+
 
         {/* Integrações preparadas - premium */}
         <div className="rounded-2xl border border-slate-200 bg-card p-6 shadow-sm">

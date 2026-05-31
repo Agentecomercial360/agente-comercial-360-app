@@ -139,11 +139,11 @@ function WhatsAppOficialPage() {
     <DashboardLayout>
       <div className="mx-auto max-w-7xl space-y-8">
         {/* HERO */}
-        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#070b1f] via-[#0b1a3a] to-[#062a2a] p-8 shadow-2xl shadow-emerald-900/20">
+        <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#070b1f] via-[#0b1a3a] to-[#062a2a] p-6 shadow-2xl shadow-emerald-900/20">
           <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
           <div className="absolute -bottom-28 -left-16 h-72 w-72 rounded-full bg-blue-500/20 blur-3xl" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.06),transparent_60%)]" />
-          <div className="relative flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
             <div className="max-w-2xl">
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-300 ring-1 ring-emerald-400/40 backdrop-blur-sm">
@@ -157,15 +157,15 @@ function WhatsAppOficialPage() {
                   Conexão segura
                 </span>
               </div>
-              <h1 className="mt-4 text-4xl font-bold tracking-tight text-white sm:text-[2.6rem]">
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
                 WhatsApp Oficial
               </h1>
-              <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-blue-100/85">
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-blue-100/85">
                 Central de integração oficial da empresa com a Meta Cloud API. Centralize mensagens, atendimentos e roteamento automático por setor em um único painel.
               </p>
             </div>
 
-            <div className="w-full max-w-md rounded-2xl border border-white/15 bg-white/[0.07] p-5 shadow-xl shadow-black/30 backdrop-blur-xl lg:w-96">
+            <div className="w-full max-w-md rounded-2xl border border-white/15 bg-white/[0.07] p-4 shadow-xl shadow-black/30 backdrop-blur-xl lg:w-96">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="rounded-lg bg-emerald-500/20 p-1.5 ring-1 ring-emerald-400/30">
@@ -180,7 +180,7 @@ function WhatsAppOficialPage() {
                 </span>
               </div>
 
-              <div className="mt-4 space-y-2.5">
+              <div className="mt-3 space-y-2">
                 <HeroStatusRow
                   label="Conexão"
                   value={connectionLabel[connStatus].text}
@@ -202,7 +202,7 @@ function WhatsAppOficialPage() {
                 </div>
               </div>
 
-              <p className="mt-4 text-[11px] leading-relaxed text-blue-100/70">
+              <p className="mt-3 text-[11px] leading-relaxed text-blue-100/70">
                 Estrutura preparada para a próxima etapa de conexão oficial via Embedded Signup da Meta.
               </p>
             </div>

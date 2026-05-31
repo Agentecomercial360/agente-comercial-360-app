@@ -104,6 +104,22 @@ const statusBadge: Record<Status, string> = {
 
 const setores: Setor[] = ["Vendas", "Financeiro", "Administrativo", "Gestão"];
 
+function formatFuncao(raw: string): string {
+  const map: Record<string, string> = {
+    caixa_financeiro: "Caixa financeiro",
+    gestor: "Gestor",
+    vendedor: "Vendedor",
+    comercial: "Comercial",
+    administrativo: "Administrativo",
+  };
+  const key = raw.trim().toLowerCase();
+  if (map[key]) return map[key];
+  // fallback amigável: trocar underline por espaço e capitalizar primeira letra
+  return raw
+    .replace(/_/g, " ")
+    .replace(/^\w/, (c) => c.toUpperCase());
+}
+
 function ResponsaveisPage() {
   const [items, setItems] = useState<Responsavel[]>(initialResponsaveis);
   const [activeFilter, setActiveFilter] = useState("Todos");
@@ -600,7 +616,7 @@ function ResponsaveisPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                          {r.funcao}
+                          {formatFuncao(r.funcao)}
                         </td>
                         <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                           {r.telefone}

@@ -452,14 +452,14 @@ function BaseConhecimentoPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-300 ring-1 ring-emerald-400/30">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  Base ativa
+                  BASE ATIVA
                 </span>
                 <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
-                  Conteúdo organizado
+                  CONTEÚDO ORGANIZADO
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
                   <Sparkles className="h-3 w-3" />
-                  Apoio à IA
+                  INTELIGÊNCIA APLICADA
                 </span>
               </div>
               <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">

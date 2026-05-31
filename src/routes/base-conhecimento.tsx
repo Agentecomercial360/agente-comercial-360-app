@@ -466,7 +466,7 @@ function BaseConhecimentoPage() {
                 Base de Conhecimento
               </h1>
               <p className="mt-2 text-sm leading-relaxed text-blue-100/90">
-                Organize informações da empresa para apoiar respostas, atendimento e inteligência operacional.
+                Organize regras, processos e informações da empresa para apoiar respostas, atendimento e inteligência operacional.
               </p>
             </div>
 

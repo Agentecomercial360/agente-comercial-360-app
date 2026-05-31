@@ -558,107 +558,107 @@ function BaseConhecimentoPage() {
           </div>
         </div>
 
-        {/* Table + side cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] overflow-hidden">
-            {filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                <BookOpen className="h-10 w-10 text-muted-foreground/40 mb-3" />
-                <p className="text-base font-semibold text-foreground">Nenhum conhecimento encontrado</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Revise os filtros ou tente outro termo de busca.
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/40 text-left">
-                      {[
-                        "Título",
-                        "Categoria",
-                        "Resumo",
-                        "Empresa",
-                        "Status",
-                        "Atualizado em",
-                        "Ação",
-                      ].map((h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap"
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((c) => (
-                      <tr
-                        key={c.id}
-                        className="border-b border-border last:border-0 hover:bg-muted/30 transition"
+        {/* Main table (full width) */}
+        <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] overflow-hidden">
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+              <BookOpen className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <p className="text-base font-semibold text-foreground">Nenhum conhecimento encontrado</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Revise os filtros ou tente outro termo de busca.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/40 text-left">
+                    {[
+                      "Título",
+                      "Categoria",
+                      "Resumo",
+                      "Empresa",
+                      "Status",
+                      "Atualizado em",
+                      "Ação",
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap"
                       >
-                        <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">
-                          {c.titulo}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${categoriaBadge[c.categoria]}`}
-                          >
-                            {c.categoria}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground max-w-xs truncate">
-                          {c.conteudo}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                          {c.empresa}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadge[c.status]}`}
-                          >
-                            {c.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                          {c.atualizadoEm}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => openView(c)}
-                              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1"
-                            >
-                              <Eye className="h-3 w-3" />
-                              Ver
-                            </button>
-                            <button
-                              onClick={() => openEdit(c)}
-                              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1"
-                            >
-                              <Pencil className="h-3 w-3" />
-                              Editar
-                            </button>
-                            <button
-                              onClick={() => toggleStatus(c.id)}
-                              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1"
-                            >
-                              <Power className="h-3 w-3" />
-                              {c.status === "Ativo" ? "Desativar" : "Ativar"}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
+                        {h}
+                      </th>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((c) => (
+                    <tr
+                      key={c.id}
+                      className="border-b border-border last:border-0 hover:bg-muted/30 transition"
+                    >
+                      <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                        {c.titulo}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${categoriaBadge[c.categoria]}`}
+                        >
+                          {c.categoria}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground max-w-md truncate">
+                        {c.conteudo}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                        {c.empresa}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadge[c.status]}`}
+                        >
+                          {c.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                        {c.atualizadoEm}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => openView(c)}
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1"
+                          >
+                            <Eye className="h-3 w-3" />
+                            Ver
+                          </button>
+                          <button
+                            onClick={() => openEdit(c)}
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1"
+                          >
+                            <Pencil className="h-3 w-3" />
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => toggleStatus(c.id)}
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1"
+                          >
+                            <Power className="h-3 w-3" />
+                            {c.status === "Ativo" ? "Desativar" : "Ativar"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
 
-          {/* Side cards */}
-          <div className="space-y-4">
+        {/* Secondary support section */}
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* AI summary */}
             <div className="rounded-2xl border border-border bg-gradient-to-br from-[var(--brand-blue-soft)] to-card p-6 shadow-[var(--shadow-soft)]">
               <div className="flex items-center gap-2 mb-3">
@@ -677,7 +677,7 @@ function BaseConhecimentoPage() {
               <h3 className="text-base font-semibold text-foreground mb-4">
                 Categorias principais
               </h3>
-              <ul className="space-y-2 text-sm">
+              <ul className="flex flex-wrap gap-2 text-sm">
                 {[
                   { label: "Vendas", badge: categoriaBadge["Vendas"] },
                   { label: "Administrativo", badge: categoriaBadge["Administrativo"] },
@@ -687,9 +687,9 @@ function BaseConhecimentoPage() {
                   { label: "Pagamento", badge: categoriaBadge["Pagamento"] },
                   { label: "Orçamento", badge: categoriaBadge["Orçamento"] },
                 ].map((cat) => (
-                  <li key={cat.label} className="flex items-center gap-2">
+                  <li key={cat.label}>
                     <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${cat.badge} shrink-0`}
+                      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${cat.badge}`}
                     >
                       {cat.label}
                     </span>
@@ -697,25 +697,26 @@ function BaseConhecimentoPage() {
                 ))}
               </ul>
             </div>
+          </div>
 
-            {/* Attention */}
-            <div className="rounded-2xl bg-emerald-50 border border-emerald-200 shadow-[var(--shadow-soft)] p-5">
-              <div className="flex items-start gap-2 mb-2">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
-                <h3 className="text-sm font-semibold text-emerald-800">Persistência ativa</h3>
-              </div>
-              <p className="text-xs leading-relaxed text-emerald-700">
-                Base de conhecimento ativa. As informações da empresa estão organizadas para apoiar o atendimento e a IA.
-              </p>
-              {saveError && (
-                <p className="mt-2 text-xs font-medium text-rose-700">{saveError}</p>
-              )}
-              {saveSuccess && !saveError && (
-                <p className="mt-2 text-xs font-medium text-emerald-700">{saveSuccess}</p>
-              )}
+          {/* Attention - full width */}
+          <div className="rounded-2xl bg-emerald-50 border border-emerald-200 shadow-[var(--shadow-soft)] p-5">
+            <div className="flex items-start gap-2 mb-2">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+              <h3 className="text-sm font-semibold text-emerald-800">Persistência ativa</h3>
             </div>
+            <p className="text-xs leading-relaxed text-emerald-700">
+              Base de conhecimento ativa. As informações da empresa estão organizadas para apoiar o atendimento e a IA.
+            </p>
+            {saveError && (
+              <p className="mt-2 text-xs font-medium text-rose-700">{saveError}</p>
+            )}
+            {saveSuccess && !saveError && (
+              <p className="mt-2 text-xs font-medium text-emerald-700">{saveSuccess}</p>
+            )}
           </div>
         </div>
+
       </div>
 
       {/* Add/Edit Modal */}

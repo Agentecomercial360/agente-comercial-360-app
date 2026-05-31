@@ -668,7 +668,7 @@ function BaseConhecimentoPage() {
                 <h3 className="text-base font-semibold text-foreground">Como a IA usa essa base</h3>
               </div>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                A IA consulta a base de conhecimento para entender regras da empresa, orientar respostas, identificar setores e encaminhar solicitações para os responsáveis corretos.
+                A IA consulta esta base para interpretar regras da empresa, orientar respostas, classificar demandas e direcionar cada solicitação ao setor correto.
               </p>
             </div>
 

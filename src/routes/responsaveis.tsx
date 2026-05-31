@@ -565,145 +565,143 @@ function ResponsaveisPage() {
           </div>
         </div>
 
-        {/* Table + AI summary + routing */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] overflow-hidden">
-            {filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
-                <Users className="h-10 w-10 text-muted-foreground/40 mb-3" />
-                <p className="text-base font-semibold text-foreground">Nenhum responsável encontrado</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Revise os filtros ou tente outro termo de busca.
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-muted/40 text-left">
-                      {[
-                        "Nome",
-                        "Setor",
-                        "Função",
-                        "Telefone",
-                        "Status",
-                        "Atendimentos hoje",
-                        "Ação",
-                      ].map((h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap"
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((r) => (
-                      <tr
-                        key={r.id}
-                        className="border-b border-border last:border-0 hover:bg-muted/30 transition"
-                      >
-                        <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">
-                          {r.nome}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${setorBadge[r.setor]}`}
-                          >
-                            {r.setor}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                          {formatFuncao(r.funcao)}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                          {r.telefone}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadge[r.status]}`}
-                          >
-                            {r.status}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 font-display font-bold text-foreground">
-                          {r.atendimentosHoje}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => openEdit(r)}
-                              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1"
-                            >
-                              <Pencil className="h-3 w-3" />
-                              Editar
-                            </button>
-                            <button
-                              onClick={() => toggleStatus(r.id)}
-                              className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1"
-                            >
-                              <Power className="h-3 w-3" />
-                              Ativar/Desativar
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-
-          {/* Side cards */}
-          <div className="space-y-4">
-            {/* AI summary */}
-            <div className="rounded-2xl border border-border bg-gradient-to-br from-[var(--brand-blue-soft)] to-card p-6 shadow-[var(--shadow-soft)]">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                  <Sparkles className="h-4 w-4" />
-                </div>
-                <h3 className="text-base font-semibold text-foreground">Resumo da IA</h3>
-              </div>
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                A IA pode encaminhar atendimentos automaticamente para o responsável correto de acordo com o setor identificado na conversa.
+        {/* Table */}
+        <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] overflow-hidden">
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+              <Users className="h-10 w-10 text-muted-foreground/40 mb-3" />
+              <p className="text-base font-semibold text-foreground">Nenhum responsável encontrado</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Revise os filtros ou tente outro termo de busca.
               </p>
             </div>
-
-            {/* Routing rules */}
-            <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-6">
-              <h3 className="text-base font-semibold text-foreground mb-4">
-                Roteamento por setor
-              </h3>
-              <ul className="space-y-3 text-sm">
-                <li className="flex items-start gap-2">
-                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-700 ring-1 ring-blue-200 shrink-0">
-                    Vendas
-                  </span>
-                  <span className="text-muted-foreground">Amanda, Thaís ou Vitor</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-violet-100 text-violet-700 ring-1 ring-violet-200 shrink-0">
-                    Financeiro
-                  </span>
-                  <span className="text-muted-foreground">Vinicius</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-700 ring-1 ring-amber-200 shrink-0">
-                    Administrativo
-                  </span>
-                  <span className="text-muted-foreground">Lorenzzo</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 shrink-0">
-                    Gestão / Relatórios
-                  </span>
-                  <span className="text-muted-foreground">Ivan</span>
-                </li>
-              </ul>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-muted/40 text-left">
+                    {[
+                      "Nome",
+                      "Setor",
+                      "Função",
+                      "Telefone",
+                      "Status",
+                      "Atendimentos hoje",
+                      "Ação",
+                    ].map((h) => (
+                      <th
+                        key={h}
+                        className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap"
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((r) => (
+                    <tr
+                      key={r.id}
+                      className="border-b border-border last:border-0 hover:bg-muted/30 transition"
+                    >
+                      <td className="px-4 py-3 font-semibold text-foreground whitespace-nowrap">
+                        {r.nome}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${setorBadge[r.setor]}`}
+                        >
+                          {r.setor}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                        {formatFuncao(r.funcao)}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                        {r.telefone}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusBadge[r.status]}`}
+                        >
+                          {r.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 font-display font-bold text-foreground">
+                        {r.atendimentosHoje}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => openEdit(r)}
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1"
+                          >
+                            <Pencil className="h-3 w-3" />
+                            Editar
+                          </button>
+                          <button
+                            onClick={() => toggleStatus(r.id)}
+                            className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted transition whitespace-nowrap inline-flex items-center gap-1"
+                          >
+                            <Power className="h-3 w-3" />
+                            Ativar/Desativar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
+          )}
+        </div>
+
+        {/* Support cards below table */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* AI summary */}
+          <div className="rounded-2xl border border-border bg-gradient-to-br from-[var(--brand-blue-soft)] to-card p-6 shadow-[var(--shadow-soft)]">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <h3 className="text-base font-semibold text-foreground">Resumo da IA</h3>
+            </div>
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              A IA encaminha atendimentos automaticamente ao responsável certo, conforme o setor identificado na conversa.
+            </p>
+          </div>
+
+          {/* Routing rules */}
+          <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-6">
+            <h3 className="text-base font-semibold text-foreground mb-4">
+              Roteamento por setor
+            </h3>
+            <ul className="space-y-3 text-sm">
+              <li className="flex items-start gap-2">
+                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-700 ring-1 ring-blue-200 shrink-0">
+                  Vendas
+                </span>
+                <span className="text-muted-foreground">Amanda, Thaís ou Vitor</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-violet-100 text-violet-700 ring-1 ring-violet-200 shrink-0">
+                  Financeiro
+                </span>
+                <span className="text-muted-foreground">Vinicius</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-amber-100 text-amber-700 ring-1 ring-amber-200 shrink-0">
+                  Administrativo
+                </span>
+                <span className="text-muted-foreground">Lorenzzo</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200 shrink-0">
+                  Gestão / Relatórios
+                </span>
+                <span className="text-muted-foreground">Ivan</span>
+              </li>
+            </ul>
           </div>
         </div>
       </div>

@@ -272,10 +272,10 @@ function BaseConhecimentoPage() {
   );
 
   const summary = [
-    { label: "Regras cadastradas", value: totalRegras, icon: BookOpen },
-    { label: "Categorias ativas", value: categoriasAtivas, icon: Tags },
-    { label: "Conteúdos revisados", value: conteudosRevisados, icon: CheckCircle2 },
-    { label: "Pendentes de revisão", value: pendentesRevisao, icon: AlertTriangle },
+    { label: "Registros ativos", value: totalRegras, icon: BookOpen },
+    { label: "Categorias", value: categoriasAtivas, icon: Tags },
+    { label: "Conteúdos validados", value: conteudosRevisados, icon: CheckCircle2 },
+    { label: "Itens pendentes", value: pendentesRevisao, icon: AlertTriangle },
   ];
 
   const filtered = useMemo(() => {
@@ -452,21 +452,21 @@ function BaseConhecimentoPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-300 ring-1 ring-emerald-400/30">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  Base ativa
+                  BASE ATIVA
                 </span>
                 <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
-                  Conteúdo organizado
+                  CONTEÚDO ORGANIZADO
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
                   <Sparkles className="h-3 w-3" />
-                  Apoio à IA
+                  INTELIGÊNCIA APLICADA
                 </span>
               </div>
               <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
                 Base de Conhecimento
               </h1>
               <p className="mt-2 text-sm leading-relaxed text-blue-100/90">
-                Organize informações da empresa para apoiar respostas, atendimento e inteligência operacional.
+                Organize regras, processos e informações da empresa para apoiar respostas, atendimento e inteligência operacional.
               </p>
             </div>
 
@@ -494,7 +494,7 @@ function BaseConhecimentoPage() {
                 </div>
               </div>
               <p className="mt-3 text-[11px] leading-relaxed text-blue-100/80">
-                Informações estruturadas para apoiar o atendimento e orientar a IA.
+                Informações estruturadas para apoiar respostas, classificar solicitações e orientar a IA com mais precisão.
               </p>
             </div>
           </div>
@@ -577,7 +577,7 @@ function BaseConhecimentoPage() {
                       {[
                         "Título",
                         "Categoria",
-                        "Conteúdo resumido",
+                        "Resumo",
                         "Empresa",
                         "Status",
                         "Atualizado em",
@@ -668,7 +668,7 @@ function BaseConhecimentoPage() {
                 <h3 className="text-base font-semibold text-foreground">Como a IA usa essa base</h3>
               </div>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                A IA consulta a base de conhecimento para entender regras da empresa, orientar respostas, identificar setores e encaminhar solicitações para os responsáveis corretos.
+                A IA consulta esta base para interpretar regras da empresa, orientar respostas, classificar demandas e direcionar cada solicitação ao setor correto.
               </p>
             </div>
 

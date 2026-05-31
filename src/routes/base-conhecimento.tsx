@@ -577,7 +577,7 @@ function BaseConhecimentoPage() {
                       {[
                         "Título",
                         "Categoria",
-                        "Conteúdo resumido",
+                        "Resumo",
                         "Empresa",
                         "Status",
                         "Atualizado em",

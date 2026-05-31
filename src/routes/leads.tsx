@@ -374,51 +374,34 @@ function LeadsPage() {
                   <Sparkles className="h-3 w-3" /> IA comercial
                 </span>
               </div>
-              <h1 className="mt-3 text-3xl font-bold tracking-tight text-white md:text-4xl">Leads</h1>
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">Leads</h1>
               <p className="mt-2 text-sm leading-relaxed text-blue-100/90">
                 Acompanhe oportunidades comerciais por temperatura, status e próxima ação.
               </p>
             </div>
 
-            <div className="w-full rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm md:w-80">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/20">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div className="leading-tight">
-                  <div className="text-2xl font-bold tracking-tight text-white tabular-nums">{totalLeads}</div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-blue-200/70">
-                    Leads no painel
-                  </div>
-                </div>
+            <div className="w-full max-w-sm rounded-xl border border-white/15 bg-white/10 p-4 backdrop-blur-sm md:w-80">
+              <div className="flex items-center justify-between">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-100/80">
+                  Resumo da operação
+                </p>
+                <span className="text-[10px] font-medium text-blue-200/70">
+                  {loadingLeads ? "Sincronizando…" : "Atualizado agora"}
+                </span>
               </div>
-              <div className="mt-3 grid grid-cols-3 gap-3 border-t border-white/10 pt-3">
-                {[
-                  { label: "Quentes", value: hotLeads, dot: "bg-rose-400" },
-                  { label: "Em negociação", value: negotiatingLeads, dot: "bg-indigo-400" },
-                  { label: "Sem responsável", value: noOwnerLeads, dot: "bg-amber-400" },
-                ].map((mm) => (
-                  <div key={mm.label}>
-                    <div className="flex items-center gap-1.5">
-                      <span className={`h-1.5 w-1.5 rounded-full ${mm.dot}`} />
-                      <p className="text-[9px] font-semibold uppercase tracking-wide text-blue-200/70">{mm.label}</p>
-                    </div>
-                    <p className="mt-0.5 text-base font-bold text-white tabular-nums">{mm.value}</p>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-3 flex items-center justify-between">
-                {loadingLeads ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-semibold text-blue-100 ring-1 ring-white/20">
-                    <Loader2 className="h-3 w-3 animate-spin" /> Sincronizando…
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[10px] font-semibold text-emerald-300 ring-1 ring-emerald-400/30">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                    Atualizado agora
-                  </span>
-                )}
-                <span className="text-[9px] font-semibold uppercase tracking-wide text-blue-200/60">Painel ao vivo</span>
+              <div className="mt-3 grid grid-cols-3 gap-3">
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Total</p>
+                  <p className="mt-1 text-xl font-bold text-white tabular-nums">{totalLeads}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Quentes</p>
+                  <p className="mt-1 text-xl font-bold text-white tabular-nums">{hotLeads}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Negociação</p>
+                  <p className="mt-1 text-xl font-bold text-white tabular-nums">{negotiatingLeads}</p>
+                </div>
               </div>
               <p className="mt-3 text-[11px] leading-relaxed text-blue-100/80">
                 Visão consolidada das oportunidades comerciais em andamento.

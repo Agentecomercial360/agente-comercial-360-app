@@ -165,7 +165,7 @@ function WhatsAppOficialPage() {
               </p>
             </div>
 
-            <div className="w-full max-w-md rounded-2xl border border-white/15 bg-white/[0.07] p-5 shadow-xl shadow-black/30 backdrop-blur-xl lg:w-96">
+            <div className="w-full max-w-md rounded-2xl border border-white/15 bg-white/[0.07] p-4 shadow-xl shadow-black/30 backdrop-blur-xl lg:w-96">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="rounded-lg bg-emerald-500/20 p-1.5 ring-1 ring-emerald-400/30">
@@ -180,7 +180,7 @@ function WhatsAppOficialPage() {
                 </span>
               </div>
 
-              <div className="mt-4 space-y-2.5">
+              <div className="mt-3 space-y-2">
                 <HeroStatusRow
                   label="Conexão"
                   value={connectionLabel[connStatus].text}
@@ -202,7 +202,7 @@ function WhatsAppOficialPage() {
                 </div>
               </div>
 
-              <p className="mt-4 text-[11px] leading-relaxed text-blue-100/70">
+              <p className="mt-3 text-[11px] leading-relaxed text-blue-100/70">
                 Estrutura preparada para a próxima etapa de conexão oficial via Embedded Signup da Meta.
               </p>
             </div>

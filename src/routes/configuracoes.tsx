@@ -467,105 +467,135 @@ function ConfiguracoesPage() {
           </div>
         </div>
 
-        {/* Integrações preparadas */}
-        <div className="rounded-2xl bg-card border border-border shadow-[var(--shadow-soft)] p-6">
-          <div className="flex items-center gap-2 mb-5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
-              <Puzzle className="h-4 w-4" />
+        {/* Integrações preparadas - premium */}
+        <div className="rounded-2xl border border-slate-200 bg-card p-6 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-blue-50 p-2.5 ring-1 ring-blue-100">
+              <Puzzle className="h-5 w-5 text-blue-600" />
             </div>
-            <h3 className="text-base font-semibold text-foreground">Integrações preparadas</h3>
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Integrações preparadas</h3>
+              <p className="text-xs text-slate-500">Conexões já mapeadas, aguardando ativação oficial</p>
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {integracoes.map((int) => (
-              <div
-                key={int.nome}
-                className="rounded-xl border border-border bg-background p-4 space-y-2"
-              >
-                <div className="text-sm font-semibold text-foreground">{int.nome}</div>
-                <span
-                  className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${int.cor}`}
+          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {integracoes.map((int, i) => {
+              const accents = [
+                "from-blue-500 to-blue-600",
+                "from-amber-500 to-amber-600",
+                "from-emerald-500 to-emerald-600",
+                "from-slate-600 to-slate-800",
+              ];
+              return (
+                <div
+                  key={int.nome}
+                  className="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                 >
-                  {int.status}
-                </span>
-              </div>
-            ))}
+                  <div className="flex items-center justify-between">
+                    <div className={`rounded-lg bg-gradient-to-br ${accents[i % accents.length]} p-2 shadow-sm`}>
+                      <Puzzle className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-400">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+                  <div className="mt-3 text-sm font-bold text-slate-900">{int.nome}</div>
+                  <span
+                    className={`mt-2 inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${int.cor}`}
+                  >
+                    {int.status}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Teste temporário de conexão Supabase */}
-        <div className="rounded-2xl border border-dashed border-border bg-card/60 p-6">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
-              <Database className="h-4 w-4" />
+        {/* Teste de conexão Supabase - premium card */}
+        <div className="relative overflow-hidden rounded-2xl border border-blue-200/60 bg-gradient-to-br from-blue-50 via-white to-emerald-50 p-7 shadow-sm">
+          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-blue-200/40 blur-3xl" />
+          <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-emerald-200/40 blur-3xl" />
+          <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 p-3.5 shadow-lg shadow-blue-500/30">
+                <Database className="h-6 w-6 text-white" />
+              </div>
+              <div className="max-w-xl">
+                <h3 className="text-xl font-bold tracking-tight text-slate-900">
+                  Teste de conexão Supabase
+                </h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-600">
+                  Verificação rápida de conectividade — apenas SELECT na tabela{" "}
+                  <span className="font-semibold text-slate-800">companies</span>. Nenhuma escrita é realizada.
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-base font-semibold text-foreground">Teste de conexão Supabase</h3>
-              <p className="text-xs text-muted-foreground">
-                Área temporária — apenas SELECT na tabela <span className="font-medium">companies</span>.
+            <div className="flex flex-col items-start gap-2 md:items-end">
+              <button
+                onClick={handleTestConnection}
+                disabled={testLoading}
+                className="group inline-flex items-center gap-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-blue-500 to-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:shadow-blue-500/50 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              >
+                <Database className="h-4 w-4" />
+                {testLoading ? "Testando..." : "Testar conexão"}
+              </button>
+              <p className="text-[11px] text-slate-500">
+                Operação somente leitura, segura para execução.
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={handleTestConnection}
-              disabled={testLoading}
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          {testResult && (
+            <div
+              className={`relative mt-5 text-sm rounded-xl px-4 py-3 ${
+                testResult.kind === "error"
+                  ? "bg-red-50 text-red-700 ring-1 ring-red-200"
+                  : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+              }`}
             >
-              {testLoading ? "Testando..." : "Testar conexão"}
-            </button>
-            {testResult && (
-              <div
-                className={`text-sm rounded-lg px-3 py-2 ${
-                  testResult.kind === "error"
-                    ? "bg-red-50 text-red-700 ring-1 ring-red-200"
-                    : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                }`}
-              >
-                {testResult.kind === "ok-found" && (
-                  <div className="space-y-1">
-                    <div>{`Conexão Supabase OK — empresa encontrada: ${testResult.name}`}</div>
-                    <div className="text-xs text-emerald-700/70 font-mono break-all">
-                      colunas: {testResult.columns.join(", ")}
-                    </div>
+              {testResult.kind === "ok-found" && (
+                <div className="space-y-1">
+                  <div className="font-semibold">{`Conexão Supabase OK — empresa encontrada: ${testResult.name}`}</div>
+                  <div className="text-xs text-emerald-700/70 font-mono break-all">
+                    colunas: {testResult.columns.join(", ")}
                   </div>
-                )}
-                {testResult.kind === "ok-empty" &&
-                  "Conexão Supabase OK — nenhuma empresa encontrada."}
-                {testResult.kind === "error" &&
-                  `Erro ao conectar Supabase: ${testResult.message}`}
-              </div>
-            )}
-          </div>
+                </div>
+              )}
+              {testResult.kind === "ok-empty" &&
+                "Conexão Supabase OK — nenhuma empresa encontrada."}
+              {testResult.kind === "error" &&
+                `Erro ao conectar Supabase: ${testResult.message}`}
+            </div>
+          )}
         </div>
 
-        {/* Observation + AI summary */}
+        {/* Observação + Resumo do ambiente - premium */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Observation */}
-          <div className="lg:col-span-2 rounded-2xl border border-amber-200 bg-amber-50 p-6">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-                <Database className="h-4 w-4" />
+          <div className="lg:col-span-2 rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50 via-white to-amber-50/40 p-6 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="rounded-xl bg-amber-100 p-2.5 ring-1 ring-amber-200">
+                <AlertTriangle className="h-5 w-5 text-amber-700" />
               </div>
-              <h3 className="text-base font-semibold text-foreground">Observação</h3>
+              <h3 className="text-base font-bold text-slate-900">Observação</h3>
             </div>
-            <p className="text-sm leading-relaxed text-muted-foreground">
+            <p className="text-sm leading-relaxed text-slate-700">
               Nesta fase, as informações exibidas são apenas visuais. A conexão com Supabase será
               feita futuramente, começando por login/autenticação e tabela{" "}
-              <span className="font-semibold text-foreground">companies</span>.
+              <span className="font-semibold text-slate-900">companies</span>.
             </p>
           </div>
 
-          {/* AI summary */}
-          <div className="rounded-2xl border border-border bg-gradient-to-br from-[var(--brand-blue-soft)] to-card p-6 shadow-[var(--shadow-soft)] h-fit">
+          <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-[#070b1f] via-[#0b1a3a] to-[#062a2a] p-6 shadow-lg shadow-blue-900/20 h-fit">
             <div className="flex items-center gap-2 mb-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <Sparkles className="h-4 w-4" />
+              <div className="rounded-xl bg-emerald-500/20 p-2 ring-1 ring-emerald-400/30">
+                <Sparkles className="h-4 w-4 text-emerald-300" />
               </div>
-              <h3 className="text-base font-semibold text-foreground">Resumo da IA</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-blue-100">
+                Resumo do ambiente
+              </h3>
             </div>
-            <p className="text-sm leading-relaxed text-muted-foreground">
+            <p className="text-sm leading-relaxed text-blue-100/85">
               A configuração atual está{" "}
-              <span className="font-semibold text-foreground">100% preparada</span> para receber
+              <span className="font-semibold text-white">100% preparada</span> para receber
               conexão com Supabase. Empresa, preferências e integrações estão mapeadas para futura
               persistência de dados.
             </p>

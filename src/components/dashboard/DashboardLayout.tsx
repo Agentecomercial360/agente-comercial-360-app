@@ -33,6 +33,7 @@ const navGroups = [
     items: [
       { label: "IA", to: "/ia", icon: Sparkles },
       { label: "Base de Conhecimento", to: "/base-conhecimento", icon: BookOpen },
+      { label: "WhatsApp Oficial", to: "/whatsapp-oficial", icon: Plug },
     ],
   },
   {

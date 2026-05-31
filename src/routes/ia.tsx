@@ -186,23 +186,23 @@ function IAPage() {
 
   const summary = [
     {
-      label: "Status da IA",
+      label: "Status",
       value: "Ativa",
       icon: Activity,
     },
     {
-      label: "Empresa vinculada",
+      label: "Empresa",
       value: company || "—",
       icon: Building2,
     },
     {
-      label: "Regras principais",
-      value: rules.length,
+      label: "Regras ativas",
+      value: rules.filter((r) => r.value).length,
       icon: ShieldCheck,
     },
     {
-      label: "Encaminhamento humano",
-      value: rules.find((r) => r.label === "Pode encaminhar para humano?")?.value ? "Habilitado" : "Desabilitado",
+      label: "Humano habilitado",
+      value: rules.find((r) => r.label === "Pode encaminhar para humano?")?.value ? "Sim" : "Não",
       icon: UserCheck,
     },
   ];
@@ -371,7 +371,7 @@ function IAPage() {
               </div>
               <div className="mt-3 grid grid-cols-3 gap-3">
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Agente configurado</p>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Agente ativo</p>
                   <p className="mt-1 text-xl font-bold text-white">{assistantName}</p>
                 </div>
                 <div>
@@ -379,7 +379,7 @@ function IAPage() {
                   <p className="mt-1 text-xl font-bold text-white">{rules.filter((r) => r.value).length}</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Base conectada</p>
+                  <p className="text-[10px] font-medium uppercase tracking-wide text-blue-200/70">Conhecimento ativo</p>
                   <p className="mt-1 text-xl font-bold text-white">{aiLoadStatus === "loaded" ? "Conectada" : "—"}</p>
                 </div>
               </div>
@@ -577,7 +577,7 @@ function IAPage() {
                 <h3 className="text-base font-semibold text-foreground">Resumo da configuração</h3>
               </div>
               <p className="text-sm leading-relaxed text-muted-foreground">
-                {resumoText}
+                A IA está configurada para apoiar atendimentos administrativos, classificar solicitações, organizar informações do cliente e encaminhar casos que exigem atendimento humano.
               </p>
             </div>
 

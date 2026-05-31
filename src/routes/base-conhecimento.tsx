@@ -272,10 +272,10 @@ function BaseConhecimentoPage() {
   );
 
   const summary = [
-    { label: "Regras cadastradas", value: totalRegras, icon: BookOpen },
-    { label: "Categorias ativas", value: categoriasAtivas, icon: Tags },
-    { label: "Conteúdos revisados", value: conteudosRevisados, icon: CheckCircle2 },
-    { label: "Pendentes de revisão", value: pendentesRevisao, icon: AlertTriangle },
+    { label: "Registros ativos", value: totalRegras, icon: BookOpen },
+    { label: "Categorias", value: categoriasAtivas, icon: Tags },
+    { label: "Conteúdos validados", value: conteudosRevisados, icon: CheckCircle2 },
+    { label: "Itens pendentes", value: pendentesRevisao, icon: AlertTriangle },
   ];
 
   const filtered = useMemo(() => {

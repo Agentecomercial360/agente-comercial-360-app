@@ -88,12 +88,12 @@ function LandingPage() {
       {/* HERO */}
       <section
         id="top"
-        className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/60"
+        className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/70"
       >
         {/* ambient premium glows */}
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[-15%] -z-10 h-[680px] w-[1200px] -translate-x-1/2 rounded-full opacity-50 blur-3xl"
+          className="pointer-events-none absolute left-1/2 top-[-20%] -z-10 h-[720px] w-[1300px] -translate-x-1/2 rounded-full opacity-60 blur-3xl"
           style={{
             background:
               "radial-gradient(closest-side, var(--brand-blue-soft) 0%, transparent 70%)",
@@ -104,26 +104,40 @@ function LandingPage() {
           className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-px"
           style={{
             background:
-              "linear-gradient(90deg, transparent, oklch(0.55 0.22 258 / 0.25), transparent)",
+              "linear-gradient(90deg, transparent, oklch(0.55 0.22 258 / 0.3), transparent)",
+          }}
+        />
+        {/* subtle grid */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.35]"
+          style={{
+            backgroundImage:
+              "linear-gradient(oklch(0.55 0.22 258 / 0.05) 1px, transparent 1px), linear-gradient(90deg, oklch(0.55 0.22 258 / 0.05) 1px, transparent 1px)",
+            backgroundSize: "44px 44px",
+            maskImage:
+              "radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 75%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 75%)",
           }}
         />
 
-        <div className="mx-auto max-w-7xl px-6 pt-16 pb-24 md:pt-20 md:pb-28 lg:pt-24 lg:pb-32">
-          <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr] lg:gap-12 xl:gap-16">
+        <div className="mx-auto max-w-7xl px-6 pt-14 pb-20 md:pt-20 md:pb-24 lg:pt-24 lg:pb-28">
+          <div className="grid items-center gap-12 lg:grid-cols-[1fr_1.05fr] lg:gap-14 xl:gap-20">
             {/* LEFT — conversion */}
             <div className="relative">
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white px-3.5 py-1.5 text-xs font-medium text-foreground/75 shadow-[var(--shadow-soft)]">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-primary shadow-[var(--shadow-soft)]">
                 <span className="relative flex size-1.5">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/70 opacity-60" />
                   <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
                 </span>
-                Plataforma SaaS de inteligência comercial
+                Plataforma de inteligência comercial
               </div>
 
-              <h1 className="font-display mt-6 text-[2.35rem] font-semibold leading-[1.05] tracking-[-0.03em] text-[oklch(0.16_0.04_258)] md:text-[3rem] lg:text-[3.35rem] lg:leading-[1.04] xl:text-[3.75rem]">
-                Transforme atendimentos, leads e conversas em{" "}
+              <h1 className="font-display mt-6 text-[2.1rem] font-semibold leading-[1.08] tracking-[-0.03em] text-[oklch(0.16_0.04_258)] sm:text-[2.4rem] md:text-[2.75rem] lg:text-[3rem] lg:leading-[1.06] xl:text-[3.25rem]">
+                Pare de perder vendas no WhatsApp.{" "}
                 <span className="relative inline-block text-primary">
-                  vendas
+                  Centralize
                   <span
                     aria-hidden
                     className="absolute inset-x-0 -bottom-1 h-[6px] rounded-full opacity-70"
@@ -133,13 +147,13 @@ function LandingPage() {
                     }}
                   />
                 </span>{" "}
-                com uma operação comercial inteligente.
+                atendimento, leads e follow-up em uma operação comercial inteligente.
               </h1>
 
               <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground md:text-[1.05rem]">
-                Centralize WhatsApp, CRM, responsáveis, IA, base de conhecimento e
-                relatórios em uma plataforma pensada para empresas que querem crescer
-                com estrutura.
+                O Agente Comercial 360 organiza conversas, responsáveis, CRM, IA,
+                base de conhecimento e relatórios em uma única plataforma para
+                empresas que querem vender mais com controle e velocidade.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -162,28 +176,23 @@ function LandingPage() {
                 </a>
               </div>
 
-              {/* benefit chips */}
-              <div className="mt-8 grid grid-cols-2 gap-3 sm:max-w-lg">
+              {/* micro-benefits */}
+              <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2.5 text-[13px] font-medium text-foreground/75">
                 {[
                   { icon: MessageSquare, label: "WhatsApp centralizado" },
                   { icon: Briefcase, label: "CRM comercial" },
                   { icon: Bot, label: "Automação com IA" },
                   { icon: BarChart3, label: "Relatórios gerenciais" },
                 ].map((b) => (
-                  <div
-                    key={b.label}
-                    className="flex items-center gap-2.5 rounded-xl border border-[var(--border-premium)] bg-white/80 px-3.5 py-2.5 text-sm font-medium text-foreground/80 shadow-[var(--shadow-soft)] backdrop-blur"
-                  >
-                    <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-[var(--brand-blue-soft)] text-primary">
-                      <b.icon className="size-3.5" />
-                    </span>
+                  <span key={b.label} className="inline-flex items-center gap-1.5">
+                    <b.icon className="size-3.5 text-primary" />
                     {b.label}
-                  </div>
+                  </span>
                 ))}
               </div>
 
               {/* trust strip */}
-              <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground">
+              <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-[var(--border-premium)] pt-5 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5">
                   <ShieldCheck className="size-3.5 text-primary" /> WhatsApp Oficial
                 </span>
@@ -196,138 +205,199 @@ function LandingPage() {
               </div>
             </div>
 
-            {/* RIGHT — premium mockup composition */}
-            <div className="relative lg:pl-4">
+            {/* RIGHT — premium integrated dashboard mockup */}
+            <div className="relative">
               {/* ambient glow */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute -inset-10 -z-10 blur-3xl"
+                className="pointer-events-none absolute -inset-12 -z-10 blur-3xl"
                 style={{
                   background:
-                    "radial-gradient(50% 55% at 60% 40%, oklch(0.55 0.22 258 / 0.28) 0%, transparent 70%), radial-gradient(45% 55% at 25% 80%, oklch(0.50 0.20 270 / 0.18) 0%, transparent 75%)",
+                    "radial-gradient(50% 55% at 55% 40%, oklch(0.55 0.22 258 / 0.30) 0%, transparent 70%), radial-gradient(45% 55% at 25% 85%, oklch(0.50 0.20 270 / 0.18) 0%, transparent 75%)",
                 }}
               />
 
-              {/* main mockup frame */}
-              <div className="relative mx-auto w-full max-w-[640px]">
-                <div className="relative overflow-hidden rounded-[28px] border border-[var(--border-premium)] bg-white shadow-[0_40px_80px_-30px_oklch(0.25_0.08_258_/_0.35)] ring-1 ring-black/[0.02]">
-                  {/* gradient top edge */}
-                  <div
-                    aria-hidden
-                    className="absolute inset-x-0 top-0 h-px"
-                    style={{
-                      background:
-                        "linear-gradient(90deg, transparent, oklch(0.55 0.22 258 / 0.5), transparent)",
-                    }}
-                  />
-                  <img
-                    src={landingHeroAsset.url}
-                    alt="Painel Agente Comercial 360"
-                    className="block h-auto w-full select-none"
-                    loading="eager"
-                    decoding="async"
-                  />
+              {/* MAIN DASHBOARD CARD */}
+              <div
+                className="relative mx-auto w-full max-w-[620px] overflow-hidden rounded-[24px] border border-[var(--border-premium)] bg-white shadow-[0_50px_100px_-30px_oklch(0.25_0.08_258_/_0.40)] ring-1 ring-black/[0.02]"
+                style={{ transform: "perspective(1600px) rotateY(-3deg) rotateX(2deg)" }}
+              >
+                {/* top edge highlight */}
+                <div
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-px"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, transparent, oklch(0.55 0.22 258 / 0.6), transparent)",
+                  }}
+                />
+
+                {/* window chrome */}
+                <div className="flex items-center justify-between border-b border-[var(--border-premium)] bg-gradient-to-b from-white to-slate-50/60 px-4 py-3">
+                  <div className="flex items-center gap-1.5">
+                    <span className="size-2.5 rounded-full bg-[oklch(0.85_0.10_30)]" />
+                    <span className="size-2.5 rounded-full bg-[oklch(0.85_0.12_85)]" />
+                    <span className="size-2.5 rounded-full bg-[oklch(0.80_0.14_150)]" />
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] font-medium text-muted-foreground">
+                    <img src={acLogo} alt="" className="h-4 w-4 rounded" />
+                    Agente Comercial 360 · Dashboard
+                  </div>
+                  <div className="w-12" />
                 </div>
 
-                {/* floating card — WhatsApp message */}
-                <div className="absolute -left-6 top-16 hidden w-[230px] rounded-2xl border border-[var(--border-premium)] bg-white/95 p-3.5 shadow-[0_20px_45px_-15px_oklch(0.25_0.08_258_/_0.35)] backdrop-blur md:block">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex size-9 items-center justify-center rounded-xl bg-[oklch(0.92_0.08_150)] text-[oklch(0.45_0.15_150)]">
-                      <MessageSquare className="size-4" />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="truncate text-[13px] font-semibold text-foreground">
-                        WhatsApp Oficial
-                      </div>
-                      <div className="truncate text-[11px] text-muted-foreground">
-                        Lead novo • respondido em 28s
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-2.5 flex items-center gap-1.5 text-[11px] font-medium text-[oklch(0.45_0.15_150)]">
-                    <span className="size-1.5 rounded-full bg-[oklch(0.55_0.18_150)]" />
-                    IA respondendo agora
-                  </div>
-                </div>
-
-                {/* floating card — Conversão */}
-                <div className="absolute -right-5 top-28 hidden w-[220px] rounded-2xl border border-[var(--border-premium)] bg-white/95 p-3.5 shadow-[0_20px_45px_-15px_oklch(0.25_0.08_258_/_0.35)] backdrop-blur md:block">
-                  <div className="flex items-center justify-between">
-                    <div className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                      Conversão
-                    </div>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[var(--brand-blue-soft)] px-1.5 py-0.5 text-[10px] font-semibold text-primary">
-                      <TrendingUp className="size-3" /> +32%
-                    </span>
-                  </div>
-                  <div className="font-display mt-1 text-2xl font-bold tracking-tight text-[oklch(0.16_0.04_258)]">
-                    1.284
-                  </div>
-                  <div className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: "72%",
-                        background:
-                          "linear-gradient(90deg, oklch(0.55 0.22 258), oklch(0.65 0.18 250))",
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* floating card — Automação IA */}
-                <div className="absolute -left-4 -bottom-6 hidden w-[245px] rounded-2xl border border-[var(--border-premium)] bg-white/95 p-3.5 shadow-[0_20px_45px_-15px_oklch(0.25_0.08_258_/_0.35)] backdrop-blur md:block">
-                  <div className="flex items-center gap-2.5">
-                    <span className="flex size-9 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
-                      <Bot className="size-4" />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="truncate text-[13px] font-semibold text-foreground">
-                        Automação executada
-                      </div>
-                      <div className="truncate text-[11px] text-muted-foreground">
-                        Lead qualificado → CRM
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-2.5 flex items-center gap-3 text-[10px] font-medium text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      <Workflow className="size-3" /> n8n
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Network className="size-3" /> CRM
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Sparkles className="size-3 text-primary" /> IA
-                    </span>
-                  </div>
-                </div>
-
-                {/* floating card — Relatório */}
-                <div className="absolute -right-6 -bottom-4 hidden w-[200px] rounded-2xl border border-[var(--border-premium)] bg-white/95 p-3.5 shadow-[0_20px_45px_-15px_oklch(0.25_0.08_258_/_0.35)] backdrop-blur lg:block">
-                  <div className="flex items-center gap-2">
-                    <span className="flex size-7 items-center justify-center rounded-lg bg-[var(--brand-blue-soft)] text-primary">
-                      <LineChart className="size-3.5" />
-                    </span>
-                    <div className="text-[12px] font-semibold text-foreground">
-                      Relatório semanal
-                    </div>
-                  </div>
-                  <div className="mt-2 flex items-end gap-1 h-10">
-                    {[40, 65, 50, 80, 70, 95, 85].map((h, i) => (
+                {/* body */}
+                <div className="grid grid-cols-12 gap-3 bg-slate-50/40 p-4">
+                  {/* sidebar */}
+                  <div className="col-span-3 hidden flex-col gap-1.5 rounded-xl border border-[var(--border-premium)] bg-white p-2.5 sm:flex">
+                    {[
+                      { icon: BarChart3, label: "Dashboard", active: true },
+                      { icon: MessageSquare, label: "Conversas" },
+                      { icon: Users, label: "Leads" },
+                      { icon: Briefcase, label: "CRM" },
+                      { icon: Bot, label: "IA" },
+                      { icon: LineChart, label: "Relatórios" },
+                    ].map((it) => (
                       <div
-                        key={i}
-                        className="flex-1 rounded-sm"
-                        style={{
-                          height: `${h}%`,
-                          background:
-                            i === 5
-                              ? "linear-gradient(180deg, oklch(0.55 0.22 258), oklch(0.65 0.18 250))"
-                              : "oklch(0.85 0.04 258)",
-                        }}
-                      />
+                        key={it.label}
+                        className={`flex items-center gap-2 rounded-lg px-2 py-1.5 text-[11px] font-medium ${
+                          it.active
+                            ? "bg-[var(--brand-blue-soft)] text-primary"
+                            : "text-foreground/65"
+                        }`}
+                      >
+                        <it.icon className="size-3.5" />
+                        {it.label}
+                      </div>
                     ))}
                   </div>
+
+                  {/* main area */}
+                  <div className="col-span-12 flex flex-col gap-3 sm:col-span-9">
+                    {/* KPI row */}
+                    <div className="grid grid-cols-3 gap-2.5">
+                      {[
+                        { label: "Conversas", value: "1.284", delta: "+18%" },
+                        { label: "Leads quentes", value: "327", delta: "+24%" },
+                        { label: "Conversão", value: "32%", delta: "+6pp" },
+                      ].map((k) => (
+                        <div
+                          key={k.label}
+                          className="rounded-xl border border-[var(--border-premium)] bg-white p-2.5"
+                        >
+                          <div className="text-[9px] font-medium uppercase tracking-wide text-muted-foreground">
+                            {k.label}
+                          </div>
+                          <div className="font-display mt-0.5 text-lg font-bold leading-none tracking-tight text-[oklch(0.16_0.04_258)]">
+                            {k.value}
+                          </div>
+                          <div className="mt-1 inline-flex items-center gap-0.5 text-[9px] font-semibold text-[oklch(0.45_0.15_150)]">
+                            <TrendingUp className="size-2.5" />
+                            {k.delta}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* chart */}
+                    <div className="rounded-xl border border-[var(--border-premium)] bg-white p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-[11px] font-semibold text-foreground">
+                          Vendas por semana
+                        </div>
+                        <div className="text-[9px] text-muted-foreground">Últimos 30d</div>
+                      </div>
+                      <div className="mt-2.5 flex h-16 items-end gap-1.5">
+                        {[35, 55, 42, 68, 50, 78, 62, 88, 72, 95, 80, 92].map((h, i) => (
+                          <div
+                            key={i}
+                            className="flex-1 rounded-sm"
+                            style={{
+                              height: `${h}%`,
+                              background:
+                                i >= 9
+                                  ? "linear-gradient(180deg, oklch(0.55 0.22 258), oklch(0.65 0.18 250))"
+                                  : "oklch(0.88 0.04 258)",
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* recent activity */}
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <div className="rounded-xl border border-[var(--border-premium)] bg-white p-2.5">
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold text-foreground">
+                          <span className="flex size-5 items-center justify-center rounded-md bg-[oklch(0.94_0.06_150)] text-[oklch(0.45_0.15_150)]">
+                            <MessageSquare className="size-3" />
+                          </span>
+                          WhatsApp Oficial
+                        </div>
+                        <div className="mt-1 text-[9px] text-muted-foreground">
+                          Lead respondido em 28s
+                        </div>
+                        <div className="mt-1.5 inline-flex items-center gap-1 text-[9px] font-medium text-[oklch(0.45_0.15_150)]">
+                          <span className="size-1.5 rounded-full bg-[oklch(0.55_0.18_150)]" />
+                          IA ativa
+                        </div>
+                      </div>
+                      <div className="rounded-xl border border-[var(--border-premium)] bg-white p-2.5">
+                        <div className="flex items-center gap-1.5 text-[10px] font-semibold text-foreground">
+                          <span className="flex size-5 items-center justify-center rounded-md bg-[var(--brand-blue-soft)] text-primary">
+                            <Bot className="size-3" />
+                          </span>
+                          Automação IA
+                        </div>
+                        <div className="mt-1 text-[9px] text-muted-foreground">
+                          Lead qualificado → CRM
+                        </div>
+                        <div className="mt-1.5 inline-flex items-center gap-1 text-[9px] font-medium text-primary">
+                          <Workflow className="size-2.5" /> n8n · CRM · IA
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* TWO small discreet floating chips (no clutter) */}
+              <div className="absolute -left-3 top-10 hidden w-[180px] rounded-xl border border-[var(--border-premium)] bg-white/95 p-2.5 shadow-[0_20px_45px_-15px_oklch(0.25_0.08_258_/_0.35)] backdrop-blur md:block">
+                <div className="flex items-center gap-2">
+                  <span className="flex size-7 items-center justify-center rounded-lg bg-[oklch(0.94_0.06_150)] text-[oklch(0.45_0.15_150)]">
+                    <MessageSquare className="size-3.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="truncate text-[11px] font-semibold text-foreground">
+                      WhatsApp conectado
+                    </div>
+                    <div className="truncate text-[10px] text-muted-foreground">
+                      Meta Cloud API
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute -right-3 bottom-10 hidden w-[190px] rounded-xl border border-[var(--border-premium)] bg-white/95 p-2.5 shadow-[0_20px_45px_-15px_oklch(0.25_0.08_258_/_0.35)] backdrop-blur md:block">
+                <div className="flex items-center justify-between">
+                  <div className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
+                    Leads quentes
+                  </div>
+                  <span className="inline-flex items-center gap-0.5 rounded-full bg-[var(--brand-blue-soft)] px-1.5 py-0.5 text-[9px] font-semibold text-primary">
+                    <TrendingUp className="size-2.5" /> +24%
+                  </span>
+                </div>
+                <div className="font-display mt-1 text-lg font-bold tracking-tight text-[oklch(0.16_0.04_258)]">
+                  327
+                </div>
+                <div className="mt-1 flex h-1 overflow-hidden rounded-full bg-slate-100">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: "68%",
+                      background:
+                        "linear-gradient(90deg, oklch(0.55 0.22 258), oklch(0.65 0.18 250))",
+                    }}
+                  />
                 </div>
               </div>
             </div>

@@ -307,6 +307,10 @@ function ConversasPage() {
       setMessagesLoadStatus("idle");
       return;
     }
+    if (!companyId) {
+      setMessagesLoadStatus("idle");
+      return;
+    }
 
     let cancelled = false;
     setLoadingMessages(true);

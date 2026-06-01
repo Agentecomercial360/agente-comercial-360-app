@@ -217,6 +217,7 @@ function ConversasPage() {
     "idle" | "loading" | "loaded" | "empty" | "error"
   >("idle");
   const [viewMode, setViewMode] = useState<"lista" | "kanban">("lista");
+  const [companyId, setCompanyId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -282,6 +283,7 @@ function ConversasPage() {
 
         setItems(mapped);
         setSelectedId(mapped[0]?.id ?? null);
+        setCompanyId(cu.company_id);
         setConvLoadStatus("loaded");
       } catch {
         if (!cancelled) setConvLoadStatus("error");
@@ -305,6 +307,10 @@ function ConversasPage() {
       setMessagesLoadStatus("idle");
       return;
     }
+    if (!companyId) {
+      setMessagesLoadStatus("idle");
+      return;
+    }
 
     let cancelled = false;
     setLoadingMessages(true);
@@ -316,6 +322,7 @@ function ConversasPage() {
           .from("messages")
           .select("id,conversation_id,sender_type,content,channel,created_at")
           .eq("conversation_id", selectedId)
+          .eq("company_id", companyId)
           .order("created_at", { ascending: true });
 
         if (cancelled) return;
@@ -363,7 +370,7 @@ function ConversasPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedId]);
+  }, [selectedId, companyId]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

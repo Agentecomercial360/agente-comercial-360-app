@@ -8,18 +8,19 @@ import {
   UserX,
   Download,
   Sparkles,
-  AlertTriangle,
-  TrendingUp,
   BarChart3,
   PieChart,
+  Info,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 import type { ConversationStatus } from "@/lib/conversation-status";
 import { CONVERSATION_STATUSES, getConversationStatusLabel } from "@/lib/conversation-status";
 
-const MOCK_BADGE =
-  "demo-badge ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-800 ring-1 ring-amber-200";
+
+// Mock badge removido — a página não exibe mais números demonstrativos
+// como se fossem dados reais da operação.
+
 
 export const Route = createFileRoute("/relatorios")({
   component: RelatoriosPage,
@@ -91,116 +92,10 @@ const METRICAS_VAZIAS: MetricasReais = {
   loadedKeys: new Set<string>(),
 };
 
-// ============================================================
-// BLOCOS DEMONSTRATIVOS — apenas para visuais marcados como "Demonstrativo".
-// NUNCA alimentam cards principais, resumo executivo ou CSV.
-// ============================================================
-type BlocoDemo = {
-  recorrentes: number;
-  pendVendas: number;
-  solAdm: number;
-  pendFin: number;
-  recomendacoes: string[];
-  setores: { nome: string; valor: number; cor: string }[];
-  leadsTemp: { nome: string; valor: number; cor: string; total: number }[];
-  semana: { dia: string; valor: number }[];
-};
+// Blocos demonstrativos hardcoded foram REMOVIDOS. Toda a página agora
+// trabalha exclusivamente com métricas reais do Supabase, filtradas por
+// company_id e pelo período selecionado.
 
-const semanaBase = [
-  { dia: "Seg", valor: 96 },
-  { dia: "Ter", valor: 112 },
-  { dia: "Qua", valor: 88 },
-  { dia: "Qui", valor: 134 },
-  { dia: "Sex", valor: 128 },
-  { dia: "Sáb", valor: 64 },
-  { dia: "Dom", valor: 32 },
-];
-
-const setoresCor = ["bg-blue-600", "bg-slate-700", "bg-emerald-600", "bg-amber-500"];
-
-function buildSetores(total: number): BlocoDemo["setores"] {
-  return [
-    { nome: "Vendas", valor: Math.round(total * 0.56), cor: setoresCor[0] },
-    { nome: "Administrativo", valor: Math.round(total * 0.17), cor: setoresCor[1] },
-    { nome: "Financeiro", valor: Math.round(total * 0.14), cor: setoresCor[2] },
-    { nome: "Orçamentos", valor: Math.round(total * 0.13), cor: setoresCor[3] },
-  ];
-}
-
-const recomendacoesDemo = [
-  "Priorizar os leads quentes identificados no período",
-  "Retornar clientes sem resposta",
-  "Revisar pendências financeiras abertas",
-  "Validar disponibilidade das peças mais solicitadas",
-  "Acompanhar responsáveis com maior volume de atendimentos",
-];
-
-const blocosDemoPorPeriodo: Record<PeriodoKey, BlocoDemo> = {
-  Hoje: {
-    recorrentes: 87,
-    pendVendas: 6,
-    solAdm: 11,
-    pendFin: 6,
-    recomendacoes: recomendacoesDemo,
-    setores: buildSetores(128),
-    leadsTemp: [
-      { nome: "Quentes", valor: 14, cor: "bg-red-500", total: 60 },
-      { nome: "Mornos", valor: 21, cor: "bg-amber-500", total: 60 },
-      { nome: "Frios", valor: 25, cor: "bg-blue-500", total: 60 },
-    ],
-    semana: semanaBase,
-  },
-  Ontem: {
-    recorrentes: 68,
-    pendVendas: 5,
-    solAdm: 8,
-    pendFin: 4,
-    recomendacoes: recomendacoesDemo,
-    setores: buildSetores(96),
-    leadsTemp: [
-      { nome: "Quentes", valor: 10, cor: "bg-red-500", total: 45 },
-      { nome: "Mornos", valor: 16, cor: "bg-amber-500", total: 45 },
-      { nome: "Frios", valor: 19, cor: "bg-blue-500", total: 45 },
-    ],
-    semana: semanaBase.map((d) => ({ ...d, valor: Math.round(d.valor * 0.75) })),
-  },
-  "Últimos 7 dias": {
-    recorrentes: 523,
-    pendVendas: 28,
-    solAdm: 52,
-    pendFin: 22,
-    recomendacoes: recomendacoesDemo,
-    setores: buildSetores(742),
-    leadsTemp: [
-      { nome: "Quentes", valor: 71, cor: "bg-red-500", total: 280 },
-      { nome: "Mornos", valor: 98, cor: "bg-amber-500", total: 280 },
-      { nome: "Frios", valor: 111, cor: "bg-blue-500", total: 280 },
-    ],
-    semana: semanaBase.map((d) => ({ ...d, valor: Math.round(d.valor * 0.85) })),
-  },
-  "Últimos 30 dias": {
-    recorrentes: 2309,
-    pendVendas: 112,
-    solAdm: 214,
-    pendFin: 96,
-    recomendacoes: recomendacoesDemo,
-    setores: buildSetores(3180),
-    leadsTemp: [
-      { nome: "Quentes", valor: 296, cor: "bg-red-500", total: 1100 },
-      { nome: "Mornos", valor: 402, cor: "bg-amber-500", total: 1100 },
-      { nome: "Frios", valor: 402, cor: "bg-blue-500", total: 1100 },
-    ],
-    semana: semanaBase.map((d) => ({ ...d, valor: Math.round(d.valor * 3.4) })),
-  },
-};
-
-const pecas = [
-  "Kit embreagem",
-  "Pastilha de freio",
-  "Bateria 60Ah",
-  "Amortecedor dianteiro",
-  "Alternador",
-];
 
 const PRINT_STYLES = `
 @media print {
@@ -380,7 +275,7 @@ function RelatoriosPage() {
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [metricas, setMetricas] = useState<MetricasReais>(METRICAS_VAZIAS);
 
-  const demo = blocosDemoPorPeriodo[periodo];
+  
 
   useEffect(() => {
     let cancelled = false;
@@ -567,8 +462,43 @@ function RelatoriosPage() {
     ],
     [periodo, m],
   );
-  const maxSemana = Math.max(...demo.semana.map((s) => s.valor));
-  const totalSetores = demo.setores.reduce((a, s) => a + s.valor, 0) || 1;
+
+  // Distribuição real dos atendimentos por status (a partir do Supabase).
+  const statusBreakdown = useMemo(() => {
+    const entries = CONVERSATION_STATUSES.map((s) => ({
+      status: s,
+      label: getConversationStatusLabel(s),
+      value: m.statusCounts[s],
+    }));
+    const total = entries.reduce((a, e) => a + e.value, 0);
+    return { entries, total };
+  }, [m]);
+
+  // Recomendações dinâmicas, coerentes com os números reais do período.
+  const recomendacoes = useMemo<string[]>(() => {
+    const list: string[] = [];
+    if (m.leadsQuentes > 0) {
+      list.push(`Priorizar contato com os ${m.leadsQuentes} lead(s) quente(s) do período.`);
+    }
+    if (m.semResposta > 0) {
+      list.push(`Retornar os ${m.semResposta} cliente(s) sem resposta para evitar perda de oportunidade.`);
+    }
+    if (m.statusCounts.aguardando_empresa > 0) {
+      list.push(`Há ${m.statusCounts.aguardando_empresa} conversa(s) aguardando ação da empresa — destravar atendimento.`);
+    }
+    if (m.statusCounts.em_andamento > 0) {
+      list.push(`Acompanhar as ${m.statusCounts.em_andamento} conversa(s) em andamento até a finalização.`);
+    }
+    if (m.oportunidades > 0 && m.atendimentos > 0) {
+      const taxa = Math.round((m.atendimentos / Math.max(m.oportunidades, 1)) * 100);
+      list.push(`Taxa de finalização sobre oportunidades no período: ${taxa}%. Use como referência semanal.`);
+    }
+    if (list.length === 0) {
+      list.push("Sem ações críticas no período selecionado. Operação estável.");
+    }
+    return list;
+  }, [m]);
+
 
   const statusMessage =
     relatoriosLoadStatus === "loading"
@@ -775,140 +705,78 @@ function RelatoriosPage() {
           ))}
         </div>
 
-        {/* Gráficos gerenciais */}
+        {/* Distribuição real de conversas por status */}
         <div className="grid gap-4 lg:grid-cols-3">
-          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
             <div className="flex items-center gap-2">
               <PieChart className="h-4 w-4 text-blue-600" />
-              <p className="text-sm font-semibold text-slate-700">Atendimentos por setor<span className={MOCK_BADGE}>Modelo gerencial</span></p>
+              <p className="text-sm font-semibold text-slate-700">
+                Conversas por status — {periodo}
+              </p>
             </div>
-            <div className="mt-4 space-y-3">
-              {demo.setores.map((s) => {
-                const pct = Math.round((s.valor / totalSetores) * 100);
-                return (
-                  <div key={s.nome}>
-                    <div className="flex items-center justify-between text-xs text-slate-600">
-                      <span>{s.nome}</span>
-                      <span className="font-semibold">{s.valor} ({pct}%)</span>
-                    </div>
-                    <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div className={`h-full ${s.cor}`} style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            {statusBreakdown.total === 0 ? (
+              <p className="mt-4 text-sm text-slate-500">
+                Sem conversas registradas no período selecionado.
+              </p>
+            ) : (
+              <div className="mt-4 space-y-3">
+                {statusBreakdown.entries
+                  .filter((e) => e.value > 0)
+                  .sort((a, b) => b.value - a.value)
+                  .map((e) => {
+                    const pct = Math.round((e.value / statusBreakdown.total) * 100);
+                    return (
+                      <div key={e.status}>
+                        <div className="flex items-center justify-between text-xs text-slate-600">
+                          <span>{e.label}</span>
+                          <span className="font-semibold">
+                            {e.value} ({pct}%)
+                          </span>
+                        </div>
+                        <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+                          <div
+                            className="h-full bg-gradient-to-r from-blue-600 to-blue-400"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            )}
           </div>
 
-          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-blue-600" />
-              <p className="text-sm font-semibold text-slate-700">Leads por temperatura<span className={MOCK_BADGE}>Modelo gerencial</span></p>
+              <p className="text-sm font-semibold text-slate-700">Resumo do período</p>
             </div>
-            <div className="mt-4 space-y-3">
-              {demo.leadsTemp.map((l) => {
-                const pct = Math.round((l.valor / l.total) * 100);
-                return (
-                  <div key={l.nome}>
-                    <div className="flex items-center justify-between text-xs text-slate-600">
-                      <span>{l.nome}</span>
-                      <span className="font-semibold">{l.valor}</span>
-                    </div>
-                    <div className="mt-1 h-2 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div className={`h-full ${l.cor}`} style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-blue-600" />
-              <p className="text-sm font-semibold text-slate-700">Atendimentos — 7 dias<span className={MOCK_BADGE}>Modelo gerencial</span></p>
-            </div>
-            <div className="mt-4 flex h-32 items-end gap-2">
-              {demo.semana.map((s) => (
-                <div key={s.dia} className="flex flex-1 flex-col items-center gap-1">
-                  <div
-                    className="w-full rounded-t bg-gradient-to-t from-blue-600 to-blue-400"
-                    style={{ height: `${(s.valor / maxSemana) * 100}%` }}
-                    title={`${s.valor}`}
-                  />
-                  <span className="text-[10px] font-medium text-slate-500">{s.dia}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Blocos detalhados */}
-        <div className="grid gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold text-slate-700">Novos x recorrentes</p>
-            <div className="mt-3 space-y-2">
-              <div className="flex items-center justify-between text-sm">
+            <div className="mt-4 space-y-2 text-sm">
+              <div className="flex justify-between">
                 <span className="text-slate-600">Novos clientes</span>
                 <span className="font-bold text-slate-900">{m.novos}</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-slate-600">Recorrentes<span className={MOCK_BADGE}>Modelo gerencial</span></span>
-                <span className="font-bold text-slate-900">{demo.recorrentes}</span>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Oportunidades</span>
+                <span className="font-bold text-slate-900">{m.oportunidades}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Leads quentes</span>
+                <span className="font-bold text-red-600">{m.leadsQuentes}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Sem resposta</span>
+                <span className="font-bold text-slate-900">{m.semResposta}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-600">Finalizados</span>
+                <span className="font-bold text-emerald-600">{m.atendimentos}</span>
               </div>
             </div>
           </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Oportunidades de vendas</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{m.oportunidades}</p>
-            <p className="text-xs text-slate-500">oportunidades comerciais identificadas</p>
-          </div>
-
-          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold text-slate-700">Principais peças solicitadas<span className={MOCK_BADGE}>Modelo gerencial</span></p>
-            <ul className="mt-2 space-y-1 text-sm text-slate-600">
-              {pecas.map((p) => (
-                <li key={p} className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-                  {p}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Leads quentes</p>
-            <p className="mt-2 text-2xl font-bold text-red-600">{m.leadsQuentes}</p>
-            <p className="text-xs text-slate-500">classificados como quentes</p>
-          </div>
-
-          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Pendências de vendas<span className={MOCK_BADGE}>Modelo gerencial</span></p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{demo.pendVendas}</p>
-            <p className="text-xs text-slate-500">clientes aguardando orçamento</p>
-          </div>
-
-          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Solicitações administrativas<span className={MOCK_BADGE}>Modelo gerencial</span></p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{demo.solAdm}</p>
-            <p className="text-xs text-slate-500">solicitações registradas</p>
-          </div>
-
-          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Pendências financeiras<span className={MOCK_BADGE}>Modelo gerencial</span></p>
-            <p className="mt-2 text-2xl font-bold text-amber-600">{demo.pendFin}</p>
-            <p className="text-xs text-slate-500">pendências de cobrança</p>
-          </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-medium text-slate-500">Clientes sem resposta</p>
-            <p className="mt-2 text-2xl font-bold text-slate-900">{m.semResposta}</p>
-            <p className="text-xs text-slate-500">aguardando retorno</p>
-          </div>
         </div>
 
-        {/* Resumo executivo + Recomendações IA */}
+        {/* Resumo executivo + Recomendações IA (dados reais) */}
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-600 to-slate-900 p-6 text-white shadow-sm">
             <div className="flex items-center gap-2">
@@ -928,22 +796,47 @@ function RelatoriosPage() {
             </div>
           </div>
 
-          <div className="demo-block rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center gap-2">
               <Target className="h-5 w-5 text-blue-600" />
-              <h3 className="text-lg font-bold text-slate-900">Recomendações da IA<span className={MOCK_BADGE}>Modelo gerencial</span></h3>
+              <h3 className="text-lg font-bold text-slate-900">Recomendações da IA</h3>
             </div>
             <ul className="mt-3 space-y-2">
-              {demo.recomendacoes.map((r) => (
+              {recomendacoes.map((r) => (
                 <li key={r} className="flex items-start gap-2 text-sm text-slate-700">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-600" />
                   {r}
                 </li>
               ))}
             </ul>
+            <p className="mt-4 text-[11px] leading-relaxed text-slate-500">
+              Recomendações geradas com base nas métricas reais do período selecionado.
+            </p>
+          </div>
+        </div>
+
+        {/* Nota institucional — substitui antigos blocos "MODELO GERENCIAL" */}
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-slate-500 ring-1 ring-slate-200">
+              <Info className="h-4 w-4" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-slate-700">
+                Estrutura preparada para análise gerencial ampliada
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                Visões adicionais como atendimentos por setor, leads por temperatura,
+                pendências de vendas, solicitações administrativas, pendências financeiras
+                e principais peças solicitadas serão habilitadas conforme a operação ganha
+                volume e os dados forem sendo classificados. Este relatório apresenta
+                apenas indicadores reais já disponíveis para a empresa.
+              </p>
+            </div>
           </div>
         </div>
       </div>
     </DashboardLayout>
   );
 }
+

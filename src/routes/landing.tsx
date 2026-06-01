@@ -97,8 +97,8 @@ function LandingPage() {
           }}
         />
 
-        <div className="mx-auto max-w-7xl px-6 pt-20 pb-24 md:pt-28 md:pb-32">
-          <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_1fr] lg:gap-16">
+        <div className="mx-auto max-w-7xl px-6 pt-16 pb-20 md:pt-20 md:pb-24 lg:pt-24">
+          <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.25fr] lg:gap-10 xl:grid-cols-[1fr_1.35fr] xl:gap-14">
             {/* LEFT */}
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white px-3.5 py-1.5 text-xs font-medium text-foreground/75 shadow-[var(--shadow-soft)]">
@@ -109,18 +109,18 @@ function LandingPage() {
                 Plataforma SaaS de inteligência comercial
               </div>
 
-              <h1 className="font-display mt-7 text-[2.6rem] font-semibold leading-[1.03] tracking-[-0.03em] text-[oklch(0.16_0.04_258)] md:text-[3.75rem] lg:text-[4.5rem] lg:leading-[1.02]">
+              <h1 className="font-display mt-6 text-[2.4rem] font-semibold leading-[1.03] tracking-[-0.03em] text-[oklch(0.16_0.04_258)] md:text-[3.25rem] lg:text-[3.6rem] lg:leading-[1.02] xl:text-[4rem]">
                 Transforme conversas em{" "}
                 <span className="text-primary">vendas</span> com inteligência comercial
               </h1>
 
-              <p className="mt-7 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
+              <p className="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground md:text-lg">
                 Centralize WhatsApp, leads, responsáveis, IA, base de conhecimento e
                 relatórios em uma operação comercial organizada, escalável e pronta para
                 automações.
               </p>
 
-              <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <a href="#cta-final">
                   <Button
                     size="lg"
@@ -141,7 +141,7 @@ function LandingPage() {
               </div>
 
               {/* mini indicadores */}
-              <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-foreground/75">
+              <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm font-medium text-foreground/75">
                 {[
                   { icon: Bot, label: "IA ativa" },
                   { icon: Users, label: "Leads organizados" },
@@ -157,7 +157,7 @@ function LandingPage() {
               </div>
 
               {/* stats — prova de tração */}
-              <div className="mt-10 grid grid-cols-2 gap-6 border-t border-[var(--border-premium)] pt-7 sm:grid-cols-4">
+              <div className="mt-8 grid grid-cols-2 gap-6 border-t border-[var(--border-premium)] pt-6 sm:grid-cols-4">
                 {[
                   { v: "+10k", l: "Conversas processadas" },
                   { v: "+85%", l: "Resposta em até 2min" },
@@ -176,26 +176,37 @@ function LandingPage() {
               </div>
             </div>
 
-            {/* RIGHT — hero image */}
-            <div className="relative lg:-mr-4 xl:-mr-8">
+            {/* RIGHT — hero image, larger and natively integrated */}
+            <div className="relative lg:-mr-10 xl:-mr-20 2xl:-mr-28">
+              {/* ambient brand glow behind image */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute -inset-12 -z-10 rounded-[3rem] opacity-70 blur-3xl"
+                className="pointer-events-none absolute -inset-16 -z-10 blur-3xl"
                 style={{
                   background:
-                    "radial-gradient(55% 60% at 70% 30%, oklch(0.55 0.22 258 / 0.30) 0%, transparent 70%), radial-gradient(50% 55% at 25% 80%, oklch(0.45 0.20 280 / 0.22) 0%, transparent 75%)",
+                    "radial-gradient(45% 55% at 65% 35%, oklch(0.55 0.22 258 / 0.32) 0%, transparent 72%), radial-gradient(45% 55% at 25% 75%, oklch(0.50 0.20 270 / 0.20) 0%, transparent 75%)",
                 }}
               />
+              {/* soft floor reflection */}
               <div
-                className="relative overflow-hidden rounded-[1.75rem] border border-white/70 bg-white"
-                style={{ boxShadow: "var(--shadow-premium)" }}
-              >
+                aria-hidden
+                className="pointer-events-none absolute inset-x-10 -bottom-6 h-24 -z-10 rounded-[50%] blur-2xl"
+                style={{ background: "oklch(0.55 0.22 258 / 0.18)" }}
+              />
+
+              <div className="relative">
                 <img
                   src={landingHeroAsset.url}
                   alt="Agente Comercial 360 — plataforma de inteligência comercial"
-                  className="block h-auto w-full object-cover"
+                  className="block h-auto w-full select-none drop-shadow-[0_30px_60px_oklch(0.25_0.08_258_/_0.18)]"
                   loading="eager"
                   decoding="async"
+                  style={{
+                    WebkitMaskImage:
+                      "linear-gradient(to right, transparent 0%, black 8%, black 100%)",
+                    maskImage:
+                      "linear-gradient(to right, transparent 0%, black 8%, black 100%)",
+                  }}
                 />
               </div>
             </div>

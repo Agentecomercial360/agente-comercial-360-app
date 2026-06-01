@@ -301,7 +301,7 @@ function Gestao360Page() {
                   Visão do gestor
                 </span>
                 <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-100 ring-1 ring-white/20 backdrop-blur-sm">
-                  Operação ao vivo
+                  Vendas e atendimento
                 </span>
                 <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-100 ring-1 ring-white/20 backdrop-blur-sm">
                   IA gerencial

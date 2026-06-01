@@ -27,6 +27,7 @@ import {
   Layers,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
+import landingHeroAsset from "@/assets/landing-hero.jpg.asset.json";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/landing")({

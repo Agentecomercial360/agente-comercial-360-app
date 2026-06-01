@@ -436,7 +436,7 @@ function Gestao360Page() {
                         <p className="truncate text-sm font-semibold text-slate-800">{cust?.name ?? "Cliente sem nome"}</p>
                         <p className="mt-0.5 truncate text-xs text-slate-500">{l.interest ?? "Interesse não informado"}</p>
                         {l.next_action && (
-                          <p className="mt-1 truncate text-[11px] text-slate-500">Próxima ação: {l.next_action}</p>
+                          <p className="mt-1 truncate text-[11px] text-slate-500">Próxima ação comercial: {l.next_action}</p>
                         )}
                       </div>
                       <div className="flex flex-col items-end gap-1">

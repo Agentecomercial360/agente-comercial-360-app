@@ -465,7 +465,10 @@ function Gestao360Page() {
                 <div className="rounded-xl bg-blue-50 p-2.5 ring-1 ring-blue-100">
                   <Headphones className="h-5 w-5 text-blue-600" />
                 </div>
-                <h3 className="text-base font-bold text-slate-900">Atendimentos que precisam de ação</h3>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Atendimentos que precisam de ação</h3>
+                  <p className="text-xs text-slate-500">Conversas que precisam de retorno, acompanhamento ou definição do responsável.</p>
+                </div>
               </div>
               <Link to="/conversas" className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700">
                 Ver conversas <ArrowRight className="h-3.5 w-3.5" />

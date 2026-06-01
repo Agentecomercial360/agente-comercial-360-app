@@ -568,7 +568,10 @@ function Gestao360Page() {
                 <div className="rounded-xl bg-white p-2.5 ring-1 ring-emerald-100 shadow-sm">
                   <Plug className="h-5 w-5 text-emerald-600" />
                 </div>
-                <h3 className="text-base font-bold text-slate-900">WhatsApp Oficial</h3>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">WhatsApp Oficial</h3>
+                  <p className="text-xs text-slate-500">Status da conexão oficial para recebimento, envio e rastreamento de mensagens comerciais.</p>
+                </div>
               </div>
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${whatsappConnected ? "bg-emerald-100 text-emerald-700 ring-emerald-200" : "bg-slate-100 text-slate-700 ring-slate-200"}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${whatsappConnected ? "bg-emerald-500" : "bg-slate-400"}`} />

@@ -646,12 +646,14 @@ function HeroRow({ label, value }: { label: string; value: string }) {
 function KpiCard({
   icon: Icon,
   label,
+  description,
   value,
   accent,
   iconCls,
 }: {
   icon: typeof Flame;
   label: string;
+  description?: string;
   value: number;
   accent: string;
   iconCls: string;
@@ -665,6 +667,7 @@ function KpiCard({
         </div>
       </div>
       <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{value}</p>
+      {description && <p className="mt-1 text-[11px] leading-relaxed text-slate-500">{description}</p>}
     </div>
   );
 }

@@ -283,6 +283,7 @@ function ConversasPage() {
 
         setItems(mapped);
         setSelectedId(mapped[0]?.id ?? null);
+        setCompanyId(cu.company_id);
         setConvLoadStatus("loaded");
       } catch {
         if (!cancelled) setConvLoadStatus("error");

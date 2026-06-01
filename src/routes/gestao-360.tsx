@@ -220,9 +220,21 @@ function Gestao360Page() {
   const setores = useMemo(() => {
     const s = new Set<string>();
     responsibles.forEach((r) => {
-      if (r.department) s.add(r.department);
+      if (r.department) s.add(r.department.trim());
     });
-    return Array.from(s);
+    const normalized = Array.from(s).map((d) => {
+      const lower = d.toLowerCase();
+      const map: Record<string, string> = {
+        financeiro: "Financeiro",
+        administrativo: "Administrativo",
+        vendas: "Vendas",
+        gestão: "Gestão",
+        gestao: "Gestão",
+        comercial: "Comercial",
+      };
+      return map[lower] ?? d.charAt(0).toUpperCase() + d.slice(1);
+    });
+    return Array.from(new Set(normalized));
   }, [responsibles]);
 
   const topLeads = useMemo(
@@ -253,25 +265,25 @@ function Gestao360Page() {
     if (aguardandoResposta > 0)
       list.push({
         icon: AlertTriangle,
-        text: "Clientes sem resposta precisam de retorno prioritário.",
+        text: "Clientes sem resposta devem ser retomados para evitar perda de venda.",
         tone: "from-rose-500 to-rose-600",
       });
     if (leadsQuentes > 0)
       list.push({
         icon: Flame,
-        text: "Existem leads quentes com alta chance de conversão.",
+        text: "Existem leads quentes com potencial de fechamento comercial.",
         tone: "from-amber-500 to-orange-600",
       });
     if (statusCounts.aguardando_cliente > 0)
       list.push({
         icon: Clock,
-        text: "Acompanhar conversas aguardando retorno do cliente.",
+        text: "Acompanhar conversas paradas e definir próxima ação comercial.",
         tone: "from-blue-500 to-blue-600",
       });
     if (!whatsappConnected)
       list.push({
         icon: Plug,
-        text: "Integração oficial do WhatsApp ainda não conectada.",
+        text: "WhatsApp Oficial ainda não conectado. A integração será necessária para operação em tempo real.",
         tone: "from-emerald-500 to-emerald-600",
       });
     if (list.length === 0)
@@ -301,7 +313,7 @@ function Gestao360Page() {
                   Visão do gestor
                 </span>
                 <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-100 ring-1 ring-white/20 backdrop-blur-sm">
-                  Operação ao vivo
+                  Vendas e atendimento
                 </span>
                 <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-100 ring-1 ring-white/20 backdrop-blur-sm">
                   IA gerencial
@@ -311,7 +323,7 @@ function Gestao360Page() {
                 Gestão 360
               </h1>
               <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-blue-100/85">
-                Visão executiva da operação comercial para acompanhar atendimentos, oportunidades, responsáveis e prioridades em tempo real.
+                Central executiva para o gestor acompanhar vendas, orçamentos, atendimentos, leads, clientes sem resposta e prioridades comerciais em tempo real.
               </p>
             </div>
 
@@ -341,7 +353,7 @@ function Gestao360Page() {
               </div>
 
               <p className="mt-2 text-[11px] leading-relaxed text-blue-100/70">
-                Central de acompanhamento para decisões rápidas e controle da operação.
+                Visão consolidada para decisões rápidas, acompanhamento comercial e controle da operação da empresa.
               </p>
             </div>
           </div>
@@ -349,12 +361,12 @@ function Gestao360Page() {
 
         {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          <KpiCard icon={Headphones} label="Atendimentos abertos" value={atendimentosAbertos} accent="border-l-blue-500" iconCls="bg-blue-50 text-blue-600 ring-blue-100" />
-          <KpiCard icon={Clock} label="Aguardando resposta" value={aguardandoResposta} accent="border-l-amber-500" iconCls="bg-amber-50 text-amber-600 ring-amber-100" />
-          <KpiCard icon={Flame} label="Leads quentes" value={leadsQuentes} accent="border-l-orange-500" iconCls="bg-orange-50 text-orange-600 ring-orange-100" />
-          <KpiCard icon={Target} label="Oportunidades" value={totalLeads} accent="border-l-violet-500" iconCls="bg-violet-50 text-violet-600 ring-violet-100" />
-          <KpiCard icon={UserCog} label="Responsáveis ativos" value={responsaveisAtivos} accent="border-l-indigo-500" iconCls="bg-indigo-50 text-indigo-600 ring-indigo-100" />
-          <KpiCard icon={CheckCircle2} label="Atendimentos finalizados" value={finalizados} accent="border-l-emerald-500" iconCls="bg-emerald-50 text-emerald-600 ring-emerald-100" />
+          <KpiCard icon={Headphones} label="Atendimentos em aberto" description="Ainda precisam de acompanhamento" value={atendimentosAbertos} accent="border-l-blue-500" iconCls="bg-blue-50 text-blue-600 ring-blue-100" />
+          <KpiCard icon={Clock} label="Clientes aguardando retorno" description="Podem gerar perda comercial se parados" value={aguardandoResposta} accent="border-l-amber-500" iconCls="bg-amber-50 text-amber-600 ring-amber-100" />
+          <KpiCard icon={Flame} label="Leads quentes" description="Maior chance de conversão" value={leadsQuentes} accent="border-l-orange-500" iconCls="bg-orange-50 text-orange-600 ring-orange-100" />
+          <KpiCard icon={Target} label="Oportunidades" description="Negócios mapeados no funil comercial" value={totalLeads} accent="border-l-violet-500" iconCls="bg-violet-50 text-violet-600 ring-violet-100" />
+          <KpiCard icon={UserCog} label="Responsáveis" description="Equipe ativa na operação" value={responsaveisAtivos} accent="border-l-indigo-500" iconCls="bg-indigo-50 text-indigo-600 ring-indigo-100" />
+          <KpiCard icon={CheckCircle2} label="Atendimentos finalizados" description="Atendimentos concluídos" value={finalizados} accent="border-l-emerald-500" iconCls="bg-emerald-50 text-emerald-600 ring-emerald-100" />
         </div>
 
         {/* Prioridades + Recomendações IA */}
@@ -366,7 +378,7 @@ function Gestao360Page() {
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900">Prioridades do gestor</h3>
-                <p className="text-xs text-slate-500">Ações que exigem atenção imediata da liderança</p>
+                <p className="text-xs text-slate-500">Ações que exigem atenção da liderança comercial.</p>
               </div>
             </div>
             <ul className="mt-5 space-y-2.5">
@@ -403,7 +415,10 @@ function Gestao360Page() {
                 <div className="rounded-xl bg-orange-50 p-2.5 ring-1 ring-orange-100">
                   <Flame className="h-5 w-5 text-orange-600" />
                 </div>
-                <h3 className="text-base font-bold text-slate-900">Oportunidades prioritárias</h3>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Oportunidades prioritárias</h3>
+                  <p className="text-xs text-slate-500">Leads com maior potencial de fechamento e necessidade de acompanhamento.</p>
+                </div>
               </div>
               <Link to="/leads" className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700">
                 Ver leads <ArrowRight className="h-3.5 w-3.5" />
@@ -424,7 +439,7 @@ function Gestao360Page() {
                         <p className="truncate text-sm font-semibold text-slate-800">{cust?.name ?? "Cliente sem nome"}</p>
                         <p className="mt-0.5 truncate text-xs text-slate-500">{l.interest ?? "Interesse não informado"}</p>
                         {l.next_action && (
-                          <p className="mt-1 truncate text-[11px] text-slate-500">Próxima ação: {l.next_action}</p>
+                          <p className="mt-1 truncate text-[11px] text-slate-500">Próxima ação comercial: {l.next_action}</p>
                         )}
                       </div>
                       <div className="flex flex-col items-end gap-1">
@@ -450,7 +465,10 @@ function Gestao360Page() {
                 <div className="rounded-xl bg-blue-50 p-2.5 ring-1 ring-blue-100">
                   <Headphones className="h-5 w-5 text-blue-600" />
                 </div>
-                <h3 className="text-base font-bold text-slate-900">Atendimentos que precisam de ação</h3>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Atendimentos que precisam de ação</h3>
+                  <p className="text-xs text-slate-500">Conversas que precisam de retorno, acompanhamento ou definição do responsável.</p>
+                </div>
               </div>
               <Link to="/conversas" className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700">
                 Ver conversas <ArrowRight className="h-3.5 w-3.5" />
@@ -518,7 +536,10 @@ function Gestao360Page() {
               <div className="rounded-xl bg-indigo-50 p-2.5 ring-1 ring-indigo-100">
                 <UserCog className="h-5 w-5 text-indigo-600" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">Equipe e responsáveis</h3>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Equipe e responsáveis</h3>
+                <p className="text-xs text-slate-500">Visão da equipe ativa e setores envolvidos na operação.</p>
+              </div>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3">
               <MiniStat label="Responsáveis ativos" value={responsaveisAtivos} icon={UserCog} />
@@ -547,7 +568,10 @@ function Gestao360Page() {
                 <div className="rounded-xl bg-white p-2.5 ring-1 ring-emerald-100 shadow-sm">
                   <Plug className="h-5 w-5 text-emerald-600" />
                 </div>
-                <h3 className="text-base font-bold text-slate-900">WhatsApp Oficial</h3>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">WhatsApp Oficial</h3>
+                  <p className="text-xs text-slate-500">Status da conexão oficial para recebimento, envio e rastreamento de mensagens comerciais.</p>
+                </div>
               </div>
               <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${whatsappConnected ? "bg-emerald-100 text-emerald-700 ring-emerald-200" : "bg-slate-100 text-slate-700 ring-slate-200"}`}>
                 <span className={`h-1.5 w-1.5 rounded-full ${whatsappConnected ? "bg-emerald-500" : "bg-slate-400"}`} />
@@ -578,7 +602,7 @@ function Gestao360Page() {
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900">Resumo para o próximo dia</h3>
-              <p className="text-xs text-slate-500">Checklist gerencial recomendado pela operação</p>
+              <p className="text-xs text-slate-500">Checklist gerencial recomendado para iniciar a próxima operação com mais controle.</p>
             </div>
           </div>
           <ul className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -606,7 +630,10 @@ function Gestao360Page() {
             <div className="rounded-xl bg-blue-50 p-2.5 ring-1 ring-blue-100">
               <TrendingUp className="h-5 w-5 text-blue-600" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">Navegação rápida</h3>
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Navegação rápida</h3>
+              <p className="text-xs text-slate-500">Acesso rápido às áreas operacionais do painel.</p>
+            </div>
           </div>
           <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <QuickNav to="/dashboard" label="Dashboard" icon={LayoutDashboard} />
@@ -634,12 +661,14 @@ function HeroRow({ label, value }: { label: string; value: string }) {
 function KpiCard({
   icon: Icon,
   label,
+  description,
   value,
   accent,
   iconCls,
 }: {
   icon: typeof Flame;
   label: string;
+  description?: string;
   value: number;
   accent: string;
   iconCls: string;
@@ -653,6 +682,7 @@ function KpiCard({
         </div>
       </div>
       <p className="mt-2 text-2xl font-bold tracking-tight text-slate-900">{value}</p>
+      {description && <p className="mt-1 text-[11px] leading-relaxed text-slate-500">{description}</p>}
     </div>
   );
 }

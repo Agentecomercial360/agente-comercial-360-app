@@ -602,7 +602,7 @@ function Gestao360Page() {
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900">Resumo para o próximo dia</h3>
-              <p className="text-xs text-slate-500">Checklist gerencial recomendado pela operação</p>
+              <p className="text-xs text-slate-500">Checklist gerencial recomendado para iniciar a próxima operação com mais controle.</p>
             </div>
           </div>
           <ul className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">

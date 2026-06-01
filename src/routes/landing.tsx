@@ -98,7 +98,7 @@ function LandingPage() {
         />
 
         <div className="mx-auto max-w-7xl px-6 pt-16 pb-20 md:pt-20 md:pb-24 lg:pt-24">
-          <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.25fr] lg:gap-10 xl:grid-cols-[1fr_1.35fr] xl:gap-14">
+          <div className="grid items-start gap-10 lg:grid-cols-[1fr_1.25fr] lg:gap-10 xl:grid-cols-[1fr_1.35fr] xl:gap-14">
             {/* LEFT */}
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white px-3.5 py-1.5 text-xs font-medium text-foreground/75 shadow-[var(--shadow-soft)]">

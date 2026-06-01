@@ -265,25 +265,25 @@ function Gestao360Page() {
     if (aguardandoResposta > 0)
       list.push({
         icon: AlertTriangle,
-        text: "Clientes sem resposta precisam de retorno prioritário.",
+        text: "Clientes sem resposta devem ser retomados para evitar perda de venda.",
         tone: "from-rose-500 to-rose-600",
       });
     if (leadsQuentes > 0)
       list.push({
         icon: Flame,
-        text: "Existem leads quentes com alta chance de conversão.",
+        text: "Existem leads quentes com potencial de fechamento comercial.",
         tone: "from-amber-500 to-orange-600",
       });
     if (statusCounts.aguardando_cliente > 0)
       list.push({
         icon: Clock,
-        text: "Acompanhar conversas aguardando retorno do cliente.",
+        text: "Acompanhar conversas paradas e definir próxima ação comercial.",
         tone: "from-blue-500 to-blue-600",
       });
     if (!whatsappConnected)
       list.push({
         icon: Plug,
-        text: "Integração oficial do WhatsApp ainda não conectada.",
+        text: "WhatsApp Oficial ainda não conectado. A integração será necessária para operação em tempo real.",
         tone: "from-emerald-500 to-emerald-600",
       });
     if (list.length === 0)

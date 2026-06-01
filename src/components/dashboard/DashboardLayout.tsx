@@ -13,6 +13,7 @@ import {
   Bot,
   Calendar,
   Plug,
+  Crown,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -22,6 +23,7 @@ const navGroups = [
   {
     title: "OPERAÇÃO",
     items: [
+      { label: "Gestão 360", to: "/gestao-360", icon: Crown },
       { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
       { label: "Atendimentos", to: "/atendimentos", icon: Headphones },
       { label: "Conversas", to: "/conversas", icon: MessageSquare },

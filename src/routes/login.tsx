@@ -1,19 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  ShieldCheck,
-  MessageCircle,
-  AtSign,
-  Users,
-  TrendingUp,
-  Wallet,
-  BarChart3,
-} from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ShieldCheck } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
+import loginHero from "@/assets/login-hero.png";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/login")({
@@ -30,14 +19,6 @@ export const Route = createFileRoute("/login")({
   }),
 });
 
-const featureCards = [
-  { icon: MessageCircle, title: "WhatsApp", desc: "Conversas centralizadas" },
-  { icon: AtSign, title: "E-mail", desc: "Caixa unificada" },
-  { icon: Users, title: "CRM", desc: "Visão 360º do cliente" },
-  { icon: TrendingUp, title: "Vendas", desc: "Funil em tempo real" },
-  { icon: Wallet, title: "Financeiro", desc: "Fluxo de caixa" },
-  { icon: BarChart3, title: "Relatórios", desc: "Indicadores que importam" },
-];
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -199,68 +180,34 @@ function LoginPage() {
           </div>
         </section>
 
-        {/* RIGHT — Brand panel with feature cards */}
+        {/* RIGHT — Brand hero image */}
         <aside
           className="relative hidden overflow-hidden lg:block"
           style={{ background: "var(--gradient-brand)" }}
         >
           <div
             aria-hidden
-            className="absolute inset-0 opacity-[0.16]"
+            className="absolute inset-0"
             style={{
-              backgroundImage:
-                "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
-              backgroundSize: "22px 22px",
+              background:
+                "radial-gradient(900px 600px at 50% 40%, oklch(0.28 0.14 262 / 0.55), transparent 70%)",
             }}
+          />
+          <img
+            src={loginHero}
+            alt="Agente Comercial 360 — Operação inteligente com WhatsApp Oficial, Meta Cloud API, IA, CRM e relatórios"
+            className="relative z-10 h-full w-full object-cover object-center"
+            loading="eager"
+            decoding="async"
           />
           <div
             aria-hidden
-            className="absolute -right-32 -top-32 h-96 w-96 rounded-full"
+            className="pointer-events-none absolute inset-0 z-20"
             style={{
               background:
-                "radial-gradient(closest-side, oklch(1 0 0 / 0.18), transparent)",
+                "linear-gradient(180deg, transparent 0%, transparent 70%, oklch(0.18 0.10 262 / 0.45) 100%)",
             }}
           />
-          <div
-            aria-hidden
-            className="absolute -bottom-32 -left-24 h-96 w-96 rounded-full"
-            style={{
-              background:
-                "radial-gradient(closest-side, oklch(1 0 0 / 0.15), transparent)",
-            }}
-          />
-
-          <div className="relative z-10 flex h-full flex-col justify-between p-12 text-white">
-            <div className="flex items-center gap-2 text-sm font-medium text-white/85">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Plataforma operando · 99.98% uptime
-            </div>
-
-            <div className="space-y-8">
-              <h2 className="text-3xl font-bold leading-[1.15] tracking-tight xl:text-4xl">
-                O poder de uma operação inteligente em um só painel.
-              </h2>
-
-              <div className="grid grid-cols-2 gap-3">
-                {featureCards.map(({ icon: Icon, title, desc }) => (
-                  <div
-                    key={title}
-                    className="rounded-2xl border border-white/15 bg-white p-4 shadow-[0_8px_24px_-12px_rgba(0,0,0,0.25)]"
-                  >
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-secondary">
-                      <Icon className="h-4.5 w-4.5 text-primary" />
-                    </div>
-                    <p className="mt-3 text-sm font-semibold text-foreground">{title}</p>
-                    <p className="text-xs text-muted-foreground">{desc}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <p className="text-xs text-white/70">
-              Centralização real · Menos retrabalho · Mais eficiência
-            </p>
-          </div>
         </aside>
       </div>
     </main>

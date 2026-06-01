@@ -415,7 +415,10 @@ function Gestao360Page() {
                 <div className="rounded-xl bg-orange-50 p-2.5 ring-1 ring-orange-100">
                   <Flame className="h-5 w-5 text-orange-600" />
                 </div>
-                <h3 className="text-base font-bold text-slate-900">Oportunidades prioritárias</h3>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">Oportunidades prioritárias</h3>
+                  <p className="text-xs text-slate-500">Leads com maior potencial de fechamento e necessidade de acompanhamento.</p>
+                </div>
               </div>
               <Link to="/leads" className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700">
                 Ver leads <ArrowRight className="h-3.5 w-3.5" />

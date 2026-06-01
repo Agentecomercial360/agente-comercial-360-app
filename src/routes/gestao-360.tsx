@@ -220,9 +220,21 @@ function Gestao360Page() {
   const setores = useMemo(() => {
     const s = new Set<string>();
     responsibles.forEach((r) => {
-      if (r.department) s.add(r.department);
+      if (r.department) s.add(r.department.trim());
     });
-    return Array.from(s);
+    const normalized = Array.from(s).map((d) => {
+      const lower = d.toLowerCase();
+      const map: Record<string, string> = {
+        financeiro: "Financeiro",
+        administrativo: "Administrativo",
+        vendas: "Vendas",
+        gestão: "Gestão",
+        gestao: "Gestão",
+        comercial: "Comercial",
+      };
+      return map[lower] ?? d.charAt(0).toUpperCase() + d.slice(1);
+    });
+    return Array.from(new Set(normalized));
   }, [responsibles]);
 
   const topLeads = useMemo(

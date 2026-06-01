@@ -177,7 +177,7 @@ function LandingPage() {
             </div>
 
             {/* RIGHT — hero image, larger and natively integrated */}
-            <div className="relative lg:-mr-10 xl:-mr-20 2xl:-mr-28">
+            <div className="relative lg:-mt-10 lg:-mr-10 xl:-mt-14 xl:-mr-20 2xl:-mr-28">
               {/* ambient brand glow behind image */}
               <div
                 aria-hidden

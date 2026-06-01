@@ -378,7 +378,7 @@ function Gestao360Page() {
               </div>
               <div>
                 <h3 className="text-base font-bold text-slate-900">Prioridades do gestor</h3>
-                <p className="text-xs text-slate-500">Ações que exigem atenção imediata da liderança</p>
+                <p className="text-xs text-slate-500">Ações que exigem atenção da liderança comercial.</p>
               </div>
             </div>
             <ul className="mt-5 space-y-2.5">

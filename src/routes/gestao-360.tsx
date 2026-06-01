@@ -536,7 +536,10 @@ function Gestao360Page() {
               <div className="rounded-xl bg-indigo-50 p-2.5 ring-1 ring-indigo-100">
                 <UserCog className="h-5 w-5 text-indigo-600" />
               </div>
-              <h3 className="text-base font-bold text-slate-900">Equipe e responsáveis</h3>
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Equipe e responsáveis</h3>
+                <p className="text-xs text-slate-500">Visão da equipe ativa e setores envolvidos na operação.</p>
+              </div>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3">
               <MiniStat label="Responsáveis ativos" value={responsaveisAtivos} icon={UserCog} />

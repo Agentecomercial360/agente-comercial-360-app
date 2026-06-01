@@ -322,6 +322,7 @@ function ConversasPage() {
           .from("messages")
           .select("id,conversation_id,sender_type,content,channel,created_at")
           .eq("conversation_id", selectedId)
+          .eq("company_id", companyId)
           .order("created_at", { ascending: true });
 
         if (cancelled) return;

@@ -275,7 +275,7 @@ function RelatoriosPage() {
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [metricas, setMetricas] = useState<MetricasReais>(METRICAS_VAZIAS);
 
-  const demo = blocosDemoPorPeriodo[periodo];
+  
 
   useEffect(() => {
     let cancelled = false;

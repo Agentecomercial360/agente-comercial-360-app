@@ -361,12 +361,12 @@ function Gestao360Page() {
 
         {/* KPIs */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
-          <KpiCard icon={Headphones} label="Atendimentos abertos" value={atendimentosAbertos} accent="border-l-blue-500" iconCls="bg-blue-50 text-blue-600 ring-blue-100" />
-          <KpiCard icon={Clock} label="Aguardando resposta" value={aguardandoResposta} accent="border-l-amber-500" iconCls="bg-amber-50 text-amber-600 ring-amber-100" />
-          <KpiCard icon={Flame} label="Leads quentes" value={leadsQuentes} accent="border-l-orange-500" iconCls="bg-orange-50 text-orange-600 ring-orange-100" />
-          <KpiCard icon={Target} label="Oportunidades" value={totalLeads} accent="border-l-violet-500" iconCls="bg-violet-50 text-violet-600 ring-violet-100" />
-          <KpiCard icon={UserCog} label="Responsáveis ativos" value={responsaveisAtivos} accent="border-l-indigo-500" iconCls="bg-indigo-50 text-indigo-600 ring-indigo-100" />
-          <KpiCard icon={CheckCircle2} label="Atendimentos finalizados" value={finalizados} accent="border-l-emerald-500" iconCls="bg-emerald-50 text-emerald-600 ring-emerald-100" />
+          <KpiCard icon={Headphones} label="Atendimentos em aberto" description="Ainda precisam de acompanhamento" value={atendimentosAbertos} accent="border-l-blue-500" iconCls="bg-blue-50 text-blue-600 ring-blue-100" />
+          <KpiCard icon={Clock} label="Clientes aguardando retorno" description="Podem gerar perda comercial se parados" value={aguardandoResposta} accent="border-l-amber-500" iconCls="bg-amber-50 text-amber-600 ring-amber-100" />
+          <KpiCard icon={Flame} label="Leads quentes" description="Maior chance de conversão" value={leadsQuentes} accent="border-l-orange-500" iconCls="bg-orange-50 text-orange-600 ring-orange-100" />
+          <KpiCard icon={Target} label="Oportunidades" description="Negócios mapeados no funil comercial" value={totalLeads} accent="border-l-violet-500" iconCls="bg-violet-50 text-violet-600 ring-violet-100" />
+          <KpiCard icon={UserCog} label="Responsáveis" description="Equipe ativa na operação" value={responsaveisAtivos} accent="border-l-indigo-500" iconCls="bg-indigo-50 text-indigo-600 ring-indigo-100" />
+          <KpiCard icon={CheckCircle2} label="Atendimentos finalizados" description="Atendimentos concluídos" value={finalizados} accent="border-l-emerald-500" iconCls="bg-emerald-50 text-emerald-600 ring-emerald-100" />
         </div>
 
         {/* Prioridades + Recomendações IA */}

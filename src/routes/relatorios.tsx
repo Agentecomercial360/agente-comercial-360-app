@@ -462,8 +462,43 @@ function RelatoriosPage() {
     ],
     [periodo, m],
   );
-  const maxSemana = Math.max(...demo.semana.map((s) => s.valor));
-  const totalSetores = demo.setores.reduce((a, s) => a + s.valor, 0) || 1;
+
+  // Distribuição real dos atendimentos por status (a partir do Supabase).
+  const statusBreakdown = useMemo(() => {
+    const entries = CONVERSATION_STATUSES.map((s) => ({
+      status: s,
+      label: getConversationStatusLabel(s),
+      value: m.statusCounts[s],
+    }));
+    const total = entries.reduce((a, e) => a + e.value, 0);
+    return { entries, total };
+  }, [m]);
+
+  // Recomendações dinâmicas, coerentes com os números reais do período.
+  const recomendacoes = useMemo<string[]>(() => {
+    const list: string[] = [];
+    if (m.leadsQuentes > 0) {
+      list.push(`Priorizar contato com os ${m.leadsQuentes} lead(s) quente(s) do período.`);
+    }
+    if (m.semResposta > 0) {
+      list.push(`Retornar os ${m.semResposta} cliente(s) sem resposta para evitar perda de oportunidade.`);
+    }
+    if (m.statusCounts.aguardando_empresa > 0) {
+      list.push(`Há ${m.statusCounts.aguardando_empresa} conversa(s) aguardando ação da empresa — destravar atendimento.`);
+    }
+    if (m.statusCounts.em_andamento > 0) {
+      list.push(`Acompanhar as ${m.statusCounts.em_andamento} conversa(s) em andamento até a finalização.`);
+    }
+    if (m.oportunidades > 0 && m.atendimentos > 0) {
+      const taxa = Math.round((m.atendimentos / Math.max(m.oportunidades, 1)) * 100);
+      list.push(`Taxa de finalização sobre oportunidades no período: ${taxa}%. Use como referência semanal.`);
+    }
+    if (list.length === 0) {
+      list.push("Sem ações críticas no período selecionado. Operação estável.");
+    }
+    return list;
+  }, [m]);
+
 
   const statusMessage =
     relatoriosLoadStatus === "loading"

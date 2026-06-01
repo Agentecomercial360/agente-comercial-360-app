@@ -311,7 +311,7 @@ function Gestao360Page() {
                 Gestão 360
               </h1>
               <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-blue-100/85">
-                Visão executiva da operação comercial para acompanhar atendimentos, oportunidades, responsáveis e prioridades em tempo real.
+                Central executiva para o gestor acompanhar vendas, orçamentos, atendimentos, leads, clientes sem resposta e prioridades comerciais em tempo real.
               </p>
             </div>
 
@@ -341,7 +341,7 @@ function Gestao360Page() {
               </div>
 
               <p className="mt-2 text-[11px] leading-relaxed text-blue-100/70">
-                Central de acompanhamento para decisões rápidas e controle da operação.
+                Visão consolidada para decisões rápidas, acompanhamento comercial e controle da operação da empresa.
               </p>
             </div>
           </div>

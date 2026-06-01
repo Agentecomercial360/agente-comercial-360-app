@@ -630,7 +630,10 @@ function Gestao360Page() {
             <div className="rounded-xl bg-blue-50 p-2.5 ring-1 ring-blue-100">
               <TrendingUp className="h-5 w-5 text-blue-600" />
             </div>
-            <h3 className="text-base font-bold text-slate-900">Navegação rápida</h3>
+            <div>
+              <h3 className="text-base font-bold text-slate-900">Navegação rápida</h3>
+              <p className="text-xs text-slate-500">Acesso rápido às áreas operacionais do painel.</p>
+            </div>
           </div>
           <div className="mt-5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             <QuickNav to="/dashboard" label="Dashboard" icon={LayoutDashboard} />

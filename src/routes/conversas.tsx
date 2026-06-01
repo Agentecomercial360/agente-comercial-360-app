@@ -217,6 +217,7 @@ function ConversasPage() {
     "idle" | "loading" | "loaded" | "empty" | "error"
   >("idle");
   const [viewMode, setViewMode] = useState<"lista" | "kanban">("lista");
+  const [companyId, setCompanyId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;

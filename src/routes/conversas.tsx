@@ -370,7 +370,7 @@ function ConversasPage() {
     return () => {
       cancelled = true;
     };
-  }, [selectedId]);
+  }, [selectedId, companyId]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();

@@ -494,10 +494,18 @@ export function LandingPage() {
             ].map((p) => (
               <div
                 key={p.title}
-                className="group relative overflow-hidden rounded-3xl border border-[var(--border-premium)] bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+                className="group relative overflow-hidden rounded-3xl border border-[var(--border-premium)] bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:border-[oklch(0.55_0.22_25)]/25 hover:shadow-[var(--shadow-card)]"
               >
                 <div
-                  className="flex size-12 items-center justify-center rounded-2xl text-[oklch(0.55_0.22_25)]"
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-[2px] origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, oklch(0.65 0.22 25), oklch(0.55 0.22 15))",
+                  }}
+                />
+                <div
+                  className="flex size-12 items-center justify-center rounded-2xl text-[oklch(0.55_0.22_25)] transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105"
                   style={{ background: "oklch(0.97 0.03 25)" }}
                 >
                   <p.icon className="size-5" strokeWidth={2.2} />

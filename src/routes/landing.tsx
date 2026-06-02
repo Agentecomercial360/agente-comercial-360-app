@@ -88,47 +88,75 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* HERO — centered premium layout */}
+      {/* HERO — cinematic premium layout */}
       <section
         id="top"
-        className="relative overflow-hidden bg-gradient-to-b from-white via-white to-slate-50/60"
+        className="relative overflow-hidden bg-gradient-to-b from-white via-[oklch(0.985_0.008_258)] to-white"
       >
-        {/* ambient glows */}
+        {/* atmospheric cloud/mist layers */}
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[-15%] -z-10 h-[820px] w-[1400px] -translate-x-1/2 rounded-full opacity-70 blur-3xl"
+          className="pointer-events-none absolute -left-[20%] top-[-10%] -z-10 h-[900px] w-[1200px] rounded-full opacity-70 blur-[140px]"
           style={{
             background:
-              "radial-gradient(closest-side, var(--brand-blue-soft) 0%, transparent 70%)",
+              "radial-gradient(closest-side, oklch(0.92 0.06 258 / 0.7) 0%, transparent 70%)",
           }}
         />
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[55%] -z-10 h-[600px] w-[1100px] -translate-x-1/2 rounded-full opacity-50 blur-3xl"
+          className="pointer-events-none absolute -right-[15%] top-[20%] -z-10 h-[700px] w-[1000px] rounded-full opacity-60 blur-[120px]"
           style={{
             background:
-              "radial-gradient(closest-side, oklch(0.55 0.22 258 / 0.18) 0%, transparent 70%)",
+              "radial-gradient(closest-side, oklch(0.95 0.04 258 / 0.85) 0%, transparent 70%)",
           }}
         />
-        {/* subtle grid */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.30]"
+          className="pointer-events-none absolute left-1/2 top-[35%] -z-10 h-[800px] w-[1400px] -translate-x-1/2 rounded-full opacity-80 blur-[160px]"
           style={{
-            backgroundImage:
-              "linear-gradient(oklch(0.55 0.22 258 / 0.05) 1px, transparent 1px), linear-gradient(90deg, oklch(0.55 0.22 258 / 0.05) 1px, transparent 1px)",
-            backgroundSize: "48px 48px",
-            maskImage:
-              "radial-gradient(ellipse 75% 55% at 50% 25%, black 35%, transparent 80%)",
-            WebkitMaskImage:
-              "radial-gradient(ellipse 75% 55% at 50% 25%, black 35%, transparent 80%)",
+            background:
+              "radial-gradient(closest-side, oklch(0.88 0.10 258 / 0.45) 0%, transparent 70%)",
           }}
         />
 
-        <div className="relative mx-auto max-w-7xl px-6 pt-16 pb-16 md:pt-24 md:pb-20 lg:pt-28 lg:pb-24">
-          {/* TOP — copy block centered */}
-          <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-primary shadow-[var(--shadow-soft)]">
+        {/* ultra-subtle grid */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.22]"
+          style={{
+            backgroundImage:
+              "linear-gradient(oklch(0.55 0.22 258 / 0.05) 1px, transparent 1px), linear-gradient(90deg, oklch(0.55 0.22 258 / 0.05) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
+            maskImage:
+              "radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 80%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 80%)",
+          }}
+        />
+
+        {/* GIANT TRANSLUCENT WORDMARK — background depth */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-[42%] -z-[5] flex justify-center overflow-hidden"
+        >
+          <span
+            className="font-display select-none whitespace-nowrap text-[22vw] font-black leading-none tracking-[-0.06em] md:text-[18vw] lg:text-[15rem] xl:text-[18rem]"
+            style={{
+              background:
+                "linear-gradient(180deg, oklch(0.55 0.22 258 / 0.10) 0%, oklch(0.55 0.22 258 / 0.02) 60%, transparent 100%)",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+          >
+            COMERCIAL 360
+          </span>
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-6 pt-14 pb-20 md:pt-20 md:pb-24 lg:pt-24">
+          {/* TOP — copy block centered, tighter */}
+          <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/80 px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-primary shadow-[var(--shadow-soft)] backdrop-blur-md">
               <span className="relative flex size-1.5">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary/70 opacity-60" />
                 <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
@@ -136,23 +164,23 @@ export function LandingPage() {
               Plataforma de Inteligência Comercial
             </div>
 
-            <h1 className="font-display mt-7 max-w-[20ch] text-[2.25rem] font-semibold leading-[1.04] tracking-[-0.035em] text-[oklch(0.14_0.04_258)] sm:text-[2.75rem] md:max-w-[22ch] md:text-[3.5rem] lg:text-[4.25rem] lg:leading-[1.02] xl:text-[4.75rem]">
+            <h1 className="font-display mt-6 max-w-[18ch] text-[2rem] font-semibold leading-[1.04] tracking-[-0.035em] text-[oklch(0.14_0.04_258)] sm:text-[2.4rem] md:max-w-[20ch] md:text-[3rem] lg:text-[3.5rem] lg:leading-[1.02]">
               Pare de perder vendas no WhatsApp.{" "}
               <span className="text-primary">Centralize sua operação</span> em
               um único painel inteligente.
             </h1>
 
-            <p className="mt-7 max-w-2xl text-base leading-relaxed text-muted-foreground md:text-[1.1rem]">
-              O Agente Comercial 360 organiza atendimentos, leads, responsáveis,
-              IA, CRM, follow-up e relatórios para empresas que querem vender
-              mais com controle, velocidade e previsibilidade.
+            <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted-foreground md:text-base">
+              Atendimentos, leads, IA, CRM, follow-up e relatórios em uma
+              plataforma feita para empresas que vendem com controle e
+              previsibilidade.
             </p>
 
-            <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row">
+            <div className="mt-7 flex flex-col items-center gap-3 sm:flex-row">
               <a href="#cta-final">
                 <Button
                   size="lg"
-                  className="h-12 w-full gap-2 px-7 text-base shadow-[var(--shadow-premium)] sm:w-auto"
+                  className="h-12 w-full gap-2 px-7 text-[15px] shadow-[var(--shadow-premium)] sm:w-auto"
                 >
                   Solicitar demonstração <ArrowRight className="size-4" />
                 </Button>
@@ -161,58 +189,52 @@ export function LandingPage() {
                 <Button
                   size="lg"
                   variant="ghost"
-                  className="h-12 w-full px-6 text-base text-foreground/80 hover:text-foreground sm:w-auto"
+                  className="h-12 w-full px-5 text-[15px] text-foreground/70 hover:text-foreground sm:w-auto"
                 >
                   Ver como funciona
                 </Button>
               </a>
             </div>
-
-            {/* micro-benefits */}
-            <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 text-[13px] font-medium text-foreground/70">
-              {[
-                { icon: MessageSquare, label: "WhatsApp centralizado" },
-                { icon: Briefcase, label: "CRM comercial" },
-                { icon: Bot, label: "Automação com IA" },
-                { icon: BarChart3, label: "Relatórios gerenciais" },
-              ].map((b) => (
-                <span key={b.label} className="inline-flex items-center gap-1.5">
-                  <b.icon className="size-3.5 text-primary" />
-                  {b.label}
-                </span>
-              ))}
-            </div>
           </div>
 
-          {/* MOCKUP — hero protagonist, centered */}
-          <div className="relative mx-auto mt-16 max-w-[1080px] md:mt-20">
-            {/* soft floor shadow */}
+          {/* MOCKUP — protagonist, raised closer to fold */}
+          <div className="relative mx-auto mt-10 max-w-[1120px] md:mt-14">
+            {/* deep floor shadow */}
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-x-10 -bottom-10 -z-10 h-24 rounded-[100%] opacity-60 blur-2xl"
+              className="pointer-events-none absolute inset-x-16 -bottom-12 -z-10 h-32 rounded-[100%] opacity-70 blur-3xl"
               style={{
                 background:
-                  "radial-gradient(closest-side, oklch(0.25 0.08 258 / 0.35) 0%, transparent 80%)",
+                  "radial-gradient(closest-side, oklch(0.25 0.08 258 / 0.40) 0%, transparent 80%)",
               }}
             />
-            {/* subtle blue glow behind */}
+            {/* blue ambient glow halo */}
             <div
               aria-hidden
-              className="pointer-events-none absolute -inset-8 -z-10 blur-3xl"
+              className="pointer-events-none absolute -inset-12 -z-10 blur-[100px]"
               style={{
                 background:
-                  "radial-gradient(50% 55% at 50% 50%, oklch(0.55 0.22 258 / 0.22) 0%, transparent 75%)",
+                  "radial-gradient(45% 50% at 50% 50%, oklch(0.55 0.22 258 / 0.28) 0%, transparent 75%)",
+              }}
+            />
+            {/* top edge light */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-40 w-[80%] -translate-x-1/2 rounded-full opacity-50 blur-3xl"
+              style={{
+                background:
+                  "radial-gradient(closest-side, oklch(0.70 0.18 250 / 0.35) 0%, transparent 70%)",
               }}
             />
 
             {/* MAIN DASHBOARD WINDOW */}
-            <div className="relative overflow-hidden rounded-[20px] border border-[var(--border-premium)] bg-white shadow-[0_60px_120px_-30px_oklch(0.20_0.08_258_/_0.45),0_25px_50px_-20px_oklch(0.25_0.08_258_/_0.25)] ring-1 ring-black/[0.02] md:rounded-[28px]">
+            <div className="relative overflow-hidden rounded-[20px] border border-[var(--border-premium)] bg-white shadow-[0_80px_140px_-30px_oklch(0.18_0.08_258_/_0.50),0_30px_60px_-25px_oklch(0.25_0.08_258_/_0.30)] ring-1 ring-black/[0.03] md:rounded-[24px]">
               <div
                 aria-hidden
                 className="absolute inset-x-0 top-0 h-px"
                 style={{
                   background:
-                    "linear-gradient(90deg, transparent, oklch(0.55 0.22 258 / 0.5), transparent)",
+                    "linear-gradient(90deg, transparent, oklch(0.55 0.22 258 / 0.6), transparent)",
                 }}
               />
 
@@ -404,35 +426,35 @@ export function LandingPage() {
               </div>
             </div>
 
-            {/* FLOATING CARDS — 3 elegant, well-placed */}
-            <div className="absolute -left-4 top-16 hidden w-[210px] rounded-2xl border border-[var(--border-premium)] bg-white/95 p-3 shadow-[0_25px_50px_-15px_oklch(0.20_0.08_258_/_0.35)] backdrop-blur lg:block">
-              <div className="flex items-center gap-2.5">
-                <span className="flex size-9 items-center justify-center rounded-xl bg-[oklch(0.95_0.05_150)] text-[oklch(0.45_0.15_150)]">
-                  <ShieldCheck className="size-4" />
+            {/* FLOATING CARDS — only 2, subtle, smaller */}
+            <div className="absolute -left-3 top-24 hidden w-[180px] rounded-xl border border-[var(--border-premium)] bg-white/85 p-2.5 shadow-[0_20px_45px_-15px_oklch(0.20_0.08_258_/_0.30)] backdrop-blur-xl lg:block">
+              <div className="flex items-center gap-2">
+                <span className="flex size-7 items-center justify-center rounded-lg bg-[oklch(0.95_0.05_150)] text-[oklch(0.45_0.15_150)]">
+                  <ShieldCheck className="size-3.5" />
                 </span>
                 <div className="min-w-0">
-                  <div className="truncate text-[12px] font-semibold text-foreground">
+                  <div className="truncate text-[10.5px] font-semibold text-foreground">
                     WhatsApp Oficial
                   </div>
-                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <span className="size-1.5 rounded-full bg-[oklch(0.55_0.18_150)]" />
-                    Conectado · Meta Cloud API
+                  <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                    <span className="size-1 rounded-full bg-[oklch(0.55_0.18_150)]" />
+                    Conectado
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="absolute -right-4 top-32 hidden w-[220px] rounded-2xl border border-[var(--border-premium)] bg-white/95 p-3 shadow-[0_25px_50px_-15px_oklch(0.20_0.08_258_/_0.35)] backdrop-blur lg:block">
+            <div className="absolute -right-3 bottom-16 hidden w-[190px] rounded-xl border border-[var(--border-premium)] bg-white/85 p-2.5 shadow-[0_20px_45px_-15px_oklch(0.20_0.08_258_/_0.30)] backdrop-blur-xl lg:block">
               <div className="flex items-center justify-between">
-                <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  Lead quente identificado
+                <div className="text-[8.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Lead quente
                 </div>
-                <Zap className="size-3.5 text-primary" />
+                <Zap className="size-3 text-primary" />
               </div>
-              <div className="mt-1.5 text-[12px] font-semibold text-foreground">
+              <div className="mt-1 text-[10.5px] font-semibold text-foreground">
                 IA classificou prioridade alta
               </div>
-              <div className="mt-2 flex h-1 overflow-hidden rounded-full bg-slate-100">
+              <div className="mt-1.5 flex h-0.5 overflow-hidden rounded-full bg-slate-100">
                 <div
                   className="h-full rounded-full"
                   style={{
@@ -442,31 +464,12 @@ export function LandingPage() {
                   }}
                 />
               </div>
-              <div className="mt-1.5 text-[10px] text-muted-foreground">
-                Encaminhado ao responsável
-              </div>
-            </div>
-
-            <div className="absolute -right-6 -bottom-6 hidden w-[230px] rounded-2xl border border-[var(--border-premium)] bg-white/95 p-3 shadow-[0_25px_50px_-15px_oklch(0.20_0.08_258_/_0.35)] backdrop-blur lg:block">
-              <div className="flex items-center gap-2.5">
-                <span className="flex size-9 items-center justify-center rounded-xl bg-[var(--brand-blue-soft)] text-primary">
-                  <BarChart3 className="size-4" />
-                </span>
-                <div className="min-w-0">
-                  <div className="truncate text-[12px] font-semibold text-foreground">
-                    Relatório gerencial
-                  </div>
-                  <div className="truncate text-[10px] text-muted-foreground">
-                    Atualizado agora · pronto para revisão
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
-          {/* INSTITUTIONAL METRICS STRIP — no fake numbers */}
-          <div className="mx-auto mt-20 max-w-6xl border-t border-[var(--border-premium)] pt-10 md:mt-24">
-            <div className="grid grid-cols-2 gap-x-6 gap-y-8 md:grid-cols-4">
+          {/* INSTITUTIONAL PILLARS — compact, integrated below mockup */}
+          <div className="mx-auto mt-16 max-w-5xl md:mt-20">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-6 md:grid-cols-4">
               {[
                 { icon: MessageSquare, label: "Atendimento centralizado" },
                 { icon: Users, label: "Leads organizados" },
@@ -474,10 +477,10 @@ export function LandingPage() {
                 { icon: Layers, label: "Gestão 360 em tempo real" },
               ].map((m) => (
                 <div key={m.label} className="flex flex-col items-center text-center">
-                  <span className="flex size-10 items-center justify-center rounded-xl border border-[var(--border-premium)] bg-white text-primary shadow-[var(--shadow-soft)]">
-                    <m.icon className="size-5" strokeWidth={2.2} />
+                  <span className="flex size-9 items-center justify-center rounded-xl border border-[var(--border-premium)] bg-white/70 text-primary shadow-[var(--shadow-soft)] backdrop-blur">
+                    <m.icon className="size-4" strokeWidth={2.2} />
                   </span>
-                  <div className="font-display mt-3 text-sm font-semibold tracking-tight text-[oklch(0.16_0.04_258)] md:text-[15px]">
+                  <div className="font-display mt-2.5 text-[13px] font-semibold tracking-tight text-[oklch(0.16_0.04_258)] md:text-[13.5px]">
                     {m.label}
                   </div>
                 </div>

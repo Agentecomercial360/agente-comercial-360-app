@@ -309,7 +309,7 @@ export function LandingPage() {
               }}
             />
 
-            />
+
 
             {/* MAIN DASHBOARD WINDOW */}
             <div className="relative overflow-hidden rounded-[20px] border border-[var(--border-premium)] bg-white shadow-[0_80px_140px_-30px_oklch(0.18_0.08_258_/_0.50),0_30px_60px_-25px_oklch(0.25_0.08_258_/_0.30)] ring-1 ring-black/[0.03] md:rounded-[24px]">

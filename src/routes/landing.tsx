@@ -72,9 +72,12 @@ export function LandingPage() {
             <a href="#depoimentos" className="hover:text-foreground transition-colors">Depoimentos</a>
             <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
           </nav>
-          <div className="flex items-center gap-2">
-            <Link to="/login" className="hidden sm:block">
-              <Button variant="ghost" size="sm">Entrar no painel</Button>
+          <div className="flex items-center gap-1">
+            <Link
+              to="/login"
+              className="hidden text-xs font-medium text-muted-foreground transition-colors hover:text-foreground sm:inline-block sm:px-3"
+            >
+              Entrar no painel
             </Link>
             <a href="#cta-final">
               <Button size="sm" className="gap-1.5 shadow-[var(--shadow-soft)]">

@@ -88,104 +88,61 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* HERO — dark premium SaaS / enterprise platform */}
+      {/* HERO — premium editorial SaaS, big blue gradient block as protagonist */}
       <section
         id="top"
-        className="relative overflow-hidden text-white"
-        style={{
-          background:
-            "radial-gradient(ellipse 90% 70% at 50% 0%, oklch(0.22 0.09 262) 0%, oklch(0.16 0.07 260) 45%, oklch(0.11 0.05 260) 100%)",
-        }}
+        className="relative overflow-hidden bg-white"
       >
-        {/* deep base layer */}
+        {/* soft ambient backdrop */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-10"
           style={{
             background:
-              "linear-gradient(180deg, oklch(0.13 0.06 262) 0%, oklch(0.09 0.04 260) 100%)",
+              "radial-gradient(ellipse 80% 60% at 85% 10%, oklch(0.93 0.06 262 / 0.55) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 10% 90%, oklch(0.95 0.04 262 / 0.45) 0%, transparent 65%), linear-gradient(180deg, oklch(0.995 0.003 258) 0%, oklch(0.97 0.012 258) 100%)",
           }}
         />
-
-        {/* blue glow top-left */}
+        {/* subtle grid mask */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -left-[10%] -top-[15%] -z-10 h-[760px] w-[900px] rounded-full opacity-70 blur-[140px]"
-          style={{
-            background:
-              "radial-gradient(closest-side, oklch(0.55 0.24 262 / 0.65) 0%, transparent 70%)",
-          }}
-        />
-        {/* purple glow right */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-[8%] top-[10%] -z-10 h-[720px] w-[860px] rounded-full opacity-60 blur-[150px]"
-          style={{
-            background:
-              "radial-gradient(closest-side, oklch(0.50 0.22 295 / 0.55) 0%, transparent 72%)",
-          }}
-        />
-        {/* center mockup halo */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[45%] -z-10 h-[600px] w-[1100px] -translate-x-1/2 rounded-full opacity-60 blur-[160px]"
-          style={{
-            background:
-              "radial-gradient(ellipse 55% 55% at 50% 50%, oklch(0.55 0.24 262 / 0.45) 0%, transparent 75%)",
-          }}
-        />
-
-        {/* tech grid */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.10]"
+          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.35]"
           style={{
             backgroundImage:
-              "linear-gradient(oklch(0.85 0.05 260 / 0.5) 1px, transparent 1px), linear-gradient(90deg, oklch(0.85 0.05 260 / 0.5) 1px, transparent 1px)",
-            backgroundSize: "60px 60px",
+              "linear-gradient(oklch(0.55 0.18 262 / 0.08) 1px, transparent 1px), linear-gradient(90deg, oklch(0.55 0.18 262 / 0.08) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
             maskImage:
-              "radial-gradient(ellipse 75% 65% at 50% 40%, black 30%, transparent 85%)",
+              "radial-gradient(ellipse 80% 70% at 70% 40%, black 20%, transparent 80%)",
             WebkitMaskImage:
-              "radial-gradient(ellipse 75% 65% at 50% 40%, black 30%, transparent 85%)",
+              "radial-gradient(ellipse 80% 70% at 70% 40%, black 20%, transparent 80%)",
           }}
         />
 
-        {/* grain */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.05] mix-blend-overlay"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.7 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
-          }}
-        />
-
-        <div className="relative mx-auto max-w-7xl px-6 pt-14 pb-24 lg:pt-20 lg:pb-32">
-          <div className="grid items-center gap-14 lg:grid-cols-[1.05fr_1.25fr] lg:gap-10">
-            {/* LEFT — copy */}
+        <div className="relative mx-auto max-w-7xl px-6 pt-12 pb-20 lg:pt-20 lg:pb-28">
+          <div className="grid items-center gap-14 lg:grid-cols-[1fr_1.15fr] lg:gap-12">
+            {/* LEFT — editorial copy */}
             <div className="relative">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-white/80 backdrop-blur-md">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[oklch(0.55_0.18_262)]/15 bg-[oklch(0.55_0.18_262)]/[0.06] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-[oklch(0.40_0.18_262)] backdrop-blur">
                 <span className="relative flex size-1.5">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[oklch(0.70_0.20_262)] opacity-70" />
-                  <span className="relative inline-flex size-1.5 rounded-full bg-[oklch(0.70_0.20_262)]" />
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[oklch(0.55_0.22_262)] opacity-70" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-[oklch(0.55_0.22_262)]" />
                 </span>
                 Plataforma de Inteligência Comercial
               </div>
 
-              <h1 className="font-display mt-6 text-[2.15rem] font-semibold leading-[1.03] tracking-[-0.035em] sm:text-[2.6rem] md:text-[3.1rem] lg:text-[3.4rem]">
+              <h1 className="font-display mt-6 text-[2.25rem] font-semibold leading-[1.02] tracking-[-0.035em] text-[oklch(0.18_0.03_262)] sm:text-[2.75rem] md:text-[3.25rem] lg:text-[3.55rem]">
                 Pare de perder vendas no WhatsApp.{" "}
                 <span
                   className="bg-clip-text text-transparent"
                   style={{
                     backgroundImage:
-                      "linear-gradient(120deg, oklch(0.78 0.18 262) 0%, oklch(0.72 0.20 285) 100%)",
+                      "linear-gradient(120deg, oklch(0.50 0.24 262) 0%, oklch(0.42 0.22 278) 100%)",
                   }}
                 >
                   Centralize sua operação comercial com IA.
                 </span>
               </h1>
 
-              <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-white/65 md:text-base">
+              <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-[oklch(0.40_0.02_262)] md:text-base">
                 Organize atendimentos, leads, responsáveis, CRM, follow-up e
                 relatórios em uma plataforma criada para empresas que querem
                 vender mais com controle, velocidade e previsibilidade.
@@ -195,10 +152,10 @@ export function LandingPage() {
                 <a href="#cta-final">
                   <Button
                     size="lg"
-                    className="h-12 gap-2 px-7 text-[15px] text-white shadow-[0_20px_40px_-12px_oklch(0.45_0.24_262_/_0.7)] hover:opacity-95"
+                    className="h-12 gap-2 rounded-full px-7 text-[15px] text-white shadow-[0_22px_44px_-14px_oklch(0.20_0.06_262_/_0.55)] hover:opacity-95"
                     style={{
                       background:
-                        "linear-gradient(135deg, oklch(0.58 0.24 262) 0%, oklch(0.52 0.22 280) 100%)",
+                        "linear-gradient(135deg, oklch(0.20 0.05 262) 0%, oklch(0.14 0.04 262) 100%)",
                     }}
                   >
                     Solicitar demonstração <ArrowRight className="size-4" />
@@ -208,87 +165,128 @@ export function LandingPage() {
                   <Button
                     size="lg"
                     variant="ghost"
-                    className="h-12 px-5 text-[15px] text-white/80 hover:bg-white/[0.06] hover:text-white"
+                    className="h-12 gap-2 rounded-full border border-[oklch(0.20_0.03_262)]/15 px-5 text-[15px] text-[oklch(0.22_0.03_262)] hover:bg-[oklch(0.55_0.18_262)]/[0.06]"
                   >
-                    Ver como funciona
+                    Ver como funciona <ArrowRight className="size-4" />
                   </Button>
                 </a>
               </div>
 
-              {/* micro-benefits */}
-              <div className="mt-9 grid max-w-lg grid-cols-2 gap-x-4 gap-y-3">
+              {/* institutional indicators — no fake numbers */}
+              <div className="mt-10 grid max-w-xl grid-cols-2 gap-x-6 gap-y-3 border-t border-[oklch(0.20_0.03_262)]/8 pt-6 sm:grid-cols-4 sm:gap-x-4">
                 {[
-                  { icon: MessageSquare, label: "WhatsApp centralizado" },
-                  { icon: Briefcase, label: "CRM comercial" },
-                  { icon: Bot, label: "Automação com IA" },
-                  { icon: LineChart, label: "Relatórios gerenciais" },
-                ].map((m) => (
-                  <div
-                    key={m.label}
-                    className="flex items-center gap-2.5 text-[13px] text-white/75"
-                  >
-                    <span className="flex size-7 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-[oklch(0.78_0.18_262)]">
-                      <m.icon className="size-3.5" strokeWidth={2.2} />
+                  "Atendimento centralizado",
+                  "Leads organizados",
+                  "Follow-up monitorado",
+                  "Gestão 360 em tempo real",
+                ].map((label) => (
+                  <div key={label} className="flex flex-col gap-1">
+                    <span
+                      aria-hidden
+                      className="h-[2px] w-6 rounded-full"
+                      style={{
+                        background:
+                          "linear-gradient(90deg, oklch(0.50 0.24 262), oklch(0.42 0.22 278))",
+                      }}
+                    />
+                    <span className="text-[11.5px] font-medium leading-tight text-[oklch(0.30_0.02_262)]">
+                      {label}
                     </span>
-                    {m.label}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* RIGHT — protagonist mockup composition */}
-            <div className="relative">
-              {/* halo behind */}
+            {/* RIGHT — big blue 3D gradient block protagonist */}
+            <div className="relative mt-2 lg:mt-0">
+              {/* ambient halo */}
               <div
                 aria-hidden
-                className="pointer-events-none absolute -inset-10 -z-10 blur-[100px]"
+                className="pointer-events-none absolute -inset-10 -z-10 blur-[110px]"
                 style={{
                   background:
-                    "radial-gradient(55% 55% at 55% 50%, oklch(0.55 0.24 262 / 0.55) 0%, oklch(0.50 0.22 295 / 0.25) 55%, transparent 80%)",
+                    "radial-gradient(55% 55% at 60% 50%, oklch(0.55 0.24 262 / 0.42) 0%, oklch(0.45 0.22 280 / 0.22) 55%, transparent 80%)",
                 }}
               />
 
-              {/* notebook */}
-              <div className="relative">
-                {/* lid */}
-                <div
-                  className="relative overflow-hidden rounded-t-[18px] border border-white/10 bg-[oklch(0.15_0.05_262)] shadow-[0_60px_120px_-25px_oklch(0.05_0.05_260_/_0.8)]"
-                  style={{
-                    boxShadow:
-                      "0 60px 120px -25px oklch(0.05 0.05 260 / 0.85), 0 0 0 1px oklch(1 0 0 / 0.04) inset",
-                  }}
-                >
-                  <div
-                    aria-hidden
-                    className="absolute inset-x-0 top-0 h-px"
-                    style={{
-                      background:
-                        "linear-gradient(90deg, transparent, oklch(0.75 0.20 262 / 0.7), transparent)",
-                    }}
-                  />
-                  {/* chrome */}
-                  <div className="flex items-center justify-between border-b border-white/[0.06] bg-[oklch(0.13_0.05_262)] px-4 py-2.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="size-2 rounded-full bg-white/15" />
-                      <span className="size-2 rounded-full bg-white/15" />
-                      <span className="size-2 rounded-full bg-white/15" />
-                    </div>
-                    <div className="flex items-center gap-2 text-[10.5px] font-medium text-white/55">
-                      <img src={acLogo} alt="" className="h-3.5 w-3.5 rounded" />
-                      Agente Comercial 360 · Painel
-                    </div>
-                    <div className="w-10" />
-                  </div>
+              {/* stacked tilted blue cards — depth (back layer) */}
+              <div
+                aria-hidden
+                className="absolute right-[-2%] top-[6%] hidden h-[78%] w-[78%] rounded-[28px] md:block"
+                style={{
+                  transform: "perspective(1400px) rotateY(-14deg) rotateX(4deg) translateZ(0)",
+                  background:
+                    "linear-gradient(135deg, oklch(0.42 0.20 262) 0%, oklch(0.30 0.16 278) 100%)",
+                  boxShadow:
+                    "0 50px 100px -30px oklch(0.18 0.10 262 / 0.55), inset 0 1px 0 oklch(1 0 0 / 0.08)",
+                  opacity: 0.55,
+                }}
+              />
+              <div
+                aria-hidden
+                className="absolute right-[2%] top-[3%] hidden h-[84%] w-[82%] rounded-[28px] md:block"
+                style={{
+                  transform: "perspective(1400px) rotateY(-10deg) rotateX(3deg) translateZ(0)",
+                  background:
+                    "linear-gradient(135deg, oklch(0.48 0.22 262) 0%, oklch(0.34 0.18 275) 100%)",
+                  boxShadow:
+                    "0 60px 120px -30px oklch(0.15 0.08 262 / 0.65), inset 0 1px 0 oklch(1 0 0 / 0.10)",
+                  opacity: 0.85,
+                }}
+              />
 
-                  <div className="flex bg-[oklch(0.12_0.04_262)]">
+              {/* main blue protagonist block holding the dashboard */}
+              <div
+                className="relative overflow-hidden rounded-[28px] border border-white/10 p-3.5 sm:p-5"
+                style={{
+                  background:
+                    "linear-gradient(135deg, oklch(0.55 0.24 262) 0%, oklch(0.38 0.20 268) 55%, oklch(0.22 0.12 270) 100%)",
+                  boxShadow:
+                    "0 70px 140px -30px oklch(0.12 0.08 262 / 0.75), inset 0 1px 0 oklch(1 0 0 / 0.12)",
+                }}
+              >
+                {/* top sheen */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-0 top-0 h-px"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, transparent, oklch(1 0 0 / 0.45), transparent)",
+                  }}
+                />
+                {/* glow blob */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full opacity-60 blur-3xl"
+                  style={{
+                    background:
+                      "radial-gradient(closest-side, oklch(0.85 0.18 262 / 0.55), transparent 70%)",
+                  }}
+                />
+
+                {/* header strip — product identity */}
+                <div className="relative flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.08] px-3.5 py-2 backdrop-blur-md">
+                  <div className="flex items-center gap-2 text-white">
+                    <span className="flex size-6 items-center justify-center rounded-md bg-white/15">
+                      <Layers className="size-3" />
+                    </span>
+                    <span className="text-[11px] font-semibold tracking-tight">
+                      Agente Comercial 360
+                    </span>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-white">
+                    <span className="size-1 rounded-full bg-[oklch(0.78_0.20_150)]" />
+                    Em tempo real
+                  </span>
+                </div>
+
+                {/* dashboard screen */}
+                <div
+                  className="relative mt-3 overflow-hidden rounded-2xl border border-white/10 bg-[oklch(0.12_0.04_262)] shadow-[0_30px_60px_-20px_oklch(0_0_0_/_0.6)]"
+                >
+                  <div className="flex">
                     {/* sidebar */}
-                    <div className="hidden w-[170px] shrink-0 flex-col gap-0.5 border-r border-white/[0.05] bg-[oklch(0.10_0.04_262)] p-2.5 md:flex">
-                      <div className="mb-2 flex items-center gap-2 px-1.5 pt-1">
-                        <div className="flex size-6 items-center justify-center rounded-md bg-[oklch(0.55_0.24_262)]/30 text-white">
-                          <Layers className="size-3" />
-                        </div>
-                        <span className="text-[11px] font-semibold text-white">AC360</span>
-                      </div>
+                    <div className="hidden w-[150px] shrink-0 flex-col gap-0.5 border-r border-white/[0.05] bg-[oklch(0.10_0.04_262)] p-2.5 md:flex">
                       {[
                         { icon: Layers, label: "Gestão 360", active: true },
                         { icon: MessageSquare, label: "Conversas" },
@@ -300,10 +298,10 @@ export function LandingPage() {
                       ].map((it) => (
                         <div
                           key={it.label}
-                          className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[11px] font-medium transition-colors ${
+                          className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[10.5px] font-medium transition-colors ${
                             it.active
-                              ? "bg-[oklch(0.55_0.24_262)]/25 text-white"
-                              : "text-white/45 hover:text-white"
+                              ? "bg-[oklch(0.55_0.24_262)]/30 text-white"
+                              : "text-white/50"
                           }`}
                         >
                           <it.icon className="size-3" />
@@ -313,7 +311,7 @@ export function LandingPage() {
                     </div>
 
                     {/* main */}
-                    <div className="flex-1 p-3.5 md:p-4">
+                    <div className="flex-1 p-3.5">
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="text-[9px] font-medium uppercase tracking-wider text-white/45">
@@ -323,13 +321,9 @@ export function LandingPage() {
                             Gestão 360 · Operação comercial
                           </div>
                         </div>
-                        <span className="inline-flex items-center gap-1.5 rounded-full border border-[oklch(0.50_0.18_150)]/30 bg-[oklch(0.45_0.16_150)]/15 px-2 py-0.5 text-[9px] font-semibold text-[oklch(0.78_0.18_150)]">
-                          <span className="size-1 rounded-full bg-[oklch(0.65_0.20_150)]" />
-                          Em tempo real
-                        </span>
                       </div>
 
-                      {/* KPI row */}
+                      {/* KPI row — institutional, no numbers */}
                       <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
                         {[
                           { icon: MessageSquare, label: "Conversas" },
@@ -341,7 +335,7 @@ export function LandingPage() {
                             key={k.label}
                             className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-2"
                           >
-                            <div className="flex items-center gap-1.5 text-[8.5px] font-semibold uppercase tracking-wide text-white/50">
+                            <div className="flex items-center gap-1.5 text-[8.5px] font-semibold uppercase tracking-wide text-white/55">
                               <k.icon className="size-2.5 text-[oklch(0.78_0.18_262)]" />
                               {k.label}
                             </div>
@@ -351,7 +345,7 @@ export function LandingPage() {
                                 style={{
                                   width: `${60 + i * 8}%`,
                                   background:
-                                    "linear-gradient(90deg, oklch(0.65 0.22 262), oklch(0.62 0.22 290))",
+                                    "linear-gradient(90deg, oklch(0.70 0.22 262), oklch(0.62 0.22 290))",
                                 }}
                               />
                             </div>
@@ -377,8 +371,8 @@ export function LandingPage() {
                                     height: `${h}%`,
                                     background:
                                       i >= 10
-                                        ? "linear-gradient(180deg, oklch(0.70 0.22 262), oklch(0.60 0.22 290))"
-                                        : "oklch(0.25 0.05 262)",
+                                        ? "linear-gradient(180deg, oklch(0.75 0.22 262), oklch(0.62 0.22 290))"
+                                        : "oklch(0.28 0.06 262)",
                                   }}
                                 />
                               </div>
@@ -400,7 +394,7 @@ export function LandingPage() {
                                 key={c.name}
                                 className="flex items-center gap-2 rounded-md border border-white/[0.05] bg-white/[0.02] px-2 py-1.5"
                               >
-                                <span className="flex size-5 items-center justify-center rounded-full bg-[oklch(0.55_0.24_262)]/20 text-[oklch(0.78_0.18_262)]">
+                                <span className="flex size-5 items-center justify-center rounded-full bg-[oklch(0.55_0.24_262)]/25 text-[oklch(0.78_0.18_262)]">
                                   <MessageSquare className="size-2.5" />
                                 </span>
                                 <div className="min-w-0 flex-1">
@@ -428,124 +422,75 @@ export function LandingPage() {
                     </div>
                   </div>
                 </div>
-                {/* notebook base */}
-                <div
-                  aria-hidden
-                  className="mx-auto h-2.5 w-[104%] -translate-x-[2%] rounded-b-[14px]"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, oklch(0.20 0.04 262) 0%, oklch(0.12 0.04 262) 100%)",
-                    boxShadow: "0 30px 50px -20px oklch(0 0 0 / 0.6)",
-                  }}
-                />
-                <div
-                  aria-hidden
-                  className="mx-auto h-1 w-[30%] rounded-b-md bg-[oklch(0.18_0.04_262)]"
-                />
-              </div>
 
-              {/* PHONE — WhatsApp */}
-              <div className="absolute -right-2 -bottom-4 hidden w-[180px] rounded-[26px] border border-white/10 bg-[oklch(0.10_0.04_262)] p-1.5 shadow-[0_40px_80px_-20px_oklch(0_0_0_/_0.8)] sm:block md:-right-6 md:bottom-6 md:w-[200px]">
-                <div className="overflow-hidden rounded-[20px] bg-[oklch(0.96_0.005_150)]">
-                  {/* notch */}
-                  <div className="flex justify-center bg-[oklch(0.10_0.04_262)] py-1">
-                    <div className="h-1 w-12 rounded-full bg-white/20" />
-                  </div>
-                  {/* header */}
-                  <div
-                    className="flex items-center gap-2 px-2.5 py-2 text-white"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, oklch(0.45 0.13 155) 0%, oklch(0.38 0.12 158) 100%)",
-                    }}
-                  >
-                    <span className="flex size-6 items-center justify-center rounded-full bg-white/20">
-                      <MessageSquare className="size-3" />
-                    </span>
-                    <div className="min-w-0">
-                      <div className="truncate text-[10px] font-semibold">
-                        WhatsApp Oficial
-                      </div>
-                      <div className="flex items-center gap-1 text-[8.5px] opacity-90">
-                        <span className="size-1 rounded-full bg-white" />
-                        online
-                      </div>
+                {/* bottom strip inside the block — pillars */}
+                <div className="relative mt-3 grid grid-cols-4 gap-2">
+                  {[
+                    { icon: ShieldCheck, label: "WhatsApp" },
+                    { icon: Briefcase, label: "CRM" },
+                    { icon: Bot, label: "IA" },
+                    { icon: LineChart, label: "Relatórios" },
+                  ].map((p) => (
+                    <div
+                      key={p.label}
+                      className="flex items-center justify-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.08] px-2 py-1.5 text-[10px] font-semibold text-white backdrop-blur-md"
+                    >
+                      <p.icon className="size-3" />
+                      {p.label}
                     </div>
-                  </div>
-                  {/* messages */}
-                  <div className="space-y-1.5 px-2.5 py-3">
-                    <div className="max-w-[80%] rounded-lg rounded-tl-sm bg-white px-2 py-1.5 text-[9.5px] text-[oklch(0.2_0.02_262)] shadow-sm">
-                      Olá! Tenho interesse na plataforma.
-                    </div>
-                    <div className="ml-auto max-w-[85%] rounded-lg rounded-tr-sm bg-[oklch(0.88_0.10_155)] px-2 py-1.5 text-[9.5px] text-[oklch(0.2_0.02_262)] shadow-sm">
-                      Oi! Sou a IA do Agente 360. Posso te ajudar agora mesmo.
-                    </div>
-                    <div className="max-w-[78%] rounded-lg rounded-tl-sm bg-white px-2 py-1.5 text-[9.5px] text-[oklch(0.2_0.02_262)] shadow-sm">
-                      Quero ver uma demo.
-                    </div>
-                    <div className="ml-auto max-w-[88%] rounded-lg rounded-tr-sm bg-[oklch(0.88_0.10_155)] px-2 py-1.5 text-[9.5px] text-[oklch(0.2_0.02_262)] shadow-sm">
-                      Perfeito! Já direcionei para o time comercial.
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
-              {/* FLOATING CARD — IA classifying */}
-              <div className="absolute -left-4 top-10 hidden w-[200px] rounded-xl border border-white/10 bg-white/[0.06] p-2.5 shadow-[0_25px_50px_-15px_oklch(0_0_0_/_0.6)] backdrop-blur-xl lg:block">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="flex size-7 items-center justify-center rounded-lg bg-[oklch(0.55_0.24_262)]/30 text-[oklch(0.78_0.18_262)]">
-                      <Bot className="size-3.5" />
-                    </span>
-                    <div className="text-[10px] font-semibold text-white">
-                      IA classificou lead
-                    </div>
+              {/* FLOATING DARK CARD — numbered, like reference */}
+              <div className="absolute -right-3 top-10 hidden w-[210px] rounded-2xl border border-white/10 bg-[oklch(0.13_0.04_262)] p-3 shadow-[0_30px_60px_-20px_oklch(0_0_0_/_0.55)] backdrop-blur-xl md:block">
+                <div className="flex items-start justify-between">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">
+                    01
                   </div>
-                  <Zap className="size-3 text-[oklch(0.78_0.18_262)]" />
+                  <span className="flex size-7 items-center justify-center rounded-lg bg-[oklch(0.55_0.24_262)]/30 text-[oklch(0.80_0.18_262)]">
+                    <ShieldCheck className="size-3.5" />
+                  </span>
                 </div>
-                <div className="mt-1.5 text-[9px] text-white/55">
-                  Prioridade alta · responsável atribuído
+                <div className="mt-1.5 text-[12.5px] font-semibold text-white">
+                  WhatsApp Oficial
                 </div>
-                <div className="mt-1.5 flex h-0.5 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: "86%",
-                      background:
-                        "linear-gradient(90deg, oklch(0.65 0.22 262), oklch(0.62 0.22 290))",
-                    }}
-                  />
+                <div className="mt-0.5 text-[10px] leading-snug text-white/55">
+                  Conectado e monitorado
                 </div>
               </div>
 
-              {/* FLOATING CARD — Relatório */}
-              <div className="absolute -left-2 -bottom-2 hidden w-[210px] rounded-xl border border-white/10 bg-white/[0.06] p-2.5 shadow-[0_25px_50px_-15px_oklch(0_0_0_/_0.6)] backdrop-blur-xl lg:block">
-                <div className="flex items-center gap-2">
-                  <span className="flex size-7 items-center justify-center rounded-lg bg-[oklch(0.45_0.16_150)]/30 text-[oklch(0.78_0.18_150)]">
-                    <LineChart className="size-3.5" />
+              {/* FLOATING DARK CARD — IA */}
+              <div className="absolute -left-4 top-1/2 hidden w-[210px] -translate-y-1/2 rounded-2xl border border-white/10 bg-[oklch(0.13_0.04_262)] p-3 shadow-[0_30px_60px_-20px_oklch(0_0_0_/_0.55)] backdrop-blur-xl lg:block">
+                <div className="flex items-start justify-between">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-white/45">
+                    02
+                  </div>
+                  <span className="flex size-7 items-center justify-center rounded-lg bg-[oklch(0.50_0.22_280)]/30 text-[oklch(0.80_0.18_285)]">
+                    <Bot className="size-3.5" />
+                  </span>
+                </div>
+                <div className="mt-1.5 text-[12.5px] font-semibold text-white">
+                  IA classificando lead
+                </div>
+                <div className="mt-0.5 text-[10px] leading-snug text-white/55">
+                  Prioridade alta atribuída
+                </div>
+              </div>
+
+              {/* FLOATING LIGHT CARD — Follow-up (glass) */}
+              <div className="absolute -bottom-5 right-6 hidden w-[220px] rounded-2xl border border-white/40 bg-white/80 p-3 shadow-[0_30px_60px_-20px_oklch(0.20_0.08_262_/_0.35)] backdrop-blur-xl md:block">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex size-8 items-center justify-center rounded-xl bg-[oklch(0.50_0.24_262)]/12 text-[oklch(0.42_0.22_262)]">
+                    <Activity className="size-4" />
                   </span>
                   <div>
-                    <div className="text-[10px] font-semibold text-white">
-                      Relatório gerencial
-                    </div>
-                    <div className="text-[8.5px] text-white/55">
-                      Pronto para download
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* FLOATING CARD — Follow-up */}
-              <div className="absolute right-4 -top-3 hidden w-[180px] rounded-xl border border-white/10 bg-white/[0.06] p-2.5 shadow-[0_25px_50px_-15px_oklch(0_0_0_/_0.6)] backdrop-blur-xl xl:block">
-                <div className="flex items-center gap-2">
-                  <span className="flex size-7 items-center justify-center rounded-lg bg-[oklch(0.55_0.20_280)]/30 text-[oklch(0.78_0.18_285)]">
-                    <Activity className="size-3.5" />
-                  </span>
-                  <div>
-                    <div className="text-[10px] font-semibold text-white">
+                    <div className="text-[11.5px] font-semibold text-[oklch(0.18_0.03_262)]">
                       Follow-up monitorado
                     </div>
-                    <div className="text-[8.5px] text-white/55">3 ações pendentes</div>
+                    <div className="text-[9.5px] text-[oklch(0.42_0.02_262)]">
+                      Relatório gerencial pronto
+                    </div>
                   </div>
                 </div>
               </div>

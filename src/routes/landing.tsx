@@ -32,6 +32,7 @@ import {
   PlayCircle,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
+import heroDashboard from "@/assets/hero-dashboard.png.asset.json";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/landing")({
@@ -126,176 +127,96 @@ function MockupFrame({
   );
 }
 
-/* Hero product mockup — Inbox + AI side panel */
+/* Hero product mockup — real dashboard screenshot, framed as a premium product */
 function HeroMockup() {
   return (
-    <MockupFrame>
-      {/* Top window bar */}
-      <div className="flex items-center justify-between border-b border-[oklch(0.20_0.03_262)]/8 px-4 py-2.5">
-        <div className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-full bg-[oklch(0.78_0.18_25)]" />
-          <span className="size-2.5 rounded-full bg-[oklch(0.85_0.16_85)]" />
-          <span className="size-2.5 rounded-full bg-[oklch(0.72_0.18_150)]" />
-        </div>
-        <div className="flex items-center gap-1.5 rounded-md bg-[oklch(0.97_0.01_262)] px-2.5 py-1 text-[10px] text-muted-foreground">
-          <Search className="size-3" /> app.agentecomercial360.com.br
-        </div>
-        <div className="size-6 rounded-full bg-gradient-to-br from-primary to-[oklch(0.28_0.14_262)]" />
-      </div>
+    <div className="relative">
+      {/* Ambient glow behind frame */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] opacity-70 blur-3xl"
+        style={{
+          background:
+            "radial-gradient(60% 60% at 30% 30%, oklch(0.55 0.22 262 / 0.35), transparent 70%), radial-gradient(50% 50% at 80% 70%, oklch(0.30 0.18 262 / 0.30), transparent 70%)",
+        }}
+      />
 
-      <div className="grid grid-cols-[180px_1fr_220px]">
-        {/* Sidebar */}
-        <div className="hidden border-r border-[oklch(0.20_0.03_262)]/6 bg-[oklch(0.18_0.06_262)] p-3 sm:block">
-          <div className="flex items-center gap-2 px-2 py-2">
-            <div className="size-7 rounded-md bg-gradient-to-br from-primary to-[oklch(0.45_0.20_262)]" />
-            <span className="text-[11px] font-semibold text-white">AC360</span>
+      {/* Floating stat card — top left */}
+      <div className="absolute -left-4 top-8 z-20 hidden rounded-2xl border border-white/60 bg-white/90 px-3.5 py-2.5 shadow-[0_20px_50px_-20px_oklch(0.20_0.10_262/_0.45)] backdrop-blur-md sm:block">
+        <div className="flex items-center gap-2.5">
+          <div className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-[oklch(0.28_0.14_262)] text-white">
+            <Sparkles className="size-4" />
           </div>
-          <div className="mt-4 space-y-0.5">
-            {[
-              { icon: Activity, label: "Dashboard" },
-              { icon: MessageSquare, label: "Conversas", active: true },
-              { icon: Users, label: "Leads" },
-              { icon: GitBranch, label: "Funil" },
-              { icon: Bot, label: "IA" },
-              { icon: BarChart3, label: "Relatórios" },
-            ].map((it, i) => (
-              <div
-                key={i}
-                className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[10.5px] ${
-                  it.active
-                    ? "bg-white/10 text-white"
-                    : "text-white/55"
-                }`}
-              >
-                <it.icon className="size-3.5" />
-                {it.label}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Conversation list + thread */}
-        <div className="grid grid-cols-[140px_1fr] sm:grid-cols-[160px_1fr]">
-          <div className="border-r border-[oklch(0.20_0.03_262)]/6 bg-white">
-            <div className="border-b border-[oklch(0.20_0.03_262)]/6 px-3 py-2.5">
-              <div className="text-[11px] font-semibold text-[oklch(0.18_0.03_262)]">
-                Conversas
-              </div>
-              <div className="text-[9.5px] text-muted-foreground">12 ativas</div>
+          <div>
+            <div className="text-[9.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+              IA Ativa
             </div>
-            {[
-              { n: "Mariana S.", m: "Tenho interesse no plano…", t: "agora", b: true, c: "M" },
-              { n: "João Lima", m: "Pode me passar uma proposta?", t: "2m", b: false, c: "J" },
-              { n: "Ana Pereira", m: "Obrigada pelo atendimento", t: "14m", b: false, c: "A" },
-              { n: "Pedro G.", m: "Vou pensar e retorno amanhã", t: "1h", b: false, c: "P" },
-            ].map((c, i) => (
-              <div
-                key={i}
-                className={`flex items-start gap-2 border-b border-[oklch(0.20_0.03_262)]/5 px-3 py-2.5 ${i === 0 ? "bg-[oklch(0.95_0.03_262)]" : ""}`}
-              >
-                <div className="grid size-6 shrink-0 place-items-center rounded-full bg-gradient-to-br from-primary to-[oklch(0.35_0.18_262)] text-[9px] font-semibold text-white">
-                  {c.c}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="truncate text-[10px] font-semibold text-[oklch(0.18_0.03_262)]">
-                      {c.n}
-                    </span>
-                    <span className="shrink-0 text-[8.5px] text-muted-foreground">
-                      {c.t}
-                    </span>
-                  </div>
-                  <p className="truncate text-[9.5px] text-muted-foreground">{c.m}</p>
-                </div>
-                {c.b && <span className="mt-1 size-1.5 rounded-full bg-primary" />}
-              </div>
-            ))}
-          </div>
-
-          {/* Thread */}
-          <div className="flex flex-col bg-[oklch(0.985_0.005_262)]">
-            <div className="flex items-center justify-between border-b border-[oklch(0.20_0.03_262)]/6 bg-white px-3 py-2.5">
-              <div className="flex items-center gap-2">
-                <div className="grid size-7 place-items-center rounded-full bg-gradient-to-br from-primary to-[oklch(0.35_0.18_262)] text-[10px] font-semibold text-white">
-                  M
-                </div>
-                <div>
-                  <div className="text-[11px] font-semibold text-[oklch(0.18_0.03_262)]">
-                    Mariana Silva
-                  </div>
-                  <div className="flex items-center gap-1 text-[9px] text-[oklch(0.55_0.18_150)]">
-                    <span className="size-1.5 rounded-full bg-[oklch(0.65_0.20_150)]" />
-                    Online · Lead qualificado
-                  </div>
-                </div>
-              </div>
-              <div className="hidden items-center gap-1 sm:flex">
-                <div className="rounded-md border border-[oklch(0.20_0.03_262)]/8 px-1.5 py-0.5 text-[8.5px] text-muted-foreground">
-                  Funil: Proposta
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-1 flex-col gap-2 p-3">
-              <div className="max-w-[78%] rounded-2xl rounded-tl-sm bg-white px-2.5 py-1.5 text-[10px] text-[oklch(0.18_0.03_262)] shadow-sm">
-                Olá! Tenho interesse no plano profissional.
-              </div>
-              <div className="ml-auto flex max-w-[78%] items-center gap-1.5 rounded-2xl rounded-tr-sm bg-gradient-to-br from-primary to-[oklch(0.35_0.18_262)] px-2.5 py-1.5 text-[10px] text-white shadow-sm">
-                <Sparkles className="size-2.5" /> Posso te enviar uma proposta personalizada agora?
-              </div>
-              <div className="max-w-[78%] rounded-2xl rounded-tl-sm bg-white px-2.5 py-1.5 text-[10px] text-[oklch(0.18_0.03_262)] shadow-sm">
-                Sim, por favor!
-              </div>
-              <div className="ml-auto inline-flex items-center gap-1 self-end rounded-full bg-white px-2 py-1 text-[8.5px] text-muted-foreground shadow-sm">
-                <span className="size-1 animate-pulse rounded-full bg-primary" />
-                IA digitando…
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* AI side panel */}
-        <div className="hidden flex-col gap-2 border-l border-[oklch(0.20_0.03_262)]/6 bg-white p-3 md:flex">
-          <div className="flex items-center gap-1.5 text-[10px] font-semibold text-[oklch(0.18_0.03_262)]">
-            <Bot className="size-3.5 text-primary" /> Insight da IA
-          </div>
-          <div className="rounded-xl border border-[oklch(0.55_0.18_262)]/15 bg-gradient-to-br from-[oklch(0.55_0.18_262)]/5 to-transparent p-2.5">
-            <div className="text-[9px] font-semibold uppercase tracking-wide text-primary">
-              Score do lead
-            </div>
-            <div className="mt-1 flex items-end gap-1">
-              <span className="font-display text-2xl font-semibold text-[oklch(0.18_0.03_262)]">
-                92
-              </span>
-              <span className="pb-1 text-[9px] text-muted-foreground">/100</span>
-            </div>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[oklch(0.93_0.02_262)]">
-              <div className="h-full w-[92%] rounded-full bg-gradient-to-r from-primary to-[oklch(0.45_0.22_262)]" />
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-[oklch(0.20_0.03_262)]/8 p-2.5">
-            <div className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Próxima ação
-            </div>
-            <div className="mt-1.5 flex items-center gap-1.5 text-[10px] text-[oklch(0.18_0.03_262)]">
-              <Clock className="size-3 text-primary" /> Follow-up em 2h
-            </div>
-          </div>
-
-          <div className="rounded-xl border border-[oklch(0.20_0.03_262)]/8 p-2.5">
-            <div className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Etapa do funil
-            </div>
-            <div className="mt-1.5 flex items-center gap-1.5">
-              <span className="rounded-full bg-[oklch(0.95_0.03_262)] px-2 py-0.5 text-[9px] font-medium text-primary">
-                Proposta
-              </span>
+            <div className="text-[12.5px] font-semibold leading-tight text-[oklch(0.18_0.03_262)]">
+              Atendendo 24/7
             </div>
           </div>
         </div>
       </div>
-    </MockupFrame>
+
+      {/* Floating stat card — bottom right */}
+      <div className="absolute -right-4 bottom-8 z-20 hidden rounded-2xl border border-white/60 bg-white/90 px-3.5 py-2.5 shadow-[0_20px_50px_-20px_oklch(0.20_0.10_262/_0.45)] backdrop-blur-md sm:block">
+        <div className="flex items-center gap-2.5">
+          <div className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-[oklch(0.72_0.18_150)] to-[oklch(0.50_0.18_150)] text-white">
+            <TrendingUp className="size-4" />
+          </div>
+          <div>
+            <div className="text-[9.5px] font-semibold uppercase tracking-wide text-muted-foreground">
+              Conversão
+            </div>
+            <div className="text-[12.5px] font-semibold leading-tight text-[oklch(0.18_0.03_262)]">
+              +38% este mês
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Browser-style frame holding the real product screenshot */}
+      <div
+        className="relative overflow-hidden rounded-2xl border border-white/70 bg-white/60 p-1.5 shadow-[0_50px_120px_-30px_oklch(0.18_0.10_262/_0.45),0_0_0_1px_oklch(0.55_0.18_262/_0.08)] backdrop-blur-xl sm:rounded-3xl sm:p-2"
+        style={{
+          background:
+            "linear-gradient(135deg, oklch(0.99 0.01 262 / 0.9), oklch(0.96 0.02 262 / 0.85))",
+        }}
+      >
+        {/* Top window chrome */}
+        <div className="flex items-center justify-between rounded-t-xl bg-white/70 px-3.5 py-2 sm:rounded-t-2xl">
+          <div className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-full bg-[oklch(0.78_0.18_25)]" />
+            <span className="size-2.5 rounded-full bg-[oklch(0.85_0.16_85)]" />
+            <span className="size-2.5 rounded-full bg-[oklch(0.72_0.18_150)]" />
+          </div>
+          <div className="flex items-center gap-1.5 rounded-md bg-[oklch(0.97_0.012_262)] px-2.5 py-1 text-[10px] text-muted-foreground">
+            <Search className="size-3" /> app.agentecomercial360.com.br
+          </div>
+          <div className="size-5 rounded-full bg-gradient-to-br from-primary to-[oklch(0.28_0.14_262)]" />
+        </div>
+
+        {/* Screenshot */}
+        <div className="overflow-hidden rounded-b-xl border-t border-[oklch(0.20_0.03_262)]/8 sm:rounded-b-2xl">
+          <img
+            src={heroDashboard.url}
+            alt="Painel Gestão 360 do Agente Comercial 360"
+            className="block h-auto w-full"
+            loading="eager"
+          />
+        </div>
+
+        {/* Subtle inner highlight */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-2xl sm:rounded-3xl"
+          style={{
+            background:
+              "linear-gradient(180deg, oklch(1 0 0 / 0.10), transparent 18%, transparent 82%, oklch(0.20 0.10 262 / 0.04))",
+          }}
+        />
+      </div>
+    </div>
   );
 }
 

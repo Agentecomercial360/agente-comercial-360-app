@@ -288,140 +288,100 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900 antialiased">
       {/* ============== HEADER + HERO ============== */}
-      <section id="top" className="relative overflow-hidden">
-        {/* Background image */}
-        <div className="absolute inset-0">
-          <img
-            src={heroCorporate.url}
-            alt=""
-            className="h-full w-full object-cover"
-            style={{ filter: "brightness(1.05) contrast(1.08)" }}
-            fetchPriority="high"
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(90deg, rgba(5,18,45,0.78) 0%, rgba(5,18,45,0.55) 50%, rgba(5,18,45,0.25) 100%)",
-            }}
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(ellipse at 15% 30%, oklch(0.55 0.18 262 / 0.25), transparent 60%)",
-            }}
-          />
-        </div>
+      <section id="top" className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50/60 to-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-0"
+          style={{
+            background:
+              "radial-gradient(900px 500px at 80% 0%, oklch(0.95 0.04 262 / 0.55), transparent 60%), radial-gradient(700px 400px at 0% 100%, oklch(0.97 0.02 262), transparent 60%)",
+          }}
+        />
 
         <div className="relative z-10">
           {/* Header */}
-          <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10">
+          <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
             <a href="#top" className="flex items-center gap-2.5">
               <img src={acLogo} alt="Agente Comercial 360" className="h-9 w-auto" />
             </a>
-            <nav className="hidden items-center gap-8 text-sm font-medium text-white/85 md:flex">
-              <a href="#solucoes" className="transition-colors hover:text-white">Soluções</a>
-              <a href="#como-funciona" className="transition-colors hover:text-white">Como funciona</a>
-              <a href="#planos" className="transition-colors hover:text-white">Planos</a>
-              <a href="#faq" className="transition-colors hover:text-white">FAQ</a>
+            <nav className="hidden items-center gap-8 text-sm font-medium text-slate-700 md:flex">
+              <a href="#solucoes" className="transition-colors hover:text-slate-900">Soluções</a>
+              <a href="#como-funciona" className="transition-colors hover:text-slate-900">Como funciona</a>
+              <a href="#planos" className="transition-colors hover:text-slate-900">Planos</a>
+              <a href="#faq" className="transition-colors hover:text-slate-900">FAQ</a>
             </nav>
             <div className="flex items-center gap-3">
               <Link
                 to="/login"
-                className="hidden text-sm font-medium text-white/85 transition-colors hover:text-white sm:inline-block"
+                className="hidden text-sm font-medium text-slate-700 transition-colors hover:text-slate-900 sm:inline-block"
               >
                 Entrar no painel
               </Link>
-              <a href="#cta-final">
+              <Link to="/login">
                 <Button
-                  className="h-10 rounded-full px-5 text-sm font-semibold text-white shadow-lg shadow-black/20"
+                  className="h-10 rounded-full px-5 text-sm font-semibold text-white shadow-lg shadow-blue-900/15"
                   style={{ background: BLUE }}
                 >
                   Solicitar demonstração
                 </Button>
-              </a>
+              </Link>
             </div>
           </header>
 
-          {/* Hero content — text left, concept image right */}
-          <div className="mx-auto max-w-7xl px-6 pt-10 pb-24 sm:pt-16 sm:pb-32 lg:px-10">
-            <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_1fr]">
-              <div>
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/90 backdrop-blur">
-                  <span className="size-1.5 rounded-full bg-white" />
-                  CRM conversacional + IA
-                </span>
-                <h1 className="mt-6 text-4xl font-semibold leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-[58px]">
-                  O CRM que organiza{" "}
-                  <span
-                    className="bg-clip-text text-transparent"
-                    style={{
-                      backgroundImage:
-                        "linear-gradient(90deg, #ffffff 0%, oklch(0.82 0.10 240) 100%)",
-                    }}
-                  >
-                    sua operação comercial
-                  </span>{" "}
-                  do WhatsApp até a venda.
-                </h1>
-                <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/80">
-                  Centralize atendimento, distribua leads automaticamente e padronize o
-                  follow-up com IA. Tudo em uma plataforma feita para times que vendem por
-                  WhatsApp.
-                </p>
-                <div className="mt-9 flex flex-wrap items-center gap-3">
-                  <a href="#cta-final">
-                    <Button
-                      size="lg"
-                      className="h-12 rounded-full px-7 text-sm font-semibold text-white shadow-xl shadow-black/30"
-                      style={{ background: BLUE }}
-                    >
-                      Solicitar demonstração
-                      <ArrowRight className="ml-1 size-4" />
-                    </Button>
-                  </a>
-                  <a href="#como-funciona">
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="h-12 rounded-full border-white/30 bg-white/10 px-7 text-sm font-semibold text-white backdrop-blur hover:bg-white/20 hover:text-white"
-                    >
-                      Ver como funciona
-                    </Button>
-                  </a>
-                </div>
-
-                <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-white/70">
-                  <span className="inline-flex items-center gap-1.5">
-                    <CheckCircle2 className="size-3.5" /> Implantação assistida
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <CheckCircle2 className="size-3.5" /> WhatsApp oficial
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <CheckCircle2 className="size-3.5" /> Suporte humano
-                  </span>
-                </div>
-              </div>
-
-              {/* Concept visual */}
-              <div className="relative hidden lg:block">
-                <div
-                  className="absolute -inset-6 rounded-[2rem] opacity-60 blur-2xl"
-                  style={{
-                    background:
-                      "radial-gradient(ellipse at center, oklch(0.55 0.18 262 / 0.45), transparent 70%)",
-                  }}
+          {/* Hero — Reference image */}
+          <div className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6 sm:pt-10 sm:pb-24 lg:px-10">
+            <div className="relative">
+              <div
+                aria-hidden
+                className="absolute -inset-6 rounded-[2.5rem] opacity-70 blur-3xl"
+                style={{
+                  background:
+                    "radial-gradient(ellipse at center, oklch(0.55 0.18 262 / 0.18), transparent 70%)",
+                }}
+              />
+              <div className="relative overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200/70 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.25)]">
+                <img
+                  src={heroReference.url}
+                  alt="Agente Comercial 360 — Transforme atendimento, leads e processos em crescimento real"
+                  className="block h-auto w-full"
+                  fetchPriority="high"
                 />
-                <div className="relative overflow-hidden rounded-3xl ring-1 ring-white/20 shadow-2xl shadow-black/40">
-                  <img
-                    src={heroCrm.url}
-                    alt="Conceito visual de CRM conversacional"
-                    className="h-full w-full object-cover"
-                    fetchPriority="high"
-                  />
-                </div>
+              </div>
+            </div>
+
+            {/* Functional CTAs */}
+            <div className="mt-10 flex flex-col items-center gap-4">
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <Link to="/login">
+                  <Button
+                    size="lg"
+                    className="h-13 rounded-full px-8 py-3 text-base font-semibold text-white shadow-xl shadow-blue-900/25"
+                    style={{ background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})` }}
+                  >
+                    Quero transformar meus resultados
+                    <ArrowRight className="ml-1 size-4" />
+                  </Button>
+                </Link>
+                <a href="#solucoes">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="h-13 rounded-full border-slate-300 bg-white px-8 py-3 text-base font-semibold text-slate-800 hover:bg-slate-50"
+                  >
+                    Ver como funciona
+                  </Button>
+                </a>
+              </div>
+              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-slate-500">
+                <span className="inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} /> Implantação assistida
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} /> WhatsApp oficial
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} /> Suporte humano
+                </span>
               </div>
             </div>
           </div>

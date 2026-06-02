@@ -113,7 +113,7 @@ function FocusBlock({
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
 
-function LandingPage() {
+export function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900 antialiased">
       {/* ============== HEADER + HERO (com imagem corporativa) ============== */}

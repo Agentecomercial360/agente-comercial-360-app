@@ -15,8 +15,7 @@ import {
   Send,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
-import heroCorporate from "@/assets/hero-corporate-v4.jpg.asset.json";
-import heroCrm from "@/assets/hero-crm-concept.jpg.asset.json";
+import heroReference from "@/assets/hero-reference.png.asset.json";
 import solAtendimento from "@/assets/sol-atendimento.jpg.asset.json";
 import solCrm from "@/assets/sol-crm.jpg.asset.json";
 import solIa from "@/assets/sol-ia.jpg.asset.json";

@@ -124,21 +124,23 @@ export function LandingPage() {
             src={heroCorporate.url}
             alt=""
             className="h-full w-full object-cover"
+            style={{ filter: 'brightness(1.05) contrast(1.08)' }}
             fetchPriority="high"
           />
-          {/* Navy overlay */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background: `linear-gradient(135deg, ${NAVY_DEEP} 0%, ${NAVY} 55%, oklch(0.20 0.07 262 / 0.85) 100%)`,
-              opacity: 0.92,
-            }}
-          />
+          {/* Soft left-to-right gradient overlay */}
           <div
             className="absolute inset-0"
             style={{
               background:
-                "radial-gradient(ellipse at 20% 30%, oklch(0.55 0.18 262 / 0.35), transparent 60%)",
+                'linear-gradient(90deg, rgba(5,18,45,0.55) 0%, rgba(5,18,45,0.28) 45%, rgba(5,18,45,0.10) 100%)',
+            }}
+          />
+          {/* Subtle radial glow for depth */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(ellipse at 20% 30%, oklch(0.55 0.18 262 / 0.20), transparent 60%)',
             }}
           />
         </div>

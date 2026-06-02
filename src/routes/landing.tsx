@@ -14,7 +14,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
-import heroCorporate from "@/assets/hero-corporate-v2.jpg.asset.json";
+import heroCorporate from "@/assets/hero-corporate-v3.jpg.asset.json";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/landing")({

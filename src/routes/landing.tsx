@@ -21,8 +21,6 @@ import {
   Building2,
   Truck,
   ShoppingBag,
-  Truck,
-  ShoppingBag,
   Target,
   Settings2,
   Compass,

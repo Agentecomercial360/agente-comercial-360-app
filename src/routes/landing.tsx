@@ -21,7 +21,6 @@ import {
   Building2,
   Truck,
   ShoppingBag,
-  Handshake,
   Target,
   Settings2,
   Compass,
@@ -468,8 +467,10 @@ export function LandingPage() {
       <section id="problema" className="relative overflow-hidden border-t border-[var(--border-premium)] bg-white">
         <div className="mx-auto max-w-7xl px-6 py-24 md:py-32">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[oklch(0.20_0.03_262)]/10 bg-[oklch(0.97_0.01_262)] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-[oklch(0.35_0.03_262)]">
-              <AlertTriangle className="size-3.5 text-[oklch(0.55_0.22_25)]" /> O ponto de partida
+            <div className="inline-flex items-center gap-2 rounded-full border border-[oklch(0.20_0.03_262)]/10 bg-[oklch(0.97_0.01_262)] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-[oklch(0.35_0.03_262)]">
+              <span className="text-[oklch(0.55_0.22_25)]">01</span>
+              <span className="h-3 w-px bg-[oklch(0.20_0.03_262)]/15" />
+              O ponto de partida
             </div>
             <h2 className="font-display mt-6 text-[2rem] font-semibold leading-[1.05] tracking-[-0.03em] text-[oklch(0.18_0.03_262)] md:text-[2.75rem] lg:text-[3.25rem]">
               O problema não é falta de lead.{" "}
@@ -492,10 +493,18 @@ export function LandingPage() {
             ].map((p) => (
               <div
                 key={p.title}
-                className="group relative overflow-hidden rounded-3xl border border-[var(--border-premium)] bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+                className="group relative overflow-hidden rounded-3xl border border-[var(--border-premium)] bg-white p-7 transition-all duration-300 hover:-translate-y-1 hover:border-[oklch(0.55_0.22_25)]/25 hover:shadow-[var(--shadow-card)]"
               >
                 <div
-                  className="flex size-12 items-center justify-center rounded-2xl text-[oklch(0.55_0.22_25)]"
+                  aria-hidden
+                  className="absolute inset-x-0 top-0 h-[2px] origin-left scale-x-0 transition-transform duration-500 group-hover:scale-x-100"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, oklch(0.65 0.22 25), oklch(0.55 0.22 15))",
+                  }}
+                />
+                <div
+                  className="flex size-12 items-center justify-center rounded-2xl text-[oklch(0.55_0.22_25)] transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105"
                   style={{ background: "oklch(0.97 0.03 25)" }}
                 >
                   <p.icon className="size-5" strokeWidth={2.2} />
@@ -523,8 +532,10 @@ export function LandingPage() {
         />
         <div className="relative mx-auto max-w-7xl px-6 py-24 md:py-32">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.06] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-primary">
-              <Layers className="size-3.5" /> A plataforma
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.06] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-primary">
+              <span>02</span>
+              <span className="h-3 w-px bg-primary/25" />
+              A plataforma
             </div>
             <h2 className="font-display mt-6 text-[2rem] font-semibold leading-[1.05] tracking-[-0.03em] text-[oklch(0.18_0.03_262)] md:text-[2.75rem] lg:text-[3.25rem]">
               Uma central comercial para organizar sua operação{" "}
@@ -586,8 +597,10 @@ export function LandingPage() {
       <section id="para-quem" className="border-t border-[var(--border-premium)] bg-white">
         <div className="mx-auto max-w-7xl px-6 py-24 md:py-32">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.06] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-primary">
-              <Handshake className="size-3.5" /> Para quem é
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.06] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-primary">
+              <span>03</span>
+              <span className="h-3 w-px bg-primary/25" />
+              Para quem é
             </div>
             <h2 className="font-display mt-6 text-[2rem] font-semibold leading-[1.05] tracking-[-0.03em] text-[oklch(0.18_0.03_262)] md:text-[2.75rem] lg:text-[3.25rem]">
               Feito para empresas que recebem contatos todos os dias e precisam vender{" "}
@@ -606,17 +619,18 @@ export function LandingPage() {
             ].map((s) => (
               <div
                 key={s.title}
-                className="group flex items-center gap-4 rounded-2xl border border-[var(--border-premium)] bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-soft)]"
+                className="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-[var(--border-premium)] bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[var(--shadow-soft)]"
               >
                 <div
-                  className="flex size-12 shrink-0 items-center justify-center rounded-xl text-primary transition-colors group-hover:text-white"
+                  className="flex size-11 shrink-0 items-center justify-center rounded-xl text-primary transition-all duration-300 group-hover:scale-105"
                   style={{ background: "var(--brand-blue-soft)" }}
                 >
                   <s.icon className="size-5" />
                 </div>
-                <div className="font-display text-[15px] font-semibold tracking-tight">
+                <div className="flex-1 font-display text-[15px] font-semibold tracking-tight">
                   {s.title}
                 </div>
+                <ArrowRight className="size-4 -translate-x-1 text-primary/0 transition-all duration-300 group-hover:translate-x-0 group-hover:text-primary" />
               </div>
             ))}
           </div>
@@ -629,8 +643,10 @@ export function LandingPage() {
       <section id="planos" className="relative overflow-hidden border-t border-[var(--border-premium)] bg-[oklch(0.985_0.005_258)]">
         <div className="mx-auto max-w-7xl px-6 py-24 md:py-32">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.06] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-primary">
-              <Sparkles className="size-3.5" /> Planos
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.06] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-primary">
+              <span>04</span>
+              <span className="h-3 w-px bg-primary/25" />
+              Planos
             </div>
             <h2 className="font-display mt-6 text-[2rem] font-semibold leading-[1.05] tracking-[-0.03em] text-[oklch(0.18_0.03_262)] md:text-[2.75rem] lg:text-[3.25rem]">
               Escolha o plano que acompanha o tamanho da sua operação.
@@ -694,22 +710,38 @@ export function LandingPage() {
                 key={p.name}
                 className={`relative flex flex-col rounded-3xl border p-8 transition-all ${
                   p.highlight
-                    ? "border-transparent text-white shadow-[var(--shadow-premium)]"
-                    : "border-[var(--border-premium)] bg-white hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+                    ? "scale-[1.02] border-transparent text-white shadow-[0_40px_80px_-30px_oklch(0.30_0.18_262_/_0.55)]"
+                    : "border-[var(--border-premium)] bg-white hover:-translate-y-1 hover:border-primary/25 hover:shadow-[var(--shadow-card)]"
                 }`}
                 style={
                   p.highlight
                     ? {
                         background:
-                          "linear-gradient(160deg, oklch(0.22 0.08 264) 0%, oklch(0.14 0.05 262) 100%)",
+                          "linear-gradient(160deg, oklch(0.24 0.10 264) 0%, oklch(0.14 0.05 262) 100%)",
                       }
                     : undefined
                 }
               >
                 {p.highlight && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-primary shadow-[var(--shadow-soft)]">
-                    Mais recomendado
-                  </span>
+                  <>
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute -inset-px rounded-3xl opacity-60"
+                      style={{
+                        background:
+                          "linear-gradient(160deg, oklch(0.65 0.22 262 / 0.35), transparent 40%)",
+                        mask: "linear-gradient(#000, #000) content-box, linear-gradient(#000, #000)",
+                        WebkitMask:
+                          "linear-gradient(#000, #000) content-box, linear-gradient(#000, #000)",
+                        maskComposite: "exclude",
+                        WebkitMaskComposite: "xor",
+                        padding: "1px",
+                      }}
+                    />
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-primary shadow-[var(--shadow-soft)]">
+                      Mais recomendado
+                    </span>
+                  </>
                 )}
                 <div
                   className={`text-[10.5px] font-semibold uppercase tracking-[0.16em] ${
@@ -779,8 +811,10 @@ export function LandingPage() {
       <section id="metodo" className="border-t border-[var(--border-premium)] bg-white">
         <div className="mx-auto max-w-7xl px-6 py-24 md:py-32">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.06] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-primary">
-              <Workflow className="size-3.5" /> Nosso diferencial
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.06] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-primary">
+              <span>05</span>
+              <span className="h-3 w-px bg-primary/25" />
+              Nosso diferencial
             </div>
             <h2 className="font-display mt-6 text-[2rem] font-semibold leading-[1.05] tracking-[-0.03em] text-[oklch(0.18_0.03_262)] md:text-[2.75rem] lg:text-[3.25rem]">
               Mais do que software:{" "}

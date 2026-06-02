@@ -711,22 +711,38 @@ export function LandingPage() {
                 key={p.name}
                 className={`relative flex flex-col rounded-3xl border p-8 transition-all ${
                   p.highlight
-                    ? "border-transparent text-white shadow-[var(--shadow-premium)]"
-                    : "border-[var(--border-premium)] bg-white hover:-translate-y-1 hover:shadow-[var(--shadow-card)]"
+                    ? "scale-[1.02] border-transparent text-white shadow-[0_40px_80px_-30px_oklch(0.30_0.18_262_/_0.55)]"
+                    : "border-[var(--border-premium)] bg-white hover:-translate-y-1 hover:border-primary/25 hover:shadow-[var(--shadow-card)]"
                 }`}
                 style={
                   p.highlight
                     ? {
                         background:
-                          "linear-gradient(160deg, oklch(0.22 0.08 264) 0%, oklch(0.14 0.05 262) 100%)",
+                          "linear-gradient(160deg, oklch(0.24 0.10 264) 0%, oklch(0.14 0.05 262) 100%)",
                       }
                     : undefined
                 }
               >
                 {p.highlight && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-primary shadow-[var(--shadow-soft)]">
-                    Mais recomendado
-                  </span>
+                  <>
+                    <div
+                      aria-hidden
+                      className="pointer-events-none absolute -inset-px rounded-3xl opacity-60"
+                      style={{
+                        background:
+                          "linear-gradient(160deg, oklch(0.65 0.22 262 / 0.35), transparent 40%)",
+                        mask: "linear-gradient(#000, #000) content-box, linear-gradient(#000, #000)",
+                        WebkitMask:
+                          "linear-gradient(#000, #000) content-box, linear-gradient(#000, #000)",
+                        maskComposite: "exclude",
+                        WebkitMaskComposite: "xor",
+                        padding: "1px",
+                      }}
+                    />
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-white px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-primary shadow-[var(--shadow-soft)]">
+                      Mais recomendado
+                    </span>
+                  </>
                 )}
                 <div
                   className={`text-[10.5px] font-semibold uppercase tracking-[0.16em] ${

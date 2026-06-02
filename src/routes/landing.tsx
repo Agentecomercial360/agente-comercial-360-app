@@ -53,7 +53,7 @@ export const Route = createFileRoute("/landing")({
   }),
 });
 
-function LandingPage() {
+export function LandingPage() {
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
       {/* NAV */}

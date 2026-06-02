@@ -1,9 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, ShieldCheck } from "lucide-react";
+import { MessageCircle, Users, Sparkles } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
-import loginHero from "@/assets/login-hero.png";
+import loginHeroAsset from "@/assets/login-hero-v2.jpg.asset.json";
 import { supabase } from "@/lib/supabase";
+
+const loginHero = loginHeroAsset.url;
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,

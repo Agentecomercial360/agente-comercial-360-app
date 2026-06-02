@@ -598,8 +598,10 @@ export function LandingPage() {
       <section id="para-quem" className="border-t border-[var(--border-premium)] bg-white">
         <div className="mx-auto max-w-7xl px-6 py-24 md:py-32">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.06] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-primary">
-              <Handshake className="size-3.5" /> Para quem é
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.06] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-primary">
+              <span>03</span>
+              <span className="h-3 w-px bg-primary/25" />
+              Para quem é
             </div>
             <h2 className="font-display mt-6 text-[2rem] font-semibold leading-[1.05] tracking-[-0.03em] text-[oklch(0.18_0.03_262)] md:text-[2.75rem] lg:text-[3.25rem]">
               Feito para empresas que recebem contatos todos os dias e precisam vender{" "}
@@ -618,17 +620,18 @@ export function LandingPage() {
             ].map((s) => (
               <div
                 key={s.title}
-                className="group flex items-center gap-4 rounded-2xl border border-[var(--border-premium)] bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-[var(--shadow-soft)]"
+                className="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-[var(--border-premium)] bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-primary/25 hover:shadow-[var(--shadow-soft)]"
               >
                 <div
-                  className="flex size-12 shrink-0 items-center justify-center rounded-xl text-primary transition-colors group-hover:text-white"
+                  className="flex size-11 shrink-0 items-center justify-center rounded-xl text-primary transition-all duration-300 group-hover:scale-105"
                   style={{ background: "var(--brand-blue-soft)" }}
                 >
                   <s.icon className="size-5" />
                 </div>
-                <div className="font-display text-[15px] font-semibold tracking-tight">
+                <div className="flex-1 font-display text-[15px] font-semibold tracking-tight">
                   {s.title}
                 </div>
+                <ArrowRight className="size-4 -translate-x-1 text-primary/0 transition-all duration-300 group-hover:translate-x-0 group-hover:text-primary" />
               </div>
             ))}
           </div>

@@ -644,8 +644,10 @@ export function LandingPage() {
       <section id="planos" className="relative overflow-hidden border-t border-[var(--border-premium)] bg-[oklch(0.985_0.005_258)]">
         <div className="mx-auto max-w-7xl px-6 py-24 md:py-32">
           <div className="mx-auto max-w-3xl text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.06] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-primary">
-              <Sparkles className="size-3.5" /> Planos
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.06] px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.18em] text-primary">
+              <span>04</span>
+              <span className="h-3 w-px bg-primary/25" />
+              Planos
             </div>
             <h2 className="font-display mt-6 text-[2rem] font-semibold leading-[1.05] tracking-[-0.03em] text-[oklch(0.18_0.03_262)] md:text-[2.75rem] lg:text-[3.25rem]">
               Escolha o plano que acompanha o tamanho da sua operação.

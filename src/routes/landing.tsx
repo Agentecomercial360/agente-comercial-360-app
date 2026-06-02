@@ -271,33 +271,44 @@ export function LandingPage() {
           </div>
 
           {/* MOCKUP — protagonist, raised closer to fold */}
-          <div className="relative mx-auto mt-10 max-w-[1120px] md:mt-14">
-            {/* deep floor shadow */}
+          <div className="relative mx-auto mt-8 max-w-[1120px] md:mt-10">
+            {/* deep cinematic floor shadow */}
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-x-16 -bottom-12 -z-10 h-32 rounded-[100%] opacity-70 blur-3xl"
+              className="pointer-events-none absolute inset-x-10 -bottom-16 -z-10 h-40 rounded-[100%] opacity-80 blur-[60px]"
               style={{
                 background:
-                  "radial-gradient(closest-side, oklch(0.25 0.08 258 / 0.40) 0%, transparent 80%)",
+                  "radial-gradient(closest-side, oklch(0.20 0.08 258 / 0.55) 0%, oklch(0.30 0.10 258 / 0.20) 50%, transparent 80%)",
               }}
             />
-            {/* blue ambient glow halo */}
+            {/* blue ambient glow halo — wider, richer */}
             <div
               aria-hidden
-              className="pointer-events-none absolute -inset-12 -z-10 blur-[100px]"
+              className="pointer-events-none absolute -inset-20 -z-10 blur-[120px]"
               style={{
                 background:
-                  "radial-gradient(45% 50% at 50% 50%, oklch(0.55 0.22 258 / 0.28) 0%, transparent 75%)",
+                  "radial-gradient(50% 55% at 50% 50%, oklch(0.60 0.22 258 / 0.38) 0%, oklch(0.70 0.18 250 / 0.15) 55%, transparent 80%)",
+              }}
+            />
+            {/* outer atmospheric ring */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-40 -z-10 blur-[140px] opacity-60"
+              style={{
+                background:
+                  "radial-gradient(55% 50% at 50% 50%, oklch(0.92 0.06 250 / 0.55) 0%, transparent 75%)",
               }}
             />
             {/* top edge light */}
             <div
               aria-hidden
-              className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-40 w-[80%] -translate-x-1/2 rounded-full opacity-50 blur-3xl"
+              className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-48 w-[85%] -translate-x-1/2 rounded-full opacity-60 blur-[80px]"
               style={{
                 background:
-                  "radial-gradient(closest-side, oklch(0.70 0.18 250 / 0.35) 0%, transparent 70%)",
+                  "radial-gradient(closest-side, oklch(0.75 0.18 250 / 0.45) 0%, transparent 70%)",
               }}
+            />
+
             />
 
             {/* MAIN DASHBOARD WINDOW */}

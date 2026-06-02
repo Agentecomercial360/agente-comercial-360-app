@@ -433,7 +433,7 @@ export function LandingPage() {
         />
 
         <div className="relative mx-auto max-w-7xl px-6 pt-16 pb-20 lg:pt-24 lg:pb-28">
-          <div className="grid items-center gap-14 lg:grid-cols-[1fr_1.2fr] lg:gap-14">
+          <div className="grid items-start gap-14 lg:grid-cols-[1fr_1.35fr] lg:gap-16">
             <div>
               <Eyebrow>Plataforma de Inteligência Comercial</Eyebrow>
               <h1 className="font-display mt-6 text-[2.3rem] font-semibold leading-[1.03] tracking-[-0.035em] text-[oklch(0.18_0.03_262)] sm:text-[2.8rem] md:text-[3.1rem] lg:text-[3.35rem]">

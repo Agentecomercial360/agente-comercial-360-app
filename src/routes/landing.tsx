@@ -226,7 +226,7 @@ export function LandingPage() {
           </span>
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-6 pt-14 pb-20 md:pt-20 md:pb-24 lg:pt-24">
+        <div className="relative mx-auto max-w-7xl px-6 pt-10 pb-20 md:pt-14 md:pb-24 lg:pt-16">
           {/* TOP — copy block centered, tighter */}
           <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/80 px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-primary shadow-[var(--shadow-soft)] backdrop-blur-md">

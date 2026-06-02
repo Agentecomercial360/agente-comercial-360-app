@@ -4,21 +4,15 @@ import {
   MessageSquare,
   Bot,
   TrendingUp,
-  Target,
-  Zap,
   Workflow,
-  Phone,
   Repeat,
-  FileBarChart,
   CheckCircle2,
   Users,
   ShieldCheck,
   HeadphonesIcon,
   Sparkles,
-  GitBranch,
   Filter,
   Send,
-  BarChart3,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
 import heroCorporate from "@/assets/hero-corporate-v4.jpg.asset.json";

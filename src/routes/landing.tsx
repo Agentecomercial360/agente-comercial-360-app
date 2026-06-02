@@ -88,9 +88,6 @@ export function LandingPage() {
         </div>
       </header>
 
-      {/* HERO */}
-      <section
-        id="top"
       {/* HERO — centered premium layout */}
       <section
         id="top"

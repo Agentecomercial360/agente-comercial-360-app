@@ -91,69 +91,142 @@ export function LandingPage() {
       {/* HERO — cinematic premium layout */}
       <section
         id="top"
-        className="relative overflow-hidden bg-gradient-to-b from-white via-[oklch(0.985_0.008_258)] to-white"
+        className="relative overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(180deg, oklch(0.995 0.003 258) 0%, oklch(0.97 0.012 250) 38%, oklch(0.955 0.018 252) 62%, oklch(0.985 0.008 258) 100%)",
+        }}
       >
-        {/* atmospheric cloud/mist layers */}
+        {/* SKY GRADIENT TOP — soft horizon */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -left-[20%] top-[-10%] -z-10 h-[900px] w-[1200px] rounded-full opacity-70 blur-[140px]"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px]"
           style={{
             background:
-              "radial-gradient(closest-side, oklch(0.92 0.06 258 / 0.7) 0%, transparent 70%)",
+              "linear-gradient(180deg, oklch(0.93 0.04 250 / 0.55) 0%, oklch(0.96 0.025 252 / 0.25) 45%, transparent 100%)",
           }}
         />
+
+        {/* CLOUD LAYER — large soft mist, upper left */}
         <div
           aria-hidden
-          className="pointer-events-none absolute -right-[15%] top-[20%] -z-10 h-[700px] w-[1000px] rounded-full opacity-60 blur-[120px]"
+          className="pointer-events-none absolute -left-[18%] top-[-12%] -z-10 h-[820px] w-[1100px] rounded-[50%] opacity-80 blur-[150px]"
           style={{
             background:
-              "radial-gradient(closest-side, oklch(0.95 0.04 258 / 0.85) 0%, transparent 70%)",
+              "radial-gradient(closest-side, oklch(0.98 0.012 250 / 0.95) 0%, oklch(0.93 0.045 252 / 0.45) 45%, transparent 75%)",
           }}
         />
+        {/* CLOUD LAYER — right side bloom */}
         <div
           aria-hidden
-          className="pointer-events-none absolute left-1/2 top-[35%] -z-10 h-[800px] w-[1400px] -translate-x-1/2 rounded-full opacity-80 blur-[160px]"
+          className="pointer-events-none absolute -right-[12%] top-[8%] -z-10 h-[680px] w-[950px] rounded-[50%] opacity-75 blur-[130px]"
           style={{
             background:
-              "radial-gradient(closest-side, oklch(0.88 0.10 258 / 0.45) 0%, transparent 70%)",
+              "radial-gradient(closest-side, oklch(0.97 0.018 252 / 0.85) 0%, oklch(0.90 0.055 255 / 0.35) 50%, transparent 75%)",
+          }}
+        />
+        {/* CLOUD LAYER — center deep band behind mockup */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-[36%] -z-10 h-[760px] w-[1500px] -translate-x-1/2 rounded-[50%] opacity-85 blur-[170px]"
+          style={{
+            background:
+              "radial-gradient(ellipse 60% 55% at 50% 50%, oklch(0.86 0.10 255 / 0.55) 0%, oklch(0.92 0.06 250 / 0.30) 45%, transparent 75%)",
+          }}
+        />
+        {/* CLOUD LAYER — low whisp left */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-[5%] top-[55%] -z-10 h-[420px] w-[680px] rounded-[50%] opacity-60 blur-[110px]"
+          style={{
+            background:
+              "radial-gradient(closest-side, oklch(0.99 0.006 250 / 0.85) 0%, transparent 70%)",
+          }}
+        />
+        {/* CLOUD LAYER — low whisp right */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-[8%] top-[62%] -z-10 h-[380px] w-[620px] rounded-[50%] opacity-55 blur-[110px]"
+          style={{
+            background:
+              "radial-gradient(closest-side, oklch(0.99 0.006 250 / 0.8) 0%, transparent 70%)",
+          }}
+        />
+        {/* TOP highlight — cinematic light spill */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-[-8%] -z-10 h-[420px] w-[1100px] -translate-x-1/2 rounded-full opacity-70 blur-[120px]"
+          style={{
+            background:
+              "radial-gradient(closest-side, oklch(0.99 0.01 250 / 0.95) 0%, transparent 70%)",
           }}
         />
 
         {/* ultra-subtle grid */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.22]"
+          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.18]"
           style={{
             backgroundImage:
               "linear-gradient(oklch(0.55 0.22 258 / 0.05) 1px, transparent 1px), linear-gradient(90deg, oklch(0.55 0.22 258 / 0.05) 1px, transparent 1px)",
-            backgroundSize: "56px 56px",
+            backgroundSize: "64px 64px",
             maskImage:
-              "radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 80%)",
+              "radial-gradient(ellipse 65% 55% at 50% 45%, black 25%, transparent 80%)",
             WebkitMaskImage:
-              "radial-gradient(ellipse 70% 60% at 50% 40%, black 30%, transparent 80%)",
+              "radial-gradient(ellipse 65% 55% at 50% 45%, black 25%, transparent 80%)",
+          }}
+        />
+
+        {/* fine noise/grain — premium texture */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 opacity-[0.035] mix-blend-overlay"
+          style={{
+            backgroundImage:
+              "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.7 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>\")",
           }}
         />
 
         {/* GIANT TRANSLUCENT WORDMARK — background depth */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-[42%] -z-[5] flex justify-center overflow-hidden"
+          className="pointer-events-none absolute inset-x-0 top-[38%] -z-[5] flex justify-center overflow-hidden"
         >
           <span
-            className="font-display select-none whitespace-nowrap text-[22vw] font-black leading-none tracking-[-0.06em] md:text-[18vw] lg:text-[15rem] xl:text-[18rem]"
+            className="font-display select-none whitespace-nowrap text-[24vw] font-black leading-none tracking-[-0.07em] md:text-[19vw] lg:text-[16rem] xl:text-[20rem]"
             style={{
               background:
-                "linear-gradient(180deg, oklch(0.55 0.22 258 / 0.10) 0%, oklch(0.55 0.22 258 / 0.02) 60%, transparent 100%)",
+                "linear-gradient(180deg, oklch(0.55 0.22 258 / 0.14) 0%, oklch(0.55 0.22 258 / 0.04) 55%, transparent 100%)",
               WebkitBackgroundClip: "text",
               backgroundClip: "text",
               color: "transparent",
+              textShadow: "0 1px 0 oklch(1 0 0 / 0.4)",
             }}
           >
             COMERCIAL 360
           </span>
         </div>
 
-        <div className="relative mx-auto max-w-7xl px-6 pt-14 pb-20 md:pt-20 md:pb-24 lg:pt-24">
+        {/* subtle "360" accent — depth marker */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-[-2%] top-[8%] -z-[5] hidden lg:block"
+        >
+          <span
+            className="font-display select-none text-[22rem] font-black leading-none tracking-[-0.08em]"
+            style={{
+              background:
+                "linear-gradient(135deg, oklch(0.55 0.22 258 / 0.07) 0%, transparent 70%)",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              color: "transparent",
+            }}
+          >
+            360
+          </span>
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-6 pt-10 pb-20 md:pt-14 md:pb-24 lg:pt-16">
           {/* TOP — copy block centered, tighter */}
           <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-white/80 px-3.5 py-1.5 text-[10.5px] font-semibold uppercase tracking-[0.16em] text-primary shadow-[var(--shadow-soft)] backdrop-blur-md">
@@ -198,34 +271,45 @@ export function LandingPage() {
           </div>
 
           {/* MOCKUP — protagonist, raised closer to fold */}
-          <div className="relative mx-auto mt-10 max-w-[1120px] md:mt-14">
-            {/* deep floor shadow */}
+          <div className="relative mx-auto mt-8 max-w-[1120px] md:mt-10">
+            {/* deep cinematic floor shadow */}
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-x-16 -bottom-12 -z-10 h-32 rounded-[100%] opacity-70 blur-3xl"
+              className="pointer-events-none absolute inset-x-10 -bottom-16 -z-10 h-40 rounded-[100%] opacity-80 blur-[60px]"
               style={{
                 background:
-                  "radial-gradient(closest-side, oklch(0.25 0.08 258 / 0.40) 0%, transparent 80%)",
+                  "radial-gradient(closest-side, oklch(0.20 0.08 258 / 0.55) 0%, oklch(0.30 0.10 258 / 0.20) 50%, transparent 80%)",
               }}
             />
-            {/* blue ambient glow halo */}
+            {/* blue ambient glow halo — wider, richer */}
             <div
               aria-hidden
-              className="pointer-events-none absolute -inset-12 -z-10 blur-[100px]"
+              className="pointer-events-none absolute -inset-20 -z-10 blur-[120px]"
               style={{
                 background:
-                  "radial-gradient(45% 50% at 50% 50%, oklch(0.55 0.22 258 / 0.28) 0%, transparent 75%)",
+                  "radial-gradient(50% 55% at 50% 50%, oklch(0.60 0.22 258 / 0.38) 0%, oklch(0.70 0.18 250 / 0.15) 55%, transparent 80%)",
+              }}
+            />
+            {/* outer atmospheric ring */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute -inset-40 -z-10 blur-[140px] opacity-60"
+              style={{
+                background:
+                  "radial-gradient(55% 50% at 50% 50%, oklch(0.92 0.06 250 / 0.55) 0%, transparent 75%)",
               }}
             />
             {/* top edge light */}
             <div
               aria-hidden
-              className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-40 w-[80%] -translate-x-1/2 rounded-full opacity-50 blur-3xl"
+              className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-48 w-[85%] -translate-x-1/2 rounded-full opacity-60 blur-[80px]"
               style={{
                 background:
-                  "radial-gradient(closest-side, oklch(0.70 0.18 250 / 0.35) 0%, transparent 70%)",
+                  "radial-gradient(closest-side, oklch(0.75 0.18 250 / 0.45) 0%, transparent 70%)",
               }}
             />
+
+
 
             {/* MAIN DASHBOARD WINDOW */}
             <div className="relative overflow-hidden rounded-[20px] border border-[var(--border-premium)] bg-white shadow-[0_80px_140px_-30px_oklch(0.18_0.08_258_/_0.50),0_30px_60px_-25px_oklch(0.25_0.08_258_/_0.30)] ring-1 ring-black/[0.03] md:rounded-[24px]">

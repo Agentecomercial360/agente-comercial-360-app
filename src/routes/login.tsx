@@ -183,34 +183,86 @@ function LoginPage() {
           </div>
         </section>
 
-        {/* RIGHT — Brand hero image */}
+        {/* RIGHT — Premium brand panel */}
         <aside
           className="relative hidden overflow-hidden lg:block"
           style={{ background: "var(--gradient-brand)" }}
         >
-          <div
-            aria-hidden
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(900px 600px at 50% 40%, oklch(0.28 0.14 262 / 0.55), transparent 70%)",
-            }}
-          />
           <img
             src={loginHero}
-            alt="Agente Comercial 360 — Operação inteligente com WhatsApp Oficial, Meta Cloud API, IA, CRM e relatórios"
-            className="relative z-10 h-full w-full object-cover object-center"
+            alt=""
+            aria-hidden
+            className="absolute inset-0 h-full w-full object-cover object-center opacity-40"
             loading="eager"
             decoding="async"
           />
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 z-20"
+            className="absolute inset-0"
             style={{
               background:
-                "linear-gradient(180deg, transparent 0%, transparent 70%, oklch(0.18 0.10 262 / 0.45) 100%)",
+                "linear-gradient(135deg, oklch(0.22 0.10 262 / 0.92) 0%, oklch(0.28 0.14 262 / 0.78) 50%, oklch(0.35 0.18 260 / 0.70) 100%)",
             }}
           />
+          <div
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(700px 500px at 80% 10%, oklch(0.55 0.22 258 / 0.35), transparent 65%)",
+            }}
+          />
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-[0.07]"
+            style={{
+              backgroundImage:
+                "linear-gradient(oklch(1 0 0) 1px, transparent 1px), linear-gradient(90deg, oklch(1 0 0) 1px, transparent 1px)",
+              backgroundSize: "56px 56px",
+            }}
+          />
+
+          <div className="relative z-10 flex h-full flex-col justify-between p-12 xl:p-16 text-white">
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-white/80" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/80">
+                Agente Comercial 360
+              </span>
+            </div>
+
+            <div className="max-w-md">
+              <h2 className="font-display text-4xl font-bold leading-[1.1] tracking-tight xl:text-[2.75rem]">
+                Operação comercial inteligente
+              </h2>
+              <p className="mt-5 text-[15px] leading-relaxed text-white/75">
+                Centralize atendimentos, leads e automações em uma plataforma criada para escalar sua operação.
+              </p>
+
+              <ul className="mt-10 space-y-4">
+                {[
+                  { icon: MessageCircle, label: "WhatsApp oficial integrado" },
+                  { icon: Users, label: "CRM com gestão de leads" },
+                  { icon: Sparkles, label: "IA e automações inteligentes" },
+                ].map(({ icon: Icon, label }) => (
+                  <li key={label} className="flex items-center gap-3.5">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 backdrop-blur-sm">
+                      <Icon className="h-4 w-4 text-white" />
+                    </span>
+                    <span className="text-[14px] font-medium text-white/90">
+                      {label}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="flex items-center gap-3 text-[11px] text-white/55">
+              <span className="h-px w-10 bg-white/30" />
+              <span className="uppercase tracking-[0.18em]">
+                Plataforma para times comerciais de alta performance
+              </span>
+            </div>
+          </div>
         </aside>
       </div>
     </main>

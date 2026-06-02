@@ -130,74 +130,40 @@ function MockupFrame({
 /* Hero product mockup — real dashboard screenshot, framed as a premium product */
 function HeroMockup() {
   return (
-    <div className="relative">
-      {/* Ambient glow behind frame */}
+    <div className="relative w-full">
+      {/* Ambient brand glow behind frame */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -inset-10 -z-10 rounded-[3rem] opacity-70 blur-3xl"
+        className="pointer-events-none absolute -inset-12 -z-10 rounded-[3rem] opacity-70 blur-3xl"
         style={{
           background:
-            "radial-gradient(60% 60% at 30% 30%, oklch(0.55 0.22 262 / 0.35), transparent 70%), radial-gradient(50% 50% at 80% 70%, oklch(0.30 0.18 262 / 0.30), transparent 70%)",
+            "radial-gradient(55% 55% at 30% 25%, oklch(0.55 0.22 262 / 0.32), transparent 70%), radial-gradient(50% 50% at 80% 80%, oklch(0.30 0.18 262 / 0.28), transparent 70%)",
         }}
       />
 
-      {/* Floating stat card — top left */}
-      <div className="absolute -left-4 top-8 z-20 hidden rounded-2xl border border-white/60 bg-white/90 px-3.5 py-2.5 shadow-[0_20px_50px_-20px_oklch(0.20_0.10_262/_0.45)] backdrop-blur-md sm:block">
-        <div className="flex items-center gap-2.5">
-          <div className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-[oklch(0.28_0.14_262)] text-white">
-            <Sparkles className="size-4" />
-          </div>
-          <div>
-            <div className="text-[9.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-              IA Ativa
-            </div>
-            <div className="text-[12.5px] font-semibold leading-tight text-[oklch(0.18_0.03_262)]">
-              Atendendo 24/7
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Floating stat card — bottom right */}
-      <div className="absolute -right-4 bottom-8 z-20 hidden rounded-2xl border border-white/60 bg-white/90 px-3.5 py-2.5 shadow-[0_20px_50px_-20px_oklch(0.20_0.10_262/_0.45)] backdrop-blur-md sm:block">
-        <div className="flex items-center gap-2.5">
-          <div className="grid size-9 place-items-center rounded-xl bg-gradient-to-br from-[oklch(0.72_0.18_150)] to-[oklch(0.50_0.18_150)] text-white">
-            <TrendingUp className="size-4" />
-          </div>
-          <div>
-            <div className="text-[9.5px] font-semibold uppercase tracking-wide text-muted-foreground">
-              Conversão
-            </div>
-            <div className="text-[12.5px] font-semibold leading-tight text-[oklch(0.18_0.03_262)]">
-              +38% este mês
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Browser-style frame holding the real product screenshot */}
       <div
-        className="relative overflow-hidden rounded-2xl border border-white/70 bg-white/60 p-1.5 shadow-[0_50px_120px_-30px_oklch(0.18_0.10_262/_0.45),0_0_0_1px_oklch(0.55_0.18_262/_0.08)] backdrop-blur-xl sm:rounded-3xl sm:p-2"
+        className="relative overflow-hidden rounded-2xl border border-white/70 p-1.5 shadow-[0_60px_140px_-30px_oklch(0.18_0.10_262/_0.55),0_0_0_1px_oklch(0.55_0.18_262/_0.08)] backdrop-blur-xl sm:rounded-3xl sm:p-2"
         style={{
           background:
-            "linear-gradient(135deg, oklch(0.99 0.01 262 / 0.9), oklch(0.96 0.02 262 / 0.85))",
+            "linear-gradient(135deg, oklch(0.99 0.01 262 / 0.92), oklch(0.95 0.02 262 / 0.88))",
         }}
       >
         {/* Top window chrome */}
-        <div className="flex items-center justify-between rounded-t-xl bg-white/70 px-3.5 py-2 sm:rounded-t-2xl">
+        <div className="flex items-center justify-between rounded-t-xl bg-white/75 px-4 py-2.5 sm:rounded-t-2xl">
           <div className="flex items-center gap-1.5">
             <span className="size-2.5 rounded-full bg-[oklch(0.78_0.18_25)]" />
             <span className="size-2.5 rounded-full bg-[oklch(0.85_0.16_85)]" />
             <span className="size-2.5 rounded-full bg-[oklch(0.72_0.18_150)]" />
           </div>
-          <div className="flex items-center gap-1.5 rounded-md bg-[oklch(0.97_0.012_262)] px-2.5 py-1 text-[10px] text-muted-foreground">
+          <div className="flex items-center gap-1.5 rounded-md bg-[oklch(0.97_0.012_262)] px-3 py-1 text-[10.5px] text-muted-foreground">
             <Search className="size-3" /> app.agentecomercial360.com.br
           </div>
           <div className="size-5 rounded-full bg-gradient-to-br from-primary to-[oklch(0.28_0.14_262)]" />
         </div>
 
         {/* Screenshot */}
-        <div className="overflow-hidden rounded-b-xl border-t border-[oklch(0.20_0.03_262)]/8 sm:rounded-b-2xl">
+        <div className="overflow-hidden rounded-b-xl border-t border-[oklch(0.20_0.03_262)]/10 sm:rounded-b-2xl">
           <img
             src={heroDashboard.url}
             alt="Painel Gestão 360 do Agente Comercial 360"

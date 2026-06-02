@@ -203,7 +203,9 @@ function JourneyStep({
         >
           {number}
         </span>
-        <Icon className="size-5" style={{ color: BLUE_DEEP }} />
+        <span style={{ color: BLUE_DEEP }} className="inline-flex">
+          <Icon className="size-5" />
+        </span>
       </div>
       <h4 className="mt-4 text-base font-semibold text-slate-900">{title}</h4>
       <p className="mt-2 text-sm leading-relaxed text-slate-600">{description}</p>

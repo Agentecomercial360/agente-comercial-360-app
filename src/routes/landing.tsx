@@ -804,25 +804,26 @@ export function LandingPage() {
 
 
       {/* ============== SEGMENTOS / PROVA ============== */}
-      <section className="border-y border-slate-100 bg-slate-50/60 py-12">
+      <section className="border-y border-slate-100 bg-slate-50/60 py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-6 lg:px-10">
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
             Operações comerciais que já vendem mais com o Agente Comercial 360
           </p>
-          <div className="mt-7 grid grid-cols-2 gap-6 text-center text-sm font-medium text-slate-600 sm:grid-cols-3 md:grid-cols-6">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             {[
-              "Imobiliárias",
-              "Clínicas",
-              "Educação",
-              "Serviços B2B",
-              "Franquias",
-              "E-commerce",
+              { label: "Imobiliárias", icon: Home },
+              { label: "Clínicas", icon: ShieldCheck },
+              { label: "Educação", icon: Sparkles },
+              { label: "Serviços B2B", icon: Briefcase },
+              { label: "Franquias", icon: ShoppingCart },
+              { label: "E-commerce", icon: BarChart3 },
             ].map((s) => (
               <div
-                key={s}
-                className="rounded-lg bg-white py-3 ring-1 ring-slate-200/60 shadow-sm"
+                key={s.label}
+                className="group inline-flex items-center gap-2.5 rounded-full border border-slate-200/80 bg-white px-5 py-2.5 text-sm font-medium text-slate-600 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_6px_20px_-4px_rgba(15,23,42,0.10)] hover:text-slate-900"
               >
-                {s}
+                <s.icon className="size-4 text-slate-400 transition-colors duration-300 group-hover:text-blue-600" />
+                <span>{s.label}</span>
               </div>
             ))}
           </div>

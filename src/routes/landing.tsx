@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   MessageSquare,
+  MessageCircle,
   Bot,
   TrendingUp,
   Workflow,
@@ -13,9 +14,20 @@ import {
   Sparkles,
   Filter,
   Send,
+  Zap,
+  BarChart3,
+  UserCircle2,
+  ShoppingCart,
+  DollarSign,
+  Briefcase,
+  FileText,
+  Headphones,
+  Code2,
+  Database,
+  Home,
+  Bell,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
-import heroReference from "@/assets/hero-reference.png.asset.json";
 import solAtendimento from "@/assets/sol-atendimento.jpg.asset.json";
 import solCrm from "@/assets/sol-crm.jpg.asset.json";
 import solIa from "@/assets/sol-ia.jpg.asset.json";

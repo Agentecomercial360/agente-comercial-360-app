@@ -31,6 +31,7 @@ import acLogo from "@/assets/ac-logo.png";
 import solAtendimento from "@/assets/sol-atendimento.jpg.asset.json";
 import solCrm from "@/assets/sol-crm.jpg.asset.json";
 import solIa from "@/assets/sol-ia.jpg.asset.json";
+import heroPlatformMockup from "@/assets/hero-platform-mockup.png.asset.json";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -711,9 +712,28 @@ export function LandingPage() {
                 </div>
               </div>
 
-              {/* RIGHT — Mockup composition */}
+              {/* RIGHT — Plataforma mockup */}
               <div className="relative lg:col-span-7">
-                <HeroMockup />
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -inset-8 -z-10 rounded-[2rem] blur-3xl"
+                  style={{
+                    background:
+                      "radial-gradient(60% 60% at 60% 40%, oklch(0.65 0.22 258 / 0.28), transparent 70%)",
+                  }}
+                />
+                <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_30px_80px_-30px_rgba(15,23,42,0.35),0_10px_30px_-15px_rgba(37,99,235,0.25)] ring-1 ring-slate-900/5">
+                  <img
+                    src={heroPlatformMockup.url}
+                    alt="Plataforma Agente Comercial 360 — atendimentos, CRM, automação, leads, oportunidades e relatórios"
+                    width={1920}
+                    height={1080}
+                    loading="eager"
+                    fetchPriority="high"
+                    className="block h-auto w-full select-none"
+                    draggable={false}
+                  />
+                </div>
               </div>
             </div>
 

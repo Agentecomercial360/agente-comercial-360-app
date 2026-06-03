@@ -7,14 +7,14 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  * Usa apenas a anon/publishable key — nunca service_role.
  */
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+// Valores temporários para preview Lovable. Substituir por variáveis de ambiente em produção.
+const FALLBACK_SUPABASE_URL = "https://dmwcbecihuxqzzjouevk.supabase.co";
+const FALLBACK_SUPABASE_ANON_KEY = "sb_publishable_GYJnzptCXdI_ZLPWXSHSSw_fgBHsp6n";
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    "Missing Supabase configuration. Ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in the environment."
-  );
-}
+const supabaseUrl =
+  (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? FALLBACK_SUPABASE_URL;
+const supabaseAnonKey =
+  (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? FALLBACK_SUPABASE_ANON_KEY;
 
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

@@ -26,7 +26,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
-export const Route = createFileRoute("/_authenticated/configuracoes")({
+export const Route = createFileRoute("/configuracoes")({
   component: ConfiguracoesPage,
   head: () => ({ meta: [{ title: "Configurações | Agente Comercial 360" }] }),
 });

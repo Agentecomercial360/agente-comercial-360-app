@@ -5,7 +5,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
-export const Route = createFileRoute("/_authenticated/responsaveis")({
+export const Route = createFileRoute("/responsaveis")({
   component: ResponsaveisPage,
   head: () => ({ meta: [{ title: "Responsáveis | Agente Comercial 360" }] }),
 });

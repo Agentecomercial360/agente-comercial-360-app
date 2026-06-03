@@ -24,7 +24,7 @@ import {
   getConversationStatusBadgeClass,
 } from "@/lib/conversation-status";
 
-export const Route = createFileRoute("/_authenticated/atendimentos")({
+export const Route = createFileRoute("/atendimentos")({
   component: AtendimentosPage,
   head: () => ({ meta: [{ title: "Atendimentos | Agente Comercial 360" }] }),
 });

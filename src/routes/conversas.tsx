@@ -87,7 +87,7 @@ function avatarColor(name: string) {
 
 
 
-export const Route = createFileRoute("/_authenticated/conversas")({
+export const Route = createFileRoute("/conversas")({
   component: ConversasPage,
   head: () => ({ meta: [{ title: "Conversas | Agente Comercial 360" }] }),
 });

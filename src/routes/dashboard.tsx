@@ -32,7 +32,7 @@ import {
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 
-export const Route = createFileRoute("/_authenticated/dashboard")({
+export const Route = createFileRoute("/dashboard")({
   component: DashboardPage,
   head: () => ({
     meta: [{ title: "Dashboard | Agente Comercial 360" }],

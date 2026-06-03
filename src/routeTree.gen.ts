@@ -9,25 +9,44 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WhatsappOficialRouteImport } from './routes/whatsapp-oficial'
+import { Route as ResponsaveisRouteImport } from './routes/responsaveis'
+import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as LandingRouteImport } from './routes/landing'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as IaRouteImport } from './routes/ia'
+import { Route as Gestao360RouteImport } from './routes/gestao-360'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ConversasRouteImport } from './routes/conversas'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as BaseConhecimentoRouteImport } from './routes/base-conhecimento'
+import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedWhatsappOficialRouteImport } from './routes/_authenticated.whatsapp-oficial'
-import { Route as AuthenticatedResponsaveisRouteImport } from './routes/_authenticated.responsaveis'
-import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated.relatorios'
-import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated.leads'
-import { Route as AuthenticatedIaRouteImport } from './routes/_authenticated.ia'
-import { Route as AuthenticatedGestao360RouteImport } from './routes/_authenticated.gestao-360'
-import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
-import { Route as AuthenticatedConversasRouteImport } from './routes/_authenticated.conversas'
-import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated.configuracoes'
-import { Route as AuthenticatedBaseConhecimentoRouteImport } from './routes/_authenticated.base-conhecimento'
-import { Route as AuthenticatedAtendimentosRouteImport } from './routes/_authenticated.atendimentos'
 
+const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
+  id: '/whatsapp-oficial',
+  path: '/whatsapp-oficial',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResponsaveisRoute = ResponsaveisRouteImport.update({
+  id: '/responsaveis',
+  path: '/responsaveis',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelatoriosRoute = RelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LeadsRoute = LeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LandingRoute = LandingRouteImport.update({
@@ -35,8 +54,39 @@ const LandingRoute = LandingRouteImport.update({
   path: '/landing',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
-  id: '/_authenticated',
+const IaRoute = IaRouteImport.update({
+  id: '/ia',
+  path: '/ia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Gestao360Route = Gestao360RouteImport.update({
+  id: '/gestao-360',
+  path: '/gestao-360',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConversasRoute = ConversasRouteImport.update({
+  id: '/conversas',
+  path: '/conversas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BaseConhecimentoRoute = BaseConhecimentoRouteImport.update({
+  id: '/base-conhecimento',
+  path: '/base-conhecimento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AtendimentosRoute = AtendimentosRouteImport.update({
+  id: '/atendimentos',
+  path: '/atendimentos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -44,123 +94,60 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedWhatsappOficialRoute =
-  AuthenticatedWhatsappOficialRouteImport.update({
-    id: '/whatsapp-oficial',
-    path: '/whatsapp-oficial',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedResponsaveisRoute =
-  AuthenticatedResponsaveisRouteImport.update({
-    id: '/responsaveis',
-    path: '/responsaveis',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
-  id: '/relatorios',
-  path: '/relatorios',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedLeadsRoute = AuthenticatedLeadsRouteImport.update({
-  id: '/leads',
-  path: '/leads',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedIaRoute = AuthenticatedIaRouteImport.update({
-  id: '/ia',
-  path: '/ia',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedGestao360Route = AuthenticatedGestao360RouteImport.update({
-  id: '/gestao-360',
-  path: '/gestao-360',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedConversasRoute = AuthenticatedConversasRouteImport.update({
-  id: '/conversas',
-  path: '/conversas',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedConfiguracoesRoute =
-  AuthenticatedConfiguracoesRouteImport.update({
-    id: '/configuracoes',
-    path: '/configuracoes',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedBaseConhecimentoRoute =
-  AuthenticatedBaseConhecimentoRouteImport.update({
-    id: '/base-conhecimento',
-    path: '/base-conhecimento',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
-const AuthenticatedAtendimentosRoute =
-  AuthenticatedAtendimentosRouteImport.update({
-    id: '/atendimentos',
-    path: '/atendimentos',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/atendimentos': typeof AtendimentosRoute
+  '/base-conhecimento': typeof BaseConhecimentoRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/conversas': typeof ConversasRoute
+  '/dashboard': typeof DashboardRoute
+  '/gestao-360': typeof Gestao360Route
+  '/ia': typeof IaRoute
   '/landing': typeof LandingRoute
+  '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
-  '/atendimentos': typeof AuthenticatedAtendimentosRoute
-  '/base-conhecimento': typeof AuthenticatedBaseConhecimentoRoute
-  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
-  '/conversas': typeof AuthenticatedConversasRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
-  '/gestao-360': typeof AuthenticatedGestao360Route
-  '/ia': typeof AuthenticatedIaRoute
-  '/leads': typeof AuthenticatedLeadsRoute
-  '/relatorios': typeof AuthenticatedRelatoriosRoute
-  '/responsaveis': typeof AuthenticatedResponsaveisRoute
-  '/whatsapp-oficial': typeof AuthenticatedWhatsappOficialRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/responsaveis': typeof ResponsaveisRoute
+  '/whatsapp-oficial': typeof WhatsappOficialRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/atendimentos': typeof AtendimentosRoute
+  '/base-conhecimento': typeof BaseConhecimentoRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/conversas': typeof ConversasRoute
+  '/dashboard': typeof DashboardRoute
+  '/gestao-360': typeof Gestao360Route
+  '/ia': typeof IaRoute
   '/landing': typeof LandingRoute
+  '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
-  '/atendimentos': typeof AuthenticatedAtendimentosRoute
-  '/base-conhecimento': typeof AuthenticatedBaseConhecimentoRoute
-  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
-  '/conversas': typeof AuthenticatedConversasRoute
-  '/dashboard': typeof AuthenticatedDashboardRoute
-  '/gestao-360': typeof AuthenticatedGestao360Route
-  '/ia': typeof AuthenticatedIaRoute
-  '/leads': typeof AuthenticatedLeadsRoute
-  '/relatorios': typeof AuthenticatedRelatoriosRoute
-  '/responsaveis': typeof AuthenticatedResponsaveisRoute
-  '/whatsapp-oficial': typeof AuthenticatedWhatsappOficialRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/responsaveis': typeof ResponsaveisRoute
+  '/whatsapp-oficial': typeof WhatsappOficialRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/atendimentos': typeof AtendimentosRoute
+  '/base-conhecimento': typeof BaseConhecimentoRoute
+  '/configuracoes': typeof ConfiguracoesRoute
+  '/conversas': typeof ConversasRoute
+  '/dashboard': typeof DashboardRoute
+  '/gestao-360': typeof Gestao360Route
+  '/ia': typeof IaRoute
   '/landing': typeof LandingRoute
+  '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
-  '/_authenticated/atendimentos': typeof AuthenticatedAtendimentosRoute
-  '/_authenticated/base-conhecimento': typeof AuthenticatedBaseConhecimentoRoute
-  '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
-  '/_authenticated/conversas': typeof AuthenticatedConversasRoute
-  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/gestao-360': typeof AuthenticatedGestao360Route
-  '/_authenticated/ia': typeof AuthenticatedIaRoute
-  '/_authenticated/leads': typeof AuthenticatedLeadsRoute
-  '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
-  '/_authenticated/responsaveis': typeof AuthenticatedResponsaveisRoute
-  '/_authenticated/whatsapp-oficial': typeof AuthenticatedWhatsappOficialRoute
+  '/relatorios': typeof RelatoriosRoute
+  '/responsaveis': typeof ResponsaveisRoute
+  '/whatsapp-oficial': typeof WhatsappOficialRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/landing'
-    | '/login'
     | '/atendimentos'
     | '/base-conhecimento'
     | '/configuracoes'
@@ -168,15 +155,15 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/gestao-360'
     | '/ia'
+    | '/landing'
     | '/leads'
+    | '/login'
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/landing'
-    | '/login'
     | '/atendimentos'
     | '/base-conhecimento'
     | '/configuracoes'
@@ -184,43 +171,82 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/gestao-360'
     | '/ia'
+    | '/landing'
     | '/leads'
+    | '/login'
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
   id:
     | '__root__'
     | '/'
-    | '/_authenticated'
+    | '/atendimentos'
+    | '/base-conhecimento'
+    | '/configuracoes'
+    | '/conversas'
+    | '/dashboard'
+    | '/gestao-360'
+    | '/ia'
     | '/landing'
+    | '/leads'
     | '/login'
-    | '/_authenticated/atendimentos'
-    | '/_authenticated/base-conhecimento'
-    | '/_authenticated/configuracoes'
-    | '/_authenticated/conversas'
-    | '/_authenticated/dashboard'
-    | '/_authenticated/gestao-360'
-    | '/_authenticated/ia'
-    | '/_authenticated/leads'
-    | '/_authenticated/relatorios'
-    | '/_authenticated/responsaveis'
-    | '/_authenticated/whatsapp-oficial'
+    | '/relatorios'
+    | '/responsaveis'
+    | '/whatsapp-oficial'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AtendimentosRoute: typeof AtendimentosRoute
+  BaseConhecimentoRoute: typeof BaseConhecimentoRoute
+  ConfiguracoesRoute: typeof ConfiguracoesRoute
+  ConversasRoute: typeof ConversasRoute
+  DashboardRoute: typeof DashboardRoute
+  Gestao360Route: typeof Gestao360Route
+  IaRoute: typeof IaRoute
   LandingRoute: typeof LandingRoute
+  LeadsRoute: typeof LeadsRoute
   LoginRoute: typeof LoginRoute
+  RelatoriosRoute: typeof RelatoriosRoute
+  ResponsaveisRoute: typeof ResponsaveisRoute
+  WhatsappOficialRoute: typeof WhatsappOficialRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/whatsapp-oficial': {
+      id: '/whatsapp-oficial'
+      path: '/whatsapp-oficial'
+      fullPath: '/whatsapp-oficial'
+      preLoaderRoute: typeof WhatsappOficialRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/responsaveis': {
+      id: '/responsaveis'
+      path: '/responsaveis'
+      fullPath: '/responsaveis'
+      preLoaderRoute: typeof ResponsaveisRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/relatorios': {
+      id: '/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/leads': {
+      id: '/leads'
+      path: '/leads'
+      fullPath: '/leads'
+      preLoaderRoute: typeof LeadsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/landing': {
@@ -230,11 +256,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LandingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
+    '/ia': {
+      id: '/ia'
+      path: '/ia'
+      fullPath: '/ia'
+      preLoaderRoute: typeof IaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gestao-360': {
+      id: '/gestao-360'
+      path: '/gestao-360'
+      fullPath: '/gestao-360'
+      preLoaderRoute: typeof Gestao360RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conversas': {
+      id: '/conversas'
+      path: '/conversas'
+      fullPath: '/conversas'
+      preLoaderRoute: typeof ConversasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/base-conhecimento': {
+      id: '/base-conhecimento'
+      path: '/base-conhecimento'
+      fullPath: '/base-conhecimento'
+      preLoaderRoute: typeof BaseConhecimentoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/atendimentos': {
+      id: '/atendimentos'
+      path: '/atendimentos'
+      fullPath: '/atendimentos'
+      preLoaderRoute: typeof AtendimentosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -244,123 +312,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/whatsapp-oficial': {
-      id: '/_authenticated/whatsapp-oficial'
-      path: '/whatsapp-oficial'
-      fullPath: '/whatsapp-oficial'
-      preLoaderRoute: typeof AuthenticatedWhatsappOficialRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/responsaveis': {
-      id: '/_authenticated/responsaveis'
-      path: '/responsaveis'
-      fullPath: '/responsaveis'
-      preLoaderRoute: typeof AuthenticatedResponsaveisRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/relatorios': {
-      id: '/_authenticated/relatorios'
-      path: '/relatorios'
-      fullPath: '/relatorios'
-      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/leads': {
-      id: '/_authenticated/leads'
-      path: '/leads'
-      fullPath: '/leads'
-      preLoaderRoute: typeof AuthenticatedLeadsRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/ia': {
-      id: '/_authenticated/ia'
-      path: '/ia'
-      fullPath: '/ia'
-      preLoaderRoute: typeof AuthenticatedIaRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/gestao-360': {
-      id: '/_authenticated/gestao-360'
-      path: '/gestao-360'
-      fullPath: '/gestao-360'
-      preLoaderRoute: typeof AuthenticatedGestao360RouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/dashboard': {
-      id: '/_authenticated/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/conversas': {
-      id: '/_authenticated/conversas'
-      path: '/conversas'
-      fullPath: '/conversas'
-      preLoaderRoute: typeof AuthenticatedConversasRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/configuracoes': {
-      id: '/_authenticated/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/configuracoes'
-      preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/base-conhecimento': {
-      id: '/_authenticated/base-conhecimento'
-      path: '/base-conhecimento'
-      fullPath: '/base-conhecimento'
-      preLoaderRoute: typeof AuthenticatedBaseConhecimentoRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/atendimentos': {
-      id: '/_authenticated/atendimentos'
-      path: '/atendimentos'
-      fullPath: '/atendimentos'
-      preLoaderRoute: typeof AuthenticatedAtendimentosRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
   }
 }
 
-interface AuthenticatedRouteChildren {
-  AuthenticatedAtendimentosRoute: typeof AuthenticatedAtendimentosRoute
-  AuthenticatedBaseConhecimentoRoute: typeof AuthenticatedBaseConhecimentoRoute
-  AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
-  AuthenticatedConversasRoute: typeof AuthenticatedConversasRoute
-  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedGestao360Route: typeof AuthenticatedGestao360Route
-  AuthenticatedIaRoute: typeof AuthenticatedIaRoute
-  AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
-  AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
-  AuthenticatedResponsaveisRoute: typeof AuthenticatedResponsaveisRoute
-  AuthenticatedWhatsappOficialRoute: typeof AuthenticatedWhatsappOficialRoute
-}
-
-const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
-  AuthenticatedAtendimentosRoute: AuthenticatedAtendimentosRoute,
-  AuthenticatedBaseConhecimentoRoute: AuthenticatedBaseConhecimentoRoute,
-  AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
-  AuthenticatedConversasRoute: AuthenticatedConversasRoute,
-  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedGestao360Route: AuthenticatedGestao360Route,
-  AuthenticatedIaRoute: AuthenticatedIaRoute,
-  AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
-  AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
-  AuthenticatedResponsaveisRoute: AuthenticatedResponsaveisRoute,
-  AuthenticatedWhatsappOficialRoute: AuthenticatedWhatsappOficialRoute,
-}
-
-const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AtendimentosRoute: AtendimentosRoute,
+  BaseConhecimentoRoute: BaseConhecimentoRoute,
+  ConfiguracoesRoute: ConfiguracoesRoute,
+  ConversasRoute: ConversasRoute,
+  DashboardRoute: DashboardRoute,
+  Gestao360Route: Gestao360Route,
+  IaRoute: IaRoute,
   LandingRoute: LandingRoute,
+  LeadsRoute: LeadsRoute,
   LoginRoute: LoginRoute,
+  RelatoriosRoute: RelatoriosRoute,
+  ResponsaveisRoute: ResponsaveisRoute,
+  WhatsappOficialRoute: WhatsappOficialRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

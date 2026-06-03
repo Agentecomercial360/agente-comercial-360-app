@@ -25,7 +25,7 @@ function normalizeCategoria(value: unknown): "Vendas" | "Administrativo" | "Fina
   return "Vendas";
 }
 
-export const Route = createFileRoute("/_authenticated/base-conhecimento")({
+export const Route = createFileRoute("/base-conhecimento")({
   component: BaseConhecimentoPage,
   head: () => ({ meta: [{ title: "Base de Conhecimento | Agente Comercial 360" }] }),
 });

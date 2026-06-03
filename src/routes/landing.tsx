@@ -628,17 +628,17 @@ export function LandingPage() {
 
             {/* Headline */}
             <h1 className="mx-auto max-w-4xl font-display text-[42px] leading-[1.08] tracking-tight text-slate-900 sm:text-[52px] lg:text-[64px] lg:leading-[1.06]">
-              CRM, WhatsApp e IA para transformar atendimento em vendas.
+              Pare de perder vendas por falta de retorno.
             </h1>
 
             {/* Subtitle */}
             <p className="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-slate-600 sm:text-xl">
-              Centralize conversas, organize leads, automatize follow-ups e acompanhe sua operação comercial em uma plataforma criada para empresas que querem vender com mais controle.
+              Centralize WhatsApp, leads e follow-up em uma operação comercial inteligente.
             </p>
 
             {/* Supporting text */}
             <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-500 sm:text-base">
-              Atendimento humano, inteligência artificial, CRM comercial e automações trabalhando juntos para transformar mensagens soltas em processos comerciais organizados.
+              O Agente Comercial 360 organiza atendimentos, responsáveis, CRM, IA e relatórios em um único painel para sua empresa responder mais rápido, acompanhar oportunidades e vender com mais controle.
             </p>
 
             {/* CTAs */}

@@ -24,6 +24,7 @@ import {
   Headphones,
   Code2,
   Database,
+  Mail,
   Home,
   Bell,
 } from "lucide-react";
@@ -668,69 +669,108 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10">
-            {/* Integrações */}
-            <div className="relative mt-16 rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-[0_10px_40px_-15px_rgba(15,23,42,0.15)] backdrop-blur sm:p-8">
-              <p className="mb-5 text-sm font-semibold text-slate-800">
-                Integrações que potencializam seus resultados
+          {/* ============== INTEGRAÇÕES E SETORES ============== */}
+          <section className="py-16 sm:py-20 lg:py-24">
+            <div className="mx-auto max-w-3xl text-center">
+              <h2 className="font-display text-[28px] font-semibold leading-[1.15] tracking-tight text-slate-900 sm:text-[34px] lg:text-[40px]">
+                Uma estrutura conectada para sua operação comercial crescer com controle.
+              </h2>
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
+                Integre canais, organize setores e acompanhe cada oportunidade dentro de uma operação comercial mais inteligente.
               </p>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-                {[
-                  { icon: MessageCircle, label: "WhatsApp Oficial", color: "text-emerald-600" },
-                  { icon: Workflow, label: "Meta", color: "text-blue-600" },
-                  { icon: Repeat, label: "n8n", color: "text-rose-500" },
-                  { icon: Database, label: "Supabase", color: "text-emerald-500" },
-                  { icon: Sparkles, label: "IA", color: "text-violet-500" },
-                  { icon: Code2, label: "API / Webhooks", color: "text-slate-700" },
-                ].map((it) => (
-                  <div
-                    key={it.label}
-                    className="group flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3.5 py-3 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
-                  >
-                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-50 ring-1 ring-slate-200">
-                      <it.icon className={`size-4 ${it.color}`} />
-                    </span>
-                    <span className="truncate text-[13px] font-semibold text-slate-800">
-                      {it.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
             </div>
 
-            {/* Setores */}
-            <div className="relative mt-5 rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-[0_10px_40px_-15px_rgba(15,23,42,0.10)] backdrop-blur sm:p-7">
-              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                <p className="text-sm font-semibold text-slate-800">
-                  Setores que você pode gerenciar
+            {/* 3 Cards */}
+            <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Card 1: Canais e integrações */}
+              <div className="group flex flex-col rounded-2xl bg-white p-7 shadow-[0_10px_40px_-12px_rgba(15,23,42,0.10)] ring-1 ring-slate-200/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-12px_rgba(15,23,42,0.16)]">
+                <div className="mb-5 inline-flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/20">
+                  <MessageCircle className="size-6 text-white" />
+                </div>
+                <h3 className="mb-2 text-lg font-semibold tracking-tight text-slate-900">Canais e integrações</h3>
+                <p className="text-sm leading-relaxed text-slate-600">
+                  WhatsApp Oficial, Meta Cloud API, e-mail, API e webhooks conectados para centralizar sua operação.
                 </p>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-2">
+                <div className="mt-6 flex flex-wrap gap-2">
                   {[
-                    { icon: ShoppingCart, label: "Vendas" },
-                    { icon: DollarSign, label: "Financeiro" },
-                    { icon: Briefcase, label: "Administrativo" },
-                    { icon: FileText, label: "Orçamentos" },
-                    { icon: Headphones, label: "Suporte" },
-                  ].map((it) => (
-                    <div
-                      key={it.label}
-                      className="flex items-center gap-2.5 rounded-xl px-3 py-2"
-                    >
-                      <span
-                        className="inline-flex size-9 shrink-0 items-center justify-center rounded-full ring-1 ring-slate-200"
-                        style={{ background: BLUE_SOFT }}
-                      >
-                        <it.icon className="size-4" style={{ color: BLUE_DEEP }} />
-                      </span>
-                      <span className="text-sm font-semibold text-slate-800">
-                        {it.label}
-                      </span>
-                    </div>
+                    { icon: MessageCircle, label: "WhatsApp Oficial", bg: "bg-emerald-50", text: "text-emerald-700", ring: "ring-emerald-200" },
+                    { icon: Workflow, label: "Meta Cloud API", bg: "bg-blue-50", text: "text-blue-700", ring: "ring-blue-200" },
+                    { icon: Mail, label: "E-mail", bg: "bg-slate-50", text: "text-slate-700", ring: "ring-slate-200" },
+                    { icon: Code2, label: "API / Webhooks", bg: "bg-violet-50", text: "text-violet-700", ring: "ring-violet-200" },
+                  ].map((item) => (
+                    <span key={item.label} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ring-1 ${item.bg} ${item.text} ${item.ring}`}>
+                      <item.icon className="size-3.5" />
+                      {item.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Card 2: Automação e inteligência */}
+              <div className="group flex flex-col rounded-2xl bg-white p-7 shadow-[0_10px_40px_-12px_rgba(15,23,42,0.10)] ring-1 ring-slate-200/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-12px_rgba(15,23,42,0.16)]">
+                <div className="mb-5 inline-flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/20">
+                  <Sparkles className="size-6 text-white" />
+                </div>
+                <h3 className="mb-2 text-lg font-semibold tracking-tight text-slate-900">Automação e inteligência</h3>
+                <p className="text-sm leading-relaxed text-slate-600">
+                  n8n, Supabase e IA trabalhando juntos para automatizar follow-up, qualificação e organização dos dados.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {[
+                    { icon: Repeat, label: "n8n", bg: "bg-rose-50", text: "text-rose-700", ring: "ring-rose-200" },
+                    { icon: Database, label: "Supabase", bg: "bg-emerald-50", text: "text-emerald-700", ring: "ring-emerald-200" },
+                    { icon: Sparkles, label: "IA", bg: "bg-violet-50", text: "text-violet-700", ring: "ring-violet-200" },
+                    { icon: Zap, label: "Automação", bg: "bg-amber-50", text: "text-amber-700", ring: "ring-amber-200" },
+                  ].map((item) => (
+                    <span key={item.label} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ring-1 ${item.bg} ${item.text} ${item.ring}`}>
+                      <item.icon className="size-3.5" />
+                      {item.label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Card 3: Setores administráveis */}
+              <div className="group flex flex-col rounded-2xl bg-white p-7 shadow-[0_10px_40px_-12px_rgba(15,23,42,0.10)] ring-1 ring-slate-200/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-12px_rgba(15,23,42,0.16)]">
+                <div className="mb-5 inline-flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 shadow-lg shadow-slate-700/20">
+                  <Briefcase className="size-6 text-white" />
+                </div>
+                <h3 className="mb-2 text-lg font-semibold tracking-tight text-slate-900">Setores administráveis</h3>
+                <p className="text-sm leading-relaxed text-slate-600">
+                  Vendas, financeiro, administrativo, orçamentos e suporte com responsáveis, histórico e acompanhamento.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-2">
+                  {[
+                    { icon: ShoppingCart, label: "Vendas", bg: "bg-blue-50", text: "text-blue-700", ring: "ring-blue-200" },
+                    { icon: DollarSign, label: "Financeiro", bg: "bg-emerald-50", text: "text-emerald-700", ring: "ring-emerald-200" },
+                    { icon: Briefcase, label: "Administrativo", bg: "bg-slate-50", text: "text-slate-700", ring: "ring-slate-200" },
+                    { icon: FileText, label: "Orçamentos", bg: "bg-amber-50", text: "text-amber-700", ring: "ring-amber-200" },
+                    { icon: Headphones, label: "Suporte", bg: "bg-violet-50", text: "text-violet-700", ring: "ring-violet-200" },
+                  ].map((item) => (
+                    <span key={item.label} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ring-1 ${item.bg} ${item.text} ${item.ring}`}>
+                      <item.icon className="size-3.5" />
+                      {item.label}
+                    </span>
                   ))}
                 </div>
               </div>
             </div>
-          </div>
+
+            {/* Support line + CTA */}
+            <div className="mx-auto mt-14 max-w-2xl text-center">
+              <p className="text-base leading-relaxed text-slate-600">
+                Do primeiro contato ao acompanhamento final, sua empresa passa a operar com mais organização, velocidade e previsibilidade.
+              </p>
+              <a
+                href="#solucoes"
+                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
+                style={{ color: BLUE_DEEP }}
+              >
+                Ver como funciona na prática
+                <ArrowRight className="size-4" />
+              </a>
+            </div>
+          </section>
         </div>
       </section>
 

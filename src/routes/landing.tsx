@@ -708,67 +708,94 @@ export function LandingPage() {
               </div>
             </div>
 
-            {/* 4 Destaques */}
-            <div className="mx-auto mt-14 grid max-w-6xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {/* 4 Destaques — Premium Cards */}
+            <div className="mx-auto mt-16 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {[
                 {
                   icon: MessageCircle,
                   title: "Atendimento centralizado",
-                  desc: "Todas as conversas organizadas em um só lugar.",
-                  gradient: "from-blue-500 to-indigo-600",
-                  shadow: "shadow-blue-500/20",
+                  desc: "Todas as conversas organizadas em um só lugar, com histórico completo e contexto de cada cliente.",
+                  gradient: "from-[#3b82f6] to-[#1d4ed8]",
+                  shadow: "shadow-blue-500/25",
+                  ring: "ring-blue-500/10",
                 },
                 {
                   icon: UserCircle2,
                   title: "CRM com histórico completo",
-                  desc: "Cada cliente com dados, status, origem, responsável e oportunidade.",
-                  gradient: "from-indigo-600 to-blue-800",
-                  shadow: "shadow-indigo-500/20",
+                  desc: "Cada cliente com dados estruturados, status em tempo real, origem, responsável e oportunidade vinculada.",
+                  gradient: "from-[#1e40af] to-[#172554]",
+                  shadow: "shadow-indigo-500/25",
+                  ring: "ring-indigo-500/10",
                 },
                 {
                   icon: Filter,
                   title: "Distribuição inteligente",
-                  desc: "Encaminhe atendimentos por setor, responsável ou prioridade.",
-                  gradient: "from-sky-500 to-blue-600",
-                  shadow: "shadow-sky-500/20",
+                  desc: "Encaminhe atendimentos automaticamente por setor, responsável, prioridade ou capacidade da equipe.",
+                  gradient: "from-[#0ea5e9] to-[#0369a1]",
+                  shadow: "shadow-sky-500/25",
+                  ring: "ring-sky-500/10",
                 },
                 {
                   icon: TrendingUp,
                   title: "Follow-up e oportunidades",
-                  desc: "Acompanhe negociações, propostas e próximas ações comerciais.",
-                  gradient: "from-blue-700 to-slate-900",
-                  shadow: "shadow-slate-700/20",
+                  desc: "Acompanhe negociações, propostas enviadas, próximas ações comerciais e nunca perca um lead.",
+                  gradient: "from-[#1e3a5f] to-[#0f172a]",
+                  shadow: "shadow-slate-700/25",
+                  ring: "ring-slate-700/10",
                 },
               ].map((item) => (
                 <div
                   key={item.title}
-                  className="group flex flex-col rounded-2xl bg-white p-6 shadow-[0_10px_40px_-12px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-12px_rgba(15,23,42,0.14)]"
+                  className="group relative flex flex-col rounded-3xl bg-white p-8 transition-all duration-500 ease-out hover:-translate-y-2 hover:shadow-[0_24px_60px_-16px_rgba(15,23,42,0.18)]"
+                  style={{
+                    boxShadow: "0 8px 32px -8px rgba(15,23,42,0.08), 0 2px 8px -2px rgba(15,23,42,0.04)",
+                    border: "1px solid rgba(226,232,240,0.6)",
+                  }}
                 >
+                  {/* Subtle top accent line */}
                   <div
-                    className={`mb-4 inline-flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${item.gradient} shadow-lg ${item.shadow}`}
+                    className={`absolute inset-x-0 top-0 h-1 rounded-t-3xl bg-gradient-to-r ${item.gradient} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
+                  />
+                  {/* Icon */}
+                  <div
+                    className={`mb-6 inline-flex size-14 items-center justify-center rounded-2xl bg-gradient-to-br ${item.gradient} shadow-lg ${item.shadow} transition-transform duration-500 group-hover:scale-105`}
                   >
-                    <item.icon className="size-5 text-white" />
+                    <item.icon className="size-7 text-white" strokeWidth={1.5} />
                   </div>
-                  <h3 className="mb-2 text-base font-semibold tracking-tight text-slate-900">
+                  {/* Content */}
+                  <h3 className="mb-3 text-[17px] font-bold tracking-tight text-slate-900">
                     {item.title}
                   </h3>
-                  <p className="text-sm leading-relaxed text-slate-600">{item.desc}</p>
+                  <p className="text-[15px] leading-relaxed text-slate-500">
+                    {item.desc}
+                  </p>
+                  {/* Bottom subtle glow on hover */}
+                  <div
+                    className={`absolute inset-x-4 bottom-4 h-12 rounded-full bg-gradient-to-t ${item.gradient} opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-[0.07]`}
+                  />
                 </div>
               ))}
             </div>
 
-            {/* CTA discreto */}
-            <div className="mx-auto mt-14 max-w-2xl text-center">
+            {/* CTA Premium */}
+            <div className="mx-auto mt-16 max-w-2xl text-center">
               <Link to="/login">
                 <Button
                   size="lg"
-                  className="h-12 rounded-full px-7 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:opacity-95"
-                  style={{ background: BLUE_DEEP }}
+                  className="group relative h-14 overflow-hidden rounded-full px-10 text-base font-semibold text-white shadow-xl shadow-blue-900/20 transition-all duration-500 hover:-translate-y-1 hover:shadow-2xl hover:shadow-blue-900/25"
+                  style={{ background: `linear-gradient(135deg, ${BLUE} 0%, ${BLUE_DEEP} 50%, ${NAVY} 100%)` }}
                 >
-                  Quero ver uma demonstração
-                  <ArrowRight className="ml-2 size-4" />
+                  <span className="relative z-10 flex items-center">
+                    Quero ver uma demonstração
+                    <ArrowRight className="ml-2 size-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </span>
+                  {/* Shine effect */}
+                  <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/15 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
                 </Button>
               </Link>
+              <p className="mt-5 text-sm text-slate-400">
+                Configure em minutos. Teste sem compromisso.
+              </p>
             </div>
           </section>
         </div>
@@ -777,25 +804,26 @@ export function LandingPage() {
 
 
       {/* ============== SEGMENTOS / PROVA ============== */}
-      <section className="border-y border-slate-100 bg-slate-50/60 py-12">
+      <section className="border-y border-slate-100 bg-slate-50/60 py-14 sm:py-16">
         <div className="mx-auto max-w-7xl px-6 lg:px-10">
-          <p className="text-center text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+          <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
             Operações comerciais que já vendem mais com o Agente Comercial 360
           </p>
-          <div className="mt-7 grid grid-cols-2 gap-6 text-center text-sm font-medium text-slate-600 sm:grid-cols-3 md:grid-cols-6">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             {[
-              "Imobiliárias",
-              "Clínicas",
-              "Educação",
-              "Serviços B2B",
-              "Franquias",
-              "E-commerce",
+              { label: "Imobiliárias", icon: Home },
+              { label: "Clínicas", icon: ShieldCheck },
+              { label: "Educação", icon: Sparkles },
+              { label: "Serviços B2B", icon: Briefcase },
+              { label: "Franquias", icon: ShoppingCart },
+              { label: "E-commerce", icon: BarChart3 },
             ].map((s) => (
               <div
-                key={s}
-                className="rounded-lg bg-white py-3 ring-1 ring-slate-200/60 shadow-sm"
+                key={s.label}
+                className="group inline-flex items-center gap-2.5 rounded-full border border-slate-200/80 bg-white px-5 py-2.5 text-sm font-medium text-slate-600 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_6px_20px_-4px_rgba(15,23,42,0.10)] hover:text-slate-900"
               >
-                {s}
+                <s.icon className="size-4 text-slate-400 transition-colors duration-300 group-hover:text-blue-600" />
+                <span>{s.label}</span>
               </div>
             ))}
           </div>

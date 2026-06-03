@@ -633,7 +633,7 @@ export function LandingPage() {
 
             {/* Subtitle */}
             <p className="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-slate-600 sm:text-xl">
-              Centralize conversas, organize leads, automatize follow-ups e acompanhe sua operação comercial em uma plataforma criada para empresas que querem vender com mais controle.
+              Centralize WhatsApp, leads e follow-up em uma operação comercial inteligente.
             </p>
 
             {/* Supporting text */}

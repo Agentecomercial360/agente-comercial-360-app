@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   MessageSquare,
+  MessageCircle,
   Bot,
   TrendingUp,
   Workflow,
@@ -13,9 +14,20 @@ import {
   Sparkles,
   Filter,
   Send,
+  Zap,
+  BarChart3,
+  UserCircle2,
+  ShoppingCart,
+  DollarSign,
+  Briefcase,
+  FileText,
+  Headphones,
+  Code2,
+  Database,
+  Home,
+  Bell,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
-import heroReference from "@/assets/hero-reference.png.asset.json";
 import solAtendimento from "@/assets/sol-atendimento.jpg.asset.json";
 import solCrm from "@/assets/sol-crm.jpg.asset.json";
 import solIa from "@/assets/sol-ia.jpg.asset.json";
@@ -281,8 +293,278 @@ function PlanCard({
 }
 
 /* ------------------------------------------------------------------ */
+/* Hero Mockup — Component-based dashboard mockup                     */
+/* ------------------------------------------------------------------ */
+
+function FloatingCard({
+  icon: Icon,
+  title,
+  description,
+  className = "",
+  iconBg,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  className?: string;
+  iconBg?: string;
+}) {
+  return (
+    <div
+      className={`pointer-events-auto flex w-[200px] items-start gap-3 rounded-2xl border border-slate-200/80 bg-white p-3.5 shadow-[0_15px_40px_-12px_rgba(15,23,42,0.20)] backdrop-blur ${className}`}
+    >
+      <span
+        className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl"
+        style={{
+          background:
+            iconBg ?? `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})`,
+        }}
+      >
+        <Icon className="size-5 text-white" />
+      </span>
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5">
+          <p className="text-[13px] font-semibold text-slate-900">{title}</p>
+          <span className="size-1.5 rounded-full bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.18)]" />
+        </div>
+        <p className="mt-0.5 text-[11.5px] leading-snug text-slate-500">
+          {description}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function HeroMockup() {
+  const funnel = [
+    { label: "Novos Leads", value: 1250, pct: 100 },
+    { label: "Em Atendimento", value: 566, pct: 78 },
+    { label: "Proposta Enviada", value: 342, pct: 58 },
+    { label: "Negociação", value: 126, pct: 38 },
+    { label: "Ganho", value: 64, pct: 22 },
+  ];
+  const chart = [28, 45, 38, 62, 55, 78, 92];
+
+  return (
+    <div className="relative mx-auto w-full max-w-[680px]">
+      {/* Glow */}
+      <div
+        aria-hidden
+        className="absolute -inset-8 -z-10 rounded-[2.5rem] blur-3xl"
+        style={{
+          background:
+            "radial-gradient(ellipse at center, oklch(0.55 0.18 262 / 0.22), transparent 70%)",
+        }}
+      />
+
+      {/* Dashboard */}
+      <div className="relative overflow-hidden rounded-[22px] bg-white shadow-[0_40px_90px_-30px_rgba(15,23,42,0.40)] ring-1 ring-slate-200/80">
+        <div className="flex">
+          {/* Sidebar */}
+          <div
+            className="hidden w-[58px] shrink-0 flex-col items-center gap-1 py-4 sm:flex"
+            style={{ background: NAVY_DEEP }}
+          >
+            <div className="mb-2 flex size-8 items-center justify-center rounded-lg bg-white/10">
+              <img src={acLogo} alt="" className="size-5" />
+            </div>
+            {[Home, MessageSquare, Users, BarChart3, Briefcase, ShieldCheck].map(
+              (Ic, i) => (
+                <div
+                  key={i}
+                  className={`flex size-9 items-center justify-center rounded-lg ${
+                    i === 0 ? "bg-white/15 text-white" : "text-white/55"
+                  }`}
+                >
+                  <Ic className="size-4" />
+                </div>
+              )
+            )}
+          </div>
+
+          {/* Main */}
+          <div className="min-w-0 flex-1 p-4 sm:p-5">
+            {/* Topbar */}
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-[13px] font-semibold text-slate-900">
+                  Olá, time Agente! 👋
+                </p>
+                <p className="text-[11px] text-slate-500">
+                  Aqui está o resumo da operação hoje.
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="flex size-7 items-center justify-center rounded-full bg-slate-100">
+                  <Bell className="size-3.5 text-slate-600" />
+                </span>
+                <span className="flex size-7 items-center justify-center rounded-full bg-slate-100">
+                  <UserCircle2 className="size-4 text-slate-600" />
+                </span>
+              </div>
+            </div>
+
+            {/* KPI grid */}
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                { label: "Leads", value: "1.250", delta: "+12%" },
+                { label: "Conversas", value: "568", delta: "+18%" },
+                { label: "Negociações", value: "342", delta: "+16%" },
+                { label: "Faturamento", value: "R$ 98.760", delta: "+22%" },
+              ].map((k) => (
+                <div
+                  key={k.label}
+                  className="rounded-lg border border-slate-200/80 bg-white p-2.5"
+                >
+                  <p className="text-[10px] font-medium text-slate-500">
+                    {k.label}
+                  </p>
+                  <p className="mt-0.5 text-[15px] font-bold tracking-tight text-slate-900">
+                    {k.value}
+                  </p>
+                  <p className="text-[10px] font-semibold text-emerald-600">
+                    {k.delta}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Funnel + Chart */}
+            <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+              {/* Funnel */}
+              <div className="rounded-lg border border-slate-200/80 p-3">
+                <p className="mb-2 text-[11px] font-semibold text-slate-700">
+                  Funil de Vendas
+                </p>
+                <div className="space-y-1.5">
+                  {funnel.map((f) => (
+                    <div key={f.label} className="flex items-center gap-2">
+                      <div
+                        className="h-5 rounded-sm"
+                        style={{
+                          width: `${f.pct}%`,
+                          background: `linear-gradient(90deg, ${BLUE}, ${BLUE_DEEP})`,
+                        }}
+                      />
+                      <span className="whitespace-nowrap text-[10px] text-slate-600">
+                        {f.label}
+                      </span>
+                      <span className="ml-auto text-[10px] font-semibold text-slate-800">
+                        {f.value}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chart */}
+              <div className="rounded-lg border border-slate-200/80 p-3">
+                <div className="mb-1 flex items-center justify-between">
+                  <p className="text-[11px] font-semibold text-slate-700">
+                    Evolução de Conversas
+                  </p>
+                  <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700">
+                    +28%
+                  </span>
+                </div>
+                <div className="relative h-24">
+                  <svg
+                    viewBox="0 0 280 100"
+                    preserveAspectRatio="none"
+                    className="absolute inset-0 h-full w-full"
+                  >
+                    <defs>
+                      <linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stopColor={BLUE} stopOpacity="0.35" />
+                        <stop offset="100%" stopColor={BLUE} stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    {(() => {
+                      const max = Math.max(...chart);
+                      const step = 280 / (chart.length - 1);
+                      const pts = chart.map(
+                        (v, i) => `${i * step},${100 - (v / max) * 85}`
+                      );
+                      const line = pts.join(" ");
+                      const area = `0,100 ${line} 280,100`;
+                      return (
+                        <>
+                          <polyline points={area} fill="url(#chartFill)" />
+                          <polyline
+                            points={line}
+                            fill="none"
+                            stroke={BLUE_DEEP}
+                            strokeWidth="2"
+                          />
+                          {chart.map((v, i) => (
+                            <circle
+                              key={i}
+                              cx={i * step}
+                              cy={100 - (v / max) * 85}
+                              r="2.5"
+                              fill={BLUE_DEEP}
+                            />
+                          ))}
+                        </>
+                      );
+                    })()}
+                  </svg>
+                </div>
+                <div className="mt-1 flex justify-between text-[9px] text-slate-400">
+                  {["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"].map((d) => (
+                    <span key={d}>{d}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Floating cards */}
+      <div className="absolute -left-4 top-6 hidden sm:block">
+        <FloatingCard
+          icon={MessageSquare}
+          title="Conversas"
+          description="Todas as conversas em um só lugar com IA."
+        />
+      </div>
+      <div className="absolute -left-2 top-[46%] hidden md:block">
+        <FloatingCard
+          icon={Users}
+          title="Leads"
+          description="Capture, qualifique e organize seus leads."
+        />
+      </div>
+      <div className="absolute -left-4 bottom-8 hidden sm:block">
+        <FloatingCard
+          icon={Zap}
+          title="Follow-up"
+          description="Automatize lembretes e acompanhamentos."
+        />
+      </div>
+      <div className="absolute -right-4 top-12 hidden md:block">
+        <FloatingCard
+          icon={BarChart3}
+          title="Relatórios"
+          description="Dados em tempo real para decisões certeiras."
+        />
+      </div>
+      <div className="absolute -right-2 bottom-12 hidden md:block">
+        <FloatingCard
+          icon={UserCircle2}
+          title="Responsáveis"
+          description="Gestão de equipe com metas e performance."
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Page                                                                */
 /* ------------------------------------------------------------------ */
+
 
 export function LandingPage() {
   return (
@@ -328,65 +610,179 @@ export function LandingPage() {
             </div>
           </header>
 
-          {/* Hero — Reference image */}
-          <div className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6 sm:pt-10 sm:pb-24 lg:px-10">
-            <div className="relative">
-              <div
-                aria-hidden
-                className="absolute -inset-6 rounded-[2.5rem] opacity-70 blur-3xl"
-                style={{
-                  background:
-                    "radial-gradient(ellipse at center, oklch(0.55 0.18 262 / 0.18), transparent 70%)",
-                }}
-              />
-              <div className="relative overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200/70 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.25)]">
-                <img
-                  src={heroReference.url}
-                  alt="Agente Comercial 360 — Transforme atendimento, leads e processos em crescimento real"
-                  className="block h-auto w-full"
-                  fetchPriority="high"
-                />
+          {/* Hero — Reconstructed composition */}
+          <div className="mx-auto max-w-7xl px-4 pt-8 pb-16 sm:px-6 sm:pt-12 sm:pb-24 lg:px-10">
+            {/* Decorative blue shape on right (like reference) */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute right-[-10%] top-10 -z-0 h-[700px] w-[700px] rounded-full opacity-60 blur-3xl"
+              style={{
+                background:
+                  "radial-gradient(circle at center, oklch(0.65 0.22 258 / 0.35), oklch(0.55 0.18 262 / 0.15) 50%, transparent 75%)",
+              }}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute right-0 top-0 -z-0 hidden h-full w-[55%] lg:block"
+              style={{
+                background:
+                  "radial-gradient(ellipse 90% 80% at 95% 30%, oklch(0.85 0.10 258 / 0.30), transparent 65%)",
+              }}
+            />
+            {/* Subtle grid texture */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 -z-0 opacity-[0.04]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, #0f172a 1px, transparent 1px), linear-gradient(to bottom, #0f172a 1px, transparent 1px)",
+                backgroundSize: "56px 56px",
+              }}
+            />
+
+            <div className="relative grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
+              {/* LEFT — Copy + CTA */}
+              <div className="lg:col-span-5">
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3.5 py-1.5 backdrop-blur">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  </span>
+                  <span className="text-xs font-semibold tracking-wide text-slate-700">
+                    Plataforma comercial inteligente
+                  </span>
+                </div>
+
+                <h1 className="font-display text-[44px] leading-[1.05] tracking-tight text-slate-900 sm:text-5xl lg:text-[58px]">
+                  Sua operação comercial{" "}
+                  <span
+                    className="bg-clip-text text-transparent"
+                    style={{
+                      backgroundImage: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})`,
+                    }}
+                  >
+                    em um só lugar.
+                  </span>
+                </h1>
+
+                <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
+                  Atendimento inteligente, CRM, follow-up automático, setores
+                  integrados e dados em tempo real para sua empresa vender mais.
+                </p>
+
+                <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                  <Link to="/login">
+                    <Button
+                      size="lg"
+                      className="group h-14 rounded-full px-7 text-base font-semibold text-white shadow-xl shadow-blue-900/25 transition-transform hover:-translate-y-0.5"
+                      style={{
+                        background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})`,
+                      }}
+                    >
+                      <MessageCircle className="size-5" />
+                      Falar com nossa equipe
+                      <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+                  <a href="#solucoes">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="h-14 rounded-full border-slate-300 bg-white px-7 text-base font-semibold text-slate-800 hover:bg-slate-50"
+                    >
+                      Ver como funciona
+                    </Button>
+                  </a>
+                </div>
+
+                <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-500">
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} />
+                    Implantação assistida
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} />
+                    WhatsApp oficial
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} />
+                    Suporte humano
+                  </span>
+                </div>
+              </div>
+
+              {/* RIGHT — Mockup composition */}
+              <div className="relative lg:col-span-7">
+                <HeroMockup />
               </div>
             </div>
 
-            {/* Functional CTAs */}
-            <div className="mt-10 flex flex-col items-center gap-4">
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                <Link to="/login">
-                  <Button
-                    size="lg"
-                    className="h-13 rounded-full px-8 py-3 text-base font-semibold text-white shadow-xl shadow-blue-900/25"
-                    style={{ background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})` }}
+            {/* Integrações */}
+            <div className="relative mt-16 rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-[0_10px_40px_-15px_rgba(15,23,42,0.15)] backdrop-blur sm:p-8">
+              <p className="mb-5 text-sm font-semibold text-slate-800">
+                Integrações que potencializam seus resultados
+              </p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                {[
+                  { icon: MessageCircle, label: "WhatsApp Oficial", color: "text-emerald-600" },
+                  { icon: Workflow, label: "Meta", color: "text-blue-600" },
+                  { icon: Repeat, label: "n8n", color: "text-rose-500" },
+                  { icon: Database, label: "Supabase", color: "text-emerald-500" },
+                  { icon: Sparkles, label: "IA", color: "text-violet-500" },
+                  { icon: Code2, label: "API / Webhooks", color: "text-slate-700" },
+                ].map((it) => (
+                  <div
+                    key={it.label}
+                    className="group flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3.5 py-3 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
                   >
-                    Quero transformar meus resultados
-                    <ArrowRight className="ml-1 size-4" />
-                  </Button>
-                </Link>
-                <a href="#solucoes">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="h-13 rounded-full border-slate-300 bg-white px-8 py-3 text-base font-semibold text-slate-800 hover:bg-slate-50"
-                  >
-                    Ver como funciona
-                  </Button>
-                </a>
+                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-50 ring-1 ring-slate-200">
+                      <it.icon className={`size-4 ${it.color}`} />
+                    </span>
+                    <span className="truncate text-[13px] font-semibold text-slate-800">
+                      {it.label}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-slate-500">
-                <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} /> Implantação assistida
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} /> WhatsApp oficial
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} /> Suporte humano
-                </span>
+            </div>
+
+            {/* Setores */}
+            <div className="relative mt-5 rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-[0_10px_40px_-15px_rgba(15,23,42,0.10)] backdrop-blur sm:p-7">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <p className="text-sm font-semibold text-slate-800">
+                  Setores que você pode gerenciar
+                </p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-2">
+                  {[
+                    { icon: ShoppingCart, label: "Vendas" },
+                    { icon: DollarSign, label: "Financeiro" },
+                    { icon: Briefcase, label: "Administrativo" },
+                    { icon: FileText, label: "Orçamentos" },
+                    { icon: Headphones, label: "Suporte" },
+                  ].map((it) => (
+                    <div
+                      key={it.label}
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2"
+                    >
+                      <span
+                        className="inline-flex size-9 shrink-0 items-center justify-center rounded-full ring-1 ring-slate-200"
+                        style={{ background: BLUE_SOFT }}
+                      >
+                        <it.icon className="size-4" style={{ color: BLUE_DEEP }} />
+                      </span>
+                      <span className="text-sm font-semibold text-slate-800">
+                        {it.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+
 
       {/* ============== SEGMENTOS / PROVA ============== */}
       <section className="border-y border-slate-100 bg-slate-50/60 py-12">

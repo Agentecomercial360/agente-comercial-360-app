@@ -29,6 +29,7 @@ import {
   Bell,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
+import crmDemo from "@/assets/crm-demo.png.asset.json";
 import solAtendimento from "@/assets/sol-atendimento.jpg.asset.json";
 import solCrm from "@/assets/sol-crm.jpg.asset.json";
 import solIa from "@/assets/sol-ia.jpg.asset.json";

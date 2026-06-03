@@ -340,65 +340,179 @@ export function LandingPage() {
             </div>
           </header>
 
-          {/* Hero — Reference image */}
-          <div className="mx-auto max-w-7xl px-4 pt-6 pb-16 sm:px-6 sm:pt-10 sm:pb-24 lg:px-10">
-            <div className="relative">
-              <div
-                aria-hidden
-                className="absolute -inset-6 rounded-[2.5rem] opacity-70 blur-3xl"
-                style={{
-                  background:
-                    "radial-gradient(ellipse at center, oklch(0.55 0.18 262 / 0.18), transparent 70%)",
-                }}
-              />
-              <div className="relative overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200/70 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.25)]">
-                <img
-                  src={heroReference.url}
-                  alt="Agente Comercial 360 — Transforme atendimento, leads e processos em crescimento real"
-                  className="block h-auto w-full"
-                  fetchPriority="high"
-                />
+          {/* Hero — Reconstructed composition */}
+          <div className="mx-auto max-w-7xl px-4 pt-8 pb-16 sm:px-6 sm:pt-12 sm:pb-24 lg:px-10">
+            {/* Decorative blue shape on right (like reference) */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute right-[-10%] top-10 -z-0 h-[700px] w-[700px] rounded-full opacity-60 blur-3xl"
+              style={{
+                background:
+                  "radial-gradient(circle at center, oklch(0.65 0.22 258 / 0.35), oklch(0.55 0.18 262 / 0.15) 50%, transparent 75%)",
+              }}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute right-0 top-0 -z-0 hidden h-full w-[55%] lg:block"
+              style={{
+                background:
+                  "radial-gradient(ellipse 90% 80% at 95% 30%, oklch(0.85 0.10 258 / 0.30), transparent 65%)",
+              }}
+            />
+            {/* Subtle grid texture */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 -z-0 opacity-[0.04]"
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, #0f172a 1px, transparent 1px), linear-gradient(to bottom, #0f172a 1px, transparent 1px)",
+                backgroundSize: "56px 56px",
+              }}
+            />
+
+            <div className="relative grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
+              {/* LEFT — Copy + CTA */}
+              <div className="lg:col-span-5">
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3.5 py-1.5 backdrop-blur">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  </span>
+                  <span className="text-xs font-semibold tracking-wide text-slate-700">
+                    Plataforma comercial inteligente
+                  </span>
+                </div>
+
+                <h1 className="font-display text-[44px] leading-[1.05] tracking-tight text-slate-900 sm:text-5xl lg:text-[58px]">
+                  Sua operação comercial{" "}
+                  <span
+                    className="bg-clip-text text-transparent"
+                    style={{
+                      backgroundImage: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})`,
+                    }}
+                  >
+                    em um só lugar.
+                  </span>
+                </h1>
+
+                <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
+                  Atendimento inteligente, CRM, follow-up automático, setores
+                  integrados e dados em tempo real para sua empresa vender mais.
+                </p>
+
+                <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                  <Link to="/login">
+                    <Button
+                      size="lg"
+                      className="group h-14 rounded-full px-7 text-base font-semibold text-white shadow-xl shadow-blue-900/25 transition-transform hover:-translate-y-0.5"
+                      style={{
+                        background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})`,
+                      }}
+                    >
+                      <MessageCircle className="size-5" />
+                      Falar com nossa equipe
+                      <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+                  <a href="#solucoes">
+                    <Button
+                      size="lg"
+                      variant="outline"
+                      className="h-14 rounded-full border-slate-300 bg-white px-7 text-base font-semibold text-slate-800 hover:bg-slate-50"
+                    >
+                      Ver como funciona
+                    </Button>
+                  </a>
+                </div>
+
+                <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-500">
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} />
+                    Implantação assistida
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} />
+                    WhatsApp oficial
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} />
+                    Suporte humano
+                  </span>
+                </div>
+              </div>
+
+              {/* RIGHT — Mockup composition */}
+              <div className="relative lg:col-span-7">
+                <HeroMockup />
               </div>
             </div>
 
-            {/* Functional CTAs */}
-            <div className="mt-10 flex flex-col items-center gap-4">
-              <div className="flex flex-wrap items-center justify-center gap-3">
-                <Link to="/login">
-                  <Button
-                    size="lg"
-                    className="h-13 rounded-full px-8 py-3 text-base font-semibold text-white shadow-xl shadow-blue-900/25"
-                    style={{ background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})` }}
+            {/* Integrações */}
+            <div className="relative mt-16 rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-[0_10px_40px_-15px_rgba(15,23,42,0.15)] backdrop-blur sm:p-8">
+              <p className="mb-5 text-sm font-semibold text-slate-800">
+                Integrações que potencializam seus resultados
+              </p>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+                {[
+                  { icon: MessageCircle, label: "WhatsApp Oficial", color: "text-emerald-600" },
+                  { icon: Workflow, label: "Meta", color: "text-blue-600" },
+                  { icon: Repeat, label: "n8n", color: "text-rose-500" },
+                  { icon: Database, label: "Supabase", color: "text-emerald-500" },
+                  { icon: Sparkles, label: "IA", color: "text-violet-500" },
+                  { icon: Code2, label: "API / Webhooks", color: "text-slate-700" },
+                ].map((it) => (
+                  <div
+                    key={it.label}
+                    className="group flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3.5 py-3 transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
                   >
-                    Quero transformar meus resultados
-                    <ArrowRight className="ml-1 size-4" />
-                  </Button>
-                </Link>
-                <a href="#solucoes">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="h-13 rounded-full border-slate-300 bg-white px-8 py-3 text-base font-semibold text-slate-800 hover:bg-slate-50"
-                  >
-                    Ver como funciona
-                  </Button>
-                </a>
+                    <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-50 ring-1 ring-slate-200">
+                      <it.icon className={`size-4 ${it.color}`} />
+                    </span>
+                    <span className="truncate text-[13px] font-semibold text-slate-800">
+                      {it.label}
+                    </span>
+                  </div>
+                ))}
               </div>
-              <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-slate-500">
-                <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} /> Implantação assistida
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} /> WhatsApp oficial
-                </span>
-                <span className="inline-flex items-center gap-1.5">
-                  <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} /> Suporte humano
-                </span>
+            </div>
+
+            {/* Setores */}
+            <div className="relative mt-5 rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-[0_10px_40px_-15px_rgba(15,23,42,0.10)] backdrop-blur sm:p-7">
+              <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                <p className="text-sm font-semibold text-slate-800">
+                  Setores que você pode gerenciar
+                </p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5 lg:gap-2">
+                  {[
+                    { icon: ShoppingCart, label: "Vendas" },
+                    { icon: DollarSign, label: "Financeiro" },
+                    { icon: Briefcase, label: "Administrativo" },
+                    { icon: FileText, label: "Orçamentos" },
+                    { icon: Headphones, label: "Suporte" },
+                  ].map((it) => (
+                    <div
+                      key={it.label}
+                      className="flex items-center gap-2.5 rounded-xl px-3 py-2"
+                    >
+                      <span
+                        className="inline-flex size-9 shrink-0 items-center justify-center rounded-full ring-1 ring-slate-200"
+                        style={{ background: BLUE_SOFT }}
+                      >
+                        <it.icon className="size-4" style={{ color: BLUE_DEEP }} />
+                      </span>
+                      <span className="text-sm font-semibold text-slate-800">
+                        {it.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
+
+
 
       {/* ============== SEGMENTOS / PROVA ============== */}
       <section className="border-y border-slate-100 bg-slate-50/60 py-12">

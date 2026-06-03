@@ -628,7 +628,7 @@ export function LandingPage() {
 
             {/* Headline */}
             <h1 className="mx-auto max-w-4xl font-display text-[42px] leading-[1.08] tracking-tight text-slate-900 sm:text-[52px] lg:text-[64px] lg:leading-[1.06]">
-              CRM, WhatsApp e IA para transformar atendimento em vendas.
+              Pare de perder vendas por falta de retorno.
             </h1>
 
             {/* Subtitle */}

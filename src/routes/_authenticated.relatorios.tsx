@@ -22,7 +22,7 @@ import { CONVERSATION_STATUSES, getConversationStatusLabel } from "@/lib/convers
 // como se fossem dados reais da operação.
 
 
-export const Route = createFileRoute("/relatorios")({
+export const Route = createFileRoute("/_authenticated/relatorios")({
   component: RelatoriosPage,
   head: () => ({ meta: [{ title: "Relatórios | Agente Comercial 360" }] }),
 });

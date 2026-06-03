@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 
-export const Route = createFileRoute("/leads")({
+export const Route = createFileRoute("/_authenticated/leads")({
   component: LeadsPage,
   head: () => ({ meta: [{ title: "Leads | Agente Comercial 360" }] }),
 });

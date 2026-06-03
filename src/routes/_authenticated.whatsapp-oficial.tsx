@@ -22,7 +22,7 @@ import {
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 
-export const Route = createFileRoute("/whatsapp-oficial")({
+export const Route = createFileRoute("/_authenticated/whatsapp-oficial")({
   component: WhatsAppOficialPage,
   head: () => ({ meta: [{ title: "WhatsApp Oficial | Agente Comercial 360" }] }),
 });

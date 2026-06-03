@@ -18,7 +18,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
-export const Route = createFileRoute("/ia")({
+export const Route = createFileRoute("/_authenticated/ia")({
   component: IAPage,
   head: () => ({ meta: [{ title: "Configuração da IA | Agente Comercial 360" }] }),
 });

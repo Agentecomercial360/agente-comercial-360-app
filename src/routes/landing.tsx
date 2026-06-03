@@ -668,6 +668,7 @@ export function LandingPage() {
             </p>
           </div>
 
+          <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10">
             {/* Integrações */}
             <div className="relative mt-16 rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-[0_10px_40px_-15px_rgba(15,23,42,0.15)] backdrop-blur sm:p-8">
               <p className="mb-5 text-sm font-semibold text-slate-800">
@@ -727,6 +728,7 @@ export function LandingPage() {
                     </div>
                   ))}
                 </div>
+              </div>
             </div>
           </div>
         </div>

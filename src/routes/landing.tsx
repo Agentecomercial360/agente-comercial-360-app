@@ -29,6 +29,7 @@ import {
   Bell,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
+import crmDemo from "@/assets/crm-demo.png.asset.json";
 import solAtendimento from "@/assets/sol-atendimento.jpg.asset.json";
 import solCrm from "@/assets/sol-crm.jpg.asset.json";
 import solIa from "@/assets/sol-ia.jpg.asset.json";
@@ -669,106 +670,105 @@ export function LandingPage() {
             </p>
           </div>
 
-          {/* ============== INTEGRAÇÕES E SETORES ============== */}
+          {/* ============== DEMONSTRAÇÃO DO PRODUTO ============== */}
           <section className="py-16 sm:py-20 lg:py-24">
             <div className="mx-auto max-w-3xl text-center">
               <h2 className="font-display text-[28px] font-semibold leading-[1.15] tracking-tight text-slate-900 sm:text-[34px] lg:text-[40px]">
-                Uma estrutura conectada para sua operação comercial crescer com controle.
+                Veja sua operação comercial funcionando na prática.
               </h2>
               <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
-                Integre canais, organize setores e acompanhe cada oportunidade dentro de uma operação comercial mais inteligente.
+                Centralize conversas, distribua atendimentos, acompanhe leads, organize oportunidades e tenha visão completa do relacionamento com cada cliente.
               </p>
             </div>
 
-            {/* 3 Cards */}
-            <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Card 1: Canais e integrações */}
-              <div className="group flex flex-col rounded-2xl bg-white p-7 shadow-[0_10px_40px_-12px_rgba(15,23,42,0.10)] ring-1 ring-slate-200/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-12px_rgba(15,23,42,0.16)]">
-                <div className="mb-5 inline-flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/20">
-                  <MessageCircle className="size-6 text-white" />
-                </div>
-                <h3 className="mb-2 text-lg font-semibold tracking-tight text-slate-900">Canais e integrações</h3>
-                <p className="text-sm leading-relaxed text-slate-600">
-                  WhatsApp Oficial, Meta Cloud API, e-mail, API e webhooks conectados para centralizar sua operação.
-                </p>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {[
-                    { icon: MessageCircle, label: "WhatsApp Oficial", bg: "bg-emerald-50", text: "text-emerald-700", ring: "ring-emerald-200" },
-                    { icon: Workflow, label: "Meta Cloud API", bg: "bg-blue-50", text: "text-blue-700", ring: "ring-blue-200" },
-                    { icon: Mail, label: "E-mail", bg: "bg-slate-50", text: "text-slate-700", ring: "ring-slate-200" },
-                    { icon: Code2, label: "API / Webhooks", bg: "bg-violet-50", text: "text-violet-700", ring: "ring-violet-200" },
-                  ].map((item) => (
-                    <span key={item.label} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ring-1 ${item.bg} ${item.text} ${item.ring}`}>
-                      <item.icon className="size-3.5" />
-                      {item.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Card 2: Automação e inteligência */}
-              <div className="group flex flex-col rounded-2xl bg-white p-7 shadow-[0_10px_40px_-12px_rgba(15,23,42,0.10)] ring-1 ring-slate-200/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-12px_rgba(15,23,42,0.16)]">
-                <div className="mb-5 inline-flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/20">
-                  <Sparkles className="size-6 text-white" />
-                </div>
-                <h3 className="mb-2 text-lg font-semibold tracking-tight text-slate-900">Automação e inteligência</h3>
-                <p className="text-sm leading-relaxed text-slate-600">
-                  n8n, Supabase e IA trabalhando juntos para automatizar follow-up, qualificação e organização dos dados.
-                </p>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {[
-                    { icon: Repeat, label: "n8n", bg: "bg-rose-50", text: "text-rose-700", ring: "ring-rose-200" },
-                    { icon: Database, label: "Supabase", bg: "bg-emerald-50", text: "text-emerald-700", ring: "ring-emerald-200" },
-                    { icon: Sparkles, label: "IA", bg: "bg-violet-50", text: "text-violet-700", ring: "ring-violet-200" },
-                    { icon: Zap, label: "Automação", bg: "bg-amber-50", text: "text-amber-700", ring: "ring-amber-200" },
-                  ].map((item) => (
-                    <span key={item.label} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ring-1 ${item.bg} ${item.text} ${item.ring}`}>
-                      <item.icon className="size-3.5" />
-                      {item.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* Card 3: Setores administráveis */}
-              <div className="group flex flex-col rounded-2xl bg-white p-7 shadow-[0_10px_40px_-12px_rgba(15,23,42,0.10)] ring-1 ring-slate-200/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-12px_rgba(15,23,42,0.16)]">
-                <div className="mb-5 inline-flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 shadow-lg shadow-slate-700/20">
-                  <Briefcase className="size-6 text-white" />
-                </div>
-                <h3 className="mb-2 text-lg font-semibold tracking-tight text-slate-900">Setores administráveis</h3>
-                <p className="text-sm leading-relaxed text-slate-600">
-                  Vendas, financeiro, administrativo, orçamentos e suporte com responsáveis, histórico e acompanhamento.
-                </p>
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {[
-                    { icon: ShoppingCart, label: "Vendas", bg: "bg-blue-50", text: "text-blue-700", ring: "ring-blue-200" },
-                    { icon: DollarSign, label: "Financeiro", bg: "bg-emerald-50", text: "text-emerald-700", ring: "ring-emerald-200" },
-                    { icon: Briefcase, label: "Administrativo", bg: "bg-slate-50", text: "text-slate-700", ring: "ring-slate-200" },
-                    { icon: FileText, label: "Orçamentos", bg: "bg-amber-50", text: "text-amber-700", ring: "ring-amber-200" },
-                    { icon: Headphones, label: "Suporte", bg: "bg-violet-50", text: "text-violet-700", ring: "ring-violet-200" },
-                  ].map((item) => (
-                    <span key={item.label} className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium ring-1 ${item.bg} ${item.text} ${item.ring}`}>
-                      <item.icon className="size-3.5" />
-                      {item.label}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Support line + CTA */}
-            <div className="mx-auto mt-14 max-w-2xl text-center">
-              <p className="text-base leading-relaxed text-slate-600">
-                Do primeiro contato ao acompanhamento final, sua empresa passa a operar com mais organização, velocidade e previsibilidade.
-              </p>
-              <a
-                href="#solucoes"
-                className="mt-6 inline-flex items-center gap-2 text-sm font-semibold transition-colors hover:opacity-80"
-                style={{ color: BLUE_DEEP }}
+            {/* CRM Mockup Container */}
+            <div className="relative mx-auto mt-14 max-w-6xl">
+              {/* Glow */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-x-0 -top-10 -bottom-10 -z-10 rounded-[3rem]"
+                style={{
+                  background:
+                    "radial-gradient(60% 60% at 50% 50%, rgba(37,99,235,0.18) 0%, rgba(15,23,42,0.04) 50%, transparent 80%)",
+                }}
+              />
+              <div
+                className="overflow-hidden rounded-[1.75rem] bg-white ring-1 ring-slate-200/70"
+                style={{
+                  boxShadow:
+                    "0 40px 100px -30px rgba(15,23,42,0.35), 0 15px 40px -15px rgba(37,99,235,0.22)",
+                }}
               >
-                Ver como funciona na prática
-                <ArrowRight className="size-4" />
-              </a>
+                <img
+                  src={crmDemo.url}
+                  alt="Demonstração da plataforma Agente Comercial 360: atendimentos, CRM, conversas e oportunidades"
+                  className="block h-auto w-full"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+
+            {/* 4 Destaques */}
+            <div className="mx-auto mt-14 grid max-w-6xl gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                {
+                  icon: MessageCircle,
+                  title: "Atendimento centralizado",
+                  desc: "Todas as conversas organizadas em um só lugar.",
+                  gradient: "from-blue-500 to-indigo-600",
+                  shadow: "shadow-blue-500/20",
+                },
+                {
+                  icon: UserCircle2,
+                  title: "CRM com histórico completo",
+                  desc: "Cada cliente com dados, status, origem, responsável e oportunidade.",
+                  gradient: "from-indigo-600 to-blue-800",
+                  shadow: "shadow-indigo-500/20",
+                },
+                {
+                  icon: Filter,
+                  title: "Distribuição inteligente",
+                  desc: "Encaminhe atendimentos por setor, responsável ou prioridade.",
+                  gradient: "from-sky-500 to-blue-600",
+                  shadow: "shadow-sky-500/20",
+                },
+                {
+                  icon: TrendingUp,
+                  title: "Follow-up e oportunidades",
+                  desc: "Acompanhe negociações, propostas e próximas ações comerciais.",
+                  gradient: "from-blue-700 to-slate-900",
+                  shadow: "shadow-slate-700/20",
+                },
+              ].map((item) => (
+                <div
+                  key={item.title}
+                  className="group flex flex-col rounded-2xl bg-white p-6 shadow-[0_10px_40px_-12px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-12px_rgba(15,23,42,0.14)]"
+                >
+                  <div
+                    className={`mb-4 inline-flex size-11 items-center justify-center rounded-xl bg-gradient-to-br ${item.gradient} shadow-lg ${item.shadow}`}
+                  >
+                    <item.icon className="size-5 text-white" />
+                  </div>
+                  <h3 className="mb-2 text-base font-semibold tracking-tight text-slate-900">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-slate-600">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA discreto */}
+            <div className="mx-auto mt-14 max-w-2xl text-center">
+              <Link to="/login">
+                <Button
+                  size="lg"
+                  className="h-12 rounded-full px-7 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-all hover:opacity-95"
+                  style={{ background: BLUE_DEEP }}
+                >
+                  Quero ver uma demonstração
+                  <ArrowRight className="ml-2 size-4" />
+                </Button>
+              </Link>
             </div>
           </section>
         </div>

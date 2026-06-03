@@ -29,7 +29,6 @@ import {
   Bell,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
-import acLogoFull from "@/assets/ac-logo-full.jpeg.asset.json";
 import crmDemo from "@/assets/crm-demo.png.asset.json";
 import solAtendimento from "@/assets/sol-atendimento.jpg.asset.json";
 import solCrm from "@/assets/sol-crm.jpg.asset.json";
@@ -587,12 +586,8 @@ export function LandingPage() {
         <div className="relative z-10">
           {/* Header */}
           <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-            <a href="#top" className="flex items-center">
-              <img
-                src={acLogoFull.url}
-                alt="Agente Comercial 360"
-                className="h-8 w-auto object-contain sm:h-10 md:h-12"
-              />
+            <a href="#top" className="flex items-center gap-2.5">
+              <img src={acLogo} alt="Agente Comercial 360" className="h-9 w-auto" />
             </a>
             <nav className="hidden items-center gap-8 text-sm font-medium text-slate-700 md:flex">
               <a href="#solucoes" className="transition-colors hover:text-slate-900">Soluções</a>

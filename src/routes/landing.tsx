@@ -611,134 +611,64 @@ export function LandingPage() {
             </div>
           </header>
 
-          {/* Hero — Reconstructed composition */}
-          <div className="mx-auto max-w-7xl px-4 pt-8 pb-16 sm:px-6 sm:pt-12 sm:pb-24 lg:px-10">
-            {/* Decorative blue shape on right (like reference) */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute right-[-10%] top-10 -z-0 h-[700px] w-[700px] rounded-full opacity-60 blur-3xl"
-              style={{
-                background:
-                  "radial-gradient(circle at center, oklch(0.65 0.22 258 / 0.35), oklch(0.55 0.18 262 / 0.15) 50%, transparent 75%)",
-              }}
-            />
-            <div
-              aria-hidden
-              className="pointer-events-none absolute right-0 top-0 -z-0 hidden h-full w-[55%] lg:block"
-              style={{
-                background:
-                  "radial-gradient(ellipse 90% 80% at 95% 30%, oklch(0.85 0.10 258 / 0.30), transparent 65%)",
-              }}
-            />
-            {/* Subtle grid texture */}
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 -z-0 opacity-[0.04]"
-              style={{
-                backgroundImage:
-                  "linear-gradient(to right, #0f172a 1px, transparent 1px), linear-gradient(to bottom, #0f172a 1px, transparent 1px)",
-                backgroundSize: "56px 56px",
-              }}
-            />
-
-            <div className="relative grid items-center gap-12 lg:grid-cols-12 lg:gap-8">
-              {/* LEFT — Copy + CTA */}
-              <div className="lg:col-span-5">
-                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3.5 py-1.5 backdrop-blur">
-                  <span className="relative flex h-2 w-2">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                  </span>
-                  <span className="text-xs font-semibold tracking-wide text-slate-700">
-                    Plataforma comercial inteligente
-                  </span>
-                </div>
-
-                <h1 className="font-display text-[44px] leading-[1.05] tracking-tight text-slate-900 sm:text-5xl lg:text-[58px]">
-                  Sua operação comercial{" "}
-                  <span
-                    className="bg-clip-text text-transparent"
-                    style={{
-                      backgroundImage: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})`,
-                    }}
-                  >
-                    em um só lugar.
-                  </span>
-                </h1>
-
-                <p className="mt-6 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
-                  Atendimento inteligente, CRM, follow-up automático, setores
-                  integrados e dados em tempo real para sua empresa vender mais.
-                </p>
-
-                <div className="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-                  <Link to="/login">
-                    <Button
-                      size="lg"
-                      className="group h-14 rounded-full px-7 text-base font-semibold text-white shadow-xl shadow-blue-900/25 transition-transform hover:-translate-y-0.5"
-                      style={{
-                        background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})`,
-                      }}
-                    >
-                      <MessageCircle className="size-5" />
-                      Falar com nossa equipe
-                      <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
-                    </Button>
-                  </Link>
-                  <a href="#solucoes">
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="h-14 rounded-full border-slate-300 bg-white px-7 text-base font-semibold text-slate-800 hover:bg-slate-50"
-                    >
-                      Ver como funciona
-                    </Button>
-                  </a>
-                </div>
-
-                <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-slate-500">
-                  <span className="inline-flex items-center gap-1.5">
-                    <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} />
-                    Implantação assistida
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} />
-                    WhatsApp oficial
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <CheckCircle2 className="size-3.5" style={{ color: BLUE_DEEP }} />
-                    Suporte humano
-                  </span>
-                </div>
-              </div>
-
-              {/* RIGHT — Plataforma mockup */}
-              <div className="relative lg:col-span-7">
-                <div className="relative lg:w-[118%] lg:-mr-[18%] xl:w-[124%] xl:-mr-[24%]">
-                  <div
-                    aria-hidden
-                    className="pointer-events-none absolute -inset-10 -z-10 rounded-[2.5rem] blur-3xl"
-                    style={{
-                      background:
-                        "radial-gradient(55% 60% at 55% 45%, oklch(0.65 0.22 258 / 0.32), transparent 70%)",
-                    }}
-                  />
-                  <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_40px_100px_-30px_rgba(15,23,42,0.4),0_15px_40px_-15px_rgba(37,99,235,0.3)] ring-1 ring-slate-900/5">
-                    <img
-                      src={heroPlatformMockup.url}
-                      alt="Plataforma Agente Comercial 360 — atendimentos, CRM, automação, leads, oportunidades e relatórios"
-                      width={1920}
-                      height={1080}
-                      loading="eager"
-                      fetchPriority="high"
-                      className="block h-auto w-full select-none"
-                      draggable={false}
-                    />
-                  </div>
-                </div>
-              </div>
+          {/* Hero — Clean, centered, premium */}
+          <div className="mx-auto max-w-5xl px-6 pt-16 pb-20 text-center sm:px-8 sm:pt-20 sm:pb-28 lg:px-10 lg:pt-28 lg:pb-32">
+            {/* Badge */}
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              </span>
+              <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-700">
+                Plataforma comercial inteligente
+              </span>
             </div>
 
+            {/* Headline */}
+            <h1 className="mx-auto max-w-4xl font-display text-[42px] leading-[1.08] tracking-tight text-slate-900 sm:text-[52px] lg:text-[64px] lg:leading-[1.06]">
+              CRM, WhatsApp e IA para transformar atendimento em vendas.
+            </h1>
+
+            {/* Subtitle */}
+            <p className="mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-slate-600 sm:text-xl">
+              Centralize conversas, organize leads, automatize follow-ups e acompanhe sua operação comercial em uma plataforma criada para empresas que querem vender com mais controle.
+            </p>
+
+            {/* Supporting text */}
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-500 sm:text-base">
+              Atendimento humano, inteligência artificial, CRM comercial e automações trabalhando juntos para transformar mensagens soltas em processos comerciais organizados.
+            </p>
+
+            {/* CTAs */}
+            <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
+              <Link to="/login">
+                <Button
+                  size="lg"
+                  className="h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-900/20 transition-transform hover:-translate-y-0.5"
+                  style={{ background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})` }}
+                >
+                  Solicitar demonstração
+                  <ArrowRight className="ml-2 size-4" />
+                </Button>
+              </Link>
+              <a href="#solucoes">
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="h-14 rounded-full border-slate-300 bg-white px-8 text-base font-semibold text-slate-800 hover:bg-slate-50"
+                >
+                  Ver como funciona
+                </Button>
+              </a>
+            </div>
+
+            {/* Trust line */}
+            <p className="mt-8 text-sm font-medium tracking-wide text-slate-500">
+              Mais controle. Menos improviso. Mais oportunidades acompanhadas.
+            </p>
+          </div>
+
+          <div className="mx-auto max-w-7xl px-6 sm:px-8 lg:px-10">
             {/* Integrações */}
             <div className="relative mt-16 rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-[0_10px_40px_-15px_rgba(15,23,42,0.15)] backdrop-blur sm:p-8">
               <p className="mb-5 text-sm font-semibold text-slate-800">

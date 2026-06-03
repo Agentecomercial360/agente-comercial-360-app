@@ -714,25 +714,27 @@ export function LandingPage() {
 
               {/* RIGHT — Plataforma mockup */}
               <div className="relative lg:col-span-7">
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -inset-8 -z-10 rounded-[2rem] blur-3xl"
-                  style={{
-                    background:
-                      "radial-gradient(60% 60% at 60% 40%, oklch(0.65 0.22 258 / 0.28), transparent 70%)",
-                  }}
-                />
-                <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_30px_80px_-30px_rgba(15,23,42,0.35),0_10px_30px_-15px_rgba(37,99,235,0.25)] ring-1 ring-slate-900/5">
-                  <img
-                    src={heroPlatformMockup.url}
-                    alt="Plataforma Agente Comercial 360 — atendimentos, CRM, automação, leads, oportunidades e relatórios"
-                    width={1920}
-                    height={1080}
-                    loading="eager"
-                    fetchPriority="high"
-                    className="block h-auto w-full select-none"
-                    draggable={false}
+                <div className="relative lg:w-[118%] lg:-mr-[18%] xl:w-[124%] xl:-mr-[24%]">
+                  <div
+                    aria-hidden
+                    className="pointer-events-none absolute -inset-10 -z-10 rounded-[2.5rem] blur-3xl"
+                    style={{
+                      background:
+                        "radial-gradient(55% 60% at 55% 45%, oklch(0.65 0.22 258 / 0.32), transparent 70%)",
+                    }}
                   />
+                  <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_40px_100px_-30px_rgba(15,23,42,0.4),0_15px_40px_-15px_rgba(37,99,235,0.3)] ring-1 ring-slate-900/5">
+                    <img
+                      src={heroPlatformMockup.url}
+                      alt="Plataforma Agente Comercial 360 — atendimentos, CRM, automação, leads, oportunidades e relatórios"
+                      width={1920}
+                      height={1080}
+                      loading="eager"
+                      fetchPriority="high"
+                      className="block h-auto w-full select-none"
+                      draggable={false}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

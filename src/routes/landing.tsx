@@ -638,7 +638,7 @@ export function LandingPage() {
 
             {/* Supporting text */}
             <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-500 sm:text-base">
-              Atendimento humano, inteligência artificial, CRM comercial e automações trabalhando juntos para transformar mensagens soltas em processos comerciais organizados.
+              O Agente Comercial 360 organiza atendimentos, responsáveis, CRM, IA e relatórios em um único painel para sua empresa responder mais rápido, acompanhar oportunidades e vender com mais controle.
             </p>
 
             {/* CTAs */}

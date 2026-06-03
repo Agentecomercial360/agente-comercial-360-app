@@ -25,7 +25,7 @@ import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 import { normalizeConversationStatus, type ConversationStatus } from "@/lib/conversation-status";
 
-export const Route = createFileRoute("/gestao-360")({
+export const Route = createFileRoute("/_authenticated/gestao-360")({
   component: Gestao360Page,
   head: () => ({ meta: [{ title: "Gestão 360 | Agente Comercial 360" }] }),
 });

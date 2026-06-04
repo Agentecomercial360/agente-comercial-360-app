@@ -14,6 +14,8 @@ import {
   Calendar,
   Plug,
   Crown,
+  Package,
+  CalendarClock,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -28,6 +30,7 @@ const navGroups = [
       { label: "Atendimentos", to: "/atendimentos", icon: Headphones },
       { label: "Conversas", to: "/conversas", icon: MessageSquare },
       { label: "Leads", to: "/leads", icon: Users },
+      { label: "Peças / Produtos", to: "/produtos", icon: Package },
     ],
   },
   {
@@ -42,6 +45,7 @@ const navGroups = [
     title: "GESTÃO",
     items: [
       { label: "Responsáveis", to: "/responsaveis", icon: UserCog },
+      { label: "Retornos Comerciais", to: "/followups", icon: CalendarClock },
       { label: "Relatórios", to: "/relatorios", icon: BarChart3 },
       { label: "Configurações", to: "/configuracoes", icon: Settings },
     ],

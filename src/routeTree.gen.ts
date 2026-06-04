@@ -12,11 +12,13 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhatsappOficialRouteImport } from './routes/whatsapp-oficial'
 import { Route as ResponsaveisRouteImport } from './routes/responsaveis'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as IaRouteImport } from './routes/ia'
 import { Route as Gestao360RouteImport } from './routes/gestao-360'
+import { Route as FollowupsRouteImport } from './routes/followups'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConversasRouteImport } from './routes/conversas'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -37,6 +39,11 @@ const ResponsaveisRoute = ResponsaveisRouteImport.update({
 const RelatoriosRoute = RelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProdutosRoute = ProdutosRouteImport.update({
+  id: '/produtos',
+  path: '/produtos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -62,6 +69,11 @@ const IaRoute = IaRouteImport.update({
 const Gestao360Route = Gestao360RouteImport.update({
   id: '/gestao-360',
   path: '/gestao-360',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FollowupsRoute = FollowupsRouteImport.update({
+  id: '/followups',
+  path: '/followups',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -102,11 +114,13 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/conversas': typeof ConversasRoute
   '/dashboard': typeof DashboardRoute
+  '/followups': typeof FollowupsRoute
   '/gestao-360': typeof Gestao360Route
   '/ia': typeof IaRoute
   '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/produtos': typeof ProdutosRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
@@ -118,11 +132,13 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/conversas': typeof ConversasRoute
   '/dashboard': typeof DashboardRoute
+  '/followups': typeof FollowupsRoute
   '/gestao-360': typeof Gestao360Route
   '/ia': typeof IaRoute
   '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/produtos': typeof ProdutosRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
@@ -135,11 +151,13 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/conversas': typeof ConversasRoute
   '/dashboard': typeof DashboardRoute
+  '/followups': typeof FollowupsRoute
   '/gestao-360': typeof Gestao360Route
   '/ia': typeof IaRoute
   '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/produtos': typeof ProdutosRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
@@ -153,11 +171,13 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/conversas'
     | '/dashboard'
+    | '/followups'
     | '/gestao-360'
     | '/ia'
     | '/landing'
     | '/leads'
     | '/login'
+    | '/produtos'
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
@@ -169,11 +189,13 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/conversas'
     | '/dashboard'
+    | '/followups'
     | '/gestao-360'
     | '/ia'
     | '/landing'
     | '/leads'
     | '/login'
+    | '/produtos'
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
@@ -185,11 +207,13 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/conversas'
     | '/dashboard'
+    | '/followups'
     | '/gestao-360'
     | '/ia'
     | '/landing'
     | '/leads'
     | '/login'
+    | '/produtos'
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
@@ -202,11 +226,13 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ConversasRoute: typeof ConversasRoute
   DashboardRoute: typeof DashboardRoute
+  FollowupsRoute: typeof FollowupsRoute
   Gestao360Route: typeof Gestao360Route
   IaRoute: typeof IaRoute
   LandingRoute: typeof LandingRoute
   LeadsRoute: typeof LeadsRoute
   LoginRoute: typeof LoginRoute
+  ProdutosRoute: typeof ProdutosRoute
   RelatoriosRoute: typeof RelatoriosRoute
   ResponsaveisRoute: typeof ResponsaveisRoute
   WhatsappOficialRoute: typeof WhatsappOficialRoute
@@ -233,6 +259,13 @@ declare module '@tanstack/react-router' {
       path: '/relatorios'
       fullPath: '/relatorios'
       preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/produtos': {
+      id: '/produtos'
+      path: '/produtos'
+      fullPath: '/produtos'
+      preLoaderRoute: typeof ProdutosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -268,6 +301,13 @@ declare module '@tanstack/react-router' {
       path: '/gestao-360'
       fullPath: '/gestao-360'
       preLoaderRoute: typeof Gestao360RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/followups': {
+      id: '/followups'
+      path: '/followups'
+      fullPath: '/followups'
+      preLoaderRoute: typeof FollowupsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -322,11 +362,13 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracoesRoute: ConfiguracoesRoute,
   ConversasRoute: ConversasRoute,
   DashboardRoute: DashboardRoute,
+  FollowupsRoute: FollowupsRoute,
   Gestao360Route: Gestao360Route,
   IaRoute: IaRoute,
   LandingRoute: LandingRoute,
   LeadsRoute: LeadsRoute,
   LoginRoute: LoginRoute,
+  ProdutosRoute: ProdutosRoute,
   RelatoriosRoute: RelatoriosRoute,
   ResponsaveisRoute: ResponsaveisRoute,
   WhatsappOficialRoute: WhatsappOficialRoute,

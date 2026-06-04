@@ -249,10 +249,8 @@ function LeadsPage() {
   ];
 
   async function markNegotiating(id: string | number) {
-    // Fallback local para leads mockados (id numérico) — não persiste no Supabase
     if (typeof id === "number") {
-      setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status: "Em negociação" } : l)));
-      toast.success("Lead marcado como em negociação (local)");
+      toast.error("Não foi possível salvar esta alteração. Atualize a página e tente novamente.");
       return;
     }
 

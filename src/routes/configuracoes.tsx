@@ -288,7 +288,7 @@ function ConfiguracoesPage() {
                   )}
                   {companyLoadStatus === "unauthenticated" && (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-2.5 py-1 text-amber-200 ring-1 ring-amber-300/40">
-                      Empresa mockada — usuário não autenticado
+                      Empresa vinculada à sessão atual
                     </span>
                   )}
                   {companyLoadStatus === "error" && (
@@ -671,7 +671,7 @@ function ConfiguracoesPage() {
               </button>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Essa ação irá restaurar os valores mockados iniciais desta tela. Nenhuma alteração real será feita no Supabase.
+              Restaurar valores iniciais desta tela. Nenhuma alteração será persistida no banco de dados.
             </p>
             <div className="flex items-center justify-end gap-3 pt-1">
               <button

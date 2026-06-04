@@ -334,41 +334,29 @@ function ResponsaveisPage() {
       if (editingId) {
         const numericId = Number(editingId);
         if (Number.isNaN(numericId)) {
-          // local-only item (mock fallback): apenas atualiza estado
-          setItems((prev) =>
-            prev.map((r) =>
-              r.id === editingId
-                ? {
-                    ...r,
-                    nome: form.nome.trim(),
-                    setor: form.setor,
-                    funcao: form.funcao.trim(),
-                    telefone: form.telefone.trim(),
-                    status: form.status,
-                  }
-                : r
-            )
-          );
-          toast.success("Responsável atualizado localmente.");
-        } else {
-          const { error } = await supabase
-            .from("responsibles")
-            .update({
-              name: form.nome.trim(),
-              department: form.setor,
-              role: form.funcao.trim(),
-              phone: form.telefone.trim() || null,
-            })
-            .eq("id", numericId)
-            .eq("company_id", cid)
-            .select()
-            .single();
-
-          if (error) throw error;
-
-          toast.success("Responsável salvo no Supabase.");
-          setSaveSuccess("Responsável atualizado no Supabase.");
+          const msg = "Não foi possível salvar esta alteração. Atualize a página e tente novamente.";
+          setSaveError(msg);
+          toast.error(msg);
+          setIsSaving(false);
+          return;
         }
+        const { error } = await supabase
+          .from("responsibles")
+          .update({
+            name: form.nome.trim(),
+            department: form.setor,
+            role: form.funcao.trim(),
+            phone: form.telefone.trim() || null,
+          })
+          .eq("id", numericId)
+          .eq("company_id", cid)
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        toast.success("Responsável salvo no Supabase.");
+        setSaveSuccess("Responsável atualizado no Supabase.");
       } else {
         const { error } = await supabase
           .from("responsibles")
@@ -409,13 +397,7 @@ function ResponsaveisPage() {
 
     const numericId = Number(id);
     if (Number.isNaN(numericId)) {
-      // fallback local (mock)
-      setItems((prev) =>
-        prev.map((r) =>
-          r.id === id ? { ...r, status: novoStatus ? "Ativo" : "Inativo" } : r
-        )
-      );
-      toast.success("Status atualizado localmente.");
+      toast.error("Não foi possível salvar esta alteração. Atualize a página e tente novamente.");
       return;
     }
 

@@ -619,7 +619,7 @@ function IAPage() {
               </button>
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Essa ação irá restaurar os valores mockados iniciais desta tela. Nenhuma alteração real será feita no Supabase.
+              Restaurar valores iniciais desta tela. Nenhuma alteração será persistida no banco de dados.
             </p>
             <div className="flex items-center justify-end gap-3 pt-1">
               <button

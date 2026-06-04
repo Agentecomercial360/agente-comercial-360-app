@@ -25,6 +25,7 @@ import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as BaseConhecimentoRouteImport } from './routes/base-conhecimento'
 import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EcommerceProdutosTravadosRouteImport } from './routes/ecommerce/produtos-travados'
 import { Route as EcommerceDashboardRouteImport } from './routes/ecommerce/dashboard'
 
 const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
@@ -107,6 +108,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceProdutosTravadosRoute =
+  EcommerceProdutosTravadosRouteImport.update({
+    id: '/ecommerce/produtos-travados',
+    path: '/ecommerce/produtos-travados',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const EcommerceDashboardRoute = EcommerceDashboardRouteImport.update({
   id: '/ecommerce/dashboard',
   path: '/ecommerce/dashboard',
@@ -131,6 +138,7 @@ export interface FileRoutesByFullPath {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
+  '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -150,6 +158,7 @@ export interface FileRoutesByTo {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
+  '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -170,6 +179,7 @@ export interface FileRoutesById {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
+  '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -191,6 +201,7 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/ecommerce/dashboard'
+    | '/ecommerce/produtos-travados'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/ecommerce/dashboard'
+    | '/ecommerce/produtos-travados'
   id:
     | '__root__'
     | '/'
@@ -229,6 +241,7 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/ecommerce/dashboard'
+    | '/ecommerce/produtos-travados'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -249,6 +262,7 @@ export interface RootRouteChildren {
   ResponsaveisRoute: typeof ResponsaveisRoute
   WhatsappOficialRoute: typeof WhatsappOficialRoute
   EcommerceDashboardRoute: typeof EcommerceDashboardRoute
+  EcommerceProdutosTravadosRoute: typeof EcommerceProdutosTravadosRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -365,6 +379,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/produtos-travados': {
+      id: '/ecommerce/produtos-travados'
+      path: '/ecommerce/produtos-travados'
+      fullPath: '/ecommerce/produtos-travados'
+      preLoaderRoute: typeof EcommerceProdutosTravadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ecommerce/dashboard': {
       id: '/ecommerce/dashboard'
       path: '/ecommerce/dashboard'
@@ -393,6 +414,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResponsaveisRoute: ResponsaveisRoute,
   WhatsappOficialRoute: WhatsappOficialRoute,
   EcommerceDashboardRoute: EcommerceDashboardRoute,
+  EcommerceProdutosTravadosRoute: EcommerceProdutosTravadosRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -28,6 +28,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as EcommerceProdutosTravadosRouteImport } from './routes/ecommerce/produtos-travados'
 import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produtos'
 import { Route as EcommerceDashboardRouteImport } from './routes/ecommerce/dashboard'
+import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
 
 const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
   id: '/whatsapp-oficial',
@@ -125,6 +126,11 @@ const EcommerceDashboardRoute = EcommerceDashboardRouteImport.update({
   path: '/ecommerce/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceContasRoute = EcommerceContasRouteImport.update({
+  id: '/ecommerce/contas',
+  path: '/ecommerce/contas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/ecommerce/contas'
     | '/ecommerce/dashboard'
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/ecommerce/contas'
     | '/ecommerce/dashboard'
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/ecommerce/contas'
     | '/ecommerce/dashboard'
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
@@ -273,6 +285,7 @@ export interface RootRouteChildren {
   RelatoriosRoute: typeof RelatoriosRoute
   ResponsaveisRoute: typeof ResponsaveisRoute
   WhatsappOficialRoute: typeof WhatsappOficialRoute
+  EcommerceContasRoute: typeof EcommerceContasRoute
   EcommerceDashboardRoute: typeof EcommerceDashboardRoute
   EcommerceProdutosRoute: typeof EcommerceProdutosRoute
   EcommerceProdutosTravadosRoute: typeof EcommerceProdutosTravadosRoute
@@ -413,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommerceDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/contas': {
+      id: '/ecommerce/contas'
+      path: '/ecommerce/contas'
+      fullPath: '/ecommerce/contas'
+      preLoaderRoute: typeof EcommerceContasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -433,6 +453,7 @@ const rootRouteChildren: RootRouteChildren = {
   RelatoriosRoute: RelatoriosRoute,
   ResponsaveisRoute: ResponsaveisRoute,
   WhatsappOficialRoute: WhatsappOficialRoute,
+  EcommerceContasRoute: EcommerceContasRoute,
   EcommerceDashboardRoute: EcommerceDashboardRoute,
   EcommerceProdutosRoute: EcommerceProdutosRoute,
   EcommerceProdutosTravadosRoute: EcommerceProdutosTravadosRoute,

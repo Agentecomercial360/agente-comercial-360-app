@@ -52,13 +52,7 @@ type Kpi = {
 
 const DASH = "—";
 
-// Planned sectors — visible as "em preparação" until routing is connected.
-const plannedSectors = [
-  { name: "Vendas", desc: "Atendimento comercial e novos negócios" },
-  { name: "Financeiro", desc: "Boletos, pagamentos e cobranças" },
-  { name: "Administrativo", desc: "Suporte interno e documentos" },
-  { name: "Orçamentos", desc: "Propostas e cotações" },
-];
+type SectorRow = { department: string; count: number };
 
 const TEMP_COLORS = {
   hot: "oklch(0.62 0.22 25)",
@@ -131,6 +125,7 @@ function DashboardPage() {
   const [topLeads, setTopLeads] = useState<TopLead[]>([]);
   const [tempBuckets, setTempBuckets] = useState<TempBucket[] | null>(null);
   const [weekActivity, setWeekActivity] = useState<DayPoint[] | null>(null);
+  const [sectorBreakdown, setSectorBreakdown] = useState<SectorRow[] | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -187,6 +182,7 @@ function DashboardPage() {
         aiRes,
         topLeadsRes,
         weekMsgsRes,
+        sectorsRes,
       ] = await Promise.allSettled([
         supabase.from("companies").select("name").eq("id", companyId).maybeSingle(),
         countQuery("leads"),
@@ -222,7 +218,13 @@ function DashboardPage() {
           .eq("company_id", companyId)
           .gte("created_at", sevenDaysAgo.toISOString())
           .limit(5000),
+        supabase
+          .from("responsibles")
+          .select("department")
+          .eq("company_id", companyId)
+          .eq("is_active", true),
       ]);
+
 
       let failures = 0;
 
@@ -335,6 +337,23 @@ function DashboardPage() {
         setWeekActivity(skeleton);
       } else {
         setWeekActivity(null);
+        failures++;
+      }
+
+      // Sectors breakdown (responsibles by department, active only)
+      if (sectorsRes.status === "fulfilled" && !sectorsRes.value.error) {
+        const rows = (sectorsRes.value.data ?? []) as Array<{ department: string | null }>;
+        const counts = new Map<string, number>();
+        for (const r of rows) {
+          const key = (r.department ?? "").trim().toLowerCase() || "geral";
+          counts.set(key, (counts.get(key) ?? 0) + 1);
+        }
+        const list: SectorRow[] = Array.from(counts.entries())
+          .map(([department, count]) => ({ department, count }))
+          .sort((a, b) => b.count - a.count);
+        setSectorBreakdown(list);
+      } else {
+        setSectorBreakdown(null);
         failures++;
       }
 
@@ -457,9 +476,15 @@ function DashboardPage() {
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
                   <Activity className="h-3 w-3" /> Operação monitorada
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
-                  <Sparkles className="h-3 w-3" /> IA ativa
-                </span>
+                {aiConfigured === "Sim" ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
+                    <Sparkles className="h-3 w-3" /> IA ativa
+                  </span>
+                ) : aiConfigured === "Não" ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-200 ring-1 ring-amber-400/30">
+                    <Sparkles className="h-3 w-3" /> IA não configurada
+                  </span>
+                ) : null}
               </div>
               <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
                 Dashboard Comercial
@@ -938,31 +963,42 @@ function DashboardPage() {
                 <h3 className="text-base font-semibold text-foreground">Operação por setor</h3>
               </div>
               <span className="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200">
-                Estrutura inicial
+                Responsáveis ativos
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1 mb-4">
-              Estrutura inicial para organizar atendimentos por vendas, financeiro, administrativo e orçamentos.
+              Distribuição de responsáveis ativos por departamento.
             </p>
-            <ul className="space-y-2">
-              {plannedSectors.map((s) => (
-                <li
-                  key={s.name}
-                  className="flex items-start gap-3 rounded-xl border border-dashed border-border bg-muted/20 p-3"
-                >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--brand-blue-soft)] text-primary">
-                    <Building2 className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold text-foreground">{s.name}</div>
-                    <div className="text-[11px] text-muted-foreground leading-snug">{s.desc}</div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 text-[10px] uppercase tracking-wide text-muted-foreground">
-              MODELO OPERACIONAL INICIAL
-            </p>
+            {sectorBreakdown === null ? (
+              <div className="rounded-xl border border-dashed border-border bg-muted/20 p-4 text-xs text-muted-foreground">
+                Não foi possível carregar os setores agora.
+              </div>
+            ) : sectorBreakdown.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border bg-muted/20 p-4 text-xs text-muted-foreground">
+                Nenhum setor com responsável ativo cadastrado.
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {sectorBreakdown.map((s) => (
+                  <li
+                    key={s.department}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 p-3"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--brand-blue-soft)] text-primary">
+                        <Building2 className="h-4 w-4" />
+                      </div>
+                      <div className="text-sm font-semibold text-foreground capitalize truncate">
+                        {s.department}
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground tabular-nums shrink-0">
+                      {s.count} {s.count === 1 ? "responsável ativo" : "responsáveis ativos"}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </div>

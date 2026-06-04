@@ -33,6 +33,7 @@ import { Route as EcommerceEstoqueRouteImport } from './routes/ecommerce/estoque
 import { Route as EcommerceDashboardRouteImport } from './routes/ecommerce/dashboard'
 import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
 import { Route as EcommerceConsultorIaRouteImport } from './routes/ecommerce/consultor-ia'
+import { Route as EcommerceConfiguracoesRouteImport } from './routes/ecommerce/configuracoes'
 import { Route as EcommerceAdsRouteImport } from './routes/ecommerce/ads'
 
 const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
@@ -156,6 +157,11 @@ const EcommerceConsultorIaRoute = EcommerceConsultorIaRouteImport.update({
   path: '/ecommerce/consultor-ia',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceConfiguracoesRoute = EcommerceConfiguracoesRouteImport.update({
+  id: '/ecommerce/configuracoes',
+  path: '/ecommerce/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EcommerceAdsRoute = EcommerceAdsRouteImport.update({
   id: '/ecommerce/ads',
   path: '/ecommerce/ads',
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
+  '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
   '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
@@ -207,6 +214,7 @@ export interface FileRoutesByTo {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
+  '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
   '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
@@ -235,6 +243,7 @@ export interface FileRoutesById {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
+  '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
   '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
@@ -264,6 +273,7 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/ecommerce/ads'
+    | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
     | '/ecommerce/contas'
     | '/ecommerce/dashboard'
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/ecommerce/ads'
+    | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
     | '/ecommerce/contas'
     | '/ecommerce/dashboard'
@@ -318,6 +329,7 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/ecommerce/ads'
+    | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
     | '/ecommerce/contas'
     | '/ecommerce/dashboard'
@@ -346,6 +358,7 @@ export interface RootRouteChildren {
   ResponsaveisRoute: typeof ResponsaveisRoute
   WhatsappOficialRoute: typeof WhatsappOficialRoute
   EcommerceAdsRoute: typeof EcommerceAdsRoute
+  EcommerceConfiguracoesRoute: typeof EcommerceConfiguracoesRoute
   EcommerceConsultorIaRoute: typeof EcommerceConsultorIaRoute
   EcommerceContasRoute: typeof EcommerceContasRoute
   EcommerceDashboardRoute: typeof EcommerceDashboardRoute
@@ -526,6 +539,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommerceConsultorIaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/configuracoes': {
+      id: '/ecommerce/configuracoes'
+      path: '/ecommerce/configuracoes'
+      fullPath: '/ecommerce/configuracoes'
+      preLoaderRoute: typeof EcommerceConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ecommerce/ads': {
       id: '/ecommerce/ads'
       path: '/ecommerce/ads'
@@ -554,6 +574,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResponsaveisRoute: ResponsaveisRoute,
   WhatsappOficialRoute: WhatsappOficialRoute,
   EcommerceAdsRoute: EcommerceAdsRoute,
+  EcommerceConfiguracoesRoute: EcommerceConfiguracoesRoute,
   EcommerceConsultorIaRoute: EcommerceConsultorIaRoute,
   EcommerceContasRoute: EcommerceContasRoute,
   EcommerceDashboardRoute: EcommerceDashboardRoute,

@@ -125,6 +125,7 @@ function DashboardPage() {
   const [topLeads, setTopLeads] = useState<TopLead[]>([]);
   const [tempBuckets, setTempBuckets] = useState<TempBucket[] | null>(null);
   const [weekActivity, setWeekActivity] = useState<DayPoint[] | null>(null);
+  const [sectorBreakdown, setSectorBreakdown] = useState<SectorRow[] | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);

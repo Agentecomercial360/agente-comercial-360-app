@@ -218,7 +218,13 @@ function DashboardPage() {
           .eq("company_id", companyId)
           .gte("created_at", sevenDaysAgo.toISOString())
           .limit(5000),
+        supabase
+          .from("responsibles")
+          .select("department")
+          .eq("company_id", companyId)
+          .eq("is_active", true),
       ]);
+
 
       let failures = 0;
 

@@ -340,6 +340,23 @@ function DashboardPage() {
         failures++;
       }
 
+      // Sectors breakdown (responsibles by department, active only)
+      if (sectorsRes.status === "fulfilled" && !sectorsRes.value.error) {
+        const rows = (sectorsRes.value.data ?? []) as Array<{ department: string | null }>;
+        const counts = new Map<string, number>();
+        for (const r of rows) {
+          const key = (r.department ?? "").trim().toLowerCase() || "geral";
+          counts.set(key, (counts.get(key) ?? 0) + 1);
+        }
+        const list: SectorRow[] = Array.from(counts.entries())
+          .map(([department, count]) => ({ department, count }))
+          .sort((a, b) => b.count - a.count);
+        setSectorBreakdown(list);
+      } else {
+        setSectorBreakdown(null);
+        failures++;
+      }
+
       setStatus(failures === 0 ? "loaded" : "partial");
       setLastUpdated(new Date());
     } catch {

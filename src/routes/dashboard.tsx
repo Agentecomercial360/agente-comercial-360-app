@@ -182,6 +182,7 @@ function DashboardPage() {
         aiRes,
         topLeadsRes,
         weekMsgsRes,
+        sectorsRes,
       ] = await Promise.allSettled([
         supabase.from("companies").select("name").eq("id", companyId).maybeSingle(),
         countQuery("leads"),

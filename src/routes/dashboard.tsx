@@ -963,31 +963,42 @@ function DashboardPage() {
                 <h3 className="text-base font-semibold text-foreground">Operação por setor</h3>
               </div>
               <span className="inline-flex items-center rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-sky-700 border border-sky-200">
-                Estrutura inicial
+                Responsáveis ativos
               </span>
             </div>
             <p className="text-xs text-muted-foreground mt-1 mb-4">
-              Estrutura inicial para organizar atendimentos por vendas, financeiro, administrativo e orçamentos.
+              Distribuição de responsáveis ativos por departamento.
             </p>
-            <ul className="space-y-2">
-              {plannedSectors.map((s) => (
-                <li
-                  key={s.name}
-                  className="flex items-start gap-3 rounded-xl border border-dashed border-border bg-muted/20 p-3"
-                >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--brand-blue-soft)] text-primary">
-                    <Building2 className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold text-foreground">{s.name}</div>
-                    <div className="text-[11px] text-muted-foreground leading-snug">{s.desc}</div>
-                  </div>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 text-[10px] uppercase tracking-wide text-muted-foreground">
-              MODELO OPERACIONAL INICIAL
-            </p>
+            {sectorBreakdown === null ? (
+              <div className="rounded-xl border border-dashed border-border bg-muted/20 p-4 text-xs text-muted-foreground">
+                Não foi possível carregar os setores agora.
+              </div>
+            ) : sectorBreakdown.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-border bg-muted/20 p-4 text-xs text-muted-foreground">
+                Nenhum setor com responsável ativo cadastrado.
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {sectorBreakdown.map((s) => (
+                  <li
+                    key={s.department}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-muted/20 p-3"
+                  >
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--brand-blue-soft)] text-primary">
+                        <Building2 className="h-4 w-4" />
+                      </div>
+                      <div className="text-sm font-semibold text-foreground capitalize truncate">
+                        {s.department}
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground tabular-nums shrink-0">
+                      {s.count} {s.count === 1 ? "responsável ativo" : "responsáveis ativos"}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
       </div>

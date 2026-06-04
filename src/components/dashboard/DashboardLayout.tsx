@@ -16,6 +16,14 @@ import {
   Crown,
   Package,
   CalendarClock,
+  Store,
+  ShoppingCart,
+  ShieldAlert,
+  Boxes,
+  Zap,
+  ListTodo,
+  TrendingUp,
+  BrainCircuit,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";

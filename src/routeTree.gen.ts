@@ -25,6 +25,7 @@ import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as BaseConhecimentoRouteImport } from './routes/base-conhecimento'
 import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EcommerceTarefasRouteImport } from './routes/ecommerce/tarefas'
 import { Route as EcommerceProdutosTravadosRouteImport } from './routes/ecommerce/produtos-travados'
 import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produtos'
 import { Route as EcommercePrioridadesRouteImport } from './routes/ecommerce/prioridades'
@@ -113,6 +114,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceTarefasRoute = EcommerceTarefasRouteImport.update({
+  id: '/ecommerce/tarefas',
+  path: '/ecommerce/tarefas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EcommerceProdutosTravadosRoute =
   EcommerceProdutosTravadosRouteImport.update({
     id: '/ecommerce/produtos-travados',
@@ -174,6 +180,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
+  '/ecommerce/tarefas': typeof EcommerceTarefasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -199,6 +206,7 @@ export interface FileRoutesByTo {
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
+  '/ecommerce/tarefas': typeof EcommerceTarefasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -225,6 +233,7 @@ export interface FileRoutesById {
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
+  '/ecommerce/tarefas': typeof EcommerceTarefasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -252,6 +261,7 @@ export interface FileRouteTypes {
     | '/ecommerce/prioridades'
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
+    | '/ecommerce/tarefas'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -277,6 +287,7 @@ export interface FileRouteTypes {
     | '/ecommerce/prioridades'
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
+    | '/ecommerce/tarefas'
   id:
     | '__root__'
     | '/'
@@ -302,6 +313,7 @@ export interface FileRouteTypes {
     | '/ecommerce/prioridades'
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
+    | '/ecommerce/tarefas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -328,6 +340,7 @@ export interface RootRouteChildren {
   EcommercePrioridadesRoute: typeof EcommercePrioridadesRoute
   EcommerceProdutosRoute: typeof EcommerceProdutosRoute
   EcommerceProdutosTravadosRoute: typeof EcommerceProdutosTravadosRoute
+  EcommerceTarefasRoute: typeof EcommerceTarefasRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -444,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/tarefas': {
+      id: '/ecommerce/tarefas'
+      path: '/ecommerce/tarefas'
+      fullPath: '/ecommerce/tarefas'
+      preLoaderRoute: typeof EcommerceTarefasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ecommerce/produtos-travados': {
       id: '/ecommerce/produtos-travados'
       path: '/ecommerce/produtos-travados'
@@ -520,6 +540,7 @@ const rootRouteChildren: RootRouteChildren = {
   EcommercePrioridadesRoute: EcommercePrioridadesRoute,
   EcommerceProdutosRoute: EcommerceProdutosRoute,
   EcommerceProdutosTravadosRoute: EcommerceProdutosTravadosRoute,
+  EcommerceTarefasRoute: EcommerceTarefasRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

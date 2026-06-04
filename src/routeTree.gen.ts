@@ -25,6 +25,16 @@ import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as BaseConhecimentoRouteImport } from './routes/base-conhecimento'
 import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EcommerceTarefasRouteImport } from './routes/ecommerce/tarefas'
+import { Route as EcommerceProdutosTravadosRouteImport } from './routes/ecommerce/produtos-travados'
+import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produtos'
+import { Route as EcommercePrioridadesRouteImport } from './routes/ecommerce/prioridades'
+import { Route as EcommerceEstoqueRouteImport } from './routes/ecommerce/estoque'
+import { Route as EcommerceDashboardRouteImport } from './routes/ecommerce/dashboard'
+import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
+import { Route as EcommerceConsultorIaRouteImport } from './routes/ecommerce/consultor-ia'
+import { Route as EcommerceConfiguracoesRouteImport } from './routes/ecommerce/configuracoes'
+import { Route as EcommerceAdsRouteImport } from './routes/ecommerce/ads'
 
 const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
   id: '/whatsapp-oficial',
@@ -106,6 +116,57 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceTarefasRoute = EcommerceTarefasRouteImport.update({
+  id: '/ecommerce/tarefas',
+  path: '/ecommerce/tarefas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceProdutosTravadosRoute =
+  EcommerceProdutosTravadosRouteImport.update({
+    id: '/ecommerce/produtos-travados',
+    path: '/ecommerce/produtos-travados',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const EcommerceProdutosRoute = EcommerceProdutosRouteImport.update({
+  id: '/ecommerce/produtos',
+  path: '/ecommerce/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommercePrioridadesRoute = EcommercePrioridadesRouteImport.update({
+  id: '/ecommerce/prioridades',
+  path: '/ecommerce/prioridades',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceEstoqueRoute = EcommerceEstoqueRouteImport.update({
+  id: '/ecommerce/estoque',
+  path: '/ecommerce/estoque',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceDashboardRoute = EcommerceDashboardRouteImport.update({
+  id: '/ecommerce/dashboard',
+  path: '/ecommerce/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceContasRoute = EcommerceContasRouteImport.update({
+  id: '/ecommerce/contas',
+  path: '/ecommerce/contas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceConsultorIaRoute = EcommerceConsultorIaRouteImport.update({
+  id: '/ecommerce/consultor-ia',
+  path: '/ecommerce/consultor-ia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceConfiguracoesRoute = EcommerceConfiguracoesRouteImport.update({
+  id: '/ecommerce/configuracoes',
+  path: '/ecommerce/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceAdsRoute = EcommerceAdsRouteImport.update({
+  id: '/ecommerce/ads',
+  path: '/ecommerce/ads',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -124,6 +185,16 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/ecommerce/ads': typeof EcommerceAdsRoute
+  '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
+  '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
+  '/ecommerce/contas': typeof EcommerceContasRoute
+  '/ecommerce/dashboard': typeof EcommerceDashboardRoute
+  '/ecommerce/estoque': typeof EcommerceEstoqueRoute
+  '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
+  '/ecommerce/produtos': typeof EcommerceProdutosRoute
+  '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
+  '/ecommerce/tarefas': typeof EcommerceTarefasRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -142,6 +213,16 @@ export interface FileRoutesByTo {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/ecommerce/ads': typeof EcommerceAdsRoute
+  '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
+  '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
+  '/ecommerce/contas': typeof EcommerceContasRoute
+  '/ecommerce/dashboard': typeof EcommerceDashboardRoute
+  '/ecommerce/estoque': typeof EcommerceEstoqueRoute
+  '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
+  '/ecommerce/produtos': typeof EcommerceProdutosRoute
+  '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
+  '/ecommerce/tarefas': typeof EcommerceTarefasRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -161,6 +242,16 @@ export interface FileRoutesById {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/ecommerce/ads': typeof EcommerceAdsRoute
+  '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
+  '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
+  '/ecommerce/contas': typeof EcommerceContasRoute
+  '/ecommerce/dashboard': typeof EcommerceDashboardRoute
+  '/ecommerce/estoque': typeof EcommerceEstoqueRoute
+  '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
+  '/ecommerce/produtos': typeof EcommerceProdutosRoute
+  '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
+  '/ecommerce/tarefas': typeof EcommerceTarefasRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -181,6 +272,16 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/ecommerce/ads'
+    | '/ecommerce/configuracoes'
+    | '/ecommerce/consultor-ia'
+    | '/ecommerce/contas'
+    | '/ecommerce/dashboard'
+    | '/ecommerce/estoque'
+    | '/ecommerce/prioridades'
+    | '/ecommerce/produtos'
+    | '/ecommerce/produtos-travados'
+    | '/ecommerce/tarefas'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -199,6 +300,16 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/ecommerce/ads'
+    | '/ecommerce/configuracoes'
+    | '/ecommerce/consultor-ia'
+    | '/ecommerce/contas'
+    | '/ecommerce/dashboard'
+    | '/ecommerce/estoque'
+    | '/ecommerce/prioridades'
+    | '/ecommerce/produtos'
+    | '/ecommerce/produtos-travados'
+    | '/ecommerce/tarefas'
   id:
     | '__root__'
     | '/'
@@ -217,6 +328,16 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/ecommerce/ads'
+    | '/ecommerce/configuracoes'
+    | '/ecommerce/consultor-ia'
+    | '/ecommerce/contas'
+    | '/ecommerce/dashboard'
+    | '/ecommerce/estoque'
+    | '/ecommerce/prioridades'
+    | '/ecommerce/produtos'
+    | '/ecommerce/produtos-travados'
+    | '/ecommerce/tarefas'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -236,6 +357,16 @@ export interface RootRouteChildren {
   RelatoriosRoute: typeof RelatoriosRoute
   ResponsaveisRoute: typeof ResponsaveisRoute
   WhatsappOficialRoute: typeof WhatsappOficialRoute
+  EcommerceAdsRoute: typeof EcommerceAdsRoute
+  EcommerceConfiguracoesRoute: typeof EcommerceConfiguracoesRoute
+  EcommerceConsultorIaRoute: typeof EcommerceConsultorIaRoute
+  EcommerceContasRoute: typeof EcommerceContasRoute
+  EcommerceDashboardRoute: typeof EcommerceDashboardRoute
+  EcommerceEstoqueRoute: typeof EcommerceEstoqueRoute
+  EcommercePrioridadesRoute: typeof EcommercePrioridadesRoute
+  EcommerceProdutosRoute: typeof EcommerceProdutosRoute
+  EcommerceProdutosTravadosRoute: typeof EcommerceProdutosTravadosRoute
+  EcommerceTarefasRoute: typeof EcommerceTarefasRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -352,6 +483,76 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/tarefas': {
+      id: '/ecommerce/tarefas'
+      path: '/ecommerce/tarefas'
+      fullPath: '/ecommerce/tarefas'
+      preLoaderRoute: typeof EcommerceTarefasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/produtos-travados': {
+      id: '/ecommerce/produtos-travados'
+      path: '/ecommerce/produtos-travados'
+      fullPath: '/ecommerce/produtos-travados'
+      preLoaderRoute: typeof EcommerceProdutosTravadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/produtos': {
+      id: '/ecommerce/produtos'
+      path: '/ecommerce/produtos'
+      fullPath: '/ecommerce/produtos'
+      preLoaderRoute: typeof EcommerceProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/prioridades': {
+      id: '/ecommerce/prioridades'
+      path: '/ecommerce/prioridades'
+      fullPath: '/ecommerce/prioridades'
+      preLoaderRoute: typeof EcommercePrioridadesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/estoque': {
+      id: '/ecommerce/estoque'
+      path: '/ecommerce/estoque'
+      fullPath: '/ecommerce/estoque'
+      preLoaderRoute: typeof EcommerceEstoqueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/dashboard': {
+      id: '/ecommerce/dashboard'
+      path: '/ecommerce/dashboard'
+      fullPath: '/ecommerce/dashboard'
+      preLoaderRoute: typeof EcommerceDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/contas': {
+      id: '/ecommerce/contas'
+      path: '/ecommerce/contas'
+      fullPath: '/ecommerce/contas'
+      preLoaderRoute: typeof EcommerceContasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/consultor-ia': {
+      id: '/ecommerce/consultor-ia'
+      path: '/ecommerce/consultor-ia'
+      fullPath: '/ecommerce/consultor-ia'
+      preLoaderRoute: typeof EcommerceConsultorIaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/configuracoes': {
+      id: '/ecommerce/configuracoes'
+      path: '/ecommerce/configuracoes'
+      fullPath: '/ecommerce/configuracoes'
+      preLoaderRoute: typeof EcommerceConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/ads': {
+      id: '/ecommerce/ads'
+      path: '/ecommerce/ads'
+      fullPath: '/ecommerce/ads'
+      preLoaderRoute: typeof EcommerceAdsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -372,6 +573,16 @@ const rootRouteChildren: RootRouteChildren = {
   RelatoriosRoute: RelatoriosRoute,
   ResponsaveisRoute: ResponsaveisRoute,
   WhatsappOficialRoute: WhatsappOficialRoute,
+  EcommerceAdsRoute: EcommerceAdsRoute,
+  EcommerceConfiguracoesRoute: EcommerceConfiguracoesRoute,
+  EcommerceConsultorIaRoute: EcommerceConsultorIaRoute,
+  EcommerceContasRoute: EcommerceContasRoute,
+  EcommerceDashboardRoute: EcommerceDashboardRoute,
+  EcommerceEstoqueRoute: EcommerceEstoqueRoute,
+  EcommercePrioridadesRoute: EcommercePrioridadesRoute,
+  EcommerceProdutosRoute: EcommerceProdutosRoute,
+  EcommerceProdutosTravadosRoute: EcommerceProdutosTravadosRoute,
+  EcommerceTarefasRoute: EcommerceTarefasRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

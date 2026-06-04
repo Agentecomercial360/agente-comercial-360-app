@@ -476,9 +476,15 @@ function DashboardPage() {
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
                   <Activity className="h-3 w-3" /> Operação monitorada
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
-                  <Sparkles className="h-3 w-3" /> IA ativa
-                </span>
+                {aiConfigured === "Sim" ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
+                    <Sparkles className="h-3 w-3" /> IA ativa
+                  </span>
+                ) : aiConfigured === "Não" ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-200 ring-1 ring-amber-400/30">
+                    <Sparkles className="h-3 w-3" /> IA não configurada
+                  </span>
+                ) : null}
               </div>
               <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
                 Dashboard Comercial

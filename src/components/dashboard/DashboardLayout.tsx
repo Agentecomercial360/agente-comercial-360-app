@@ -31,6 +31,7 @@ const navGroups = [
       { label: "Conversas", to: "/conversas", icon: MessageSquare },
       { label: "Leads", to: "/leads", icon: Users },
       { label: "Peças / Produtos", to: "/produtos", icon: Package },
+    ],
   },
   {
     title: "INTELIGÊNCIA",
@@ -44,6 +45,7 @@ const navGroups = [
     title: "GESTÃO",
     items: [
       { label: "Responsáveis", to: "/responsaveis", icon: UserCog },
+      { label: "Retornos Comerciais", to: "/followups", icon: CalendarClock },
       { label: "Relatórios", to: "/relatorios", icon: BarChart3 },
       { label: "Configurações", to: "/configuracoes", icon: Settings },
     ],

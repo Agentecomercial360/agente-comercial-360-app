@@ -204,9 +204,7 @@ function AtendimentosPage() {
 
   const finalizar = async (id: string | number) => {
     if (typeof id !== "string") {
-      // mock local
-      setItems((prev) => prev.map((a) => (a.id === id ? { ...a, status: "finalizada" as ConversationStatus } : a)));
-      toast.success("Atendimento marcado como finalizado (local)");
+      toast.error("Não foi possível salvar esta alteração. Atualize a página e tente novamente.");
       return;
     }
     const { data: userData, error: userErr } = await supabase.auth.getUser();

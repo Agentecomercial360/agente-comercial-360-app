@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhatsappOficialRouteImport } from './routes/whatsapp-oficial'
 import { Route as ResponsaveisRouteImport } from './routes/responsaveis'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as ProdutosRouteImport } from './routes/produtos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as LandingRouteImport } from './routes/landing'
@@ -37,6 +38,11 @@ const ResponsaveisRoute = ResponsaveisRouteImport.update({
 const RelatoriosRoute = RelatoriosRouteImport.update({
   id: '/relatorios',
   path: '/relatorios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProdutosRoute = ProdutosRouteImport.update({
+  id: '/produtos',
+  path: '/produtos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -107,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/produtos': typeof ProdutosRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/produtos': typeof ProdutosRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/produtos': typeof ProdutosRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/leads'
     | '/login'
+    | '/produtos'
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/leads'
     | '/login'
+    | '/produtos'
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/leads'
     | '/login'
+    | '/produtos'
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
@@ -207,6 +219,7 @@ export interface RootRouteChildren {
   LandingRoute: typeof LandingRoute
   LeadsRoute: typeof LeadsRoute
   LoginRoute: typeof LoginRoute
+  ProdutosRoute: typeof ProdutosRoute
   RelatoriosRoute: typeof RelatoriosRoute
   ResponsaveisRoute: typeof ResponsaveisRoute
   WhatsappOficialRoute: typeof WhatsappOficialRoute
@@ -233,6 +246,13 @@ declare module '@tanstack/react-router' {
       path: '/relatorios'
       fullPath: '/relatorios'
       preLoaderRoute: typeof RelatoriosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/produtos': {
+      id: '/produtos'
+      path: '/produtos'
+      fullPath: '/produtos'
+      preLoaderRoute: typeof ProdutosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -327,6 +347,7 @@ const rootRouteChildren: RootRouteChildren = {
   LandingRoute: LandingRoute,
   LeadsRoute: LeadsRoute,
   LoginRoute: LoginRoute,
+  ProdutosRoute: ProdutosRoute,
   RelatoriosRoute: RelatoriosRoute,
   ResponsaveisRoute: ResponsaveisRoute,
   WhatsappOficialRoute: WhatsappOficialRoute,
@@ -334,3 +355,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

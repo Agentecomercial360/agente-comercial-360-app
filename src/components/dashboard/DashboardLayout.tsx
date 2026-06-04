@@ -14,6 +14,8 @@ import {
   Calendar,
   Plug,
   Crown,
+  Package,
+  CalendarClock,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";

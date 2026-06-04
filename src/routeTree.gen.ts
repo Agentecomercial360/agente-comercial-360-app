@@ -26,6 +26,7 @@ import { Route as BaseConhecimentoRouteImport } from './routes/base-conhecimento
 import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as EcommerceProdutosTravadosRouteImport } from './routes/ecommerce/produtos-travados'
+import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produtos'
 import { Route as EcommerceDashboardRouteImport } from './routes/ecommerce/dashboard'
 
 const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
@@ -114,6 +115,11 @@ const EcommerceProdutosTravadosRoute =
     path: '/ecommerce/produtos-travados',
     getParentRoute: () => rootRouteImport,
   } as any)
+const EcommerceProdutosRoute = EcommerceProdutosRouteImport.update({
+  id: '/ecommerce/produtos',
+  path: '/ecommerce/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EcommerceDashboardRoute = EcommerceDashboardRouteImport.update({
   id: '/ecommerce/dashboard',
   path: '/ecommerce/dashboard',
@@ -138,6 +144,7 @@ export interface FileRoutesByFullPath {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
+  '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
 }
 export interface FileRoutesByTo {
@@ -158,6 +165,7 @@ export interface FileRoutesByTo {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
+  '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
 }
 export interface FileRoutesById {
@@ -179,6 +187,7 @@ export interface FileRoutesById {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
+  '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
 }
 export interface FileRouteTypes {
@@ -201,6 +210,7 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/ecommerce/dashboard'
+    | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -221,6 +231,7 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/ecommerce/dashboard'
+    | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
   id:
     | '__root__'
@@ -241,6 +252,7 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/ecommerce/dashboard'
+    | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
   fileRoutesById: FileRoutesById
 }
@@ -262,6 +274,7 @@ export interface RootRouteChildren {
   ResponsaveisRoute: typeof ResponsaveisRoute
   WhatsappOficialRoute: typeof WhatsappOficialRoute
   EcommerceDashboardRoute: typeof EcommerceDashboardRoute
+  EcommerceProdutosRoute: typeof EcommerceProdutosRoute
   EcommerceProdutosTravadosRoute: typeof EcommerceProdutosTravadosRoute
 }
 
@@ -386,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommerceProdutosTravadosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/produtos': {
+      id: '/ecommerce/produtos'
+      path: '/ecommerce/produtos'
+      fullPath: '/ecommerce/produtos'
+      preLoaderRoute: typeof EcommerceProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ecommerce/dashboard': {
       id: '/ecommerce/dashboard'
       path: '/ecommerce/dashboard'
@@ -414,6 +434,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResponsaveisRoute: ResponsaveisRoute,
   WhatsappOficialRoute: WhatsappOficialRoute,
   EcommerceDashboardRoute: EcommerceDashboardRoute,
+  EcommerceProdutosRoute: EcommerceProdutosRoute,
   EcommerceProdutosTravadosRoute: EcommerceProdutosTravadosRoute,
 }
 export const routeTree = rootRouteImport

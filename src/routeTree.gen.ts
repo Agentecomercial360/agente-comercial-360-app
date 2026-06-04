@@ -29,6 +29,7 @@ import { Route as EcommerceProdutosTravadosRouteImport } from './routes/ecommerc
 import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produtos'
 import { Route as EcommerceDashboardRouteImport } from './routes/ecommerce/dashboard'
 import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
+import { Route as EcommerceAdsRouteImport } from './routes/ecommerce/ads'
 
 const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
   id: '/whatsapp-oficial',
@@ -131,6 +132,11 @@ const EcommerceContasRoute = EcommerceContasRouteImport.update({
   path: '/ecommerce/contas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceAdsRoute = EcommerceAdsRouteImport.update({
+  id: '/ecommerce/ads',
+  path: '/ecommerce/ads',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
@@ -171,6 +178,7 @@ export interface FileRoutesByTo {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/ecommerce/ads'
     | '/ecommerce/contas'
     | '/ecommerce/dashboard'
     | '/ecommerce/produtos'
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/ecommerce/ads'
     | '/ecommerce/contas'
     | '/ecommerce/dashboard'
     | '/ecommerce/produtos'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/ecommerce/ads'
     | '/ecommerce/contas'
     | '/ecommerce/dashboard'
     | '/ecommerce/produtos'
@@ -285,6 +297,7 @@ export interface RootRouteChildren {
   RelatoriosRoute: typeof RelatoriosRoute
   ResponsaveisRoute: typeof ResponsaveisRoute
   WhatsappOficialRoute: typeof WhatsappOficialRoute
+  EcommerceAdsRoute: typeof EcommerceAdsRoute
   EcommerceContasRoute: typeof EcommerceContasRoute
   EcommerceDashboardRoute: typeof EcommerceDashboardRoute
   EcommerceProdutosRoute: typeof EcommerceProdutosRoute
@@ -433,6 +446,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommerceContasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/ads': {
+      id: '/ecommerce/ads'
+      path: '/ecommerce/ads'
+      fullPath: '/ecommerce/ads'
+      preLoaderRoute: typeof EcommerceAdsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -453,6 +473,7 @@ const rootRouteChildren: RootRouteChildren = {
   RelatoriosRoute: RelatoriosRoute,
   ResponsaveisRoute: ResponsaveisRoute,
   WhatsappOficialRoute: WhatsappOficialRoute,
+  EcommerceAdsRoute: EcommerceAdsRoute,
   EcommerceContasRoute: EcommerceContasRoute,
   EcommerceDashboardRoute: EcommerceDashboardRoute,
   EcommerceProdutosRoute: EcommerceProdutosRoute,

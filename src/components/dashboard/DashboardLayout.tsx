@@ -31,6 +31,7 @@ const navGroups = [
       { label: "Conversas", to: "/conversas", icon: MessageSquare },
       { label: "Leads", to: "/leads", icon: Users },
       { label: "Peças / Produtos", to: "/produtos", icon: Package },
+      { label: "E-commerce", to: "/ecommerce/dashboard", icon: Package },
     ],
   },
   {

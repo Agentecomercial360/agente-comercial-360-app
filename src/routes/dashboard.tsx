@@ -52,13 +52,7 @@ type Kpi = {
 
 const DASH = "—";
 
-// Planned sectors — visible as "em preparação" until routing is connected.
-const plannedSectors = [
-  { name: "Vendas", desc: "Atendimento comercial e novos negócios" },
-  { name: "Financeiro", desc: "Boletos, pagamentos e cobranças" },
-  { name: "Administrativo", desc: "Suporte interno e documentos" },
-  { name: "Orçamentos", desc: "Propostas e cotações" },
-];
+type SectorRow = { department: string; count: number };
 
 const TEMP_COLORS = {
   hot: "oklch(0.62 0.22 25)",

@@ -7,7 +7,8 @@ import {
   MoreVertical,
   Calendar,
   User,
-  ArrowRight
+  ArrowRight,
+  Activity
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 

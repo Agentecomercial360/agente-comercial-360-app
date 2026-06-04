@@ -43,6 +43,21 @@ const navGroups = [
     ],
   },
   {
+    title: "E-COMMERCE",
+    items: [
+      { label: "Visão Geral", to: "/ecommerce/dashboard", icon: Store },
+      { label: "Contas ML", to: "/ecommerce/contas", icon: UserCog },
+      { label: "Produtos", to: "/ecommerce/produtos", icon: ShoppingCart },
+      { label: "Produtos Travados", to: "/ecommerce/produtos-travados", icon: ShieldAlert },
+      { label: "Estoque", to: "/ecommerce/estoque", icon: Boxes },
+      { label: "Ads Inteligente", to: "/ecommerce/ads", icon: Zap },
+      { label: "Prioridades", to: "/ecommerce/prioridades", icon: TrendingUp },
+      { label: "Tarefas", to: "/ecommerce/tarefas", icon: ListTodo },
+      { label: "Consultor IA", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
+      { label: "Configurações", to: "/ecommerce/configuracoes", icon: Settings },
+    ],
+  },
+  {
     title: "INTELIGÊNCIA",
     items: [
       { label: "IA", to: "/ia", icon: Sparkles },

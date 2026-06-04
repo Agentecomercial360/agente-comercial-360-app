@@ -30,7 +30,7 @@ const navGroups = [
       { label: "Atendimentos", to: "/atendimentos", icon: Headphones },
       { label: "Conversas", to: "/conversas", icon: MessageSquare },
       { label: "Leads", to: "/leads", icon: Users },
-    ],
+      { label: "Peças / Produtos", to: "/produtos", icon: Package },
   },
   {
     title: "INTELIGÊNCIA",

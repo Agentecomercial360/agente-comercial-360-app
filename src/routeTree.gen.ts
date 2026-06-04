@@ -18,6 +18,7 @@ import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as LandingRouteImport } from './routes/landing'
 import { Route as IaRouteImport } from './routes/ia'
 import { Route as Gestao360RouteImport } from './routes/gestao-360'
+import { Route as FollowupsRouteImport } from './routes/followups'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as ConversasRouteImport } from './routes/conversas'
 import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
@@ -70,6 +71,11 @@ const Gestao360Route = Gestao360RouteImport.update({
   path: '/gestao-360',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FollowupsRoute = FollowupsRouteImport.update({
+  id: '/followups',
+  path: '/followups',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof ConfiguracoesRoute
   '/conversas': typeof ConversasRoute
   '/dashboard': typeof DashboardRoute
+  '/followups': typeof FollowupsRoute
   '/gestao-360': typeof Gestao360Route
   '/ia': typeof IaRoute
   '/landing': typeof LandingRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof ConfiguracoesRoute
   '/conversas': typeof ConversasRoute
   '/dashboard': typeof DashboardRoute
+  '/followups': typeof FollowupsRoute
   '/gestao-360': typeof Gestao360Route
   '/ia': typeof IaRoute
   '/landing': typeof LandingRoute
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/configuracoes': typeof ConfiguracoesRoute
   '/conversas': typeof ConversasRoute
   '/dashboard': typeof DashboardRoute
+  '/followups': typeof FollowupsRoute
   '/gestao-360': typeof Gestao360Route
   '/ia': typeof IaRoute
   '/landing': typeof LandingRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/conversas'
     | '/dashboard'
+    | '/followups'
     | '/gestao-360'
     | '/ia'
     | '/landing'
@@ -179,6 +189,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/conversas'
     | '/dashboard'
+    | '/followups'
     | '/gestao-360'
     | '/ia'
     | '/landing'
@@ -196,6 +207,7 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/conversas'
     | '/dashboard'
+    | '/followups'
     | '/gestao-360'
     | '/ia'
     | '/landing'
@@ -214,6 +226,7 @@ export interface RootRouteChildren {
   ConfiguracoesRoute: typeof ConfiguracoesRoute
   ConversasRoute: typeof ConversasRoute
   DashboardRoute: typeof DashboardRoute
+  FollowupsRoute: typeof FollowupsRoute
   Gestao360Route: typeof Gestao360Route
   IaRoute: typeof IaRoute
   LandingRoute: typeof LandingRoute
@@ -290,6 +303,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Gestao360RouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/followups': {
+      id: '/followups'
+      path: '/followups'
+      fullPath: '/followups'
+      preLoaderRoute: typeof FollowupsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/dashboard': {
       id: '/dashboard'
       path: '/dashboard'
@@ -342,6 +362,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConfiguracoesRoute: ConfiguracoesRoute,
   ConversasRoute: ConversasRoute,
   DashboardRoute: DashboardRoute,
+  FollowupsRoute: FollowupsRoute,
   Gestao360Route: Gestao360Route,
   IaRoute: IaRoute,
   LandingRoute: LandingRoute,

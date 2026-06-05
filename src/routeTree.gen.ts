@@ -39,6 +39,7 @@ import { Route as EcommerceConsultorIaRouteImport } from './routes/ecommerce/con
 import { Route as EcommerceConfiguracoesRouteImport } from './routes/ecommerce/configuracoes'
 import { Route as EcommerceAdsRouteImport } from './routes/ecommerce/ads'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminEmpresasRouteImport } from './routes/admin/empresas'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 
 const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
@@ -192,6 +193,11 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminEmpresasRoute = AdminEmpresasRouteImport.update({
+  id: '/admin/empresas',
+  path: '/admin/empresas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
   id: '/admin/dashboard',
   path: '/admin/dashboard',
@@ -217,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/login': typeof AdminLoginRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
@@ -250,6 +257,7 @@ export interface FileRoutesByTo {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/login': typeof AdminLoginRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/login': typeof AdminLoginRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
@@ -319,6 +328,7 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/admin/dashboard'
+    | '/admin/empresas'
     | '/admin/login'
     | '/ecommerce/ads'
     | '/ecommerce/configuracoes'
@@ -352,6 +362,7 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/admin/dashboard'
+    | '/admin/empresas'
     | '/admin/login'
     | '/ecommerce/ads'
     | '/ecommerce/configuracoes'
@@ -385,6 +396,7 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/admin/dashboard'
+    | '/admin/empresas'
     | '/admin/login'
     | '/ecommerce/ads'
     | '/ecommerce/configuracoes'
@@ -419,6 +431,7 @@ export interface RootRouteChildren {
   ResponsaveisRoute: typeof ResponsaveisRoute
   WhatsappOficialRoute: typeof WhatsappOficialRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminEmpresasRoute: typeof AdminEmpresasRoute
   AdminLoginRoute: typeof AdminLoginRoute
   EcommerceAdsRoute: typeof EcommerceAdsRoute
   EcommerceConfiguracoesRoute: typeof EcommerceConfiguracoesRoute
@@ -646,6 +659,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/empresas': {
+      id: '/admin/empresas'
+      path: '/admin/empresas'
+      fullPath: '/admin/empresas'
+      preLoaderRoute: typeof AdminEmpresasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/dashboard': {
       id: '/admin/dashboard'
       path: '/admin/dashboard'
@@ -675,6 +695,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResponsaveisRoute: ResponsaveisRoute,
   WhatsappOficialRoute: WhatsappOficialRoute,
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminEmpresasRoute: AdminEmpresasRoute,
   AdminLoginRoute: AdminLoginRoute,
   EcommerceAdsRoute: EcommerceAdsRoute,
   EcommerceConfiguracoesRoute: EcommerceConfiguracoesRoute,

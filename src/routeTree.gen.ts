@@ -31,6 +31,7 @@ import { Route as EcommerceTarefasRouteImport } from './routes/ecommerce/tarefas
 import { Route as EcommerceProdutosTravadosRouteImport } from './routes/ecommerce/produtos-travados'
 import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produtos'
 import { Route as EcommercePrioridadesRouteImport } from './routes/ecommerce/prioridades'
+import { Route as EcommerceLoginRouteImport } from './routes/ecommerce/login'
 import { Route as EcommerceEstoqueRouteImport } from './routes/ecommerce/estoque'
 import { Route as EcommerceDashboardRouteImport } from './routes/ecommerce/dashboard'
 import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
@@ -149,6 +150,11 @@ const EcommercePrioridadesRoute = EcommercePrioridadesRouteImport.update({
   path: '/ecommerce/prioridades',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceLoginRoute = EcommerceLoginRouteImport.update({
+  id: '/ecommerce/login',
+  path: '/ecommerce/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EcommerceEstoqueRoute = EcommerceEstoqueRouteImport.update({
   id: '/ecommerce/estoque',
   path: '/ecommerce/estoque',
@@ -204,6 +210,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
+  '/ecommerce/login': typeof EcommerceLoginRoute
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
@@ -234,6 +241,7 @@ export interface FileRoutesByTo {
   '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
+  '/ecommerce/login': typeof EcommerceLoginRoute
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
@@ -265,6 +273,7 @@ export interface FileRoutesById {
   '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
+  '/ecommerce/login': typeof EcommerceLoginRoute
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
@@ -297,6 +306,7 @@ export interface FileRouteTypes {
     | '/ecommerce/contas'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
+    | '/ecommerce/login'
     | '/ecommerce/prioridades'
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
@@ -327,6 +337,7 @@ export interface FileRouteTypes {
     | '/ecommerce/contas'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
+    | '/ecommerce/login'
     | '/ecommerce/prioridades'
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
@@ -357,6 +368,7 @@ export interface FileRouteTypes {
     | '/ecommerce/contas'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
+    | '/ecommerce/login'
     | '/ecommerce/prioridades'
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
@@ -388,6 +400,7 @@ export interface RootRouteChildren {
   EcommerceContasRoute: typeof EcommerceContasRoute
   EcommerceDashboardRoute: typeof EcommerceDashboardRoute
   EcommerceEstoqueRoute: typeof EcommerceEstoqueRoute
+  EcommerceLoginRoute: typeof EcommerceLoginRoute
   EcommercePrioridadesRoute: typeof EcommercePrioridadesRoute
   EcommerceProdutosRoute: typeof EcommerceProdutosRoute
   EcommerceProdutosTravadosRoute: typeof EcommerceProdutosTravadosRoute
@@ -551,6 +564,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommercePrioridadesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/login': {
+      id: '/ecommerce/login'
+      path: '/ecommerce/login'
+      fullPath: '/ecommerce/login'
+      preLoaderRoute: typeof EcommerceLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ecommerce/estoque': {
       id: '/ecommerce/estoque'
       path: '/ecommerce/estoque'
@@ -620,6 +640,7 @@ const rootRouteChildren: RootRouteChildren = {
   EcommerceContasRoute: EcommerceContasRoute,
   EcommerceDashboardRoute: EcommerceDashboardRoute,
   EcommerceEstoqueRoute: EcommerceEstoqueRoute,
+  EcommerceLoginRoute: EcommerceLoginRoute,
   EcommercePrioridadesRoute: EcommercePrioridadesRoute,
   EcommerceProdutosRoute: EcommerceProdutosRoute,
   EcommerceProdutosTravadosRoute: EcommerceProdutosTravadosRoute,

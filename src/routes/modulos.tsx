@@ -32,7 +32,7 @@ function ModulosSelection() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* CRM/Atendimento Card */}
           <Link
-            to="/dashboard"
+            to="/login"
             className="group relative flex flex-col bg-white rounded-3xl p-8 shadow-sm border border-slate-200 transition-all hover:shadow-xl hover:border-blue-200 hover:-translate-y-1 overflow-hidden"
           >
             <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -43,7 +43,7 @@ function ModulosSelection() {
               <LayoutDashboard className="h-8 w-8" />
             </div>
 
-            <h2 className="text-2xl font-bold text-slate-900 mb-3">Atendimento e CRM</h2>
+            <h2 className="text-2xl font-bold text-slate-900 mb-3">Agente Comercial 360 — CRM/Atendimento</h2>
             <p className="text-slate-500 leading-relaxed mb-8">
               Gestão 360 de conversas, leads, peças e atendimentos oficiais da União Auto Peças.
             </p>
@@ -56,14 +56,14 @@ function ModulosSelection() {
                 <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Módulo Comercial</span>
               </div>
               <div className="flex items-center gap-2 font-bold text-blue-600 group-hover:translate-x-1 transition-transform">
-                Acessar <ArrowRight className="h-4 w-4" />
+                Acessar CRM <ArrowRight className="h-4 w-4" />
               </div>
             </div>
           </Link>
 
           {/* E-commerce Card */}
           <Link
-            to="/ecommerce/dashboard"
+            to="/ecommerce/login"
             className="group relative flex flex-col bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-800 transition-all hover:shadow-xl hover:border-blue-900/50 hover:-translate-y-1 overflow-hidden text-white"
           >
             <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -74,7 +74,7 @@ function ModulosSelection() {
               <Store className="h-8 w-8 text-blue-400 group-hover:text-white" />
             </div>
 
-            <h2 className="text-2xl font-bold mb-3">E-commerce Intelligence</h2>
+            <h2 className="text-2xl font-bold mb-3">AC360 E-commerce Intelligence</h2>
             <p className="text-slate-400 leading-relaxed mb-8">
               Monitoramento avançado de contas Mercado Livre, estoque unificado e Ads inteligente com IA.
             </p>
@@ -87,7 +87,7 @@ function ModulosSelection() {
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Módulo Operacional</span>
               </div>
               <div className="flex items-center gap-2 font-bold text-blue-400 group-hover:translate-x-1 transition-transform">
-                Acessar <ArrowRight className="h-4 w-4" />
+                Acessar E-commerce <ArrowRight className="h-4 w-4" />
               </div>
             </div>
           </Link>

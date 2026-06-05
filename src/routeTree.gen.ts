@@ -25,6 +25,7 @@ import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as BaseConhecimentoRouteImport } from './routes/base-conhecimento'
 import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EcommerceIndexRouteImport } from './routes/ecommerce/index'
 import { Route as EcommerceTarefasRouteImport } from './routes/ecommerce/tarefas'
 import { Route as EcommerceProdutosTravadosRouteImport } from './routes/ecommerce/produtos-travados'
 import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produtos'
@@ -116,6 +117,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceIndexRoute = EcommerceIndexRouteImport.update({
+  id: '/ecommerce/',
+  path: '/ecommerce/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EcommerceTarefasRoute = EcommerceTarefasRouteImport.update({
   id: '/ecommerce/tarefas',
   path: '/ecommerce/tarefas',
@@ -195,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
+  '/ecommerce/': typeof EcommerceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -223,6 +230,7 @@ export interface FileRoutesByTo {
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
+  '/ecommerce': typeof EcommerceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -252,6 +260,7 @@ export interface FileRoutesById {
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
+  '/ecommerce/': typeof EcommerceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -282,6 +291,7 @@ export interface FileRouteTypes {
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
     | '/ecommerce/tarefas'
+    | '/ecommerce/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -310,6 +320,7 @@ export interface FileRouteTypes {
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
     | '/ecommerce/tarefas'
+    | '/ecommerce'
   id:
     | '__root__'
     | '/'
@@ -338,6 +349,7 @@ export interface FileRouteTypes {
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
     | '/ecommerce/tarefas'
+    | '/ecommerce/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -367,6 +379,7 @@ export interface RootRouteChildren {
   EcommerceProdutosRoute: typeof EcommerceProdutosRoute
   EcommerceProdutosTravadosRoute: typeof EcommerceProdutosTravadosRoute
   EcommerceTarefasRoute: typeof EcommerceTarefasRoute
+  EcommerceIndexRoute: typeof EcommerceIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -483,6 +496,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/': {
+      id: '/ecommerce/'
+      path: '/ecommerce'
+      fullPath: '/ecommerce/'
+      preLoaderRoute: typeof EcommerceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ecommerce/tarefas': {
       id: '/ecommerce/tarefas'
       path: '/ecommerce/tarefas'
@@ -583,7 +603,18 @@ const rootRouteChildren: RootRouteChildren = {
   EcommerceProdutosRoute: EcommerceProdutosRoute,
   EcommerceProdutosTravadosRoute: EcommerceProdutosTravadosRoute,
   EcommerceTarefasRoute: EcommerceTarefasRoute,
+  EcommerceIndexRoute: EcommerceIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

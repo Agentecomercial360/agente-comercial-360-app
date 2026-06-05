@@ -181,6 +181,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
         >
           <div className="flex flex-wrap items-center justify-between gap-4 px-6 py-3.5">
             <div className="flex items-center gap-4">
+              <Link to="/modulos" className="text-[11px] uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
+                <span>Módulos</span>
+                <span>/</span>
+              </Link>
               <div>
                 <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Empresa ativa</div>
                 <div className="font-display text-sm font-bold text-foreground">União Auto Peças</div>

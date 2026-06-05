@@ -74,7 +74,7 @@ function ModulosSelection() {
               <Store className="h-8 w-8 text-blue-400 group-hover:text-white" />
             </div>
 
-            <h2 className="text-2xl font-bold mb-3">E-commerce Intelligence</h2>
+            <h2 className="text-2xl font-bold mb-3">AC360 E-commerce Intelligence</h2>
             <p className="text-slate-400 leading-relaxed mb-8">
               Monitoramento avançado de contas Mercado Livre, estoque unificado e Ads inteligente com IA.
             </p>
@@ -87,7 +87,7 @@ function ModulosSelection() {
                 <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Módulo Operacional</span>
               </div>
               <div className="flex items-center gap-2 font-bold text-blue-400 group-hover:translate-x-1 transition-transform">
-                Acessar <ArrowRight className="h-4 w-4" />
+                Acessar E-commerce <ArrowRight className="h-4 w-4" />
               </div>
             </div>
           </Link>

@@ -39,10 +39,12 @@ import { Route as EcommerceConsultorIaRouteImport } from './routes/ecommerce/con
 import { Route as EcommerceConfiguracoesRouteImport } from './routes/ecommerce/configuracoes'
 import { Route as EcommerceAdsRouteImport } from './routes/ecommerce/ads'
 import { Route as AdminUsuariosRouteImport } from './routes/admin/usuarios'
+import { Route as AdminPlanosRouteImport } from './routes/admin/planos'
 import { Route as AdminModulosRouteImport } from './routes/admin/modulos'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminEmpresasRouteImport } from './routes/admin/empresas'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminConfiguracoesRouteImport } from './routes/admin/configuracoes'
 import { Route as AdminAcessosRouteImport } from './routes/admin/acessos'
 
 const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
@@ -196,6 +198,11 @@ const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
   path: '/admin/usuarios',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminPlanosRoute = AdminPlanosRouteImport.update({
+  id: '/admin/planos',
+  path: '/admin/planos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminModulosRoute = AdminModulosRouteImport.update({
   id: '/admin/modulos',
   path: '/admin/modulos',
@@ -214,6 +221,11 @@ const AdminEmpresasRoute = AdminEmpresasRouteImport.update({
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
   id: '/admin/dashboard',
   path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
+  id: '/admin/configuracoes',
+  path: '/admin/configuracoes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminAcessosRoute = AdminAcessosRouteImport.update({
@@ -241,10 +253,12 @@ export interface FileRoutesByFullPath {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/admin/acessos': typeof AdminAcessosRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/modulos': typeof AdminModulosRoute
+  '/admin/planos': typeof AdminPlanosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
@@ -278,10 +292,12 @@ export interface FileRoutesByTo {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/admin/acessos': typeof AdminAcessosRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/modulos': typeof AdminModulosRoute
+  '/admin/planos': typeof AdminPlanosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
@@ -316,10 +332,12 @@ export interface FileRoutesById {
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
   '/admin/acessos': typeof AdminAcessosRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/login': typeof AdminLoginRoute
   '/admin/modulos': typeof AdminModulosRoute
+  '/admin/planos': typeof AdminPlanosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
@@ -355,10 +373,12 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/admin/acessos'
+    | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/empresas'
     | '/admin/login'
     | '/admin/modulos'
+    | '/admin/planos'
     | '/admin/usuarios'
     | '/ecommerce/ads'
     | '/ecommerce/configuracoes'
@@ -392,10 +412,12 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/admin/acessos'
+    | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/empresas'
     | '/admin/login'
     | '/admin/modulos'
+    | '/admin/planos'
     | '/admin/usuarios'
     | '/ecommerce/ads'
     | '/ecommerce/configuracoes'
@@ -429,10 +451,12 @@ export interface FileRouteTypes {
     | '/responsaveis'
     | '/whatsapp-oficial'
     | '/admin/acessos'
+    | '/admin/configuracoes'
     | '/admin/dashboard'
     | '/admin/empresas'
     | '/admin/login'
     | '/admin/modulos'
+    | '/admin/planos'
     | '/admin/usuarios'
     | '/ecommerce/ads'
     | '/ecommerce/configuracoes'
@@ -467,10 +491,12 @@ export interface RootRouteChildren {
   ResponsaveisRoute: typeof ResponsaveisRoute
   WhatsappOficialRoute: typeof WhatsappOficialRoute
   AdminAcessosRoute: typeof AdminAcessosRoute
+  AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminEmpresasRoute: typeof AdminEmpresasRoute
   AdminLoginRoute: typeof AdminLoginRoute
   AdminModulosRoute: typeof AdminModulosRoute
+  AdminPlanosRoute: typeof AdminPlanosRoute
   AdminUsuariosRoute: typeof AdminUsuariosRoute
   EcommerceAdsRoute: typeof EcommerceAdsRoute
   EcommerceConfiguracoesRoute: typeof EcommerceConfiguracoesRoute
@@ -698,6 +724,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsuariosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/planos': {
+      id: '/admin/planos'
+      path: '/admin/planos'
+      fullPath: '/admin/planos'
+      preLoaderRoute: typeof AdminPlanosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/modulos': {
       id: '/admin/modulos'
       path: '/admin/modulos'
@@ -724,6 +757,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/dashboard'
       fullPath: '/admin/dashboard'
       preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/configuracoes': {
+      id: '/admin/configuracoes'
+      path: '/admin/configuracoes'
+      fullPath: '/admin/configuracoes'
+      preLoaderRoute: typeof AdminConfiguracoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/acessos': {
@@ -755,10 +795,12 @@ const rootRouteChildren: RootRouteChildren = {
   ResponsaveisRoute: ResponsaveisRoute,
   WhatsappOficialRoute: WhatsappOficialRoute,
   AdminAcessosRoute: AdminAcessosRoute,
+  AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminEmpresasRoute: AdminEmpresasRoute,
   AdminLoginRoute: AdminLoginRoute,
   AdminModulosRoute: AdminModulosRoute,
+  AdminPlanosRoute: AdminPlanosRoute,
   AdminUsuariosRoute: AdminUsuariosRoute,
   EcommerceAdsRoute: EcommerceAdsRoute,
   EcommerceConfiguracoesRoute: EcommerceConfiguracoesRoute,
@@ -776,3 +818,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

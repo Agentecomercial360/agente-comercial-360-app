@@ -13,6 +13,7 @@ import { Route as WhatsappOficialRouteImport } from './routes/whatsapp-oficial'
 import { Route as ResponsaveisRouteImport } from './routes/responsaveis'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as ProdutosRouteImport } from './routes/produtos'
+import { Route as ModulosRouteImport } from './routes/modulos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as LandingRouteImport } from './routes/landing'
@@ -55,6 +56,11 @@ const RelatoriosRoute = RelatoriosRouteImport.update({
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ModulosRoute = ModulosRouteImport.update({
+  id: '/modulos',
+  path: '/modulos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -187,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/modulos': typeof ModulosRoute
   '/produtos': typeof ProdutosRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
@@ -216,6 +223,7 @@ export interface FileRoutesByTo {
   '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/modulos': typeof ModulosRoute
   '/produtos': typeof ProdutosRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
@@ -246,6 +254,7 @@ export interface FileRoutesById {
   '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/modulos': typeof ModulosRoute
   '/produtos': typeof ProdutosRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
@@ -277,6 +286,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/leads'
     | '/login'
+    | '/modulos'
     | '/produtos'
     | '/relatorios'
     | '/responsaveis'
@@ -306,6 +316,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/leads'
     | '/login'
+    | '/modulos'
     | '/produtos'
     | '/relatorios'
     | '/responsaveis'
@@ -335,6 +346,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/leads'
     | '/login'
+    | '/modulos'
     | '/produtos'
     | '/relatorios'
     | '/responsaveis'
@@ -365,6 +377,7 @@ export interface RootRouteChildren {
   LandingRoute: typeof LandingRoute
   LeadsRoute: typeof LeadsRoute
   LoginRoute: typeof LoginRoute
+  ModulosRoute: typeof ModulosRoute
   ProdutosRoute: typeof ProdutosRoute
   RelatoriosRoute: typeof RelatoriosRoute
   ResponsaveisRoute: typeof ResponsaveisRoute
@@ -410,6 +423,13 @@ declare module '@tanstack/react-router' {
       path: '/produtos'
       fullPath: '/produtos'
       preLoaderRoute: typeof ProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/modulos': {
+      id: '/modulos'
+      path: '/modulos'
+      fullPath: '/modulos'
+      preLoaderRoute: typeof ModulosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -589,6 +609,7 @@ const rootRouteChildren: RootRouteChildren = {
   LandingRoute: LandingRoute,
   LeadsRoute: LeadsRoute,
   LoginRoute: LoginRoute,
+  ModulosRoute: ModulosRoute,
   ProdutosRoute: ProdutosRoute,
   RelatoriosRoute: RelatoriosRoute,
   ResponsaveisRoute: ResponsaveisRoute,

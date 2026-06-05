@@ -38,6 +38,8 @@ import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
 import { Route as EcommerceConsultorIaRouteImport } from './routes/ecommerce/consultor-ia'
 import { Route as EcommerceConfiguracoesRouteImport } from './routes/ecommerce/configuracoes'
 import { Route as EcommerceAdsRouteImport } from './routes/ecommerce/ads'
+import { Route as AdminUsuariosRouteImport } from './routes/admin/usuarios'
+import { Route as AdminModulosRouteImport } from './routes/admin/modulos'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminEmpresasRouteImport } from './routes/admin/empresas'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
@@ -188,6 +190,16 @@ const EcommerceAdsRoute = EcommerceAdsRouteImport.update({
   path: '/ecommerce/ads',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
+  id: '/admin/usuarios',
+  path: '/admin/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminModulosRoute = AdminModulosRouteImport.update({
+  id: '/admin/modulos',
+  path: '/admin/modulos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
   id: '/admin/login',
   path: '/admin/login',
@@ -225,6 +237,8 @@ export interface FileRoutesByFullPath {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/modulos': typeof AdminModulosRoute
+  '/admin/usuarios': typeof AdminUsuariosRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -259,6 +273,8 @@ export interface FileRoutesByTo {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/modulos': typeof AdminModulosRoute
+  '/admin/usuarios': typeof AdminUsuariosRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -294,6 +310,8 @@ export interface FileRoutesById {
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/modulos': typeof AdminModulosRoute
+  '/admin/usuarios': typeof AdminUsuariosRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -330,6 +348,8 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/empresas'
     | '/admin/login'
+    | '/admin/modulos'
+    | '/admin/usuarios'
     | '/ecommerce/ads'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -364,6 +384,8 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/empresas'
     | '/admin/login'
+    | '/admin/modulos'
+    | '/admin/usuarios'
     | '/ecommerce/ads'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -398,6 +420,8 @@ export interface FileRouteTypes {
     | '/admin/dashboard'
     | '/admin/empresas'
     | '/admin/login'
+    | '/admin/modulos'
+    | '/admin/usuarios'
     | '/ecommerce/ads'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -433,6 +457,8 @@ export interface RootRouteChildren {
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminEmpresasRoute: typeof AdminEmpresasRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminModulosRoute: typeof AdminModulosRoute
+  AdminUsuariosRoute: typeof AdminUsuariosRoute
   EcommerceAdsRoute: typeof EcommerceAdsRoute
   EcommerceConfiguracoesRoute: typeof EcommerceConfiguracoesRoute
   EcommerceConsultorIaRoute: typeof EcommerceConsultorIaRoute
@@ -652,6 +678,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommerceAdsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/usuarios': {
+      id: '/admin/usuarios'
+      path: '/admin/usuarios'
+      fullPath: '/admin/usuarios'
+      preLoaderRoute: typeof AdminUsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/modulos': {
+      id: '/admin/modulos'
+      path: '/admin/modulos'
+      fullPath: '/admin/modulos'
+      preLoaderRoute: typeof AdminModulosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/login': {
       id: '/admin/login'
       path: '/admin/login'
@@ -697,6 +737,8 @@ const rootRouteChildren: RootRouteChildren = {
   AdminDashboardRoute: AdminDashboardRoute,
   AdminEmpresasRoute: AdminEmpresasRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AdminModulosRoute: AdminModulosRoute,
+  AdminUsuariosRoute: AdminUsuariosRoute,
   EcommerceAdsRoute: EcommerceAdsRoute,
   EcommerceConfiguracoesRoute: EcommerceConfiguracoesRoute,
   EcommerceConsultorIaRoute: EcommerceConsultorIaRoute,
@@ -713,3 +755,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

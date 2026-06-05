@@ -8,7 +8,7 @@ import {
   TrendingDown,
   Activity
 } from "lucide-react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 
 export const Route = createFileRoute("/ecommerce/produtos")({
   component: ProdutosUnificado,
@@ -69,7 +69,7 @@ function ProdutosUnificado() {
   ];
 
   return (
-    <DashboardLayout>
+    <EcommerceLayout>
       <div className="mx-auto max-w-7xl space-y-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Produto Unificado</h1>
@@ -154,6 +154,6 @@ function ProdutosUnificado() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </EcommerceLayout>
   );
 }

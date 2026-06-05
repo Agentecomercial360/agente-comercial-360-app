@@ -9,7 +9,7 @@ import {
   ArrowRight,
   RefreshCw
 } from "lucide-react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 
 export const Route = createFileRoute("/ecommerce/contas")({
   component: ContasML,
@@ -30,7 +30,7 @@ function ContasML() {
   ];
 
   return (
-    <DashboardLayout>
+    <EcommerceLayout>
       <div className="mx-auto max-w-7xl space-y-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -128,6 +128,6 @@ function ContasML() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </EcommerceLayout>
   );
 }

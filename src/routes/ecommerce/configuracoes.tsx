@@ -10,7 +10,7 @@ import {
   ToggleRight,
   Plus
 } from "lucide-react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 
 export const Route = createFileRoute("/ecommerce/configuracoes")({
   component: EcommerceConfiguracoes,
@@ -56,7 +56,7 @@ function EcommerceConfiguracoes() {
   ];
 
   return (
-    <DashboardLayout>
+    <EcommerceLayout>
       <div className="mx-auto max-w-7xl space-y-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Configurações do E-commerce</h1>
@@ -100,7 +100,7 @@ function EcommerceConfiguracoes() {
               <div className="space-y-2">
                 <ToggleItem 
                   label="Considerar produto 'travado' após 7 dias" 
-                  description="A IA alertará produtos com estoque e zero vendas neste período." 
+                  description="A IA alertará produtos with estoque e zero vendas neste período." 
                   active={true} 
                 />
                 <ToggleItem 
@@ -165,6 +165,6 @@ function EcommerceConfiguracoes() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </EcommerceLayout>
   );
 }

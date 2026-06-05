@@ -10,7 +10,7 @@ import {
   ArrowRight,
   Activity
 } from "lucide-react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 
 export const Route = createFileRoute("/ecommerce/ads")({
   component: AdsInteligente,
@@ -50,7 +50,7 @@ function AdsInteligente() {
   };
 
   return (
-    <DashboardLayout>
+    <EcommerceLayout>
       <div className="mx-auto max-w-7xl space-y-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Ads Inteligente</h1>
@@ -118,6 +118,6 @@ function AdsInteligente() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </EcommerceLayout>
   );
 }

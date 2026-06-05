@@ -9,7 +9,7 @@ import {
   ArrowRight,
   Filter
 } from "lucide-react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 
 export const Route = createFileRoute("/ecommerce/produtos-travados")({
   component: ProdutosTravados,
@@ -111,7 +111,7 @@ function ProdutosTravados() {
   };
 
   return (
-    <DashboardLayout>
+    <EcommerceLayout>
       <div className="mx-auto max-w-7xl space-y-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -193,6 +193,6 @@ function ProdutosTravados() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </EcommerceLayout>
   );
 }

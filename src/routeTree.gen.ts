@@ -13,6 +13,7 @@ import { Route as WhatsappOficialRouteImport } from './routes/whatsapp-oficial'
 import { Route as ResponsaveisRouteImport } from './routes/responsaveis'
 import { Route as RelatoriosRouteImport } from './routes/relatorios'
 import { Route as ProdutosRouteImport } from './routes/produtos'
+import { Route as ModulosRouteImport } from './routes/modulos'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LeadsRouteImport } from './routes/leads'
 import { Route as LandingRouteImport } from './routes/landing'
@@ -25,6 +26,7 @@ import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
 import { Route as BaseConhecimentoRouteImport } from './routes/base-conhecimento'
 import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as EcommerceIndexRouteImport } from './routes/ecommerce/index'
 import { Route as EcommerceTarefasRouteImport } from './routes/ecommerce/tarefas'
 import { Route as EcommerceProdutosTravadosRouteImport } from './routes/ecommerce/produtos-travados'
 import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produtos'
@@ -54,6 +56,11 @@ const RelatoriosRoute = RelatoriosRouteImport.update({
 const ProdutosRoute = ProdutosRouteImport.update({
   id: '/produtos',
   path: '/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ModulosRoute = ModulosRouteImport.update({
+  id: '/modulos',
+  path: '/modulos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -114,6 +121,11 @@ const AtendimentosRoute = AtendimentosRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceIndexRoute = EcommerceIndexRouteImport.update({
+  id: '/ecommerce/',
+  path: '/ecommerce/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EcommerceTarefasRoute = EcommerceTarefasRouteImport.update({
@@ -181,6 +193,7 @@ export interface FileRoutesByFullPath {
   '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/modulos': typeof ModulosRoute
   '/produtos': typeof ProdutosRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
@@ -195,6 +208,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
+  '/ecommerce/': typeof EcommerceIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -209,6 +223,7 @@ export interface FileRoutesByTo {
   '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/modulos': typeof ModulosRoute
   '/produtos': typeof ProdutosRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
@@ -223,6 +238,7 @@ export interface FileRoutesByTo {
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
+  '/ecommerce': typeof EcommerceIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -238,6 +254,7 @@ export interface FileRoutesById {
   '/landing': typeof LandingRoute
   '/leads': typeof LeadsRoute
   '/login': typeof LoginRoute
+  '/modulos': typeof ModulosRoute
   '/produtos': typeof ProdutosRoute
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
@@ -252,6 +269,7 @@ export interface FileRoutesById {
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
+  '/ecommerce/': typeof EcommerceIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -268,6 +286,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/leads'
     | '/login'
+    | '/modulos'
     | '/produtos'
     | '/relatorios'
     | '/responsaveis'
@@ -282,6 +301,7 @@ export interface FileRouteTypes {
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
     | '/ecommerce/tarefas'
+    | '/ecommerce/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -296,6 +316,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/leads'
     | '/login'
+    | '/modulos'
     | '/produtos'
     | '/relatorios'
     | '/responsaveis'
@@ -310,6 +331,7 @@ export interface FileRouteTypes {
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
     | '/ecommerce/tarefas'
+    | '/ecommerce'
   id:
     | '__root__'
     | '/'
@@ -324,6 +346,7 @@ export interface FileRouteTypes {
     | '/landing'
     | '/leads'
     | '/login'
+    | '/modulos'
     | '/produtos'
     | '/relatorios'
     | '/responsaveis'
@@ -338,6 +361,7 @@ export interface FileRouteTypes {
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-travados'
     | '/ecommerce/tarefas'
+    | '/ecommerce/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -353,6 +377,7 @@ export interface RootRouteChildren {
   LandingRoute: typeof LandingRoute
   LeadsRoute: typeof LeadsRoute
   LoginRoute: typeof LoginRoute
+  ModulosRoute: typeof ModulosRoute
   ProdutosRoute: typeof ProdutosRoute
   RelatoriosRoute: typeof RelatoriosRoute
   ResponsaveisRoute: typeof ResponsaveisRoute
@@ -367,6 +392,7 @@ export interface RootRouteChildren {
   EcommerceProdutosRoute: typeof EcommerceProdutosRoute
   EcommerceProdutosTravadosRoute: typeof EcommerceProdutosTravadosRoute
   EcommerceTarefasRoute: typeof EcommerceTarefasRoute
+  EcommerceIndexRoute: typeof EcommerceIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -397,6 +423,13 @@ declare module '@tanstack/react-router' {
       path: '/produtos'
       fullPath: '/produtos'
       preLoaderRoute: typeof ProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/modulos': {
+      id: '/modulos'
+      path: '/modulos'
+      fullPath: '/modulos'
+      preLoaderRoute: typeof ModulosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -481,6 +514,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/': {
+      id: '/ecommerce/'
+      path: '/ecommerce'
+      fullPath: '/ecommerce/'
+      preLoaderRoute: typeof EcommerceIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ecommerce/tarefas': {
@@ -569,6 +609,7 @@ const rootRouteChildren: RootRouteChildren = {
   LandingRoute: LandingRoute,
   LeadsRoute: LeadsRoute,
   LoginRoute: LoginRoute,
+  ModulosRoute: ModulosRoute,
   ProdutosRoute: ProdutosRoute,
   RelatoriosRoute: RelatoriosRoute,
   ResponsaveisRoute: ResponsaveisRoute,
@@ -583,6 +624,7 @@ const rootRouteChildren: RootRouteChildren = {
   EcommerceProdutosRoute: EcommerceProdutosRoute,
   EcommerceProdutosTravadosRoute: EcommerceProdutosTravadosRoute,
   EcommerceTarefasRoute: EcommerceTarefasRoute,
+  EcommerceIndexRoute: EcommerceIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

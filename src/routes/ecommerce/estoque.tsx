@@ -9,7 +9,7 @@ import {
   TrendingUp,
   Clock
 } from "lucide-react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 
 export const Route = createFileRoute("/ecommerce/estoque")({
   component: EstoqueUnificado,
@@ -46,7 +46,7 @@ function EstoqueUnificado() {
   };
 
   return (
-    <DashboardLayout>
+    <EcommerceLayout>
       <div className="mx-auto max-w-7xl space-y-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Estoque Unificado</h1>
@@ -122,6 +122,6 @@ function EstoqueUnificado() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </EcommerceLayout>
   );
 }

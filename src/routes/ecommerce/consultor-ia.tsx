@@ -12,7 +12,7 @@ import {
   Plus,
   BarChart3
 } from "lucide-react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 
 export const Route = createFileRoute("/ecommerce/consultor-ia")({
   component: ConsultorIA,
@@ -23,7 +23,7 @@ export const Route = createFileRoute("/ecommerce/consultor-ia")({
 
 function ConsultorIA() {
   return (
-    <DashboardLayout>
+    <EcommerceLayout>
       <div className="mx-auto max-w-7xl space-y-8">
         <div className="flex items-center gap-3">
           <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-3 shadow-lg shadow-blue-600/20">
@@ -183,6 +183,6 @@ function ConsultorIA() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </EcommerceLayout>
   );
 }

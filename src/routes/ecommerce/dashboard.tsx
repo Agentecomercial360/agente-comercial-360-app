@@ -17,7 +17,7 @@ import {
   Percent,
   Search
 } from "lucide-react";
-import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 
 export const Route = createFileRoute("/ecommerce/dashboard")({
   component: EcommerceDashboard,
@@ -65,7 +65,7 @@ function EcommerceDashboard() {
   ];
 
   return (
-    <DashboardLayout>
+    <EcommerceLayout>
       <div className="mx-auto max-w-7xl space-y-8">
         {/* HERO E-COMMERCE */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-800 to-blue-900 p-6 shadow-sm">
@@ -157,6 +157,6 @@ function EcommerceDashboard() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </EcommerceLayout>
   );
 }

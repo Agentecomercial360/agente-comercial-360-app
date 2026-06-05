@@ -1,21 +1,19 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
-  Headphones,
-  Users,
-  MessageSquare,
   UserCog,
-  BookOpen,
-  Sparkles,
-  BarChart3,
   Settings,
   RefreshCw,
   Bot,
   Calendar,
-  Plug,
-  Crown,
-  Package,
-  CalendarClock,
+  Store,
+  ShoppingCart,
+  ShieldAlert,
+  Boxes,
+  Zap,
+  ListTodo,
+  TrendingUp,
+  BrainCircuit,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -23,36 +21,23 @@ import acLogo from "@/assets/ac-logo.png";
 
 const navGroups = [
   {
-    title: "OPERAÇÃO",
+    title: "E-COMMERCE",
     items: [
-      { label: "Gestão 360", to: "/gestao-360", icon: Crown },
-      { label: "Dashboard", to: "/dashboard", icon: LayoutDashboard },
-      { label: "Atendimentos", to: "/atendimentos", icon: Headphones },
-      { label: "Conversas", to: "/conversas", icon: MessageSquare },
-      { label: "Leads", to: "/leads", icon: Users },
-      { label: "Peças / Produtos", to: "/produtos", icon: Package },
-    ],
-  },
-  {
-    title: "INTELIGÊNCIA",
-    items: [
-      { label: "IA", to: "/ia", icon: Sparkles },
-      { label: "Base de Conhecimento", to: "/base-conhecimento", icon: BookOpen },
-      { label: "WhatsApp Oficial", to: "/whatsapp-oficial", icon: Plug },
-    ],
-  },
-  {
-    title: "GESTÃO",
-    items: [
-      { label: "Responsáveis", to: "/responsaveis", icon: UserCog },
-      { label: "Retornos Comerciais", to: "/followups", icon: CalendarClock },
-      { label: "Relatórios", to: "/relatorios", icon: BarChart3 },
-      { label: "Configurações", to: "/configuracoes", icon: Settings },
+      { label: "Visão Geral", to: "/ecommerce/dashboard", icon: Store },
+      { label: "Contas ML", to: "/ecommerce/contas", icon: UserCog },
+      { label: "Produto Unificado", to: "/ecommerce/produtos", icon: ShoppingCart },
+      { label: "Produtos Travados", to: "/ecommerce/produtos-travados", icon: ShieldAlert },
+      { label: "Estoque Unificado", to: "/ecommerce/estoque", icon: Boxes },
+      { label: "Ads Inteligente", to: "/ecommerce/ads", icon: Zap },
+      { label: "Prioridades", to: "/ecommerce/prioridades", icon: TrendingUp },
+      { label: "Tarefas", to: "/ecommerce/tarefas", icon: ListTodo },
+      { label: "Consultor IA", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
+      { label: "Configurações", to: "/ecommerce/configuracoes", icon: Settings },
     ],
   },
 ] as const;
 
-export function DashboardLayout({ children }: { children: ReactNode }) {
+export function EcommerceLayout({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [today, setToday] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -111,10 +96,10 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           />
           <div className="flex flex-col leading-[1.05]">
             <span className="text-[12.5px] font-medium tracking-wide text-white/80">
-              Agente Comercial
+              AC360 E-commerce
             </span>
             <span className="text-[22px] font-bold tracking-tight text-white">
-              360
+              Intelligence
             </span>
           </div>
         </div>
@@ -165,7 +150,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           className="px-6 py-4 border-t text-[11px] tracking-wide text-white/45"
           style={{ borderColor: "var(--sidebar-brand-border)" }}
         >
-          v1.0 · União Auto Peças
+          v1.0 · E-commerce Intelligence
         </div>
       </aside>
 
@@ -186,16 +171,16 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 <span>/</span>
               </Link>
               <div>
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Empresa ativa</div>
-                <div className="font-display text-sm font-bold text-foreground">União Auto Peças</div>
+                <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Operação Ativa</div>
+                <div className="font-display text-sm font-bold text-foreground">Mercado Livre</div>
               </div>
-              <div className="hidden sm:flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 border border-emerald-200">
+              <div className="hidden sm:flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 border border-blue-200">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
                 </span>
-                <Bot className="h-3.5 w-3.5 text-emerald-700" />
-                <span className="text-xs font-semibold text-emerald-700">IA Ativa</span>
+                <Bot className="h-3.5 w-3.5 text-blue-700" />
+                <span className="text-xs font-semibold text-blue-700">IA Inteligente</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -205,7 +190,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
               </div>
               <div className="hidden lg:flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                Sistema online
+                Sincronizado
               </div>
               {lastUpdateText && (
                 <div className="hidden lg:flex items-center text-[11px] text-muted-foreground/80">
@@ -219,7 +204,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                 style={{ background: "var(--gradient-brand)" }}
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isUpdating ? "animate-spin" : ""}`} />
-                {isUpdating ? "Atualizando..." : "Atualizar"}
+                {isUpdating ? "Sincronizando..." : "Sincronizar"}
               </button>
             </div>
           </div>

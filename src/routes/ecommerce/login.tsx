@@ -78,10 +78,10 @@ function EcommerceLoginPage() {
             </div>
 
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl leading-[1.15]">
-              Acesse sua <span className="text-primary">operação E-commerce</span>
+              Acesse sua <span className="text-primary">central E-commerce</span>
             </h1>
-            <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground/90">
-              Entre para acompanhar contas, produtos, estoque, Ads e prioridades em uma central inteligente.
+            <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground/80">
+              Entre para acompanhar contas, produtos, estoque, Ads e prioridades da sua operação em uma central inteligente.
             </p>
 
             {/* Card */}
@@ -221,15 +221,15 @@ function EcommerceLoginPage() {
                 Central inteligente para operações <span className="text-white/90 block mt-1">Mercado Livre</span>
               </h2>
               <p className="mt-6 text-[16px] leading-relaxed text-white/80 font-medium">
-                Centralize múltiplas contas, acompanhe produtos travados, estoque, Ads e decisões com apoio de IA.
+                Centralize múltiplas contas, acompanhe produtos travados, estoque, Ads e decisões por SKU com apoio de IA.
               </p>
 
               <ul className="mt-12 space-y-5">
                 {[
                   { icon: LayoutGrid, label: "Multi-contas Mercado Livre" },
-                  { icon: PackageSearch, label: "Produto unificado por SKU" },
+                  { icon: PackageSearch, label: "Produto unificado por SKU e conta" },
                   { icon: AlertCircle, label: "Estoque centralizado e giro por produto" },
-                  { icon: Wand2, label: "IA consultora para destravar vendas" },
+                  { icon: Wand2, label: "IA consultora para destravar produtos" },
                 ].map(({ icon: Icon, label }) => (
                   <li key={label} className="flex items-center gap-3.5">
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/10 backdrop-blur-sm">

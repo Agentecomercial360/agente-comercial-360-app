@@ -63,7 +63,7 @@ function ModulosSelection() {
 
           {/* E-commerce Card */}
           <Link
-            to="/ecommerce/dashboard"
+            to="/ecommerce/login"
             className="group relative flex flex-col bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-800 transition-all hover:shadow-xl hover:border-blue-900/50 hover:-translate-y-1 overflow-hidden text-white"
           >
             <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">

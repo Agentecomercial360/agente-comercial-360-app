@@ -38,6 +38,14 @@ import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
 import { Route as EcommerceConsultorIaRouteImport } from './routes/ecommerce/consultor-ia'
 import { Route as EcommerceConfiguracoesRouteImport } from './routes/ecommerce/configuracoes'
 import { Route as EcommerceAdsRouteImport } from './routes/ecommerce/ads'
+import { Route as AdminUsuariosRouteImport } from './routes/admin/usuarios'
+import { Route as AdminPlanosRouteImport } from './routes/admin/planos'
+import { Route as AdminModulosRouteImport } from './routes/admin/modulos'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminEmpresasRouteImport } from './routes/admin/empresas'
+import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminConfiguracoesRouteImport } from './routes/admin/configuracoes'
+import { Route as AdminAcessosRouteImport } from './routes/admin/acessos'
 
 const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
   id: '/whatsapp-oficial',
@@ -185,6 +193,46 @@ const EcommerceAdsRoute = EcommerceAdsRouteImport.update({
   path: '/ecommerce/ads',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
+  id: '/admin/usuarios',
+  path: '/admin/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPlanosRoute = AdminPlanosRouteImport.update({
+  id: '/admin/planos',
+  path: '/admin/planos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminModulosRoute = AdminModulosRouteImport.update({
+  id: '/admin/modulos',
+  path: '/admin/modulos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEmpresasRoute = AdminEmpresasRouteImport.update({
+  id: '/admin/empresas',
+  path: '/admin/empresas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
+  id: '/admin/configuracoes',
+  path: '/admin/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminAcessosRoute = AdminAcessosRouteImport.update({
+  id: '/admin/acessos',
+  path: '/admin/acessos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -204,6 +252,14 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/admin/acessos': typeof AdminAcessosRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/empresas': typeof AdminEmpresasRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/modulos': typeof AdminModulosRoute
+  '/admin/planos': typeof AdminPlanosRoute
+  '/admin/usuarios': typeof AdminUsuariosRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -235,6 +291,14 @@ export interface FileRoutesByTo {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/admin/acessos': typeof AdminAcessosRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/empresas': typeof AdminEmpresasRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/modulos': typeof AdminModulosRoute
+  '/admin/planos': typeof AdminPlanosRoute
+  '/admin/usuarios': typeof AdminUsuariosRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -267,6 +331,14 @@ export interface FileRoutesById {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/admin/acessos': typeof AdminAcessosRoute
+  '/admin/configuracoes': typeof AdminConfiguracoesRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/empresas': typeof AdminEmpresasRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/admin/modulos': typeof AdminModulosRoute
+  '/admin/planos': typeof AdminPlanosRoute
+  '/admin/usuarios': typeof AdminUsuariosRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -300,6 +372,14 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/admin/acessos'
+    | '/admin/configuracoes'
+    | '/admin/dashboard'
+    | '/admin/empresas'
+    | '/admin/login'
+    | '/admin/modulos'
+    | '/admin/planos'
+    | '/admin/usuarios'
     | '/ecommerce/ads'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -331,6 +411,14 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/admin/acessos'
+    | '/admin/configuracoes'
+    | '/admin/dashboard'
+    | '/admin/empresas'
+    | '/admin/login'
+    | '/admin/modulos'
+    | '/admin/planos'
+    | '/admin/usuarios'
     | '/ecommerce/ads'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -362,6 +450,14 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/admin/acessos'
+    | '/admin/configuracoes'
+    | '/admin/dashboard'
+    | '/admin/empresas'
+    | '/admin/login'
+    | '/admin/modulos'
+    | '/admin/planos'
+    | '/admin/usuarios'
     | '/ecommerce/ads'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -394,6 +490,14 @@ export interface RootRouteChildren {
   RelatoriosRoute: typeof RelatoriosRoute
   ResponsaveisRoute: typeof ResponsaveisRoute
   WhatsappOficialRoute: typeof WhatsappOficialRoute
+  AdminAcessosRoute: typeof AdminAcessosRoute
+  AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
+  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminEmpresasRoute: typeof AdminEmpresasRoute
+  AdminLoginRoute: typeof AdminLoginRoute
+  AdminModulosRoute: typeof AdminModulosRoute
+  AdminPlanosRoute: typeof AdminPlanosRoute
+  AdminUsuariosRoute: typeof AdminUsuariosRoute
   EcommerceAdsRoute: typeof EcommerceAdsRoute
   EcommerceConfiguracoesRoute: typeof EcommerceConfiguracoesRoute
   EcommerceConsultorIaRoute: typeof EcommerceConsultorIaRoute
@@ -613,6 +717,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommerceAdsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/usuarios': {
+      id: '/admin/usuarios'
+      path: '/admin/usuarios'
+      fullPath: '/admin/usuarios'
+      preLoaderRoute: typeof AdminUsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/planos': {
+      id: '/admin/planos'
+      path: '/admin/planos'
+      fullPath: '/admin/planos'
+      preLoaderRoute: typeof AdminPlanosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/modulos': {
+      id: '/admin/modulos'
+      path: '/admin/modulos'
+      fullPath: '/admin/modulos'
+      preLoaderRoute: typeof AdminModulosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/empresas': {
+      id: '/admin/empresas'
+      path: '/admin/empresas'
+      fullPath: '/admin/empresas'
+      preLoaderRoute: typeof AdminEmpresasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/configuracoes': {
+      id: '/admin/configuracoes'
+      path: '/admin/configuracoes'
+      fullPath: '/admin/configuracoes'
+      preLoaderRoute: typeof AdminConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/acessos': {
+      id: '/admin/acessos'
+      path: '/admin/acessos'
+      fullPath: '/admin/acessos'
+      preLoaderRoute: typeof AdminAcessosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -634,6 +794,14 @@ const rootRouteChildren: RootRouteChildren = {
   RelatoriosRoute: RelatoriosRoute,
   ResponsaveisRoute: ResponsaveisRoute,
   WhatsappOficialRoute: WhatsappOficialRoute,
+  AdminAcessosRoute: AdminAcessosRoute,
+  AdminConfiguracoesRoute: AdminConfiguracoesRoute,
+  AdminDashboardRoute: AdminDashboardRoute,
+  AdminEmpresasRoute: AdminEmpresasRoute,
+  AdminLoginRoute: AdminLoginRoute,
+  AdminModulosRoute: AdminModulosRoute,
+  AdminPlanosRoute: AdminPlanosRoute,
+  AdminUsuariosRoute: AdminUsuariosRoute,
   EcommerceAdsRoute: EcommerceAdsRoute,
   EcommerceConfiguracoesRoute: EcommerceConfiguracoesRoute,
   EcommerceConsultorIaRoute: EcommerceConsultorIaRoute,

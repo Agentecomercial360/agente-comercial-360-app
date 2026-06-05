@@ -43,6 +43,7 @@ import { Route as AdminModulosRouteImport } from './routes/admin/modulos'
 import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminEmpresasRouteImport } from './routes/admin/empresas'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminAcessosRouteImport } from './routes/admin/acessos'
 
 const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
   id: '/whatsapp-oficial',
@@ -215,6 +216,11 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
   path: '/admin/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminAcessosRoute = AdminAcessosRouteImport.update({
+  id: '/admin/acessos',
+  path: '/admin/acessos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/admin/acessos': typeof AdminAcessosRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/login': typeof AdminLoginRoute
@@ -270,6 +277,7 @@ export interface FileRoutesByTo {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/admin/acessos': typeof AdminAcessosRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/login': typeof AdminLoginRoute
@@ -307,6 +315,7 @@ export interface FileRoutesById {
   '/relatorios': typeof RelatoriosRoute
   '/responsaveis': typeof ResponsaveisRoute
   '/whatsapp-oficial': typeof WhatsappOficialRoute
+  '/admin/acessos': typeof AdminAcessosRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/login': typeof AdminLoginRoute
@@ -345,6 +354,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/admin/acessos'
     | '/admin/dashboard'
     | '/admin/empresas'
     | '/admin/login'
@@ -381,6 +391,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/admin/acessos'
     | '/admin/dashboard'
     | '/admin/empresas'
     | '/admin/login'
@@ -417,6 +428,7 @@ export interface FileRouteTypes {
     | '/relatorios'
     | '/responsaveis'
     | '/whatsapp-oficial'
+    | '/admin/acessos'
     | '/admin/dashboard'
     | '/admin/empresas'
     | '/admin/login'
@@ -454,6 +466,7 @@ export interface RootRouteChildren {
   RelatoriosRoute: typeof RelatoriosRoute
   ResponsaveisRoute: typeof ResponsaveisRoute
   WhatsappOficialRoute: typeof WhatsappOficialRoute
+  AdminAcessosRoute: typeof AdminAcessosRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminEmpresasRoute: typeof AdminEmpresasRoute
   AdminLoginRoute: typeof AdminLoginRoute
@@ -713,6 +726,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/acessos': {
+      id: '/admin/acessos'
+      path: '/admin/acessos'
+      fullPath: '/admin/acessos'
+      preLoaderRoute: typeof AdminAcessosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -734,6 +754,7 @@ const rootRouteChildren: RootRouteChildren = {
   RelatoriosRoute: RelatoriosRoute,
   ResponsaveisRoute: ResponsaveisRoute,
   WhatsappOficialRoute: WhatsappOficialRoute,
+  AdminAcessosRoute: AdminAcessosRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminEmpresasRoute: AdminEmpresasRoute,
   AdminLoginRoute: AdminLoginRoute,

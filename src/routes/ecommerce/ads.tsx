@@ -221,12 +221,7 @@ function AdsInteligente() {
     const o = buckets.opportunity.length;
     const a = buckets.actionable.length;
     if (rows.length === 0) return "Sem campanhas para análise no momento.";
-    const parts: string[] = [];
-    if (c > 0) parts.push(`${c} ${c === 1 ? "campanha exige atenção imediata" : "campanhas exigem atenção imediata"}`);
-    if (o > 0) parts.push(`${o} com oportunidade de escala`);
-    if (a > 0) parts.push(`${a} com ação recomendada`);
-    if (parts.length === 0) return "Operação estável: nenhuma intervenção crítica neste ciclo.";
-    return parts.join(" · ") + ".";
+    return `${c} ${c === 1 ? "campanha crítica" : "campanhas críticas"}, ${o} ${o === 1 ? "oportunidade de escala" : "oportunidades de escala"} e ${a} ${a === 1 ? "recomendação gerada" : "recomendações geradas"} pela IA.`;
   }, [buckets, rows.length]);
 
   const primaryKpis = [
@@ -245,7 +240,7 @@ function AdsInteligente() {
 
   return (
     <EcommerceLayout>
-      <div className="mx-auto max-w-7xl space-y-8">
+      <div className="mx-auto max-w-7xl space-y-5">
         {/* Cabeçalho executivo */}
         <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-xl">

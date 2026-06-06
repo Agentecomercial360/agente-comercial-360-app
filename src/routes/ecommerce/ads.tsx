@@ -274,7 +274,7 @@ function AdsInteligente() {
                   <span className="font-bold text-emerald-300">{buckets.opportunity.length}</span> oportunidades
                 </span>
                 <span>
-                  <span className="font-bold text-blue-300">{buckets.actionable.length}</span> ações sugeridas
+                  <span className="font-bold text-blue-300">{buckets.actionable.length}</span> recomendações
                 </span>
               </div>
             </div>

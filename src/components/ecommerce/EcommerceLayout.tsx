@@ -14,6 +14,7 @@ import {
   ListTodo,
   TrendingUp,
   BrainCircuit,
+  BarChart3,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -32,6 +33,7 @@ const navGroups = [
       { label: "Prioridades", to: "/ecommerce/prioridades", icon: TrendingUp },
       { label: "Tarefas", to: "/ecommerce/tarefas", icon: ListTodo },
       { label: "Consultor IA", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
+      { label: "Resultados das Ações", to: "/ecommerce/resultados", icon: BarChart3 },
       { label: "Configurações", to: "/ecommerce/configuracoes", icon: Settings },
     ],
   },

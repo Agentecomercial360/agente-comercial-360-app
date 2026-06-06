@@ -298,9 +298,16 @@ function ConsultorIA() {
                               {t.expected_impact}
                             </span>
                           )}
-                          <span>
-                            <strong className="text-slate-700">Confiança IA:</strong>{" "}
-                            {fmtConfidence(t.confidence_score)}
+                          <span className="inline-flex items-center gap-2">
+                            <span>
+                              <strong className="text-slate-700">Confiança IA:</strong>{" "}
+                              {formatConfidenceScore(t.confidence_score)}
+                            </span>
+                            {confidenceTier(t.confidence_score) && (
+                              <span className={`rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${confidenceTier(t.confidence_score)!.cls}`}>
+                                {confidenceTier(t.confidence_score)!.label}
+                              </span>
+                            )}
                           </span>
                           {t.status_label && (
                             <span>

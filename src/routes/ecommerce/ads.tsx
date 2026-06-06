@@ -7,10 +7,11 @@ import {
   MousePointer2,
   BarChart3,
   Activity,
-  ArrowRight,
   Eye,
+  BrainCircuit,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/ads")({
@@ -65,11 +66,25 @@ const ACTION_LABEL: Record<string, string> = {
   keep_monitoring: "Manter monitoramento",
 };
 
+const ACTION_STYLE: Record<string, string> = {
+  pause: "bg-rose-100 text-rose-700 ring-1 ring-rose-200",
+  reduce_budget: "bg-orange-100 text-orange-700 ring-1 ring-orange-200",
+  scale: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
+  review_ad: "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
+  keep_monitoring: "bg-slate-100 text-slate-700 ring-1 ring-slate-200",
+};
+
+function actionKey(value?: string | null): string | null {
+  if (!value) return null;
+  return value.toLowerCase();
+}
+
 function translateAction(value?: string | null): string | null {
   if (!value) return null;
   const key = value.toLowerCase();
   return ACTION_LABEL[key] ?? value;
 }
+
 
 const fmtBRL = (v: number | null | undefined) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(Number(v ?? 0));
@@ -208,82 +223,121 @@ function AdsInteligente() {
               ))}
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-sm">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-slate-50/50 border-b border-slate-200">
-                    <tr>
-                      <th className="px-6 py-4 font-semibold text-slate-900">Campanha / Produto</th>
-                      <th className="px-6 py-4 font-semibold text-slate-900">Conta / Marketplace</th>
-                      <th className="px-6 py-4 font-semibold text-slate-900 text-right">Investimento</th>
-                      <th className="px-6 py-4 font-semibold text-slate-900 text-right">Receita Ads</th>
-                      <th className="px-6 py-4 font-semibold text-slate-900 text-right">Receita Total</th>
-                      <th className="px-6 py-4 font-semibold text-slate-900 text-right">ROAS</th>
-                      <th className="px-6 py-4 font-semibold text-slate-900 text-right">ACOS</th>
-                      <th className="px-6 py-4 font-semibold text-slate-900 text-right">TACoS</th>
-                      <th className="px-6 py-4 font-semibold text-slate-900 text-right">Cliques</th>
-                      <th className="px-6 py-4 font-semibold text-slate-900 text-right">Impressões</th>
-                      <th className="px-6 py-4 font-semibold text-slate-900">Prioridade</th>
-                      <th className="px-6 py-4 font-semibold text-slate-900">Ação Sugerida</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {rows.map((c, i) => {
-                      const prio = (c.priority_level ?? "normal").toLowerCase();
-                      const action = translateAction(c.recommended_action);
-                      return (
-                        <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="px-6 py-4">
-                            <div className="flex flex-col">
-                              <span className="font-bold text-slate-900">{c.campaign_name ?? "—"}</span>
-                              <span className="text-[11px] uppercase tracking-wider text-slate-500">
-                                {(c.product_name ?? "—") + (c.sku ? ` • ${c.sku}` : "")}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4">
-                            <div className="flex flex-col">
-                              <span className="font-medium text-slate-900">{c.account_name ?? "—"}</span>
-                              <span className="text-[11px] uppercase tracking-wider text-slate-500">{c.marketplace ?? "—"}</span>
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 text-right text-slate-700">{fmtBRL(c.investment)}</td>
-                          <td className="px-6 py-4 text-right text-slate-700">{fmtBRL(c.ads_revenue)}</td>
-                          <td className="px-6 py-4 text-right text-slate-700">{fmtBRL(c.total_revenue)}</td>
-                          <td className="px-6 py-4 text-right font-bold text-slate-900">{fmtNum(c.roas, 2)}</td>
-                          <td className="px-6 py-4 text-right text-slate-700">{fmtPct(c.acos)}</td>
-                          <td className="px-6 py-4 text-right text-slate-700">{fmtPct(c.tacos)}</td>
-                          <td className="px-6 py-4 text-right text-slate-700">{fmtInt(c.clicks)}</td>
-                          <td className="px-6 py-4 text-right text-slate-700">{fmtInt(c.impressions)}</td>
-                          <td className="px-6 py-4">
-                            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold ${PRIORITY_STYLE[prio] ?? "bg-slate-100 text-slate-700"}`}>
-                              {PRIORITY_LABEL[prio] ?? prio}
+            <div className="space-y-4">
+              {rows.map((c, i) => {
+                const prio = (c.priority_level ?? "normal").toLowerCase();
+                const aKey = actionKey(c.recommended_action);
+                const aLabel = translateAction(c.recommended_action);
+                const metrics: { label: string; value: string; emphasis?: boolean }[] = [
+                  { label: "Investimento", value: fmtBRL(c.investment) },
+                  { label: "Receita Ads", value: fmtBRL(c.ads_revenue) },
+                  { label: "Receita Total", value: fmtBRL(c.total_revenue) },
+                  { label: "ROAS", value: fmtNum(c.roas, 2), emphasis: true },
+                  { label: "ACOS", value: fmtPct(c.acos) },
+                  { label: "TACoS", value: fmtPct(c.tacos) },
+                  { label: "Cliques", value: fmtInt(c.clicks) },
+                  { label: "Impressões", value: fmtInt(c.impressions) },
+                ];
+                return (
+                  <div
+                    key={i}
+                    className="rounded-2xl border border-slate-200 bg-card p-6 shadow-sm transition-all hover:shadow-md"
+                  >
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                              PRIORITY_STYLE[prio] ?? "bg-slate-100 text-slate-700"
+                            }`}
+                          >
+                            {PRIORITY_LABEL[prio] ?? prio}
+                          </span>
+                          {c.ad_type && (
+                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
+                              {c.ad_type}
                             </span>
-                          </td>
-                          <td className="px-6 py-4">
-                            {action || c.ai_action_suggestion ? (
-                              <div className="flex flex-col gap-0.5">
-                                {action && (
-                                  <button className="inline-flex items-center gap-1.5 text-left font-bold text-blue-600 hover:text-blue-700">
-                                    {action}
-                                    <ArrowRight className="h-3 w-3" />
-                                  </button>
-                                )}
-                                {c.ai_action_suggestion && (
-                                  <span className="text-[11px] text-slate-500">{c.ai_action_suggestion}</span>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-slate-400 text-xs">—</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                          )}
+                          {c.ads_status && (
+                            <span className="inline-flex items-center rounded-full bg-slate-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 ring-1 ring-slate-200">
+                              {c.ads_status}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="mt-2 text-lg font-bold leading-tight text-slate-900">
+                          {c.campaign_name ?? "Campanha sem nome"}
+                        </h3>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                          <span className="font-medium text-slate-700">{c.product_name ?? "—"}</span>
+                          {c.sku && (
+                            <span className="font-mono text-[11px] uppercase tracking-wider text-slate-500">
+                              {c.sku}
+                            </span>
+                          )}
+                          <span className="text-slate-300">•</span>
+                          <span>{c.account_name ?? "—"}</span>
+                          {c.marketplace && (
+                            <>
+                              <span className="text-slate-300">•</span>
+                              <span className="uppercase tracking-wide">{c.marketplace}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {aLabel && (
+                        <div className="shrink-0">
+                          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                            Ação recomendada
+                          </div>
+                          <span
+                            className={`mt-1 inline-flex items-center rounded-full px-3 py-1.5 text-xs font-bold ${
+                              ACTION_STYLE[aKey ?? ""] ?? "bg-slate-100 text-slate-700 ring-1 ring-slate-200"
+                            }`}
+                          >
+                            {aLabel}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 sm:grid-cols-4 lg:grid-cols-8">
+                      {metrics.map((m, mi) => (
+                        <div key={mi} className="min-w-0">
+                          <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                            {m.label}
+                          </div>
+                          <div
+                            className={`mt-0.5 truncate text-sm font-bold ${
+                              m.emphasis ? "text-blue-700" : "text-slate-900"
+                            }`}
+                          >
+                            {m.value}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {c.ai_action_suggestion && (
+                      <div className="mt-4 flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
+                        <div className="rounded-lg bg-blue-500/10 p-1.5 text-blue-600 ring-1 ring-inset ring-blue-200">
+                          <BrainCircuit className="h-4 w-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-700">
+                            Sugestão IA
+                          </div>
+                          <p className="mt-0.5 text-sm leading-relaxed text-slate-700">
+                            {c.ai_action_suggestion}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
+
           </>
         )}
       </div>

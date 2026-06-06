@@ -32,10 +32,17 @@ function ContasML() {
   return (
     <EcommerceLayout>
       <div className="mx-auto max-w-7xl space-y-8">
+        <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-4 py-3">
+          <p className="text-sm font-semibold text-amber-900">Contas demonstrativas de implantação</p>
+          <p className="mt-1 text-xs text-amber-800/90">
+            Estas contas são usadas para validação inicial do painel. As contas reais do cliente serão conectadas após coleta dos acessos e autorização das integrações.
+          </p>
+        </div>
+
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">Contas Mercado Livre</h1>
-            <p className="text-slate-500">Gerencie todas as suas lojas conectadas ao ecossistema.</p>
+            <p className="text-slate-500">Contas cadastradas para teste no ambiente de implantação.</p>
           </div>
           <button className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-blue-600/20 hover:bg-blue-700 transition-all">
             Conectar nova conta

@@ -7,10 +7,11 @@ import {
   MousePointer2,
   BarChart3,
   Activity,
-  ArrowRight,
   Eye,
+  BrainCircuit,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/ads")({

@@ -1,23 +1,25 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { 
-  Store, 
-  TrendingUp, 
-  Users, 
-  ShoppingCart, 
-  ShieldAlert, 
-  Boxes, 
-  Zap, 
-  Activity, 
-  BrainCircuit, 
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import {
+  Store,
+  TrendingUp,
+  Users,
+  ShoppingCart,
+  ShieldAlert,
+  Boxes,
+  Zap,
+  Activity,
+  BrainCircuit,
   AlertCircle,
   ArrowUpRight,
   ArrowDownRight,
   DollarSign,
-  BarChart3,
-  Percent,
-  Search
+  Search,
+  ListTodo,
+  Lightbulb,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/dashboard")({
   component: EcommerceDashboard,
@@ -48,21 +50,111 @@ function KpiCard({ label, value, icon: Icon, trend, trendValue, color }: any) {
   );
 }
 
+type Summary = {
+  company_id?: string | null;
+  total_gross_revenue?: number | null;
+  total_sales_count?: number | null;
+  total_accounts?: number | null;
+  total_products?: number | null;
+  products_low_conversion?: number | null;
+  products_visits_no_sales?: number | null;
+  products_no_visits?: number | null;
+  total_ads_investment?: number | null;
+  avg_roas?: number | null;
+  critical_insights?: number | null;
+  critical_tasks?: number | null;
+  pending_tasks?: number | null;
+  open_insights?: number | null;
+};
+
+const fmtBRL = (v: number | null | undefined) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(Number(v ?? 0));
+const fmtInt = (v: number | null | undefined) =>
+  new Intl.NumberFormat("pt-BR").format(Number(v ?? 0));
+const fmtNum = (v: number | null | undefined, digits = 1) =>
+  new Intl.NumberFormat("pt-BR", { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(Number(v ?? 0));
+
 function EcommerceDashboard() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<Summary | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        const { data: ctx, error: ctxErr } = await supabase
+          .from("vw_user_access_context")
+          .select("company_id, has_ecommerce_access")
+          .maybeSingle();
+
+        if (ctxErr) throw ctxErr;
+        if (!ctx) {
+          navigate({ to: "/ecommerce/login" });
+          return;
+        }
+        if (!ctx.has_ecommerce_access) {
+          await supabase.auth.signOut();
+          navigate({ to: "/ecommerce/login" });
+          return;
+        }
+
+        const { data, error: sErr } = await supabase
+          .from("vw_ecommerce_dashboard_summary")
+          .select("*")
+          .eq("company_id", ctx.company_id)
+          .maybeSingle();
+
+        if (sErr) throw sErr;
+        if (cancelled) return;
+        setSummary(data ?? null);
+      } catch (e: any) {
+        if (cancelled) return;
+        setError(e?.message ?? "Erro ao carregar dados.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
+
+  const productsBlocked =
+    Number(summary?.products_low_conversion ?? 0) +
+    Number(summary?.products_visits_no_sales ?? 0) +
+    Number(summary?.products_no_visits ?? 0);
+  const criticalAlerts =
+    Number(summary?.critical_insights ?? 0) + Number(summary?.critical_tasks ?? 0);
+
   const kpis = [
-    { label: "Faturamento total", value: "R$ 142.500", icon: DollarSign, trend: "up", trendValue: "12%", color: "bg-emerald-50 text-emerald-600" },
-    { label: "Vendas totais", value: "1.240", icon: ShoppingCart, trend: "up", trendValue: "8%", color: "bg-blue-50 text-blue-600" },
-    { label: "Contas conectadas", value: "7", icon: Users, color: "bg-indigo-50 text-indigo-600" },
-    { label: "Produtos ativos", value: "450", icon: Boxes, color: "bg-violet-50 text-violet-600" },
-    { label: "Produtos travados", value: "32", icon: ShieldAlert, trend: "down", trendValue: "5%", color: "bg-rose-50 text-rose-600" },
-    { label: "Produtos sem venda", value: "18", icon: AlertCircle, color: "bg-amber-50 text-amber-600" },
-    { label: "Produtos sem visita", value: "12", icon: Search, color: "bg-slate-50 text-slate-600" },
-    { label: "Conversão média", value: "2.4%", icon: Percent, trend: "up", trendValue: "0.5%", color: "bg-cyan-50 text-cyan-600" },
-    { label: "Investimento Ads", value: "R$ 12.400", icon: Zap, color: "bg-yellow-50 text-yellow-600" },
-    { label: "ROAS médio", value: "11.5", icon: TrendingUp, trend: "up", trendValue: "1.2", color: "bg-purple-50 text-purple-600" },
-    { label: "TACoS estimado", value: "8.7%", icon: BarChart3, color: "bg-orange-50 text-orange-600" },
-    { label: "Alertas críticos", value: "5", icon: Activity, color: "bg-rose-50 text-rose-600" },
+    { label: "Faturamento total", value: fmtBRL(summary?.total_gross_revenue), icon: DollarSign, color: "bg-emerald-50 text-emerald-600" },
+    { label: "Vendas totais", value: fmtInt(summary?.total_sales_count), icon: ShoppingCart, color: "bg-blue-50 text-blue-600" },
+    { label: "Contas conectadas", value: fmtInt(summary?.total_accounts), icon: Users, color: "bg-indigo-50 text-indigo-600" },
+    { label: "Produtos ativos", value: fmtInt(summary?.total_products), icon: Boxes, color: "bg-violet-50 text-violet-600" },
+    { label: "Produtos travados", value: fmtInt(productsBlocked), icon: ShieldAlert, color: "bg-rose-50 text-rose-600" },
+    { label: "Produtos sem venda", value: fmtInt(summary?.products_visits_no_sales), icon: AlertCircle, color: "bg-amber-50 text-amber-600" },
+    { label: "Produtos sem visita", value: fmtInt(summary?.products_no_visits), icon: Search, color: "bg-slate-50 text-slate-600" },
+    { label: "Investimento Ads", value: fmtBRL(summary?.total_ads_investment), icon: Zap, color: "bg-yellow-50 text-yellow-600" },
+    { label: "ROAS médio", value: fmtNum(summary?.avg_roas, 2), icon: TrendingUp, color: "bg-purple-50 text-purple-600" },
+    { label: "Alertas críticos", value: fmtInt(criticalAlerts), icon: Activity, color: "bg-rose-50 text-rose-600" },
+    { label: "Tarefas pendentes", value: fmtInt(summary?.pending_tasks), icon: ListTodo, color: "bg-orange-50 text-orange-600" },
+    { label: "Insights abertos", value: fmtInt(summary?.open_insights), icon: Lightbulb, color: "bg-cyan-50 text-cyan-600" },
   ];
+
+  const aiText = summary
+    ? `Existem ${fmtInt(summary.products_no_visits)} produtos sem visitas, ${fmtInt(
+        summary.products_visits_no_sales
+      )} produtos com visitas sem venda e ${fmtInt(
+        summary.products_low_conversion
+      )} produtos com baixa conversão. Existem ${fmtInt(
+        summary.critical_insights
+      )} insights críticos e ${fmtInt(summary.pending_tasks)} tarefas pendentes para análise.`
+    : "Carregando análise da IA...";
 
   return (
     <EcommerceLayout>
@@ -89,24 +181,41 @@ function EcommerceDashboard() {
                 Acompanhe a performance de todas as suas contas do Mercado Livre em um só lugar com inteligência artificial.
               </p>
             </div>
-            <div className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm">
+            <div className="flex flex-col gap-2 rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm md:max-w-sm">
               <div className="flex items-center gap-2 text-sm font-semibold text-white">
                 <BrainCircuit className="h-4 w-4 text-blue-400" />
                 Resumo da IA
               </div>
-              <p className="text-sm leading-relaxed text-blue-100/70">
-                Existem produtos com estoque disponível, mas sem venda nos últimos 30 dias. A prioridade é analisar produtos com visita e baixa conversão, produtos sem visita e campanhas com investimento sem retorno.
-              </p>
+              <p className="text-sm leading-relaxed text-blue-100/70">{aiText}</p>
             </div>
           </div>
         </div>
 
+        {/* Loading / Error / Empty */}
+        {loading && (
+          <div className="rounded-2xl border border-slate-200 bg-card p-6 text-sm text-slate-500">
+            Carregando dados da operação...
+          </div>
+        )}
+        {!loading && error && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50/40 p-6 text-sm text-rose-700">
+            Não foi possível carregar os dados agora. Tente novamente em instantes.
+          </div>
+        )}
+        {!loading && !error && !summary && (
+          <div className="rounded-2xl border border-slate-200 bg-card p-6 text-sm text-slate-500">
+            Nenhum dado encontrado para esta empresa.
+          </div>
+        )}
+
         {/* KPI Grid */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-          {kpis.map((kpi, i) => (
-            <KpiCard key={i} {...kpi} />
-          ))}
-        </div>
+        {!loading && !error && summary && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
+            {kpis.map((kpi, i) => (
+              <KpiCard key={i} {...kpi} />
+            ))}
+          </div>
+        )}
 
         {/* Prioridades da Semana */}
         <div className="space-y-4">

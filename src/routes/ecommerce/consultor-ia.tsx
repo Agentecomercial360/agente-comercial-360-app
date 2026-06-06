@@ -298,17 +298,22 @@ function ConsultorIA() {
                               {t.expected_impact}
                             </span>
                           )}
-                          <span className="inline-flex items-center gap-2">
-                            <span>
-                              <strong className="text-slate-700">Confiança IA:</strong>{" "}
-                              {formatConfidenceScore(t.confidence_score)}
-                            </span>
-                            {confidenceTier(t.confidence_score) && (
-                              <span className={`rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${confidenceTier(t.confidence_score)!.cls}`}>
-                                {confidenceTier(t.confidence_score)!.label}
+                          <div className="flex w-full flex-col gap-1">
+                            <span className="inline-flex flex-wrap items-center gap-2">
+                              <span>
+                                <strong className="text-slate-700">Nível de confiança da recomendação:</strong>{" "}
+                                {formatConfidenceScore(t.confidence_score)}
                               </span>
-                            )}
-                          </span>
+                              {confidenceTier(t.confidence_score) && (
+                                <span className={`rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${confidenceTier(t.confidence_score)!.cls}`}>
+                                  {confidenceTier(t.confidence_score)!.label}
+                                </span>
+                              )}
+                            </span>
+                            <span className="text-[11px] text-slate-400">
+                              Baseado em visitas, vendas, estoque, Ads e histórico de resultado.
+                            </span>
+                          </div>
                           {t.status_label && (
                             <span>
                               <strong className="text-slate-700">Status:</strong> {t.status_label}

@@ -1,18 +1,17 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { 
-  BrainCircuit, 
-  Search, 
-  CheckCircle2, 
-  AlertCircle, 
-  Sparkles, 
-  Zap,
-  Image,
-  Type,
-  FileText,
-  Plus,
-  BarChart3
+import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import {
+  BrainCircuit,
+  Sparkles,
+  AlertCircle,
+  CheckCircle2,
+  BarChart3,
+  TrendingUp,
+  TrendingDown,
+  Minus,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/consultor-ia")({
   component: ConsultorIA,
@@ -21,7 +20,156 @@ export const Route = createFileRoute("/ecommerce/consultor-ia")({
   }),
 });
 
+type TaskRow = {
+  task_title: string | null;
+  priority: string | null;
+  status_label: string | null;
+  product_name: string | null;
+  sku: string | null;
+  marketplace: string | null;
+  account_name: string | null;
+  insight_title: string | null;
+  diagnosis: string | null;
+  probable_cause: string | null;
+  recommended_action: string | null;
+  expected_impact: string | null;
+  confidence_score: number | null;
+  due_date: string | null;
+  is_overdue: boolean | null;
+  priority_order: number | null;
+};
+
+type ResultRow = {
+  result_status_label: string | null;
+  task_title: string | null;
+  product_name: string | null;
+  marketplace: string | null;
+  account_name: string | null;
+  before_visits: number | null;
+  after_visits: number | null;
+  visits_difference: number | null;
+  before_sales_count: number | null;
+  after_sales_count: number | null;
+  sales_difference: number | null;
+  before_revenue: number | null;
+  after_revenue: number | null;
+  revenue_difference: number | null;
+  before_conversion_rate: number | null;
+  after_conversion_rate: number | null;
+  conversion_difference: number | null;
+  result_summary: string | null;
+  ai_evaluation: string | null;
+};
+
+const PRIORITY_LABEL: Record<string, string> = {
+  critical: "Crítica",
+  high: "Alta",
+  medium: "Média",
+  low: "Baixa",
+};
+
+const PRIORITY_STYLE: Record<string, string> = {
+  critical: "bg-rose-50 text-rose-700 border-rose-200",
+  high: "bg-orange-50 text-orange-700 border-orange-200",
+  medium: "bg-amber-50 text-amber-700 border-amber-200",
+  low: "bg-slate-50 text-slate-700 border-slate-200",
+};
+
+const fmtBRL = (n: number | null) =>
+  n == null
+    ? "—"
+    : n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const fmtInt = (n: number | null) => (n == null ? "—" : n.toLocaleString("pt-BR"));
+const fmtPct = (n: number | null) =>
+  n == null ? "—" : `${(n * 100).toFixed(1).replace(".", ",")}%`;
+const fmtConfidence = (n: number | null) =>
+  n == null ? "—" : `${Math.round(n * 100)}%`;
+
+function DiffBadge({ value, format = "int" }: { value: number | null; format?: "int" | "brl" | "pct" }) {
+  if (value == null) return <span className="text-xs text-slate-400">—</span>;
+  const positive = value > 0;
+  const neutral = value === 0;
+  const Icon = neutral ? Minus : positive ? TrendingUp : TrendingDown;
+  const cls = neutral
+    ? "text-slate-500 bg-slate-50 border-slate-200"
+    : positive
+      ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+      : "text-rose-700 bg-rose-50 border-rose-200";
+  const formatted =
+    format === "brl" ? fmtBRL(value) : format === "pct" ? fmtPct(value) : fmtInt(value);
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${cls}`}>
+      <Icon className="h-3 w-3" />
+      {formatted}
+    </span>
+  );
+}
+
 function ConsultorIA() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [tasks, setTasks] = useState<TaskRow[]>([]);
+  const [results, setResults] = useState<ResultRow[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setErrorMsg(null);
+      try {
+        const { data: ctx, error: ctxErr } = await supabase
+          .from("vw_user_access_context")
+          .select("company_id, has_ecommerce_access")
+          .maybeSingle();
+        if (ctxErr) throw ctxErr;
+        if (!ctx || !ctx.has_ecommerce_access) {
+          navigate({ to: "/dashboard" });
+          return;
+        }
+        const companyId = ctx.company_id;
+
+        const [{ data: taskData, error: taskErr }, { data: resData, error: resErr }] =
+          await Promise.all([
+            supabase
+              .from("vw_ecommerce_tasks_priority")
+              .select(
+                "task_title, priority, status_label, product_name, sku, marketplace, account_name, insight_title, diagnosis, probable_cause, recommended_action, expected_impact, confidence_score, due_date, is_overdue, priority_order",
+              )
+              .eq("company_id", companyId)
+              .order("priority_order", { ascending: true })
+              .order("due_date", { ascending: true }),
+            supabase
+              .from("vw_ecommerce_action_results")
+              .select(
+                "result_status_label, task_title, product_name, marketplace, account_name, before_visits, after_visits, visits_difference, before_sales_count, after_sales_count, sales_difference, before_revenue, after_revenue, revenue_difference, before_conversion_rate, after_conversion_rate, conversion_difference, result_summary, ai_evaluation",
+              )
+              .eq("company_id", companyId),
+          ]);
+
+        if (taskErr) throw taskErr;
+        if (resErr) throw resErr;
+        if (cancelled) return;
+        setTasks((taskData ?? []) as TaskRow[]);
+        setResults((resData ?? []) as ResultRow[]);
+      } catch (e) {
+        if (cancelled) return;
+        console.error("[ConsultorIA] erro:", e);
+        setErrorMsg("Não foi possível carregar os dados do Consultor IA.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
+
+  const recommendations = useMemo(
+    () => tasks.filter((t) => t.diagnosis || t.probable_cause || t.recommended_action),
+    [tasks],
+  );
+
   return (
     <EcommerceLayout>
       <div className="mx-auto max-w-7xl space-y-8">
@@ -30,158 +178,237 @@ function ConsultorIA() {
             <BrainCircuit className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Consultor IA E-commerce</h1>
-            <p className="text-slate-500">Diagnóstico avançado e otimização de performance para seus anúncios.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              Consultor IA E-commerce
+            </h1>
+            <p className="text-slate-500">
+              Diagnóstico avançado e resultados medidos das ações executadas.
+            </p>
           </div>
         </div>
 
-        {/* Search / Select Product */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="Digite o SKU ou nome do produto para análise..." 
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-11 pr-4 text-sm font-medium focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
-              defaultValue="PF-CER-102 - Pastilha de Freio Cerâmica"
-            />
+        {loading && (
+          <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm text-slate-500 shadow-sm">
+            Carregando dados do Consultor IA...
           </div>
-        </div>
+        )}
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          {/* Main Diagnosis Column */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-6 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="rounded-xl bg-blue-500 p-2 text-white">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <h2 className="text-lg font-bold text-slate-900">Diagnóstico da IA</h2>
-              </div>
-              <p className="mt-4 text-sm leading-relaxed text-slate-700">
-                O produto apresenta uma <strong>taxa de conversão de 0%</strong> nos últimos 12 dias, apesar de ter recebido <strong>850 visitas</strong>. O volume de acessos é saudável, indicando que o anúncio tem boa visibilidade, mas o gargalo está no fechamento da venda (etapa de conversão).
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-amber-50 p-2 text-amber-600">
-                    <AlertCircle className="h-5 w-5" />
-                  </div>
-                  <h3 className="font-bold text-slate-900">Causa Provável</h3>
-                </div>
-                <p className="mt-3 text-sm text-slate-600 leading-relaxed">
-                  Análise de precificação em tempo real indica que seu anúncio está <strong>R$ 25,00 (15%) acima</strong> do preço médio praticado por vendedores com reputação Platinum para o mesmo SKU.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-emerald-50 p-2 text-emerald-600">
-                    <CheckCircle2 className="h-5 w-5" />
-                  </div>
-                  <h3 className="font-bold text-slate-900">Ação Recomendada</h3>
-                </div>
-                <p className="mt-3 text-sm text-slate-600 leading-relaxed">
-                  Reduzir o preço para <strong>R$ 189,90</strong> durante os próximos 7 dias ou criar uma <strong>Oferta Relâmpago</strong> para estimular a conversão imediata e recuperar o relevância do anúncio.
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 bg-card p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-violet-50 p-2 text-violet-600">
-                    <Zap className="h-5 w-5" />
-                  </div>
-                  <h3 className="font-bold text-slate-900">Otimização de Conteúdo</h3>
-                </div>
-                <button className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-xs font-bold text-white hover:bg-blue-700 transition-all shadow-md shadow-blue-600/20">
-                  <Plus className="h-3.5 w-3.5" />
-                  Criar tarefa
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Type className="h-4 w-4 text-slate-400" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Sugestão de Título</span>
-                  </div>
-                  <p className="text-sm font-bold text-slate-900">Pastilha De Freio Cerâmica Dianteira Compatível Com Honda Civic 2012 A 2021 Original Jurid</p>
-                </div>
-                <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <FileText className="h-4 w-4 text-slate-400" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Sugestão de Descrição (Resumo)</span>
-                  </div>
-                  <p className="text-sm text-slate-700 leading-relaxed">
-                    Pastilha de freio de alta performance com tecnologia cerâmica. Reduz ruído e poeira nas rodas, proporcionando uma frenagem mais segura e duradoura. Compatibilidade garantida para modelos Honda Civic G9 e G10.
-                  </p>
-                </div>
-                <div className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Image className="h-4 w-4 text-slate-400" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Sugestão de Imagem Principal</span>
-                  </div>
-                  <p className="text-sm text-slate-700">
-                    Utilizar foto com fundo branco absoluto (RGB 255,255,255) mostrando a pastilha em ângulo de 45 graus, evidenciando o selo de cerâmica e a marca.
-                  </p>
-                </div>
-              </div>
-            </div>
+        {!loading && errorMsg && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-700 shadow-sm">
+            {errorMsg}
           </div>
+        )}
 
-          {/* Side Performance Column */}
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h3 className="font-bold text-slate-900 mb-4">Performance Atual</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Conversão</span>
-                  <span className="text-sm font-bold text-rose-600">0%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Visitas (30d)</span>
-                  <span className="text-sm font-bold text-slate-900">1.250</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Vendas (30d)</span>
-                  <span className="text-sm font-bold text-slate-900">2</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Estoque</span>
-                  <span className="text-sm font-bold text-slate-900">45 un</span>
-                </div>
-                <div className="h-px bg-slate-100 my-2" />
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Preço Atual</span>
-                  <span className="text-sm font-bold text-slate-900">R$ 214,90</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-slate-500">Preço Concorrente</span>
-                  <span className="text-sm font-bold text-emerald-600">R$ 189,90</span>
-                </div>
+        {!loading && !errorMsg && (
+          <>
+            {/* Bloco 1 — Recomendações da IA */}
+            <section className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-blue-600" />
+                <h2 className="text-lg font-bold text-slate-900">Recomendações da IA</h2>
+                <span className="text-xs text-slate-400">({recommendations.length})</span>
               </div>
-            </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <BarChart3 className="h-4 w-4 text-slate-400" />
-                <h3 className="font-bold text-slate-900">Impacto Estimado</h3>
-              </div>
-              <div className="rounded-xl bg-emerald-50 p-4 border border-emerald-100">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-emerald-700">+200%</span>
-                  <span className="text-xs font-medium text-emerald-600">em vendas</span>
+              {recommendations.length === 0 ? (
+                <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
+                  Nenhuma recomendação encontrada para esta empresa.
                 </div>
-                <p className="mt-1 text-[11px] text-emerald-600/80 leading-relaxed">
-                  Com base no histórico de anúncios similares após ajuste de preço e título.
-                </p>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  {recommendations.map((t, i) => {
+                    const pKey = (t.priority ?? "").toLowerCase();
+                    return (
+                      <div
+                        key={i}
+                        className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <h3 className="font-bold text-slate-900">
+                              {t.insight_title || t.task_title || "Recomendação"}
+                            </h3>
+                            <p className="mt-1 text-xs text-slate-500">
+                              {t.product_name ?? "—"}
+                              {t.sku ? ` · SKU ${t.sku}` : ""}
+                            </p>
+                            <p className="text-xs text-slate-400">
+                              {t.marketplace ?? "—"} · {t.account_name ?? "—"}
+                            </p>
+                          </div>
+                          <span
+                            className={`rounded-md border px-2 py-0.5 text-[11px] font-semibold ${
+                              PRIORITY_STYLE[pKey] ?? PRIORITY_STYLE.low
+                            }`}
+                          >
+                            {PRIORITY_LABEL[pKey] ?? t.priority ?? "—"}
+                          </span>
+                        </div>
+
+                        {t.diagnosis && (
+                          <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
+                            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-blue-700">
+                              <Sparkles className="h-3.5 w-3.5" /> Diagnóstico IA
+                            </div>
+                            <p className="mt-1 text-sm text-slate-700">{t.diagnosis}</p>
+                          </div>
+                        )}
+
+                        {t.probable_cause && (
+                          <div className="mt-3 rounded-xl border border-amber-100 bg-amber-50/40 p-3">
+                            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-amber-700">
+                              <AlertCircle className="h-3.5 w-3.5" /> Causa provável
+                            </div>
+                            <p className="mt-1 text-sm text-slate-700">{t.probable_cause}</p>
+                          </div>
+                        )}
+
+                        {t.recommended_action && (
+                          <div className="mt-3 rounded-xl border border-emerald-100 bg-emerald-50/40 p-3">
+                            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-emerald-700">
+                              <CheckCircle2 className="h-3.5 w-3.5" /> Ação recomendada
+                            </div>
+                            <p className="mt-1 text-sm text-slate-700">{t.recommended_action}</p>
+                          </div>
+                        )}
+
+                        <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                          {t.expected_impact && (
+                            <span>
+                              <strong className="text-slate-700">Impacto:</strong>{" "}
+                              {t.expected_impact}
+                            </span>
+                          )}
+                          <span>
+                            <strong className="text-slate-700">Confiança IA:</strong>{" "}
+                            {fmtConfidence(t.confidence_score)}
+                          </span>
+                          {t.status_label && (
+                            <span>
+                              <strong className="text-slate-700">Status:</strong> {t.status_label}
+                            </span>
+                          )}
+                          {t.is_overdue && (
+                            <span className="rounded-md border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[11px] font-semibold text-rose-700">
+                              Atrasada
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+
+            {/* Bloco 2 — Resultados das ações */}
+            <section className="space-y-4">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-violet-600" />
+                <h2 className="text-lg font-bold text-slate-900">Resultados das ações</h2>
+                <span className="text-xs text-slate-400">({results.length})</span>
               </div>
-            </div>
-          </div>
-        </div>
+
+              {results.length === 0 ? (
+                <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
+                  Nenhum resultado de ação medido ainda.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  {results.map((r, i) => (
+                    <div
+                      key={i}
+                      className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-slate-900">
+                            {r.task_title || "Ação executada"}
+                          </h3>
+                          <p className="mt-1 text-xs text-slate-500">
+                            {r.product_name ?? "—"}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {r.marketplace ?? "—"} · {r.account_name ?? "—"}
+                          </p>
+                        </div>
+                        {r.result_status_label && (
+                          <span className="rounded-md border border-violet-200 bg-violet-50 px-2 py-0.5 text-[11px] font-semibold text-violet-700">
+                            {r.result_status_label}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+                          <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                            Visitas
+                          </div>
+                          <div className="mt-1 text-sm font-bold text-slate-900">
+                            {fmtInt(r.before_visits)} → {fmtInt(r.after_visits)}
+                          </div>
+                          <div className="mt-1">
+                            <DiffBadge value={r.visits_difference} format="int" />
+                          </div>
+                        </div>
+                        <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+                          <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                            Vendas
+                          </div>
+                          <div className="mt-1 text-sm font-bold text-slate-900">
+                            {fmtInt(r.before_sales_count)} → {fmtInt(r.after_sales_count)}
+                          </div>
+                          <div className="mt-1">
+                            <DiffBadge value={r.sales_difference} format="int" />
+                          </div>
+                        </div>
+                        <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+                          <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                            Receita
+                          </div>
+                          <div className="mt-1 text-sm font-bold text-slate-900">
+                            {fmtBRL(r.before_revenue)} → {fmtBRL(r.after_revenue)}
+                          </div>
+                          <div className="mt-1">
+                            <DiffBadge value={r.revenue_difference} format="brl" />
+                          </div>
+                        </div>
+                        <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+                          <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                            Conversão
+                          </div>
+                          <div className="mt-1 text-sm font-bold text-slate-900">
+                            {fmtPct(r.before_conversion_rate)} → {fmtPct(r.after_conversion_rate)}
+                          </div>
+                          <div className="mt-1">
+                            <DiffBadge value={r.conversion_difference} format="pct" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {r.result_summary && (
+                        <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+                          <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                            Resumo do resultado
+                          </div>
+                          <p className="mt-1 text-sm text-slate-700">{r.result_summary}</p>
+                        </div>
+                      )}
+
+                      {r.ai_evaluation && (
+                        <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
+                          <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                            <BrainCircuit className="h-3.5 w-3.5" /> Avaliação da IA
+                          </div>
+                          <p className="mt-1 text-sm text-slate-700">{r.ai_evaluation}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </div>
     </EcommerceLayout>
   );

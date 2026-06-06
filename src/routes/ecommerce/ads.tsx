@@ -339,50 +339,56 @@ function PriorityBlock({
 }) {
   const styles = {
     rose: {
-      border: "border-t-rose-500",
-      iconBg: "bg-rose-50 text-rose-600",
-      num: "text-rose-600",
-      badge: "bg-rose-100 text-rose-700",
+      surface: "bg-[#FFF6F7] border-[#F3D6DB]",
+      iconBg: "bg-white text-[#E54861] ring-1 ring-[#F3D6DB]",
+      num: "text-[#E54861]",
+      badge: "bg-white text-[#E54861] ring-1 ring-[#F3D6DB]",
+      divider: "border-[#F3D6DB]/70",
+      row: "bg-white/70 ring-1 ring-[#F3D6DB]/60",
     },
     emerald: {
-      border: "border-t-emerald-500",
-      iconBg: "bg-emerald-50 text-emerald-600",
-      num: "text-emerald-600",
-      badge: "bg-emerald-100 text-emerald-700",
+      surface: "bg-[#F5FBF7] border-[#D7EEE0]",
+      iconBg: "bg-white text-[#16A34A] ring-1 ring-[#D7EEE0]",
+      num: "text-[#16A34A]",
+      badge: "bg-white text-[#16A34A] ring-1 ring-[#D7EEE0]",
+      divider: "border-[#D7EEE0]/70",
+      row: "bg-white/70 ring-1 ring-[#D7EEE0]/60",
     },
     blue: {
-      border: "border-t-blue-500",
-      iconBg: "bg-blue-50 text-blue-600",
-      num: "text-blue-600",
-      badge: "bg-blue-100 text-blue-700",
+      surface: "bg-[#F5F8FF] border-[#DCE7FF]",
+      iconBg: "bg-white text-[#2563EB] ring-1 ring-[#DCE7FF]",
+      num: "text-[#2563EB]",
+      badge: "bg-white text-[#2563EB] ring-1 ring-[#DCE7FF]",
+      divider: "border-[#DCE7FF]/70",
+      row: "bg-white/70 ring-1 ring-[#DCE7FF]/60",
     },
   }[accent];
 
   return (
-    <div className={`rounded-2xl border border-t-4 border-slate-200 bg-white p-6 shadow-sm ${styles.border}`}>
-      <div className="mb-6 flex items-center justify-between">
+    <div className={`rounded-2xl border ${styles.surface} p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]`}>
+      <div className={`flex items-center justify-between border-b ${styles.divider} pb-4`}>
         <div className="flex items-center gap-3">
           <div className={`rounded-lg p-2 ${styles.iconBg}`}>
-            <Icon className="h-5 w-5" />
+            <Icon className="h-[18px] w-[18px]" />
           </div>
-          <h4 className="font-bold text-slate-900">{title}</h4>
+          <h4 className="text-[15px] font-semibold tracking-tight text-slate-900">{title}</h4>
         </div>
-        <span className={`text-2xl font-black tabular-nums ${styles.num}`}>{pad2(count)}</span>
+        <span className={`text-3xl font-bold tabular-nums leading-none ${styles.num}`}>{pad2(count)}</span>
       </div>
-      <div className="space-y-3">
+      <div className="mt-4 space-y-2">
         {items.length === 0 ? (
-          <p className="text-xs text-slate-400">{emptyText}</p>
+          <p className="px-1 py-2 text-xs text-slate-500">{emptyText}</p>
         ) : (
           items.map((it, i) => (
-            <div key={i} className="flex items-center justify-between rounded-lg bg-slate-50 p-3">
+            <div key={i} className={`flex items-center justify-between rounded-lg ${styles.row} px-3 py-2.5`}>
               <span
-                className="truncate pr-2 text-xs font-medium text-slate-700"
+                className="truncate pr-3 text-[13px] font-medium text-slate-800"
                 title={it.campaign_name ?? ""}
               >
                 {it.campaign_name ?? "—"}
               </span>
               <span
-                className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-bold uppercase ${styles.badge}`}
+                className={`shrink-0 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${styles.badge}`}
               >
                 {showAction
                   ? translateAction(it.recommended_action) ?? "Revisar"
@@ -395,6 +401,7 @@ function PriorityBlock({
     </div>
   );
 }
+
 
 function CampaignCard({ c }: { c: AdRow }) {
   const prio = (c.priority_level ?? "normal").toLowerCase();

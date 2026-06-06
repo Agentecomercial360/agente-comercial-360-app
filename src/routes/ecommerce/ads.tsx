@@ -221,12 +221,7 @@ function AdsInteligente() {
     const o = buckets.opportunity.length;
     const a = buckets.actionable.length;
     if (rows.length === 0) return "Sem campanhas para análise no momento.";
-    const parts: string[] = [];
-    if (c > 0) parts.push(`${c} ${c === 1 ? "campanha exige atenção imediata" : "campanhas exigem atenção imediata"}`);
-    if (o > 0) parts.push(`${o} com oportunidade de escala`);
-    if (a > 0) parts.push(`${a} com ação recomendada`);
-    if (parts.length === 0) return "Operação estável: nenhuma intervenção crítica neste ciclo.";
-    return parts.join(" · ") + ".";
+    return `${c} ${c === 1 ? "campanha crítica" : "campanhas críticas"}, ${o} ${o === 1 ? "oportunidade de escala" : "oportunidades de escala"} e ${a} ${a === 1 ? "recomendação gerada" : "recomendações geradas"} pela IA.`;
   }, [buckets, rows.length]);
 
   const primaryKpis = [
@@ -245,7 +240,7 @@ function AdsInteligente() {
 
   return (
     <EcommerceLayout>
-      <div className="mx-auto max-w-7xl space-y-8">
+      <div className="mx-auto max-w-7xl space-y-5">
         {/* Cabeçalho executivo */}
         <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-xl">
@@ -279,7 +274,7 @@ function AdsInteligente() {
                   <span className="font-bold text-emerald-300">{buckets.opportunity.length}</span> oportunidades
                 </span>
                 <span>
-                  <span className="font-bold text-blue-300">{buckets.actionable.length}</span> ações sugeridas
+                  <span className="font-bold text-blue-300">{buckets.actionable.length}</span> recomendações
                 </span>
               </div>
             </div>
@@ -533,22 +528,49 @@ function PriorityBlock({
         </div>
         <span className={`text-2xl font-bold tabular-nums ${accentStyles.num}`}>{count}</span>
       </div>
-      <div className="mt-3 space-y-2 border-t border-slate-100 pt-3">
+      <div className="mt-3 space-y-2.5 border-t border-slate-100 pt-3">
         {items.length === 0 ? (
           <p className="text-xs text-slate-400">{emptyText}</p>
         ) : (
-          items.map((it, i) => (
-            <div key={i} className="flex items-center justify-between gap-2 text-xs">
-              <span className="truncate font-medium text-slate-700" title={it.campaign_name ?? ""}>
-                {it.campaign_name ?? "—"}
-              </span>
-              <span className="shrink-0 text-slate-500 tabular-nums">
-                {showAction
-                  ? translateAction(it.recommended_action) ?? "—"
-                  : `ROAS ${fmtNum(it.roas, 2)}`}
-              </span>
-            </div>
-          ))
+          items.map((it, i) => {
+            const badgeLabel = showAction
+              ? translateAction(it.recommended_action)
+              : accent === "rose"
+                ? "Crítica"
+                : accent === "emerald"
+                  ? "Oportunidade"
+                  : null;
+            const badgeClass =
+              accent === "rose"
+                ? "bg-rose-50 text-rose-700 ring-rose-100"
+                : accent === "emerald"
+                  ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
+                  : "bg-blue-50 text-blue-700 ring-blue-100";
+            return (
+              <div key={i} className="flex items-center justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <div
+                    className="truncate text-sm font-semibold text-slate-900"
+                    title={it.campaign_name ?? ""}
+                  >
+                    {it.campaign_name ?? "—"}
+                  </div>
+                  <div className="mt-0.5 flex items-center gap-1.5">
+                    {badgeLabel && (
+                      <span
+                        className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${badgeClass}`}
+                      >
+                        {badgeLabel}
+                      </span>
+                    )}
+                    <span className="text-[11px] text-slate-500 tabular-nums">
+                      ROAS {fmtNum(it.roas, 2)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
     </div>

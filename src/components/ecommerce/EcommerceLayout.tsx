@@ -14,6 +14,7 @@ import {
   ListTodo,
   TrendingUp,
   BrainCircuit,
+  BarChart3,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";

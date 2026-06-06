@@ -82,8 +82,13 @@ const fmtBRL = (n: number | null) =>
 const fmtInt = (n: number | null) => (n == null ? "—" : n.toLocaleString("pt-BR"));
 const fmtPct = (n: number | null) =>
   n == null ? "—" : `${(n * 100).toFixed(1).replace(".", ",")}%`;
-const fmtConfidence = (n: number | null) =>
-  n == null ? "—" : `${Math.round(n * 100)}%`;
+const fmtConfidence = (n: number | null) => {
+  if (n == null) return "—";
+  const pct = Math.abs(n) <= 1 ? n * 100 : n;
+  const clamped = Math.max(0, Math.min(100, pct));
+  const rounded = Math.round(clamped * 10) / 10;
+  return `${(Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)).replace(".", ",")}%`;
+};
 
 function DiffBadge({ value, format = "int" }: { value: number | null; format?: "int" | "brl" | "pct" }) {
   if (value == null) return <span className="text-xs text-slate-400">—</span>;

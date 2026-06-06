@@ -405,75 +405,107 @@ function PriorityBlock({
 
 function CampaignCard({ c }: { c: AdRow }) {
   const prio = (c.priority_level ?? "normal").toLowerCase();
-  const accentBar =
-    prio === "critical"
-      ? "bg-rose-500"
-      : prio === "opportunity"
-        ? "bg-emerald-500"
-        : prio === "high"
-          ? "bg-amber-500"
-          : "bg-slate-200";
+  const action = (c.recommended_action ?? "").toLowerCase();
 
-  const prioBadge =
-    prio === "critical"
-      ? "bg-rose-50 text-rose-600"
-      : prio === "opportunity"
-        ? "bg-emerald-50 text-emerald-600"
-        : prio === "high"
-          ? "bg-amber-50 text-amber-700"
-          : "bg-slate-100 text-slate-600";
+  // Determine visual tone: critical > opportunity > attention (reduce/review/pause) > neutral
+  let tone: "critical" | "opportunity" | "attention" | "neutral" = "neutral";
+  if (prio === "critical" || action === "pause") tone = "critical";
+  else if (prio === "opportunity" || action === "scale") tone = "opportunity";
+  else if (prio === "high" || action === "reduce_budget" || action === "review_ad") tone = "attention";
 
-  const roasColor =
-    prio === "critical"
-      ? "text-rose-600"
-      : prio === "opportunity"
-        ? "text-emerald-600"
-        : "text-slate-800";
+  const toneStyles = {
+    critical: {
+      surface: "bg-[#FFF5F6] border-[#F4D5DA]",
+      bar: "bg-[#E54861]",
+      badge: "bg-white text-[#E54861] ring-1 ring-[#F4D5DA]",
+      roas: "text-[#E54861]",
+      actionLabel: "text-[#E54861]",
+      aiSurface: "bg-white/70 border-[#F4D5DA]",
+      aiIcon: "bg-[#FFE8EC] text-[#E54861]",
+      aiTitle: "text-[#9F1F35]",
+      chip: "bg-white/80 text-slate-600 ring-1 ring-[#F4D5DA]",
+    },
+    opportunity: {
+      surface: "bg-[#F3FBF7] border-[#CDEEDD]",
+      bar: "bg-[#22C55E]",
+      badge: "bg-white text-[#16A34A] ring-1 ring-[#CDEEDD]",
+      roas: "text-[#16A34A]",
+      actionLabel: "text-[#16A34A]",
+      aiSurface: "bg-white/70 border-[#CDEEDD]",
+      aiIcon: "bg-[#DCF5E7] text-[#16A34A]",
+      aiTitle: "text-[#14532D]",
+      chip: "bg-white/80 text-slate-600 ring-1 ring-[#CDEEDD]",
+    },
+    attention: {
+      surface: "bg-[#FFF9F2] border-[#F4DFC2]",
+      bar: "bg-[#F59E0B]",
+      badge: "bg-white text-[#B45309] ring-1 ring-[#F4DFC2]",
+      roas: "text-[#B45309]",
+      actionLabel: "text-[#B45309]",
+      aiSurface: "bg-white/70 border-[#F4DFC2]",
+      aiIcon: "bg-[#FCEBD0] text-[#B45309]",
+      aiTitle: "text-[#7C2D12]",
+      chip: "bg-white/80 text-slate-600 ring-1 ring-[#F4DFC2]",
+    },
+    neutral: {
+      surface: "bg-[#F7FAFF] border-[#DCE7F8]",
+      bar: "bg-[#3B82F6]",
+      badge: "bg-white text-[#2563EB] ring-1 ring-[#DCE7F8]",
+      roas: "text-slate-800",
+      actionLabel: "text-[#2563EB]",
+      aiSurface: "bg-white/70 border-[#DCE7F8]",
+      aiIcon: "bg-[#E4EDFC] text-[#2563EB]",
+      aiTitle: "text-[#1E3A8A]",
+      chip: "bg-white/80 text-slate-600 ring-1 ring-[#DCE7F8]",
+    },
+  }[tone];
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:flex-row">
-      <div className={`w-full md:w-1.5 ${accentBar}`} style={{ minHeight: "6px" }} />
+    <div
+      className={`flex flex-col overflow-hidden rounded-2xl border ${toneStyles.surface} shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row`}
+    >
+      <div className={`w-full md:w-1.5 ${toneStyles.bar}`} style={{ minHeight: "6px" }} />
       <div className="flex-1 p-6">
         <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-          <div className="space-y-1">
+          <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              <h4 className="text-lg font-bold tracking-tight text-slate-900">
+              <h4 className="text-[17px] font-semibold tracking-tight text-slate-900">
                 {c.campaign_name ?? "Campanha sem nome"}
               </h4>
               <span
-                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter ${prioBadge}`}
+                className={`rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${toneStyles.badge}`}
               >
                 {PRIORITY_LABEL[prio] ?? prio}
               </span>
             </div>
-            <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-500">
+            <p className="flex flex-wrap items-center gap-1.5 text-[13px] text-slate-500">
               {c.product_name && <span className="text-slate-600">{c.product_name}</span>}
-              {c.product_name && c.sku && <span className="text-slate-300">|</span>}
+              {c.product_name && c.sku && <span className="text-slate-300">·</span>}
               {c.sku && <span>SKU: {c.sku}</span>}
-              {(c.account_name || c.marketplace) && <span className="text-slate-300">|</span>}
+              {(c.account_name || c.marketplace) && <span className="text-slate-300">·</span>}
               {c.account_name && <span>{c.account_name}</span>}
               {c.marketplace && <span className="text-slate-400">· {c.marketplace}</span>}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {c.ad_type && (
-              <span className="rounded bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+              <span className={`rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wider ${toneStyles.chip}`}>
                 {c.ad_type}
               </span>
             )}
             {c.ads_status && (
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
                 {c.ads_status}
               </span>
             )}
           </div>
         </div>
 
-        <div className="mb-6 grid grid-cols-2 gap-6 sm:grid-cols-4 lg:grid-cols-8">
+        <div className="mb-5 grid grid-cols-2 gap-x-6 gap-y-4 rounded-xl border border-white/70 bg-white/60 px-4 py-4 sm:grid-cols-4 lg:grid-cols-8">
           <Metric label="Investimento" value={fmtBRL(c.investment)} />
           <Metric label="Receita Ads" value={fmtBRL(c.ads_revenue)} />
           <Metric label="Receita Total" value={fmtBRL(c.total_revenue)} />
-          <Metric label="ROAS" value={fmtNum(c.roas, 2)} className={roasColor} />
+          <Metric label="ROAS" value={fmtNum(c.roas, 2)} className={toneStyles.roas} />
           <Metric label="ACOS" value={fmtPct(c.acos)} />
           <Metric label="TACoS" value={fmtPct(c.tacos)} />
           <Metric label="Cliques" value={fmtInt(c.clicks)} />
@@ -482,25 +514,25 @@ function CampaignCard({ c }: { c: AdRow }) {
 
         {c.recommended_action && c.recommended_action.toLowerCase() !== "keep_monitoring" && (
           <div className="mb-4 flex items-center gap-2 text-xs">
-            <span className="font-bold uppercase tracking-widest text-slate-400">
+            <span className="font-semibold uppercase tracking-widest text-slate-400">
               Ação recomendada
             </span>
-            <span className="font-bold text-slate-700">
+            <span className={`font-semibold ${toneStyles.actionLabel}`}>
               {translateAction(c.recommended_action)}
             </span>
           </div>
         )}
 
         {c.ai_action_suggestion && (
-          <div className="flex items-start gap-4 rounded-xl border border-blue-100 bg-blue-50/50 p-4">
-            <div className="shrink-0 rounded-lg bg-blue-100 p-2 text-blue-600">
-              <Zap className="h-5 w-5" />
+          <div className={`flex items-start gap-3 rounded-xl border ${toneStyles.aiSurface} p-4`}>
+            <div className={`shrink-0 rounded-lg p-1.5 ${toneStyles.aiIcon}`}>
+              <Zap className="h-4 w-4" strokeWidth={2.25} />
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-bold uppercase tracking-tight text-blue-900">
+              <p className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${toneStyles.aiTitle}`}>
                 Sugestão da IA
               </p>
-              <p className="text-sm leading-relaxed text-slate-700">
+              <p className="text-[13px] leading-relaxed text-slate-700">
                 {c.ai_action_suggestion}
               </p>
             </div>

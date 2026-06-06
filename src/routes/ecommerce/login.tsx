@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, ShieldCheck, LayoutGrid, PackageSearch, AlertCircle, Wand2 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
 import loginHeroAsset from "@/assets/login-hero-v2.jpg.asset.json";
+import { supabase } from "@/lib/supabase";
 
 const loginHero = loginHeroAsset.url;
 

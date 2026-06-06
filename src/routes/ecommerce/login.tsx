@@ -33,12 +33,42 @@ function EcommerceLoginPage() {
     e.preventDefault();
     setErrorMsg(null);
     setLoading(true);
-    
-    // Simulating authentication for structural purposes
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError || !signInData.user) {
+        setErrorMsg("E-mail ou senha inválidos. Verifique suas credenciais e tente novamente.");
+        setLoading(false);
+        return;
+      }
+
+      const { data: accessCtx, error: ctxError } = await supabase
+        .from("vw_user_access_context")
+        .select("has_ecommerce_access, suggested_redirect")
+        .maybeSingle();
+
+      const hasAccess =
+        !ctxError &&
+        accessCtx?.has_ecommerce_access === true &&
+        accessCtx?.suggested_redirect === "/ecommerce/dashboard";
+
+      if (!hasAccess) {
+        await supabase.auth.signOut();
+        setErrorMsg("Usuário sem acesso ao módulo E-commerce.");
+        setLoading(false);
+        return;
+      }
+
       navigate({ to: "/ecommerce/dashboard" });
-    }, 1000);
+    } catch (err) {
+      console.error("[ecommerce/login]", err);
+      setErrorMsg("Não foi possível entrar agora. Tente novamente em instantes.");
+      setLoading(false);
+    }
   };
 
   return (

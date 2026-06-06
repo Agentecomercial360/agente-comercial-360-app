@@ -1,15 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { 
-  ShieldAlert, 
-  Search, 
-  Zap, 
-  Boxes, 
-  TrendingDown, 
-  MessageSquare, 
-  ArrowRight,
-  Filter
-} from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { ArrowRight, Filter } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/produtos-travados")({
   component: ProdutosTravados,
@@ -18,97 +11,94 @@ export const Route = createFileRoute("/ecommerce/produtos-travados")({
   }),
 });
 
+type Stuck = {
+  sku?: string | null;
+  product_name?: string | null;
+  account_name?: string | null;
+  marketplace?: string | null;
+  problem_label?: string | null;
+  priority_level?: string | null;
+  visits?: number | null;
+  sales_count?: number | null;
+  total_stock?: number | null;
+  days_without_sale?: number | null;
+  ads_investment?: number | null;
+  ads_revenue?: number | null;
+  roas?: number | null;
+  task_title?: string | null;
+  insight_title?: string | null;
+  recommended_action?: string | null;
+};
+
+const PRIORITY_LABEL: Record<string, string> = {
+  critical: "Crítico",
+  high: "Alta",
+  medium: "Média",
+  low: "Baixa",
+};
+
+const PRIORITY_STYLE: Record<string, string> = {
+  critical: "bg-rose-100 text-rose-700",
+  high: "bg-amber-100 text-amber-700",
+  medium: "bg-yellow-100 text-yellow-700",
+  low: "bg-slate-100 text-slate-700",
+};
+
+const fmtBRL = (v: number | null | undefined) =>
+  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(Number(v ?? 0));
+const fmtInt = (v: number | null | undefined) =>
+  new Intl.NumberFormat("pt-BR").format(Number(v ?? 0));
+const fmtNum = (v: number | null | undefined, d = 2) =>
+  new Intl.NumberFormat("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d }).format(Number(v ?? 0));
+
 function ProdutosTravados() {
-  const filters = [
-    { label: "Sem venda há 7 dias", count: 42 },
-    { label: "Sem venda há 15 dias", count: 28 },
-    { label: "Sem venda há 30 dias", count: 15 },
-    { label: "Sem venda há 60 dias", count: 8 },
-    { label: "Sem venda há 90 dias", count: 5 },
-    { label: "Com visita e sem venda", count: 12 },
-    { label: "Sem visita", count: 18 },
-    { label: "Ads gastando e não vendendo", count: 7 },
-    { label: "Com estoque parado", count: 22 },
-  ];
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [items, setItems] = useState<Stuck[]>([]);
 
-  const products = [
-    {
-      name: "Pastilha de Freio Cerâmica",
-      sku: "PF-CER-102",
-      account: "Chaleur Brasil",
-      stock: 45,
-      lastSale: "12 dias atrás",
-      visits: 850,
-      conversion: "0%",
-      revenue30d: "R$ 0",
-      adsSpend: "R$ 450",
-      status: "Visita sem conversão",
-      recommendation: "Revisar preço",
-    },
-    {
-      name: "Kit Embreagem LUK",
-      sku: "KE-LUK-200",
-      account: "RACER",
-      stock: 12,
-      lastSale: "35 dias atrás",
-      visits: 42,
-      conversion: "0%",
-      revenue30d: "R$ 0",
-      adsSpend: "R$ 120",
-      status: "Sem visita",
-      recommendation: "Revisar título",
-    },
-    {
-      name: "Amortecedor Monroe Traseiro",
-      sku: "AM-MON-TR",
-      account: "Chaleur Brasil",
-      stock: 80,
-      lastSale: "92 dias atrás",
-      visits: 150,
-      conversion: "0.6%",
-      revenue30d: "R$ 320",
-      adsSpend: "R$ 250",
-      status: "Estoque parado",
-      recommendation: "Criar kit",
-    },
-    {
-      name: "Óleo Motor 5W30 Sintético",
-      sku: "OL-5W30-SN",
-      account: "Conta 3",
-      stock: 150,
-      lastSale: "5 dias atrás",
-      visits: 2500,
-      conversion: "0.1%",
-      revenue30d: "R$ 1.200",
-      adsSpend: "R$ 1.800",
-      status: "Ads ineficiente",
-      recommendation: "Ativar Ads",
-    },
-    {
-      name: "Bateria Moura 60Ah",
-      sku: "BT-MO-60",
-      account: "RACER",
-      stock: 25,
-      lastSale: "2 dias atrás",
-      visits: 4500,
-      conversion: "1.2%",
-      revenue30d: "R$ 15.400",
-      adsSpend: "R$ 1.200",
-      status: "Produto campeão em queda",
-      recommendation: "Trocar imagem principal",
-    },
-  ];
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Sem visita": return "bg-slate-100 text-slate-700";
-      case "Visita sem conversão": return "bg-amber-100 text-amber-700";
-      case "Estoque parado": return "bg-rose-100 text-rose-700";
-      case "Ads ineficiente": return "bg-yellow-100 text-yellow-700";
-      case "Produto campeão em queda": return "bg-blue-100 text-blue-700";
-      default: return "bg-slate-100 text-slate-700";
-    }
-  };
+        const { data: ctx, error: ctxErr } = await supabase
+          .from("vw_user_access_context")
+          .select("company_id, has_ecommerce_access")
+          .maybeSingle();
+
+        if (ctxErr) throw ctxErr;
+        if (!ctx) {
+          navigate({ to: "/ecommerce/login" });
+          return;
+        }
+        if (!ctx.has_ecommerce_access) {
+          await supabase.auth.signOut();
+          navigate({ to: "/ecommerce/login" });
+          return;
+        }
+
+        const { data, error: sErr } = await supabase
+          .from("vw_ecommerce_products_stuck")
+          .select("*")
+          .eq("company_id", ctx.company_id);
+
+        if (sErr) throw sErr;
+        if (cancelled) return;
+        setItems((data as Stuck[]) ?? []);
+      } catch (e: any) {
+        if (cancelled) return;
+        setError(e?.message ?? "Erro ao carregar produtos travados.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   return (
     <EcommerceLayout>
@@ -124,74 +114,97 @@ function ProdutosTravados() {
           </button>
         </div>
 
-        {/* Filter Chips */}
-        <div className="flex flex-wrap gap-2">
-          {filters.map((filter, i) => (
-            <button
-              key={i}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-                i === 0 
-                  ? "bg-slate-900 text-white shadow-md shadow-slate-900/10" 
-                  : "bg-white border border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
-              }`}
-            >
-              {filter.label}
-              <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${i === 0 ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"}`}>
-                {filter.count}
-              </span>
-            </button>
-          ))}
-        </div>
-
-        {/* Table Card */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-slate-50/50 border-b border-slate-200">
-                <tr>
-                  <th className="px-6 py-4 font-semibold text-slate-900">Produto</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900 text-center">Estoque</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900 text-center">Visitas</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900 text-center">Conversão</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900 text-center">Receita 30d</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900 text-center">Investimento Ads</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900">Status</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900">Ação Recomendada</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {products.map((p, i) => (
-                  <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-900">{p.name}</span>
-                        <span className="text-[11px] uppercase tracking-wider text-slate-500">
-                          {p.sku} • {p.account}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center font-medium text-slate-700">{p.stock}</td>
-                    <td className="px-6 py-4 text-center font-medium text-slate-700">{p.visits}</td>
-                    <td className="px-6 py-4 text-center font-medium text-slate-700">{p.conversion}</td>
-                    <td className="px-6 py-4 text-center font-medium text-slate-700">{p.revenue30d}</td>
-                    <td className="px-6 py-4 text-center font-medium text-slate-700">{p.adsSpend}</td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold ${getStatusColor(p.status)}`}>
-                        {p.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <button className="inline-flex items-center gap-1.5 font-bold text-blue-600 hover:text-blue-700">
-                        {p.recommendation}
-                        <ArrowRight className="h-3 w-3" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {loading && (
+          <div className="rounded-2xl border border-slate-200 bg-card p-6 text-sm text-slate-500">
+            Carregando produtos travados...
           </div>
-        </div>
+        )}
+
+        {!loading && error && (
+          <div className="rounded-2xl border border-rose-200 bg-rose-50/40 p-6 text-sm text-rose-700">
+            Não foi possível carregar os produtos travados agora. Tente novamente em instantes.
+          </div>
+        )}
+
+        {!loading && !error && items.length === 0 && (
+          <div className="rounded-2xl border border-slate-200 bg-card p-6 text-sm text-slate-500">
+            Nenhum produto travado encontrado para esta empresa.
+          </div>
+        )}
+
+        {!loading && !error && items.length > 0 && (
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-slate-50/50 border-b border-slate-200">
+                  <tr>
+                    <th className="px-6 py-4 font-semibold text-slate-900">Produto</th>
+                    <th className="px-6 py-4 font-semibold text-slate-900">Conta / Marketplace</th>
+                    <th className="px-6 py-4 font-semibold text-slate-900">Problema</th>
+                    <th className="px-6 py-4 font-semibold text-slate-900">Prioridade</th>
+                    <th className="px-6 py-4 font-semibold text-slate-900 text-right">Visitas</th>
+                    <th className="px-6 py-4 font-semibold text-slate-900 text-right">Vendas</th>
+                    <th className="px-6 py-4 font-semibold text-slate-900 text-right">Estoque</th>
+                    <th className="px-6 py-4 font-semibold text-slate-900 text-right">Dias s/ venda</th>
+                    <th className="px-6 py-4 font-semibold text-slate-900 text-right">Inv. Ads</th>
+                    <th className="px-6 py-4 font-semibold text-slate-900 text-right">Rec. Ads</th>
+                    <th className="px-6 py-4 font-semibold text-slate-900 text-right">ROAS</th>
+                    <th className="px-6 py-4 font-semibold text-slate-900">Ação Recomendada</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {items.map((p, i) => {
+                    const prio = (p.priority_level ?? "low").toLowerCase();
+                    return (
+                      <tr key={i} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-slate-900">{p.product_name ?? "—"}</span>
+                            <span className="text-[11px] uppercase tracking-wider text-slate-500">{p.sku ?? "—"}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex flex-col">
+                            <span className="font-medium text-slate-900">{p.account_name ?? "—"}</span>
+                            <span className="text-[11px] uppercase tracking-wider text-slate-500">{p.marketplace ?? "—"}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-slate-700">{p.problem_label ?? "—"}</td>
+                        <td className="px-6 py-4">
+                          <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold ${PRIORITY_STYLE[prio] ?? "bg-slate-100 text-slate-700"}`}>
+                            {PRIORITY_LABEL[prio] ?? prio}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right text-slate-700">{fmtInt(p.visits)}</td>
+                        <td className="px-6 py-4 text-right text-slate-700">{fmtInt(p.sales_count)}</td>
+                        <td className="px-6 py-4 text-right text-slate-700">{fmtInt(p.total_stock)}</td>
+                        <td className="px-6 py-4 text-right text-slate-700">{fmtInt(p.days_without_sale)}</td>
+                        <td className="px-6 py-4 text-right text-slate-700">{fmtBRL(p.ads_investment)}</td>
+                        <td className="px-6 py-4 text-right text-slate-700">{fmtBRL(p.ads_revenue)}</td>
+                        <td className="px-6 py-4 text-right text-slate-700">{fmtNum(p.roas, 2)}</td>
+                        <td className="px-6 py-4">
+                          {p.recommended_action || p.task_title ? (
+                            <div className="flex flex-col gap-0.5">
+                              <button className="inline-flex items-center gap-1.5 text-left font-bold text-blue-600 hover:text-blue-700">
+                                {p.recommended_action ?? p.task_title}
+                                <ArrowRight className="h-3 w-3" />
+                              </button>
+                              {p.insight_title && (
+                                <span className="text-[11px] text-slate-500">{p.insight_title}</span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 text-xs">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </EcommerceLayout>
   );

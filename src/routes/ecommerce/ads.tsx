@@ -241,7 +241,11 @@ function AdsInteligente() {
                 return (
                   <div
                     key={i}
-                    className="rounded-2xl border border-slate-200 bg-card p-6 shadow-sm transition-all hover:shadow-md"
+                    className={`rounded-2xl border bg-card p-6 shadow-sm transition-all hover:shadow-md ${
+                      prio === "critical"
+                        ? "border-rose-200 ring-1 ring-rose-100"
+                        : "border-slate-200"
+                    }`}
                   >
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       <div className="min-w-0 flex-1">
@@ -264,18 +268,25 @@ function AdsInteligente() {
                             </span>
                           )}
                         </div>
-                        <h3 className="mt-2 text-lg font-bold leading-tight text-slate-900">
+                        <h3
+                          className="mt-3 truncate text-lg font-bold leading-tight text-slate-900"
+                          title={c.campaign_name ?? undefined}
+                        >
                           {c.campaign_name ?? "Campanha sem nome"}
                         </h3>
-                        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                          <span className="font-medium text-slate-700">{c.product_name ?? "—"}</span>
+                        <p
+                          className="mt-1 truncate text-sm font-medium text-slate-700"
+                          title={c.product_name ?? undefined}
+                        >
+                          {c.product_name ?? "—"}
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-500">
                           {c.sku && (
-                            <span className="font-mono text-[11px] uppercase tracking-wider text-slate-500">
+                            <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] uppercase tracking-wider text-slate-600">
                               {c.sku}
                             </span>
                           )}
-                          <span className="text-slate-300">•</span>
-                          <span>{c.account_name ?? "—"}</span>
+                          <span className="truncate">{c.account_name ?? "—"}</span>
                           {c.marketplace && (
                             <>
                               <span className="text-slate-300">•</span>
@@ -286,7 +297,7 @@ function AdsInteligente() {
                       </div>
 
                       {aLabel && (
-                        <div className="shrink-0">
+                        <div className="shrink-0 lg:text-right">
                           <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                             Ação recomendada
                           </div>
@@ -301,14 +312,14 @@ function AdsInteligente() {
                       )}
                     </div>
 
-                    <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 sm:grid-cols-4 lg:grid-cols-8">
+                    <div className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-slate-100 pt-5 sm:grid-cols-4">
                       {metrics.map((m, mi) => (
                         <div key={mi} className="min-w-0">
                           <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
                             {m.label}
                           </div>
                           <div
-                            className={`mt-0.5 truncate text-sm font-bold ${
+                            className={`mt-1 text-base font-bold tabular-nums ${
                               m.emphasis ? "text-blue-700" : "text-slate-900"
                             }`}
                           >
@@ -319,7 +330,7 @@ function AdsInteligente() {
                     </div>
 
                     {c.ai_action_suggestion && (
-                      <div className="mt-4 flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
+                      <div className="mt-5 flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-4">
                         <div className="rounded-lg bg-blue-500/10 p-1.5 text-blue-600 ring-1 ring-inset ring-blue-200">
                           <BrainCircuit className="h-4 w-4" />
                         </div>
@@ -327,7 +338,7 @@ function AdsInteligente() {
                           <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-700">
                             Sugestão IA
                           </div>
-                          <p className="mt-0.5 text-sm leading-relaxed text-slate-700">
+                          <p className="mt-1 text-sm leading-relaxed text-slate-700">
                             {c.ai_action_suggestion}
                           </p>
                         </div>

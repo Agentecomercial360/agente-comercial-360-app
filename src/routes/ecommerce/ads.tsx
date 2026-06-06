@@ -1,20 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-  TrendingUp,
-  DollarSign,
-  MousePointer2,
-  BarChart3,
-  Activity,
-  Eye,
-  BrainCircuit,
   AlertTriangle,
+  TrendingUp,
   Sparkles,
-  Target,
-  ArrowUpRight,
+  Zap,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
-
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/ads")({
@@ -48,17 +40,10 @@ type AdRow = {
 };
 
 const PRIORITY_LABEL: Record<string, string> = {
-  critical: "Crítico",
+  critical: "Crítica",
   high: "Alta",
   opportunity: "Oportunidade",
   normal: "Normal",
-};
-
-const PRIORITY_STYLE: Record<string, string> = {
-  critical: "bg-rose-50 text-rose-700 ring-1 ring-rose-200",
-  high: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
-  opportunity: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
-  normal: "bg-slate-50 text-slate-600 ring-1 ring-slate-200",
 };
 
 const ACTION_LABEL: Record<string, string> = {
@@ -69,27 +54,15 @@ const ACTION_LABEL: Record<string, string> = {
   keep_monitoring: "Manter monitoramento",
 };
 
-const ACTION_STYLE: Record<string, string> = {
-  pause: "bg-rose-50 text-rose-700 ring-1 ring-rose-200",
-  reduce_budget: "bg-orange-50 text-orange-700 ring-1 ring-orange-200",
-  scale: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
-  review_ad: "bg-blue-50 text-blue-700 ring-1 ring-blue-200",
-  keep_monitoring: "bg-slate-50 text-slate-700 ring-1 ring-slate-200",
-};
-
-function actionKey(value?: string | null): string | null {
-  if (!value) return null;
-  return value.toLowerCase();
-}
-
 function translateAction(value?: string | null): string | null {
   if (!value) return null;
-  const key = value.toLowerCase();
-  return ACTION_LABEL[key] ?? value;
+  return ACTION_LABEL[value.toLowerCase()] ?? value;
 }
 
 const fmtBRL = (v: number | null | undefined) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(Number(v ?? 0));
+const fmtBRLValue = (v: number | null | undefined) =>
+  new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(v ?? 0));
 const fmtInt = (v: number | null | undefined) =>
   new Intl.NumberFormat("pt-BR").format(Number(v ?? 0));
 const fmtNum = (v: number | null | undefined, d = 2) =>
@@ -100,43 +73,12 @@ const fmtPct = (v: number | null | undefined, d = 1) => {
   const pct = Math.abs(num) <= 1 ? num * 100 : num;
   return `${fmtNum(pct, d)}%`;
 };
-
-function KpiCard({
-  label,
-  value,
-  icon: Icon,
-  hint,
-  primary = false,
-}: {
-  label: string;
-  value: string;
-  icon: React.ComponentType<{ className?: string }>;
-  hint?: string;
-  primary?: boolean;
-}) {
-  return (
-    <div
-      className={`rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow ${
-        primary ? "border-slate-200" : "border-slate-200/70"
-      }`}
-    >
-      <div className="flex items-center justify-between">
-        <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-          {label}
-        </span>
-        <Icon className="h-4 w-4 text-slate-400" />
-      </div>
-      <div
-        className={`mt-2 font-bold tabular-nums text-slate-900 ${
-          primary ? "text-2xl" : "text-xl"
-        }`}
-      >
-        {value}
-      </div>
-      {hint && <div className="mt-0.5 text-[11px] text-slate-400">{hint}</div>}
-    </div>
-  );
-}
+const fmtCompact = (v: number) => {
+  if (v >= 1_000_000) return `${fmtNum(v / 1_000_000, 1)}M`;
+  if (v >= 1_000) return `${fmtNum(v / 1_000, 1)}k`;
+  return fmtInt(v);
+};
+const pad2 = (n: number) => n.toString().padStart(2, "0");
 
 function AdsInteligente() {
   const navigate = useNavigate();
@@ -216,66 +158,46 @@ function AdsInteligente() {
     return { critical, opportunity, actionable };
   }, [rows]);
 
-  const aiSummary = useMemo(() => {
-    const c = buckets.critical.length;
-    const o = buckets.opportunity.length;
-    const a = buckets.actionable.length;
-    if (rows.length === 0) return "Sem campanhas para análise no momento.";
-    return `${c} ${c === 1 ? "campanha crítica" : "campanhas críticas"}, ${o} ${o === 1 ? "oportunidade de escala" : "oportunidades de escala"} e ${a} ${a === 1 ? "recomendação gerada" : "recomendações geradas"} pela IA.`;
-  }, [buckets, rows.length]);
-
-  const primaryKpis = [
-    { label: "Investimento", value: fmtBRL(totals.investment), icon: DollarSign },
-    { label: "Receita via Ads", value: fmtBRL(totals.ads_revenue), icon: TrendingUp },
-    { label: "ROAS médio", value: fmtNum(totals.roas, 2), icon: BarChart3, hint: "Retorno sobre investimento" },
-    { label: "ACOS", value: `${fmtNum(totals.acos, 1)}%`, icon: Target },
-  ];
-
-  const secondaryKpis = [
-    { label: "TACoS", value: `${fmtNum(totals.tacos, 1)}%`, icon: Activity },
-    { label: "Cliques", value: fmtInt(totals.clicks), icon: MousePointer2 },
-    { label: "Impressões", value: fmtInt(totals.impressions), icon: Eye },
-    { label: "Campanhas ativas", value: fmtInt(rows.length), icon: Sparkles },
-  ];
-
   return (
     <EcommerceLayout>
-      <div className="mx-auto max-w-7xl space-y-5">
-        {/* Cabeçalho executivo */}
-        <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-          <div className="max-w-xl">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-blue-700">
+      <div className="mx-auto max-w-7xl space-y-8">
+        {/* Header + Resumo da IA */}
+        <header className="flex flex-col items-start justify-between gap-6 lg:flex-row">
+          <div className="space-y-2">
+            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600">
               Ads Intelligence
-            </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-900">
+            </span>
+            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
               Ads Inteligente
             </h1>
-            <p className="mt-2 text-sm leading-relaxed text-slate-500">
+            <p className="max-w-xl text-base text-slate-500">
               Otimização e leitura estratégica das campanhas com base em performance real.
             </p>
           </div>
 
           {!loading && !error && rows.length > 0 && (
-            <div className="flex-1 rounded-xl border border-slate-900/5 bg-gradient-to-br from-slate-900 to-slate-800 p-5 text-white shadow-sm lg:max-w-md">
-              <div className="flex items-center gap-2">
-                <div className="rounded-lg bg-white/10 p-1.5 ring-1 ring-inset ring-white/20">
-                  <BrainCircuit className="h-4 w-4" />
-                </div>
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-200">
+            <div className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white shadow-xl shadow-slate-200/50 lg:w-96">
+              <div className="relative z-10">
+                <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">
                   Resumo da IA
-                </span>
+                </h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <p className="text-2xl font-bold tabular-nums text-rose-400">{pad2(buckets.critical.length)}</p>
+                    <p className="text-[10px] uppercase tracking-tight text-slate-300">Críticas</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold tabular-nums text-emerald-400">{pad2(buckets.opportunity.length)}</p>
+                    <p className="text-[10px] uppercase tracking-tight text-slate-300">Oportunidades</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold tabular-nums text-blue-400">{pad2(buckets.actionable.length)}</p>
+                    <p className="text-[10px] uppercase tracking-tight text-slate-300">Recomendações</p>
+                  </div>
+                </div>
               </div>
-              <p className="mt-3 text-sm leading-relaxed text-slate-100">{aiSummary}</p>
-              <div className="mt-4 flex flex-wrap gap-4 border-t border-white/10 pt-3 text-[11px] uppercase tracking-wider text-slate-300">
-                <span>
-                  <span className="font-bold text-rose-300">{buckets.critical.length}</span> críticas
-                </span>
-                <span>
-                  <span className="font-bold text-emerald-300">{buckets.opportunity.length}</span> oportunidades
-                </span>
-                <span>
-                  <span className="font-bold text-blue-300">{buckets.actionable.length}</span> recomendações
-                </span>
+              <div className="pointer-events-none absolute -bottom-4 -right-4 opacity-10">
+                <Sparkles className="h-32 w-32" strokeWidth={1.5} />
               </div>
             </div>
           )}
@@ -301,24 +223,27 @@ function AdsInteligente() {
 
         {!loading && !error && rows.length > 0 && (
           <>
-            {/* KPIs principais */}
-            <section className="space-y-3">
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                {primaryKpis.map((k, i) => (
-                  <KpiCard key={i} {...k} primary />
-                ))}
+            {/* KPIs */}
+            <section className="space-y-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <KpiPrimary label="Investimento" prefix="R$" value={fmtBRLValue(totals.investment)} />
+                <KpiPrimary label="Receita Ads" prefix="R$" value={fmtBRLValue(totals.ads_revenue)} />
+                <KpiPrimary label="ROAS Médio" value={fmtNum(totals.roas, 2)} />
+                <KpiPrimary label="ACOS" value={`${fmtNum(totals.acos, 1)}%`} />
               </div>
-              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                {secondaryKpis.map((k, i) => (
-                  <KpiCard key={i} {...k} />
-                ))}
+
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                <KpiSecondary label="TACoS" value={`${fmtNum(totals.tacos, 1)}%`} />
+                <KpiSecondary label="Cliques" value={fmtInt(totals.clicks)} />
+                <KpiSecondary label="Impressões" value={fmtCompact(totals.impressions)} />
+                <KpiSecondary label="Campanhas Ativas" value={fmtInt(rows.length)} />
               </div>
             </section>
 
-            {/* Priorização visual */}
-            <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            {/* Priority blocks */}
+            <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
               <PriorityBlock
-                title="Campanhas críticas"
+                title="Campanhas Críticas"
                 count={buckets.critical.length}
                 icon={AlertTriangle}
                 accent="rose"
@@ -326,171 +251,72 @@ function AdsInteligente() {
                 emptyText="Nenhuma campanha crítica."
               />
               <PriorityBlock
-                title="Oportunidades de escala"
+                title="Oportunidades de Escala"
                 count={buckets.opportunity.length}
-                icon={ArrowUpRight}
+                icon={TrendingUp}
                 accent="emerald"
                 items={buckets.opportunity.slice(0, 3)}
                 emptyText="Sem oportunidades neste ciclo."
               />
               <PriorityBlock
-                title="Ações recomendadas pela IA"
+                title="Recomendações IA"
                 count={buckets.actionable.length}
                 icon={Sparkles}
                 accent="blue"
                 items={buckets.actionable.slice(0, 3)}
-                emptyText="Nenhuma ação recomendada."
+                emptyText="Nenhuma recomendação ativa."
                 showAction
               />
             </section>
 
-            {/* Listagem de campanhas */}
-            <section className="space-y-3">
-              <div className="flex items-end justify-between">
-                <div>
-                  <h2 className="text-lg font-bold text-slate-900">Campanhas</h2>
-                  <p className="text-xs text-slate-500">
-                    {rows.length} {rows.length === 1 ? "campanha analisada" : "campanhas analisadas"}
-                  </p>
-                </div>
+            {/* Análise detalhada */}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold tracking-tight text-slate-900">
+                  Análise Detalhada
+                </h3>
+                <span className="text-xs text-slate-500">
+                  {rows.length} {rows.length === 1 ? "campanha" : "campanhas"}
+                </span>
               </div>
 
-              <div className="space-y-3">
-                {rows.map((c, i) => {
-                  const prio = (c.priority_level ?? "normal").toLowerCase();
-                  const aKey = actionKey(c.recommended_action);
-                  const aLabel = translateAction(c.recommended_action);
-                  const accentBar =
-                    prio === "critical"
-                      ? "bg-rose-500"
-                      : prio === "opportunity"
-                        ? "bg-emerald-500"
-                        : prio === "high"
-                          ? "bg-amber-500"
-                          : "bg-slate-200";
-
-                  const metrics = [
-                    { label: "Investimento", value: fmtBRL(c.investment) },
-                    { label: "Receita Ads", value: fmtBRL(c.ads_revenue) },
-                    { label: "Receita Total", value: fmtBRL(c.total_revenue) },
-                    { label: "ROAS", value: fmtNum(c.roas, 2), emphasis: true },
-                    { label: "ACOS", value: fmtPct(c.acos) },
-                    { label: "TACoS", value: fmtPct(c.tacos) },
-                    { label: "Cliques", value: fmtInt(c.clicks) },
-                    { label: "Impressões", value: fmtInt(c.impressions) },
-                  ];
-
-                  return (
-                    <div
-                      key={i}
-                      className="relative overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-shadow hover:shadow-md"
-                    >
-                      <span className={`absolute inset-y-0 left-0 w-1 ${accentBar}`} />
-                      <div className="p-5 pl-6">
-                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-1.5">
-                              <span
-                                className={`inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                                  PRIORITY_STYLE[prio] ?? "bg-slate-50 text-slate-700 ring-1 ring-slate-200"
-                                }`}
-                              >
-                                {PRIORITY_LABEL[prio] ?? prio}
-                              </span>
-                              {c.ad_type && (
-                                <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-600">
-                                  {c.ad_type}
-                                </span>
-                              )}
-                              {c.ads_status && (
-                                <span className="inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-slate-500 ring-1 ring-slate-200">
-                                  {c.ads_status}
-                                </span>
-                              )}
-                            </div>
-                            <h3
-                              className="mt-2.5 truncate text-base font-bold leading-tight text-slate-900"
-                              title={c.campaign_name ?? undefined}
-                            >
-                              {c.campaign_name ?? "Campanha sem nome"}
-                            </h3>
-                            <p
-                              className="mt-0.5 truncate text-sm text-slate-600"
-                              title={c.product_name ?? undefined}
-                            >
-                              {c.product_name ?? "—"}
-                            </p>
-                            <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500">
-                              {c.sku && (
-                                <span className="rounded bg-slate-100 px-1.5 py-0.5 font-mono uppercase tracking-wider text-slate-600">
-                                  {c.sku}
-                                </span>
-                              )}
-                              <span className="truncate">{c.account_name ?? "—"}</span>
-                              {c.marketplace && (
-                                <>
-                                  <span className="text-slate-300">•</span>
-                                  <span className="uppercase tracking-wide">{c.marketplace}</span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="flex shrink-0 items-center gap-2 lg:flex-col lg:items-end">
-                            {aLabel && (
-                              <span
-                                className={`inline-flex items-center rounded-md px-2.5 py-1 text-[11px] font-bold ${
-                                  ACTION_STYLE[aKey ?? ""] ?? "bg-slate-50 text-slate-700 ring-1 ring-slate-200"
-                                }`}
-                              >
-                                {aLabel}
-                              </span>
-                            )}
-                            <button
-                              type="button"
-                              className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-700 transition-colors hover:bg-slate-50"
-                            >
-                              Ver detalhes
-                              <ArrowUpRight className="h-3 w-3" />
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="mt-4 grid grid-cols-4 gap-x-4 gap-y-3 border-t border-slate-100 pt-4 sm:grid-cols-8">
-                          {metrics.map((m, mi) => (
-                            <div key={mi} className="min-w-0">
-                              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                                {m.label}
-                              </div>
-                              <div
-                                className={`mt-0.5 text-sm font-bold tabular-nums ${
-                                  m.emphasis ? "text-blue-700" : "text-slate-900"
-                                }`}
-                              >
-                                {m.value}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-
-                        {c.ai_action_suggestion && (
-                          <div className="mt-4 flex items-start gap-2.5 rounded-lg border border-slate-200 bg-slate-50/60 p-3">
-                            <BrainCircuit className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
-                            <p className="text-[13px] leading-relaxed text-slate-700">
-                              {c.ai_action_suggestion}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
+              <div className="space-y-4">
+                {rows.map((c, i) => (
+                  <CampaignCard key={i} c={c} />
+                ))}
               </div>
             </section>
           </>
         )}
       </div>
     </EcommerceLayout>
+  );
+}
+
+function KpiPrimary({ label, value, prefix }: { label: string; value: string; prefix?: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+      <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+        {label}
+      </span>
+      <div className="mt-1 flex items-baseline gap-1">
+        {prefix && <span className="text-xs font-medium text-slate-500">{prefix}</span>}
+        <span className="text-2xl font-bold tracking-tight tabular-nums text-slate-900">
+          {value}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function KpiSecondary({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="px-2">
+      <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">
+        {label}
+      </span>
+      <p className="text-sm font-semibold tabular-nums text-slate-700">{value}</p>
+    </div>
   );
 }
 
@@ -511,68 +337,178 @@ function PriorityBlock({
   emptyText: string;
   showAction?: boolean;
 }) {
-  const accentStyles = {
-    rose: { iconBg: "bg-rose-50 text-rose-600 ring-rose-100", num: "text-rose-700" },
-    emerald: { iconBg: "bg-emerald-50 text-emerald-600 ring-emerald-100", num: "text-emerald-700" },
-    blue: { iconBg: "bg-blue-50 text-blue-600 ring-blue-100", num: "text-blue-700" },
+  const styles = {
+    rose: {
+      border: "border-t-rose-500",
+      iconBg: "bg-rose-50 text-rose-600",
+      num: "text-rose-600",
+      badge: "bg-rose-100 text-rose-700",
+    },
+    emerald: {
+      border: "border-t-emerald-500",
+      iconBg: "bg-emerald-50 text-emerald-600",
+      num: "text-emerald-600",
+      badge: "bg-emerald-100 text-emerald-700",
+    },
+    blue: {
+      border: "border-t-blue-500",
+      iconBg: "bg-blue-50 text-blue-600",
+      num: "text-blue-600",
+      badge: "bg-blue-100 text-blue-700",
+    },
   }[accent];
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className={`rounded-lg p-1.5 ring-1 ring-inset ${accentStyles.iconBg}`}>
-            <Icon className="h-4 w-4" />
+    <div className={`rounded-2xl border border-t-4 border-slate-200 bg-white p-6 shadow-sm ${styles.border}`}>
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className={`rounded-lg p-2 ${styles.iconBg}`}>
+            <Icon className="h-5 w-5" />
           </div>
-          <span className="text-sm font-semibold text-slate-900">{title}</span>
+          <h4 className="font-bold text-slate-900">{title}</h4>
         </div>
-        <span className={`text-2xl font-bold tabular-nums ${accentStyles.num}`}>{count}</span>
+        <span className={`text-2xl font-black tabular-nums ${styles.num}`}>{pad2(count)}</span>
       </div>
-      <div className="mt-3 space-y-2.5 border-t border-slate-100 pt-3">
+      <div className="space-y-3">
         {items.length === 0 ? (
           <p className="text-xs text-slate-400">{emptyText}</p>
         ) : (
-          items.map((it, i) => {
-            const badgeLabel = showAction
-              ? translateAction(it.recommended_action)
-              : accent === "rose"
-                ? "Crítica"
-                : accent === "emerald"
-                  ? "Oportunidade"
-                  : null;
-            const badgeClass =
-              accent === "rose"
-                ? "bg-rose-50 text-rose-700 ring-rose-100"
-                : accent === "emerald"
-                  ? "bg-emerald-50 text-emerald-700 ring-emerald-100"
-                  : "bg-blue-50 text-blue-700 ring-blue-100";
-            return (
-              <div key={i} className="flex items-center justify-between gap-2">
-                <div className="min-w-0 flex-1">
-                  <div
-                    className="truncate text-sm font-semibold text-slate-900"
-                    title={it.campaign_name ?? ""}
-                  >
-                    {it.campaign_name ?? "—"}
-                  </div>
-                  <div className="mt-0.5 flex items-center gap-1.5">
-                    {badgeLabel && (
-                      <span
-                        className={`inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-semibold ring-1 ring-inset ${badgeClass}`}
-                      >
-                        {badgeLabel}
-                      </span>
-                    )}
-                    <span className="text-[11px] text-slate-500 tabular-nums">
-                      ROAS {fmtNum(it.roas, 2)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            );
-          })
+          items.map((it, i) => (
+            <div key={i} className="flex items-center justify-between rounded-lg bg-slate-50 p-3">
+              <span
+                className="truncate pr-2 text-xs font-medium text-slate-700"
+                title={it.campaign_name ?? ""}
+              >
+                {it.campaign_name ?? "—"}
+              </span>
+              <span
+                className={`shrink-0 rounded px-2 py-0.5 text-[10px] font-bold uppercase ${styles.badge}`}
+              >
+                {showAction
+                  ? translateAction(it.recommended_action) ?? "Revisar"
+                  : `ROAS ${fmtNum(it.roas, 2)}`}
+              </span>
+            </div>
+          ))
         )}
       </div>
+    </div>
+  );
+}
+
+function CampaignCard({ c }: { c: AdRow }) {
+  const prio = (c.priority_level ?? "normal").toLowerCase();
+  const accentBar =
+    prio === "critical"
+      ? "bg-rose-500"
+      : prio === "opportunity"
+        ? "bg-emerald-500"
+        : prio === "high"
+          ? "bg-amber-500"
+          : "bg-slate-200";
+
+  const prioBadge =
+    prio === "critical"
+      ? "bg-rose-50 text-rose-600"
+      : prio === "opportunity"
+        ? "bg-emerald-50 text-emerald-600"
+        : prio === "high"
+          ? "bg-amber-50 text-amber-700"
+          : "bg-slate-100 text-slate-600";
+
+  const roasColor =
+    prio === "critical"
+      ? "text-rose-600"
+      : prio === "opportunity"
+        ? "text-emerald-600"
+        : "text-slate-800";
+
+  return (
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm md:flex-row">
+      <div className={`w-full md:w-1.5 ${accentBar}`} style={{ minHeight: "6px" }} />
+      <div className="flex-1 p-6">
+        <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h4 className="text-lg font-bold tracking-tight text-slate-900">
+                {c.campaign_name ?? "Campanha sem nome"}
+              </h4>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-tighter ${prioBadge}`}
+              >
+                {PRIORITY_LABEL[prio] ?? prio}
+              </span>
+            </div>
+            <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-slate-500">
+              {c.product_name && <span className="text-slate-600">{c.product_name}</span>}
+              {c.product_name && c.sku && <span className="text-slate-300">|</span>}
+              {c.sku && <span>SKU: {c.sku}</span>}
+              {(c.account_name || c.marketplace) && <span className="text-slate-300">|</span>}
+              {c.account_name && <span>{c.account_name}</span>}
+              {c.marketplace && <span className="text-slate-400">· {c.marketplace}</span>}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {c.ad_type && (
+              <span className="rounded bg-slate-100 px-2 py-1 text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                {c.ad_type}
+              </span>
+            )}
+            {c.ads_status && (
+              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                {c.ads_status}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="mb-6 grid grid-cols-2 gap-6 sm:grid-cols-4 lg:grid-cols-8">
+          <Metric label="Investimento" value={fmtBRL(c.investment)} />
+          <Metric label="Receita Ads" value={fmtBRL(c.ads_revenue)} />
+          <Metric label="Receita Total" value={fmtBRL(c.total_revenue)} />
+          <Metric label="ROAS" value={fmtNum(c.roas, 2)} className={roasColor} />
+          <Metric label="ACOS" value={fmtPct(c.acos)} />
+          <Metric label="TACoS" value={fmtPct(c.tacos)} />
+          <Metric label="Cliques" value={fmtInt(c.clicks)} />
+          <Metric label="Impressões" value={fmtCompact(Number(c.impressions ?? 0))} />
+        </div>
+
+        {c.recommended_action && c.recommended_action.toLowerCase() !== "keep_monitoring" && (
+          <div className="mb-4 flex items-center gap-2 text-xs">
+            <span className="font-bold uppercase tracking-widest text-slate-400">
+              Ação recomendada
+            </span>
+            <span className="font-bold text-slate-700">
+              {translateAction(c.recommended_action)}
+            </span>
+          </div>
+        )}
+
+        {c.ai_action_suggestion && (
+          <div className="flex items-start gap-4 rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+            <div className="shrink-0 rounded-lg bg-blue-100 p-2 text-blue-600">
+              <Zap className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs font-bold uppercase tracking-tight text-blue-900">
+                Sugestão da IA
+              </p>
+              <p className="text-sm leading-relaxed text-slate-700">
+                {c.ai_action_suggestion}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Metric({ label, value, className }: { label: string; value: string; className?: string }) {
+  return (
+    <div className="space-y-1">
+      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
+      <p className={`text-sm font-bold tabular-nums text-slate-800 ${className ?? ""}`}>{value}</p>
     </div>
   );
 }

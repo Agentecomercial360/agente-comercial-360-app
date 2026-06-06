@@ -82,13 +82,28 @@ const fmtBRL = (n: number | null) =>
 const fmtInt = (n: number | null) => (n == null ? "—" : n.toLocaleString("pt-BR"));
 const fmtPct = (n: number | null) =>
   n == null ? "—" : `${(n * 100).toFixed(1).replace(".", ",")}%`;
-const fmtConfidence = (n: number | null) => {
-  if (n == null) return "—";
-  const pct = Math.abs(n) <= 1 ? n * 100 : n;
-  const clamped = Math.max(0, Math.min(100, pct));
-  const rounded = Math.round(clamped * 10) / 10;
-  return `${(Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)).replace(".", ",")}%`;
-};
+function formatConfidenceScore(value: number | null | undefined): string {
+  const numeric = Number(value);
+  if (value == null || !Number.isFinite(numeric)) return "Não calculado";
+  let percentage = numeric;
+  if (numeric >= 0 && numeric <= 1) percentage = numeric * 100;
+  else if (numeric > 100) percentage = numeric / 100;
+  percentage = Math.max(0, Math.min(percentage, 100));
+  const formatted = percentage.toFixed(1).replace(".", ",").replace(/,0$/, "");
+  return `${formatted}%`;
+}
+function confidenceTier(value: number | null | undefined): { label: string; cls: string } | null {
+  const numeric = Number(value);
+  if (value == null || !Number.isFinite(numeric)) return null;
+  let pct = numeric;
+  if (numeric >= 0 && numeric <= 1) pct = numeric * 100;
+  else if (numeric > 100) pct = numeric / 100;
+  pct = Math.max(0, Math.min(pct, 100));
+  if (pct >= 90) return { label: "Alta confiança", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+  if (pct >= 70) return { label: "Boa confiança", cls: "bg-blue-50 text-blue-700 border-blue-200" };
+  if (pct >= 50) return { label: "Confiança moderada", cls: "bg-amber-50 text-amber-700 border-amber-200" };
+  return { label: "Baixa confiança", cls: "bg-rose-50 text-rose-700 border-rose-200" };
+}
 
 function DiffBadge({ value, format = "int" }: { value: number | null; format?: "int" | "brl" | "pct" }) {
   if (value == null) return <span className="text-xs text-slate-400">—</span>;
@@ -283,9 +298,16 @@ function ConsultorIA() {
                               {t.expected_impact}
                             </span>
                           )}
-                          <span>
-                            <strong className="text-slate-700">Confiança IA:</strong>{" "}
-                            {fmtConfidence(t.confidence_score)}
+                          <span className="inline-flex items-center gap-2">
+                            <span>
+                              <strong className="text-slate-700">Confiança IA:</strong>{" "}
+                              {formatConfidenceScore(t.confidence_score)}
+                            </span>
+                            {confidenceTier(t.confidence_score) && (
+                              <span className={`rounded-md border px-1.5 py-0.5 text-[11px] font-semibold ${confidenceTier(t.confidence_score)!.cls}`}>
+                                {confidenceTier(t.confidence_score)!.label}
+                              </span>
+                            )}
                           </span>
                           {t.status_label && (
                             <span>

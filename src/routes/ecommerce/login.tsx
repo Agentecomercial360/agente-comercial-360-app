@@ -49,13 +49,10 @@ function EcommerceLoginPage() {
 
       const { data: accessCtx, error: ctxError } = await supabase
         .from("vw_user_access_context")
-        .select("has_ecommerce_access, suggested_redirect")
+        .select("has_ecommerce_access")
         .maybeSingle();
 
-      const hasAccess =
-        !ctxError &&
-        accessCtx?.has_ecommerce_access === true &&
-        accessCtx?.suggested_redirect === "/ecommerce/dashboard";
+      const hasAccess = !ctxError && accessCtx?.has_ecommerce_access === true;
 
       if (!hasAccess) {
         await supabase.auth.signOut();

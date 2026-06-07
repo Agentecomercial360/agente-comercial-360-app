@@ -15,6 +15,9 @@ import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/prioridades")({
   component: PrioridadesEcommerce,
+  validateSearch: (s: Record<string, unknown>) => ({
+    priority: s.priority === "critical" ? ("critical" as const) : undefined,
+  }),
   head: () => ({
     meta: [{ title: "Prioridades E-commerce | Agente Comercial 360" }],
   }),

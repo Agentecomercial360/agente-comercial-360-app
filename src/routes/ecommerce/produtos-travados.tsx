@@ -261,6 +261,25 @@ function ProdutosTravados() {
     return { critical, high, noVisits, visitsNoSales, lowConversion, stockStuck };
   }, [items]);
 
+  const filteredItems = useMemo(() => {
+    if (filter === "no_sales") {
+      return items.filter(
+        (p) => Number(p.visits ?? 0) > 0 && Number(p.sales_count ?? 0) === 0,
+      );
+    }
+    if (filter === "no_visits") {
+      return items.filter((p) => Number(p.visits ?? 0) === 0);
+    }
+    return items;
+  }, [items, filter]);
+
+  const filterLabel =
+    filter === "no_sales"
+      ? "Produtos sem venda"
+      : filter === "no_visits"
+        ? "Produtos sem visita"
+        : null;
+
   return (
     <EcommerceLayout>
       <div className="mx-auto max-w-7xl space-y-8">

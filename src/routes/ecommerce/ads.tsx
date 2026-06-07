@@ -176,28 +176,33 @@ function AdsInteligente() {
           </div>
 
           {!loading && !error && rows.length > 0 && (
-            <div className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white shadow-xl shadow-slate-200/50 lg:w-96">
+            <div className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B1220] via-[#0F1B33] to-[#13294B] p-6 text-white shadow-[0_8px_24px_-12px_rgba(15,23,42,0.35)] ring-1 ring-white/5 lg:w-[420px]">
               <div className="relative z-10">
-                <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Resumo da IA
-                </h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-2xl font-bold tabular-nums text-rose-400">{pad2(buckets.critical.length)}</p>
-                    <p className="text-[10px] uppercase tracking-tight text-slate-300">Críticas</p>
+                <div className="mb-5 flex items-center justify-between">
+                  <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300/80">
+                    Resumo da IA
+                  </h3>
+                  <span className="rounded-full bg-white/5 px-2 py-0.5 text-[9px] font-medium uppercase tracking-widest text-slate-300 ring-1 ring-white/10">
+                    Tempo real
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 divide-x divide-white/10">
+                  <div className="pr-3">
+                    <p className="text-[28px] font-semibold leading-none tabular-nums text-rose-300">{pad2(buckets.critical.length)}</p>
+                    <p className="mt-2 text-[10px] uppercase tracking-wider text-slate-400">Críticas</p>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold tabular-nums text-emerald-400">{pad2(buckets.opportunity.length)}</p>
-                    <p className="text-[10px] uppercase tracking-tight text-slate-300">Oportunidades</p>
+                  <div className="px-3">
+                    <p className="text-[28px] font-semibold leading-none tabular-nums text-emerald-300">{pad2(buckets.opportunity.length)}</p>
+                    <p className="mt-2 text-[10px] uppercase tracking-wider text-slate-400">Oportunidades</p>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold tabular-nums text-blue-400">{pad2(buckets.actionable.length)}</p>
-                    <p className="text-[10px] uppercase tracking-tight text-slate-300">Recomendações</p>
+                  <div className="pl-3">
+                    <p className="text-[28px] font-semibold leading-none tabular-nums text-sky-300">{pad2(buckets.actionable.length)}</p>
+                    <p className="mt-2 text-[10px] uppercase tracking-wider text-slate-400">Recomendações</p>
                   </div>
                 </div>
               </div>
-              <div className="pointer-events-none absolute -bottom-4 -right-4 opacity-10">
-                <Sparkles className="h-32 w-32" strokeWidth={1.5} />
+              <div className="pointer-events-none absolute -bottom-6 -right-6 opacity-[0.07]">
+                <Sparkles className="h-36 w-36" strokeWidth={1.25} />
               </div>
             </div>
           )}
@@ -339,48 +344,59 @@ function PriorityBlock({
 }) {
   const styles = {
     rose: {
-      surface: "bg-[#FFF6F7] border-[#F3D6DB]",
-      iconBg: "bg-white text-[#E54861] ring-1 ring-[#F3D6DB]",
-      num: "text-[#E54861]",
-      badge: "bg-white text-[#E54861] ring-1 ring-[#F3D6DB]",
-      divider: "border-[#F3D6DB]/70",
-      row: "bg-white/70 ring-1 ring-[#F3D6DB]/60",
+      surface:
+        "bg-[linear-gradient(180deg,#FDF8F9_0%,#FBF2F4_100%)] border-[#EFD9DE]",
+      iconBg: "bg-white text-[#C8324C] ring-1 ring-[#EFD9DE]",
+      num: "text-[#C8324C]",
+      badge: "bg-white text-[#C8324C] ring-1 ring-[#EFD9DE]",
+      divider: "border-[#EFD9DE]",
+      row: "bg-white/80 ring-1 ring-[#EFD9DE]/70 hover:ring-[#EFD9DE]",
+      label: "text-[#9F1F35]",
     },
     emerald: {
-      surface: "bg-[#F5FBF7] border-[#D7EEE0]",
-      iconBg: "bg-white text-[#16A34A] ring-1 ring-[#D7EEE0]",
-      num: "text-[#16A34A]",
-      badge: "bg-white text-[#16A34A] ring-1 ring-[#D7EEE0]",
-      divider: "border-[#D7EEE0]/70",
-      row: "bg-white/70 ring-1 ring-[#D7EEE0]/60",
+      surface:
+        "bg-[linear-gradient(180deg,#F7FBF8_0%,#F0F7F3_100%)] border-[#D4E8DC]",
+      iconBg: "bg-white text-[#15803D] ring-1 ring-[#D4E8DC]",
+      num: "text-[#15803D]",
+      badge: "bg-white text-[#15803D] ring-1 ring-[#D4E8DC]",
+      divider: "border-[#D4E8DC]",
+      row: "bg-white/80 ring-1 ring-[#D4E8DC]/70 hover:ring-[#D4E8DC]",
+      label: "text-[#14532D]",
     },
     blue: {
-      surface: "bg-[#F5F8FF] border-[#DCE7FF]",
-      iconBg: "bg-white text-[#2563EB] ring-1 ring-[#DCE7FF]",
-      num: "text-[#2563EB]",
-      badge: "bg-white text-[#2563EB] ring-1 ring-[#DCE7FF]",
-      divider: "border-[#DCE7FF]/70",
-      row: "bg-white/70 ring-1 ring-[#DCE7FF]/60",
+      surface:
+        "bg-[linear-gradient(180deg,#F7F9FD_0%,#EFF3FB_100%)] border-[#DAE3F2]",
+      iconBg: "bg-white text-[#1D4ED8] ring-1 ring-[#DAE3F2]",
+      num: "text-[#1D4ED8]",
+      badge: "bg-white text-[#1D4ED8] ring-1 ring-[#DAE3F2]",
+      divider: "border-[#DAE3F2]",
+      row: "bg-white/80 ring-1 ring-[#DAE3F2]/70 hover:ring-[#DAE3F2]",
+      label: "text-[#1E3A8A]",
     },
   }[accent];
 
   return (
-    <div className={`rounded-2xl border ${styles.surface} p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]`}>
-      <div className={`flex items-center justify-between border-b ${styles.divider} pb-4`}>
+    <div className={`rounded-2xl border ${styles.surface} p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-18px_rgba(15,23,42,0.12)]`}>
+      <div className={`flex items-start justify-between border-b ${styles.divider} pb-5`}>
         <div className="flex items-center gap-3">
           <div className={`rounded-lg p-2 ${styles.iconBg}`}>
             <Icon className="h-[18px] w-[18px]" />
           </div>
-          <h4 className="text-[15px] font-semibold tracking-tight text-slate-900">{title}</h4>
+          <div>
+            <h4 className="text-[14px] font-semibold tracking-tight text-slate-900">{title}</h4>
+            <p className={`mt-0.5 text-[10px] font-medium uppercase tracking-[0.14em] ${styles.label}`}>
+              {count === 1 ? "1 item" : `${count} itens`}
+            </p>
+          </div>
         </div>
-        <span className={`text-3xl font-bold tabular-nums leading-none ${styles.num}`}>{pad2(count)}</span>
+        <span className={`text-[32px] font-semibold tabular-nums leading-none ${styles.num}`}>{pad2(count)}</span>
       </div>
-      <div className="mt-4 space-y-2">
+      <div className="mt-5 space-y-2">
         {items.length === 0 ? (
           <p className="px-1 py-2 text-xs text-slate-500">{emptyText}</p>
         ) : (
           items.map((it, i) => (
-            <div key={i} className={`flex items-center justify-between rounded-lg ${styles.row} px-3 py-2.5`}>
+            <div key={i} className={`flex items-center justify-between rounded-lg ${styles.row} px-3 py-2.5 transition-all`}>
               <span
                 className="truncate pr-3 text-[13px] font-medium text-slate-800"
                 title={it.campaign_name ?? ""}
@@ -415,70 +431,74 @@ function CampaignCard({ c }: { c: AdRow }) {
 
   const toneStyles = {
     critical: {
-      surface: "bg-[#FFF5F6] border-[#F4D5DA]",
-      bar: "bg-[#E54861]",
-      badge: "bg-white text-[#E54861] ring-1 ring-[#F4D5DA]",
-      roas: "text-[#E54861]",
-      actionLabel: "text-[#E54861]",
-      aiSurface: "bg-white/70 border-[#F4D5DA]",
-      aiIcon: "bg-[#FFE8EC] text-[#E54861]",
+      surface:
+        "bg-[linear-gradient(180deg,#FDF8F9_0%,#FAF1F3_100%)] border-[#EFD9DE]",
+      bar: "bg-[#C8324C]",
+      badge: "bg-white text-[#C8324C] ring-1 ring-[#EFD9DE]",
+      roas: "text-[#C8324C]",
+      actionLabel: "text-[#C8324C]",
+      aiSurface: "bg-white border-[#EFD9DE]",
+      aiIcon: "bg-[#FBEAEE] text-[#C8324C] ring-1 ring-[#EFD9DE]",
       aiTitle: "text-[#9F1F35]",
-      chip: "bg-white/80 text-slate-600 ring-1 ring-[#F4D5DA]",
+      chip: "bg-white text-slate-600 ring-1 ring-[#EFD9DE]",
     },
     opportunity: {
-      surface: "bg-[#F3FBF7] border-[#CDEEDD]",
-      bar: "bg-[#22C55E]",
-      badge: "bg-white text-[#16A34A] ring-1 ring-[#CDEEDD]",
-      roas: "text-[#16A34A]",
-      actionLabel: "text-[#16A34A]",
-      aiSurface: "bg-white/70 border-[#CDEEDD]",
-      aiIcon: "bg-[#DCF5E7] text-[#16A34A]",
+      surface:
+        "bg-[linear-gradient(180deg,#F7FBF8_0%,#F0F7F3_100%)] border-[#D4E8DC]",
+      bar: "bg-[#15803D]",
+      badge: "bg-white text-[#15803D] ring-1 ring-[#D4E8DC]",
+      roas: "text-[#15803D]",
+      actionLabel: "text-[#15803D]",
+      aiSurface: "bg-white border-[#D4E8DC]",
+      aiIcon: "bg-[#E6F3EC] text-[#15803D] ring-1 ring-[#D4E8DC]",
       aiTitle: "text-[#14532D]",
-      chip: "bg-white/80 text-slate-600 ring-1 ring-[#CDEEDD]",
+      chip: "bg-white text-slate-600 ring-1 ring-[#D4E8DC]",
     },
     attention: {
-      surface: "bg-[#FFF9F2] border-[#F4DFC2]",
-      bar: "bg-[#F59E0B]",
-      badge: "bg-white text-[#B45309] ring-1 ring-[#F4DFC2]",
-      roas: "text-[#B45309]",
-      actionLabel: "text-[#B45309]",
-      aiSurface: "bg-white/70 border-[#F4DFC2]",
-      aiIcon: "bg-[#FCEBD0] text-[#B45309]",
+      surface:
+        "bg-[linear-gradient(180deg,#FDFAF4_0%,#FAF4E8_100%)] border-[#EADDC2]",
+      bar: "bg-[#B45309]",
+      badge: "bg-white text-[#92400E] ring-1 ring-[#EADDC2]",
+      roas: "text-[#92400E]",
+      actionLabel: "text-[#92400E]",
+      aiSurface: "bg-white border-[#EADDC2]",
+      aiIcon: "bg-[#F7ECD4] text-[#92400E] ring-1 ring-[#EADDC2]",
       aiTitle: "text-[#7C2D12]",
-      chip: "bg-white/80 text-slate-600 ring-1 ring-[#F4DFC2]",
+      chip: "bg-white text-slate-600 ring-1 ring-[#EADDC2]",
     },
     neutral: {
-      surface: "bg-[#F7FAFF] border-[#DCE7F8]",
-      bar: "bg-[#3B82F6]",
-      badge: "bg-white text-[#2563EB] ring-1 ring-[#DCE7F8]",
+      surface:
+        "bg-[linear-gradient(180deg,#F8FAFD_0%,#F1F5FB_100%)] border-[#DAE3F2]",
+      bar: "bg-[#1D4ED8]",
+      badge: "bg-white text-[#1D4ED8] ring-1 ring-[#DAE3F2]",
       roas: "text-slate-800",
-      actionLabel: "text-[#2563EB]",
-      aiSurface: "bg-white/70 border-[#DCE7F8]",
-      aiIcon: "bg-[#E4EDFC] text-[#2563EB]",
+      actionLabel: "text-[#1D4ED8]",
+      aiSurface: "bg-white border-[#DAE3F2]",
+      aiIcon: "bg-[#E7EEFA] text-[#1D4ED8] ring-1 ring-[#DAE3F2]",
       aiTitle: "text-[#1E3A8A]",
-      chip: "bg-white/80 text-slate-600 ring-1 ring-[#DCE7F8]",
+      chip: "bg-white text-slate-600 ring-1 ring-[#DAE3F2]",
     },
   }[tone];
 
   return (
     <div
-      className={`flex flex-col overflow-hidden rounded-2xl border ${toneStyles.surface} shadow-[0_1px_2px_rgba(15,23,42,0.04)] md:flex-row`}
+      className={`flex flex-col overflow-hidden rounded-2xl border ${toneStyles.surface} shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_28px_-20px_rgba(15,23,42,0.18)] md:flex-row`}
     >
-      <div className={`w-full md:w-1.5 ${toneStyles.bar}`} style={{ minHeight: "6px" }} />
+      <div className={`w-full md:w-[3px] ${toneStyles.bar}`} style={{ minHeight: "4px" }} />
       <div className="flex-1 p-6">
-        <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
-          <div className="space-y-1.5">
+        <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+          <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <h4 className="text-[17px] font-semibold tracking-tight text-slate-900">
                 {c.campaign_name ?? "Campanha sem nome"}
               </h4>
               <span
-                className={`rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${toneStyles.badge}`}
+                className={`inline-flex items-center rounded-md px-2 py-[3px] text-[10px] font-semibold uppercase tracking-[0.08em] ${toneStyles.badge}`}
               >
                 {PRIORITY_LABEL[prio] ?? prio}
               </span>
             </div>
-            <p className="flex flex-wrap items-center gap-1.5 text-[13px] text-slate-500">
+            <p className="flex flex-wrap items-center gap-1.5 text-[12.5px] text-slate-500">
               {c.product_name && <span className="text-slate-600">{c.product_name}</span>}
               {c.product_name && c.sku && <span className="text-slate-300">·</span>}
               {c.sku && <span>SKU: {c.sku}</span>}
@@ -487,21 +507,21 @@ function CampaignCard({ c }: { c: AdRow }) {
               {c.marketplace && <span className="text-slate-400">· {c.marketplace}</span>}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-2">
             {c.ad_type && (
-              <span className={`rounded-md px-2 py-1 text-[10px] font-semibold uppercase tracking-wider ${toneStyles.chip}`}>
+              <span className={`inline-flex items-center rounded-md px-2 py-[3px] text-[10px] font-semibold uppercase tracking-[0.08em] ${toneStyles.chip}`}>
                 {c.ad_type}
               </span>
             )}
             {c.ads_status && (
-              <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+              <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-[3px] text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500 ring-1 ring-slate-200">
                 {c.ads_status}
               </span>
             )}
           </div>
         </div>
 
-        <div className="mb-5 grid grid-cols-2 gap-x-6 gap-y-4 rounded-xl border border-white/70 bg-white/60 px-4 py-4 sm:grid-cols-4 lg:grid-cols-8">
+        <div className="mb-5 grid grid-cols-2 gap-x-6 gap-y-4 rounded-xl border border-slate-200/70 bg-white/80 px-5 py-4 sm:grid-cols-4 lg:grid-cols-8">
           <Metric label="Investimento" value={fmtBRL(c.investment)} />
           <Metric label="Receita Ads" value={fmtBRL(c.ads_revenue)} />
           <Metric label="Receita Total" value={fmtBRL(c.total_revenue)} />
@@ -514,7 +534,7 @@ function CampaignCard({ c }: { c: AdRow }) {
 
         {c.recommended_action && c.recommended_action.toLowerCase() !== "keep_monitoring" && (
           <div className="mb-4 flex items-center gap-2 text-xs">
-            <span className="font-semibold uppercase tracking-widest text-slate-400">
+            <span className="font-semibold uppercase tracking-[0.14em] text-slate-400">
               Ação recomendada
             </span>
             <span className={`font-semibold ${toneStyles.actionLabel}`}>
@@ -524,12 +544,12 @@ function CampaignCard({ c }: { c: AdRow }) {
         )}
 
         {c.ai_action_suggestion && (
-          <div className={`flex items-start gap-3 rounded-xl border ${toneStyles.aiSurface} p-4`}>
-            <div className={`shrink-0 rounded-lg p-1.5 ${toneStyles.aiIcon}`}>
-              <Zap className="h-4 w-4" strokeWidth={2.25} />
+          <div className={`flex items-start gap-3 rounded-xl border ${toneStyles.aiSurface} p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)]`}>
+            <div className={`mt-0.5 shrink-0 rounded-md p-1.5 ${toneStyles.aiIcon}`}>
+              <Zap className="h-3.5 w-3.5" strokeWidth={2.25} />
             </div>
             <div className="space-y-1">
-              <p className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${toneStyles.aiTitle}`}>
+              <p className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${toneStyles.aiTitle}`}>
                 Sugestão da IA
               </p>
               <p className="text-[13px] leading-relaxed text-slate-700">

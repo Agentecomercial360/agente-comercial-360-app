@@ -1327,7 +1327,7 @@ function EcommerceDashboard() {
               {/* Grupo 2 — Performance de Ads */}
               <div>
                 <GroupHeader
-                  eyebrow="Grupo 2"
+                  eyebrow="Bloco B"
                   title="Performance de Ads"
                   hint="Investimento, retorno e eficiência de campanhas"
                   tone="ads"
@@ -1381,7 +1381,7 @@ function EcommerceDashboard() {
               {/* Grupo 3 — Atenção operacional */}
               <div>
                 <GroupHeader
-                  eyebrow="Grupo 3"
+                  eyebrow="Bloco C"
                   title="Atenção operacional"
                   hint="Pontos que exigem revisão e ação"
                   tone="critical"

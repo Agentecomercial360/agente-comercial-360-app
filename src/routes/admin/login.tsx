@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, ShieldCheck, Building2, Layers, Users as UsersIcon, ShieldAlert } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
+import { supabase } from "@/lib/supabase";
+import { consumeAuthMessage } from "@/lib/use-module-guard";
 
 export const Route = createFileRoute("/admin/login")({
   component: AdminLoginPage,

@@ -92,6 +92,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     }, delay);
   }, [isUpdating]);
 
+  if (checking || !allowed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+        Validando acesso…
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar */}

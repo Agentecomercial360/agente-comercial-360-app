@@ -310,17 +310,98 @@ function ReadingCard({
 }) {
   const t = TONE[tone];
   return (
-    <div className="relative overflow-hidden rounded-xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-shadow hover:shadow-[0_10px_28px_-18px_rgba(15,23,42,0.22)]">
       <span className={`absolute left-0 top-0 h-full w-[3px] ${t.accent}`} aria-hidden />
       <div className="flex items-center gap-2">
-        <span className={`h-1.5 w-1.5 rounded-full ${t.dot}`} />
-        <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+        <span className={`flex h-5 w-5 items-center justify-center rounded-md ${t.soft} ring-1 ring-inset ${t.ring}`}>
+          <span className={`h-1.5 w-1.5 rounded-full ${t.dot}`} />
+        </span>
+        <div className={`text-[10.5px] font-semibold uppercase tracking-[0.12em] ${t.chipText}`}>
           {title}
         </div>
       </div>
-      <p className="mt-2 text-[13px] leading-relaxed text-slate-700">{text}</p>
+      <p className="mt-2.5 text-[13px] leading-relaxed text-slate-700">{text}</p>
+      <div className="mt-auto pt-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-400">
+        Leitura do período atual
+      </div>
     </div>
   );
+}
+
+function KpiHero({
+  label,
+  value,
+  context,
+  to,
+  subStats,
+}: {
+  label: string;
+  value: React.ReactNode;
+  context?: string;
+  to?: string;
+  subStats?: { label: string; value: React.ReactNode; dot: string }[];
+}) {
+  const inner = (
+    <>
+      <span className="absolute left-0 top-0 h-full w-[3px] bg-emerald-500" aria-hidden />
+      <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-emerald-500/[0.06] blur-2xl" aria-hidden />
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden />
+          <div className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+            {label}
+          </div>
+        </div>
+        <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-emerald-700 ring-1 ring-inset ring-emerald-100">
+          Destaque
+        </span>
+      </div>
+      <div className="relative mt-3 whitespace-nowrap text-[30px] font-semibold leading-none tracking-tight text-slate-900 tabular-nums">
+        {value}
+      </div>
+      {context && (
+        <div className="relative mt-2 text-[12px] leading-snug text-slate-500">{context}</div>
+      )}
+      {subStats && subStats.length > 0 && (
+        <div className="relative mt-3.5 grid grid-cols-2 gap-x-3 gap-y-2 border-t border-slate-100 pt-3">
+          {subStats.map((s, i) => (
+            <div key={i} className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="h-1 w-1 rounded-full" style={{ background: s.dot }} />
+                <div className="truncate text-[9.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">
+                  {s.label}
+                </div>
+              </div>
+              <div className="mt-0.5 truncate text-[14.5px] font-semibold tabular-nums text-slate-900">
+                {s.value}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {to && (
+        <div className="relative mt-auto flex items-center justify-between border-t border-slate-100 pt-2.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-slate-400 transition-colors group-hover:text-slate-800">
+          <span>Investigar receita</span>
+          <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+        </div>
+      )}
+    </>
+  );
+
+  const baseCls =
+    "group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-gradient-to-br from-white via-white to-emerald-50/30 px-5 pt-4 pb-3 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-all";
+
+  if (to) {
+    return (
+      <Link
+        to={to as any}
+        className={`${baseCls} cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_12px_32px_-18px_rgba(15,23,42,0.28)]`}
+      >
+        {inner}
+      </Link>
+    );
+  }
+  return <div className={baseCls}>{inner}</div>;
 }
 
 function Shortcut({ to, label, hint }: { to: string; label: string; hint: string }) {
@@ -1183,35 +1264,42 @@ function EcommerceDashboard() {
                 <PeriodTabs value={period} onChange={setPeriod} />
               </div>
 
-              {/* Grupo 1 — Performance executiva */}
+              {/* Grupo 1 — Performance executiva (bento) */}
               <div>
                 <GroupHeader
-                  eyebrow="Grupo 1"
+                  eyebrow="Bloco A"
                   title="Performance executiva"
-                  hint="Visão geral do tamanho da operação"
+                  hint="Tamanho atual da operação"
                   tone="success"
                 />
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                  <KpiCard
-                    label="Faturamento total"
-                    value={fmtBRL(summary.total_gross_revenue)}
-                    context="Receita acumulada no período analisado."
-                    impact="Mostra o tamanho atual da operação."
-                    tone="success"
-                    emphasis
-                    trend={null}
-                    to="/ecommerce/produtos"
-                  />
-                  <KpiCard
-                    label="Vendas totais"
-                    value={fmtInt(summary.total_sales_count)}
-                    context="Pedidos e vendas registrados no período."
-                    impact="Indica o volume comercial da operação."
-                    tone="info"
-                    emphasis
-                    trend={null}
-                    to="/ecommerce/produtos"
-                  />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {/* Hero card — Faturamento ocupa 2 colunas em telas grandes */}
+                  <div className="sm:col-span-2 lg:col-span-2">
+                    <KpiHero
+                      label="Faturamento total"
+                      value={fmtBRL(summary.total_gross_revenue)}
+                      context="Receita bruta acumulada no período analisado."
+                      to="/ecommerce/produtos"
+                      subStats={[
+                        {
+                          label: "Ticket médio",
+                          value:
+                            Number(summary.total_sales_count ?? 0) > 0
+                              ? fmtBRL(
+                                  Number(summary.total_gross_revenue ?? 0) /
+                                    Number(summary.total_sales_count),
+                                )
+                              : "—",
+                          dot: "#2563eb",
+                        },
+                        {
+                          label: "Vendas no período",
+                          value: fmtInt(summary.total_sales_count),
+                          dot: "#16a34a",
+                        },
+                      ]}
+                    />
+                  </div>
                   <KpiCard
                     label="Contas conectadas"
                     value={fmtInt(summary.total_accounts)}
@@ -1235,10 +1323,11 @@ function EcommerceDashboard() {
                 </div>
               </div>
 
+
               {/* Grupo 2 — Performance de Ads */}
               <div>
                 <GroupHeader
-                  eyebrow="Grupo 2"
+                  eyebrow="Bloco B"
                   title="Performance de Ads"
                   hint="Investimento, retorno e eficiência de campanhas"
                   tone="ads"
@@ -1292,7 +1381,7 @@ function EcommerceDashboard() {
               {/* Grupo 3 — Atenção operacional */}
               <div>
                 <GroupHeader
-                  eyebrow="Grupo 3"
+                  eyebrow="Bloco C"
                   title="Atenção operacional"
                   hint="Pontos que exigem revisão e ação"
                   tone="critical"

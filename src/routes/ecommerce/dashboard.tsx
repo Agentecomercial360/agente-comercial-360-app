@@ -1367,11 +1367,12 @@ function EcommerceDashboard() {
                         : "—"
                     }
                     context="Receita atribuída às campanhas."
-                    impact="Mostra quanto os anúncios estão retornando."
+                    impact="Quanto os anúncios retornam em vendas."
                     tone="ads"
                     emphasis
                     trend={null}
                     to="/ecommerce/ads"
+                    cta="Ver receita de Ads →"
                   />
                   <KpiCard
                     label="ROAS médio"
@@ -1380,12 +1381,17 @@ function EcommerceDashboard() {
                         ? `${fmtNum(summary.avg_roas, 2)}x`
                         : "—"
                     }
-                    context="Retorno médio sobre o investimento em anúncios."
-                    impact="Ajuda a medir a eficiência das campanhas."
+                    context="Retorno por real investido em mídia."
+                    impact={
+                      Number(summary.avg_roas ?? 0) >= 1.5
+                        ? "Eficiência saudável."
+                        : "Abaixo do mínimo recomendado."
+                    }
                     tone={Number(summary.avg_roas ?? 0) >= 1.5 ? "success" : "critical"}
                     emphasis
                     trend={null}
                     to="/ecommerce/ads"
+                    cta="Analisar eficiência →"
                   />
                 </div>
               </div>
@@ -1402,60 +1408,66 @@ function EcommerceDashboard() {
                   <KpiCard
                     label="Produtos travados"
                     value={fmtInt(derived.stuck)}
-                    context="Itens exigindo análise por baixo desempenho."
-                    impact="Podem estar segurando faturamento."
+                    context="Baixo desempenho. Podem segurar receita."
                     tone="critical"
+                    compact
                     trend={null}
                     to="/ecommerce/produtos-travados"
+                    cta="Destravar agora →"
                   />
                   <KpiCard
-                    label="Produtos sem venda"
+                    label="Sem venda"
                     value={fmtInt(summary.products_visits_no_sales)}
-                    context="Produtos que não venderam no período."
-                    impact="Exigem revisão de oferta, preço ou anúncio."
+                    context="Tem visita, mas não converte."
                     tone="attention"
+                    compact
                     trend={null}
                     to="/ecommerce/produtos-travados"
                     search={{ filter: "no_sales" }}
+                    cta="Revisar oferta →"
                   />
                   <KpiCard
-                    label="Produtos sem visita"
+                    label="Sem visita"
                     value={fmtInt(summary.products_no_visits)}
-                    context="Produtos sem tráfego relevante."
-                    impact="Podem precisar de exposição, categoria ou campanha."
+                    context="Sem tráfego relevante no período."
                     tone="info"
+                    compact
                     trend={null}
                     to="/ecommerce/produtos-travados"
                     search={{ filter: "no_visits" }}
+                    cta="Gerar exposição →"
                   />
                   <KpiCard
                     label="Alertas críticos"
                     value={fmtInt(derived.criticalAlerts)}
                     context="Sinais que exigem ação imediata."
-                    impact="Prioridade para evitar perda de receita."
                     tone="critical"
+                    compact
                     trend={null}
                     to="/ecommerce/prioridades"
                     search={{ priority: "critical" }}
+                    cta="Ver alertas →"
                   />
                   <KpiCard
                     label="Tarefas pendentes"
                     value={fmtInt(summary.pending_tasks)}
                     context="Ações aguardando execução."
-                    impact="Quanto mais atrasar, maior o risco operacional."
                     tone="attention"
+                    compact
                     trend={null}
                     to="/ecommerce/tarefas"
                     search={{ status: "pending" }}
+                    cta="Revisar tarefas →"
                   />
                   <KpiCard
                     label="Insights abertos"
                     value={fmtInt(summary.open_insights)}
-                    context="Recomendações da IA ainda não tratadas."
-                    impact="Podem virar ações comerciais ou operacionais."
+                    context="Recomendações da IA não tratadas."
                     tone="info"
+                    compact
                     trend={null}
                     to="/ecommerce/consultor-ia"
+                    cta="Explorar insights →"
                   />
                 </div>
               </div>

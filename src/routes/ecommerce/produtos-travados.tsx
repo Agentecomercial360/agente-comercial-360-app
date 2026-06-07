@@ -378,8 +378,21 @@ function deriveProblemBadges(p: Stuck): string[] {
   if (stock > 200) out.push("Excesso de estoque");
   if (inv > 0 && rev === 0) out.push("Ads gastando sem venda");
 
-  // dedupe with original problem_label kept as primary if exists
   return Array.from(new Set(out));
+}
+
+function diagnoseSignal(p: Stuck): string {
+  const v = Number(p.visits ?? 0);
+  const s = Number(p.sales_count ?? 0);
+  const days = Number(p.days_without_sale ?? 0);
+  const inv = Number(p.ads_investment ?? 0);
+  const rev = Number(p.ads_revenue ?? 0);
+  if (inv > 0 && rev === 0) return "Investimento em Ads sem retorno de vendas.";
+  if (v === 0) return "Produto sem visitas no período analisado.";
+  if (v > 0 && s === 0) return "Produto recebendo visitas, mas sem conversão em vendas.";
+  if (v > 30 && s > 0 && s / v < 0.02) return "Tráfego presente, porém com conversão abaixo do esperado.";
+  if (days >= 30) return `Estoque parado há ${days} dias sem nova venda.`;
+  return p.problem_label ?? "Sinal de baixa performance detectado.";
 }
 
 function StuckCard({ p }: { p: Stuck }) {
@@ -387,52 +400,57 @@ function StuckCard({ p }: { p: Stuck }) {
   const tone = classifyTone(p);
   const t = toneMap[tone];
   const badges = deriveProblemBadges(p);
+  const statusBadges = [p.metric_status, p.stock_status, p.ads_status]
+    .filter(Boolean)
+    .map((s) => formatStatus(s));
 
   return (
     <div
-      className={`flex flex-col overflow-hidden rounded-2xl border ${t.surface} shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_28px_-20px_rgba(15,23,42,0.18)] md:flex-row`}
+      className={`flex overflow-hidden rounded-xl border ${t.surface} shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_22px_-18px_rgba(15,23,42,0.16)]`}
     >
-      <div className={`w-full md:w-[3px] ${t.bar}`} style={{ minHeight: "4px" }} />
-      <div className="flex-1 p-6">
-        <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
-          <div className="min-w-0 space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <h4 className="text-[17px] font-semibold tracking-tight text-slate-900">
-                {p.product_name ?? "Produto sem nome"}
-              </h4>
-              <span
-                className={`inline-flex items-center rounded-md px-2 py-[3px] text-[10px] font-semibold uppercase tracking-[0.08em] ${t.badge}`}
-              >
-                {PRIORITY_LABEL[prio] ?? prio}
-              </span>
-            </div>
-            <p className="flex flex-wrap items-center gap-1.5 text-[12.5px] text-slate-500">
-              {p.sku && <span>SKU: {p.sku}</span>}
-              {p.sku && (p.account_name || p.marketplace) && <span className="text-slate-300">·</span>}
-              {p.account_name && <span className="text-slate-600">{p.account_name}</span>}
-              {p.marketplace && <span className="text-slate-400">· {p.marketplace}</span>}
-            </p>
-            {(p.problem_label || badges.length > 0) && (
-              <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                {p.problem_label && (
-                  <span className={`inline-flex items-center rounded-md px-2 py-[3px] text-[10px] font-semibold uppercase tracking-[0.08em] ${t.badge}`}>
-                    {p.problem_label}
-                  </span>
-                )}
-                {badges.map((b) => (
-                  <span
-                    key={b}
-                    className={`inline-flex items-center rounded-md px-2 py-[3px] text-[10px] font-semibold uppercase tracking-[0.08em] ${t.chip}`}
-                  >
-                    {b}
-                  </span>
-                ))}
-              </div>
-            )}
+      <div className={`w-[3px] shrink-0 ${t.bar}`} />
+      <div className="flex-1 px-5 py-4">
+        {/* Header */}
+        <div className="mb-3 min-w-0 space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <h4 className="text-[15px] font-semibold tracking-tight text-slate-900">
+              {p.product_name ?? "Produto sem nome"}
+            </h4>
+            <span
+              className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-semibold uppercase tracking-[0.08em] ${t.badge}`}
+            >
+              {PRIORITY_LABEL[prio] ?? prio}
+            </span>
           </div>
+          <p className="flex flex-wrap items-center gap-x-1.5 text-[12px] text-slate-500">
+            {p.sku && <span className="tabular-nums">SKU {p.sku}</span>}
+            {p.sku && (p.account_name || p.marketplace) && <span className="text-slate-300">·</span>}
+            {p.account_name && <span className="text-slate-600">{p.account_name}</span>}
+            {p.marketplace && <span className="text-slate-400">· {formatMarketplace(p.marketplace)}</span>}
+          </p>
+          {(p.problem_label || badges.length > 0 || statusBadges.length > 0) && (
+            <div className="flex flex-wrap items-center gap-1 pt-0.5">
+              {p.problem_label && (
+                <span className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-semibold uppercase tracking-[0.08em] ${t.badge}`}>
+                  {p.problem_label}
+                </span>
+              )}
+              {badges.map((b) => (
+                <span key={b} className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-medium uppercase tracking-[0.06em] ${t.chip}`}>
+                  {b}
+                </span>
+              ))}
+              {statusBadges.map((b) => (
+                <span key={`s-${b}`} className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-medium uppercase tracking-[0.06em] ${t.chip}`}>
+                  {b}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
-        <div className={`mb-5 grid grid-cols-2 gap-x-6 gap-y-4 rounded-xl border px-5 py-4 sm:grid-cols-4 lg:grid-cols-8 ${t.metricPanel}`}>
+        {/* Metrics */}
+        <div className={`mb-3 grid grid-cols-2 gap-x-5 gap-y-2.5 rounded-lg border px-4 py-2.5 sm:grid-cols-4 lg:grid-cols-8 ${t.metricPanel}`}>
           <Metric label="Visitas" value={fmtInt(p.visits)} />
           <Metric label="Vendas" value={fmtInt(p.sales_count)} />
           <Metric label="Estoque" value={fmtInt(p.total_stock)} />
@@ -440,27 +458,39 @@ function StuckCard({ p }: { p: Stuck }) {
           <Metric label="Inv. Ads" value={fmtBRL(p.ads_investment)} />
           <Metric label="Rec. Ads" value={fmtBRL(p.ads_revenue)} />
           <Metric label="ROAS" value={fmtNum(p.roas, 2)} className={t.accentText} />
-          <Metric label="Marketplace" value={p.marketplace ?? "—"} />
+          <Metric label="Marketplace" value={formatMarketplace(p.marketplace)} />
         </div>
 
-        {(p.recommended_action || p.task_title || p.insight_title) && (
-          <div className={`flex items-start gap-3 rounded-xl border ${t.aiSurface} p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)]`}>
-            <div className={`mt-0.5 shrink-0 rounded-md p-1.5 ${t.aiIcon}`}>
-              <Zap className="h-3.5 w-3.5" strokeWidth={2.25} />
-            </div>
-            <div className="space-y-1">
-              <p className={`text-[10px] font-semibold uppercase tracking-[0.16em] ${t.aiTitle}`}>
-                Ação recomendada
-              </p>
-              <p className="text-[13px] font-medium leading-relaxed text-slate-800">
-                {p.recommended_action ?? p.task_title ?? p.insight_title}
-              </p>
-              {p.insight_title && p.recommended_action && p.insight_title !== p.recommended_action && (
-                <p className="text-[12px] leading-relaxed text-slate-500">{p.insight_title}</p>
-              )}
-            </div>
+        {/* Diagnóstico + Próxima ação */}
+        <div className="grid gap-2.5 md:grid-cols-5">
+          <div className={`md:col-span-2 rounded-lg border ${t.aiSurface} px-3.5 py-2.5`}>
+            <p className={`text-[9.5px] font-semibold uppercase tracking-[0.14em] ${t.aiTitle}`}>
+              Sinal detectado
+            </p>
+            <p className="mt-1 text-[12.5px] leading-snug text-slate-700">
+              {diagnoseSignal(p)}
+            </p>
           </div>
-        )}
+
+          {(p.recommended_action || p.task_title || p.insight_title) && (
+            <div className={`md:col-span-3 flex items-start gap-2.5 rounded-lg border ${t.aiSurface} px-3.5 py-2.5`}>
+              <div className={`mt-0.5 shrink-0 rounded p-1 ${t.aiIcon}`}>
+                <Zap className="h-3 w-3" strokeWidth={2.25} />
+              </div>
+              <div className="min-w-0 space-y-0.5">
+                <p className={`text-[9.5px] font-semibold uppercase tracking-[0.14em] ${t.aiTitle}`}>
+                  Próxima ação sugerida
+                </p>
+                <p className="text-[12.5px] font-medium leading-snug text-slate-800">
+                  {p.task_title ?? p.recommended_action ?? p.insight_title}
+                </p>
+                {p.recommended_action && p.task_title && p.recommended_action !== p.task_title && (
+                  <p className="text-[11.5px] leading-snug text-slate-500">{p.recommended_action}</p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -468,9 +498,9 @@ function StuckCard({ p }: { p: Stuck }) {
 
 function Metric({ label, value, className }: { label: string; value: string; className?: string }) {
   return (
-    <div className="min-w-0 space-y-1">
-      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400">{label}</p>
-      <p className={`truncate text-sm font-bold tabular-nums text-slate-800 ${className ?? ""}`}>{value}</p>
+    <div className="min-w-0 space-y-0.5">
+      <p className="text-[9px] font-semibold uppercase tracking-widest text-slate-400">{label}</p>
+      <p className={`truncate text-[13px] font-semibold tabular-nums text-slate-800 ${className ?? ""}`}>{value}</p>
     </div>
   );
 }

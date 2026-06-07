@@ -20,6 +20,7 @@ import {
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import acLogo from "@/assets/ac-logo.png";
+import { useModuleGuard } from "@/lib/use-module-guard";
 
 const navGroups = [
   {
@@ -53,6 +54,7 @@ const navGroups = [
 ] as const;
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
+  const { allowed, checking } = useModuleGuard("crm");
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [today, setToday] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -89,6 +91,14 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
       toast.success("Dados atualizados com sucesso.");
     }, delay);
   }, [isUpdating]);
+
+  if (checking || !allowed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
+        Validando acesso…
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-background">

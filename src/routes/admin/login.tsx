@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, ShieldCheck, Building2, Layers, Users as UsersIcon, ShieldAlert } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
+import { supabase } from "@/lib/supabase";
+import { consumeAuthMessage } from "@/lib/use-module-guard";
 
 export const Route = createFileRoute("/admin/login")({
   component: AdminLoginPage,
@@ -22,14 +24,41 @@ function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState<string | null>(() => consumeAuthMessage());
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
     setLoading(true);
-    // Simulação de login administrativo
-    setTimeout(() => {
+    try {
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError || !signInData.user) {
+        setErrorMsg("E-mail ou senha inválidos. Verifique os dados e tente novamente.");
+        setLoading(false);
+        return;
+      }
+
+      const { data: ctx, error: ctxError } = await supabase
+        .from("vw_user_access_context")
+        .select("is_platform_admin")
+        .maybeSingle();
+
+      if (ctxError || ctx?.is_platform_admin !== true) {
+        await supabase.auth.signOut();
+        setErrorMsg("Usuário sem acesso ao painel administrativo.");
+        setLoading(false);
+        return;
+      }
+
       navigate({ to: "/admin/dashboard" });
-    }, 800);
+    } catch {
+      setErrorMsg("Não foi possível entrar agora. Tente novamente em instantes.");
+      setLoading(false);
+    }
   };
 
   return (
@@ -120,6 +149,15 @@ function AdminLoginPage() {
                     </button>
                   </div>
                 </div>
+
+                {errorMsg && (
+                  <div
+                    role="alert"
+                    className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-medium text-rose-700"
+                  >
+                    {errorMsg}
+                  </div>
+                )}
 
                 <button
                   type="submit"

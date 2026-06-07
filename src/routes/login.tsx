@@ -5,6 +5,7 @@ import { MessageCircle, Users, Sparkles } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
 import loginHeroAsset from "@/assets/login-hero-v2.jpg.asset.json";
 import { supabase } from "@/lib/supabase";
+import { consumeAuthMessage } from "@/lib/use-module-guard";
 
 const loginHero = loginHeroAsset.url;
 
@@ -29,24 +30,37 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(() => consumeAuthMessage());
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
         password,
       });
-      if (error) {
+      if (error || !signInData.user) {
         setErrorMsg(
           "E-mail ou senha inválidos. Verifique os dados e tente novamente."
         );
         setLoading(false);
         return;
       }
+
+      const { data: ctx, error: ctxError } = await supabase
+        .from("vw_user_access_context")
+        .select("has_crm_access")
+        .maybeSingle();
+
+      if (ctxError || ctx?.has_crm_access !== true) {
+        await supabase.auth.signOut();
+        setErrorMsg("Usuário sem acesso ao módulo CRM.");
+        setLoading(false);
+        return;
+      }
+
       navigate({ to: "/dashboard" });
     } catch {
       setErrorMsg(

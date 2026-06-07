@@ -18,6 +18,7 @@ import {
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import acLogo from "@/assets/ac-logo.png";
+import { useModuleGuard } from "@/lib/use-module-guard";
 
 const navGroups = [
   {
@@ -35,6 +36,7 @@ const navGroups = [
 ] as const;
 
 export function AdminLayout({ children }: { children: ReactNode }) {
+  const { allowed, checking } = useModuleGuard("admin");
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [today, setToday] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
@@ -58,6 +60,14 @@ export function AdminLayout({ children }: { children: ReactNode }) {
       toast.success("Dados administrativos atualizados.");
     }, 1000);
   }, [isUpdating]);
+
+  if (checking || !allowed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-sm text-slate-500">
+        Validando acesso…
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-50/50">

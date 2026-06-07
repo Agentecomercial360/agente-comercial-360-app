@@ -4,6 +4,7 @@ import { Eye, EyeOff, Mail, Lock, ShieldCheck, LayoutGrid, PackageSearch, AlertC
 import acLogo from "@/assets/ac-logo.png";
 import loginHeroAsset from "@/assets/login-hero-v2.jpg.asset.json";
 import { supabase } from "@/lib/supabase";
+import { consumeAuthMessage } from "@/lib/use-module-guard";
 
 const loginHero = loginHeroAsset.url;
 
@@ -27,7 +28,7 @@ function EcommerceLoginPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(() => consumeAuthMessage());
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,13 +49,10 @@ function EcommerceLoginPage() {
 
       const { data: accessCtx, error: ctxError } = await supabase
         .from("vw_user_access_context")
-        .select("has_ecommerce_access, suggested_redirect")
+        .select("has_ecommerce_access")
         .maybeSingle();
 
-      const hasAccess =
-        !ctxError &&
-        accessCtx?.has_ecommerce_access === true &&
-        accessCtx?.suggested_redirect === "/ecommerce/dashboard";
+      const hasAccess = !ctxError && accessCtx?.has_ecommerce_access === true;
 
       if (!hasAccess) {
         await supabase.auth.signOut();

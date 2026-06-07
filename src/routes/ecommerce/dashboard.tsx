@@ -1292,7 +1292,7 @@ function EcommerceDashboard() {
                     <KpiHero
                       label="Faturamento total"
                       value={fmtBRL(summary.total_gross_revenue)}
-                      context="Receita bruta acumulada no período analisado."
+                      context="Receita bruta consolidada de todos os canais no período."
                       to="/ecommerce/produtos"
                       subStats={[
                         {
@@ -1317,22 +1317,20 @@ function EcommerceDashboard() {
                   <KpiCard
                     label="Contas conectadas"
                     value={fmtInt(summary.total_accounts)}
-                    context="Marketplaces integrados ao AC360."
-                    impact="Base de canais monitorados."
+                    context="Marketplaces ativos na operação."
                     tone="info"
-                    emphasis
                     trend={null}
                     to="/ecommerce/contas"
+                    cta="Ver contas conectadas →"
                   />
                   <KpiCard
                     label="Produtos ativos"
                     value={fmtInt(summary.total_products)}
-                    context="Produtos e anúncios em operação."
-                    impact="Base atual de itens analisados."
+                    context="Catálogo monitorado pelo AC360."
                     tone="neutral"
-                    emphasis
                     trend={null}
                     to="/ecommerce/produtos"
+                    cta="Analisar produtos →"
                   />
                 </div>
               </div>
@@ -1350,12 +1348,12 @@ function EcommerceDashboard() {
                   <KpiCard
                     label="Investimento Ads"
                     value={fmtBRL(summary.total_ads_investment)}
-                    context="Valor investido em campanhas."
-                    impact="Deve ser acompanhado junto com o retorno."
+                    context="Total aplicado em mídia paga."
                     tone="ads"
                     emphasis
                     trend={null}
                     to="/ecommerce/ads"
+                    cta="Ver campanhas →"
                   />
                   <KpiCard
                     label="Receita Ads"

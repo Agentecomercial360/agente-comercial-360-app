@@ -57,15 +57,19 @@ function KpiCard({
   value,
   tone = "neutral",
   emphasis = false,
+  to,
+  search,
 }: {
   label: string;
   value: React.ReactNode;
   tone?: Tone;
   emphasis?: boolean;
+  to?: string;
+  search?: Record<string, string>;
 }) {
   const t = TONE[tone];
-  return (
-    <div className="relative overflow-hidden rounded-xl border border-slate-200/80 bg-white px-5 py-4 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-shadow hover:shadow-[0_8px_24px_-16px_rgba(15,23,42,0.18)]">
+  const inner = (
+    <>
       <span className={`absolute left-0 top-0 h-full w-[3px] ${t.accent}`} aria-hidden />
       <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
         {label}
@@ -75,7 +79,32 @@ function KpiCard({
       >
         {value}
       </div>
-    </div>
+      {to && (
+        <div className="mt-3 flex items-center justify-between text-[10.5px] font-medium text-slate-400 transition-colors group-hover:text-slate-700">
+          <span>Ver detalhes</span>
+          <span aria-hidden>→</span>
+        </div>
+      )}
+    </>
+  );
+
+  const baseCls =
+    "group relative block overflow-hidden rounded-xl border border-slate-200/80 bg-white px-5 py-4 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-all";
+
+  if (to) {
+    return (
+      <Link
+        to={to as any}
+        search={search as any}
+        className={`${baseCls} cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_8px_24px_-16px_rgba(15,23,42,0.22)]`}
+      >
+        {inner}
+      </Link>
+    );
+  }
+
+  return (
+    <div className={`${baseCls} hover:shadow-[0_8px_24px_-16px_rgba(15,23,42,0.18)]`}>{inner}</div>
   );
 }
 

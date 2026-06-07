@@ -47,13 +47,58 @@ const fmtNum = (v: number | null | undefined, d = 2) =>
 
 type Tone = "neutral" | "info" | "success" | "attention" | "critical" | "ads";
 
-const TONE: Record<Tone, { accent: string; dot: string; value: string }> = {
-  neutral: { accent: "bg-slate-300", dot: "bg-slate-400", value: "text-slate-900" },
-  info: { accent: "bg-sky-500", dot: "bg-sky-500", value: "text-slate-900" },
-  success: { accent: "bg-emerald-500", dot: "bg-emerald-500", value: "text-slate-900" },
-  attention: { accent: "bg-amber-500", dot: "bg-amber-500", value: "text-slate-900" },
-  critical: { accent: "bg-rose-500", dot: "bg-rose-500", value: "text-rose-700" },
-  ads: { accent: "bg-violet-500", dot: "bg-violet-500", value: "text-slate-900" },
+const TONE: Record<
+  Tone,
+  { accent: string; dot: string; value: string; soft: string; ring: string; chipText: string }
+> = {
+  neutral: {
+    accent: "bg-slate-400",
+    dot: "bg-slate-400",
+    value: "text-slate-900",
+    soft: "bg-slate-50",
+    ring: "ring-slate-200",
+    chipText: "text-slate-600",
+  },
+  info: {
+    accent: "bg-sky-500",
+    dot: "bg-sky-500",
+    value: "text-slate-900",
+    soft: "bg-sky-50",
+    ring: "ring-sky-100",
+    chipText: "text-sky-700",
+  },
+  success: {
+    accent: "bg-emerald-500",
+    dot: "bg-emerald-500",
+    value: "text-slate-900",
+    soft: "bg-emerald-50",
+    ring: "ring-emerald-100",
+    chipText: "text-emerald-700",
+  },
+  attention: {
+    accent: "bg-amber-500",
+    dot: "bg-amber-500",
+    value: "text-slate-900",
+    soft: "bg-amber-50",
+    ring: "ring-amber-100",
+    chipText: "text-amber-700",
+  },
+  critical: {
+    accent: "bg-rose-500",
+    dot: "bg-rose-500",
+    value: "text-rose-700",
+    soft: "bg-rose-50",
+    ring: "ring-rose-100",
+    chipText: "text-rose-700",
+  },
+  ads: {
+    accent: "bg-violet-500",
+    dot: "bg-violet-500",
+    value: "text-slate-900",
+    soft: "bg-violet-50",
+    ring: "ring-violet-100",
+    chipText: "text-violet-700",
+  },
 };
 
 type PeriodKey = "7d" | "15d" | "30d" | "mtd";

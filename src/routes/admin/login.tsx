@@ -24,14 +24,41 @@ function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMsg, setErrorMsg] = useState<string | null>(() => consumeAuthMessage());
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
     setLoading(true);
-    // Simulação de login administrativo
-    setTimeout(() => {
+    try {
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+
+      if (signInError || !signInData.user) {
+        setErrorMsg("E-mail ou senha inválidos. Verifique os dados e tente novamente.");
+        setLoading(false);
+        return;
+      }
+
+      const { data: ctx, error: ctxError } = await supabase
+        .from("vw_user_access_context")
+        .select("is_platform_admin")
+        .maybeSingle();
+
+      if (ctxError || ctx?.is_platform_admin !== true) {
+        await supabase.auth.signOut();
+        setErrorMsg("Usuário sem acesso ao painel administrativo.");
+        setLoading(false);
+        return;
+      }
+
       navigate({ to: "/admin/dashboard" });
-    }, 800);
+    } catch {
+      setErrorMsg("Não foi possível entrar agora. Tente novamente em instantes.");
+      setLoading(false);
+    }
   };
 
   return (

@@ -94,7 +94,7 @@ const toneMap: Record<
   }
 > = {
   critical: {
-    surface: "bg-[linear-gradient(180deg,#FDF8F9_0%,#FAF1F3_100%)] border-[#EFD9DE]",
+    surface: "bg-[linear-gradient(180deg,#FFFDFD_0%,#FCF6F7_100%)] border-[#EFD9DE]",
     bar: "bg-[#C8324C]",
     badge: "bg-white text-[#C8324C] ring-1 ring-[#EFD9DE]",
     accentText: "text-[#C8324C]",
@@ -102,10 +102,10 @@ const toneMap: Record<
     aiIcon: "bg-[#FBEAEE] text-[#C8324C] ring-1 ring-[#EFD9DE]",
     aiTitle: "text-[#9F1F35]",
     chip: "bg-white text-slate-600 ring-1 ring-[#EFD9DE]",
-    metricPanel: "border-slate-200/70 bg-white/80",
+    metricPanel: "border-slate-200/70 bg-white",
   },
   attention: {
-    surface: "bg-[linear-gradient(180deg,#FDFAF4_0%,#FAF4E8_100%)] border-[#EADDC2]",
+    surface: "bg-[linear-gradient(180deg,#FEFDFB_0%,#FBF7F0_100%)] border-[#EADDC2]",
     bar: "bg-[#B45309]",
     badge: "bg-white text-[#92400E] ring-1 ring-[#EADDC2]",
     accentText: "text-[#92400E]",
@@ -113,10 +113,10 @@ const toneMap: Record<
     aiIcon: "bg-[#F7ECD4] text-[#92400E] ring-1 ring-[#EADDC2]",
     aiTitle: "text-[#7C2D12]",
     chip: "bg-white text-slate-600 ring-1 ring-[#EADDC2]",
-    metricPanel: "border-slate-200/70 bg-white/80",
+    metricPanel: "border-slate-200/70 bg-white",
   },
   neutral: {
-    surface: "bg-[linear-gradient(180deg,#F9FAFC_0%,#F2F5FA_100%)] border-[#DCE3ED]",
+    surface: "bg-[linear-gradient(180deg,#FCFDFE_0%,#F6F8FC_100%)] border-[#DCE3ED]",
     bar: "bg-[#2563EB]",
     badge: "bg-white text-[#1D4ED8] ring-1 ring-[#DCE3ED]",
     accentText: "text-[#1D4ED8]",
@@ -124,7 +124,7 @@ const toneMap: Record<
     aiIcon: "bg-[#E7EEFA] text-[#1D4ED8] ring-1 ring-[#DCE3ED]",
     aiTitle: "text-[#1E3A8A]",
     chip: "bg-white text-slate-600 ring-1 ring-[#DCE3ED]",
-    metricPanel: "border-slate-200/70 bg-white/80",
+    metricPanel: "border-slate-200/70 bg-white",
   },
   muted: {
     surface: "bg-[linear-gradient(180deg,#FCFCFD_0%,#F4F5F8_100%)] border-slate-200",

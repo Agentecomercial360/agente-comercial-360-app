@@ -216,6 +216,24 @@ function TarefasEcommerce() {
             </div>
           </div>
         </div>
+        {statusFilter === "pending" && (
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 text-xs text-slate-600">
+            <span>
+              Filtro aplicado:{" "}
+              <strong className="font-semibold text-slate-900">Tarefas pendentes</strong>
+              <span className="ml-2 text-slate-400">
+                ({filteredTasks.length} de {tasks.length})
+              </span>
+            </span>
+            <button
+              onClick={() => navigate({ to: "/ecommerce/tarefas", search: {} })}
+              className="font-medium text-slate-500 underline-offset-2 hover:text-slate-900 hover:underline"
+            >
+              Limpar filtro
+            </button>
+          </div>
+        )}
+
 
         {loading && (
           <div className="rounded-2xl border border-slate-200 bg-card p-6 text-sm text-slate-500">

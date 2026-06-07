@@ -846,16 +846,16 @@ function EvolutionSection({
 
 function MiniStat({ label, value, dotColor }: { label: string; value: React.ReactNode; dotColor?: string }) {
   return (
-    <div className="rounded-lg border border-slate-200/80 bg-white px-3 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+    <div className="min-w-0 rounded-lg border border-slate-200/80 bg-white px-3 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
       <div className="flex items-center gap-1.5">
         {dotColor && (
-          <span className="h-1.5 w-1.5 rounded-full" style={{ background: dotColor }} />
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: dotColor }} />
         )}
-        <div className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">
+        <div className="truncate text-[9.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">
           {label}
         </div>
       </div>
-      <div className="mt-1 text-[15px] font-semibold tabular-nums leading-tight text-slate-900">
+      <div className="mt-1 whitespace-nowrap text-[14px] font-semibold tabular-nums leading-tight text-slate-900">
         {value}
       </div>
     </div>

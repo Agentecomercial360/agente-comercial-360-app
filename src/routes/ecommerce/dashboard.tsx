@@ -395,8 +395,8 @@ function KpiHero({
       )}
       {to && (
         <div className="relative mt-auto flex items-center justify-between border-t border-slate-100 pt-2.5 text-[11px] font-medium tracking-tight text-slate-500 transition-colors group-hover:text-slate-900">
-          <span>Investigar receita →</span>
-          <span aria-hidden className="transition-transform group-hover:translate-x-0.5">↗</span>
+          <span>Investigar receita</span>
+          <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
         </div>
       )}
     </>

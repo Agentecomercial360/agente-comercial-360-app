@@ -224,15 +224,20 @@ function MetricGroup({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl bg-white/70 px-4 py-3 ring-1 ring-inset ring-slate-100">
-      <div className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-400">
+    <div className="rounded-lg bg-white/60 px-3.5 py-2.5 ring-1 ring-inset ring-slate-100">
+      <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-400">
         {title}
       </div>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
         {children}
       </div>
     </div>
   );
+}
+
+function tasksLabel(n: number) {
+  if (!n || n <= 0) return "Sem tarefas abertas";
+  return n === 1 ? "1 tarefa aberta" : `${fmtInt(n)} tarefas abertas`;
 }
 
 function ProductRow({ p }: { p: Product }) {

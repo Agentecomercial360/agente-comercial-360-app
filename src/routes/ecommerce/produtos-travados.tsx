@@ -265,8 +265,21 @@ function ProdutosTravados() {
                   <div className="pl-3">
                     <p className="text-[26px] font-semibold leading-none tabular-nums text-violet-300">{pad2(buckets.visitsNoSales)}</p>
                     <p className="mt-2 text-[10px] uppercase tracking-wider text-slate-400">Sem venda</p>
-                  </div>
                 </div>
+                <p className="mt-5 border-t border-white/10 pt-4 text-[12.5px] leading-relaxed text-slate-300">
+                  {(() => {
+                    const parts: string[] = [];
+                    const word = (n: number, s: string, p: string) => `${n} ${n === 1 ? s : p}`;
+                    if (buckets.critical) parts.push(word(buckets.critical, "produto crítico", "produtos críticos"));
+                    if (buckets.high) parts.push(word(buckets.high, "de alta prioridade", "de alta prioridade"));
+                    if (buckets.noVisits) parts.push(word(buckets.noVisits, "sem visita", "sem visitas"));
+                    if (buckets.visitsNoSales) parts.push(word(buckets.visitsNoSales, "com visitas sem venda", "com visitas sem venda"));
+                    if (!parts.length) return "Nenhum sinal crítico detectado no momento.";
+                    const text = parts.length === 1 ? parts[0] : parts.slice(0, -1).join(", ") + " e " + parts.slice(-1);
+                    return text.charAt(0).toUpperCase() + text.slice(1) + ".";
+                  })()}
+                </p>
+              </div>
               </div>
               <div className="pointer-events-none absolute -bottom-6 -right-6 opacity-[0.07]">
                 <Sparkles className="h-36 w-36" strokeWidth={1.25} />

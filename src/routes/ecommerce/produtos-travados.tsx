@@ -56,10 +56,35 @@ const formatMarketplace = (m: string | null | undefined) => {
   return MARKETPLACE_LABEL[k] ?? m;
 };
 
+const STATUS_LABEL: Record<string, string> = {
+  low_conversion: "Baixa conversão",
+  visits_no_sales: "Visitas sem venda",
+  no_visits: "Sem visitas",
+  no_sales: "Sem venda",
+  excess_stock: "Excesso de estoque",
+  stopped: "Estoque parado",
+  risk_of_stockout: "Risco de ruptura",
+  low_stock: "Estoque baixo",
+  high_tacos: "TACoS alto",
+  high_acos: "ACOS alto",
+  spending_no_sales: "Ads sem venda",
+  reduce_budget: "Reduzir orçamento",
+  scale: "Escalar",
+  growth: "Crescimento",
+  needs_review: "Precisa revisão",
+  normal: "Normal",
+  pause: "Pausar",
+  ok: "Normal",
+  healthy: "Normal",
+};
+
 const formatStatus = (s: string | null | undefined) => {
   if (!s) return "";
+  const k = s.toLowerCase().trim();
+  if (STATUS_LABEL[k]) return STATUS_LABEL[k];
   return s.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };
+
 
 const fmtBRL = (v: number | null | undefined) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(Number(v ?? 0));
@@ -94,7 +119,7 @@ const toneMap: Record<
   }
 > = {
   critical: {
-    surface: "bg-[linear-gradient(180deg,#FDF8F9_0%,#FAF1F3_100%)] border-[#EFD9DE]",
+    surface: "bg-[linear-gradient(180deg,#FFFDFD_0%,#FCF6F7_100%)] border-[#EFD9DE]",
     bar: "bg-[#C8324C]",
     badge: "bg-white text-[#C8324C] ring-1 ring-[#EFD9DE]",
     accentText: "text-[#C8324C]",
@@ -102,10 +127,10 @@ const toneMap: Record<
     aiIcon: "bg-[#FBEAEE] text-[#C8324C] ring-1 ring-[#EFD9DE]",
     aiTitle: "text-[#9F1F35]",
     chip: "bg-white text-slate-600 ring-1 ring-[#EFD9DE]",
-    metricPanel: "border-slate-200/70 bg-white/80",
+    metricPanel: "border-slate-200/70 bg-white",
   },
   attention: {
-    surface: "bg-[linear-gradient(180deg,#FDFAF4_0%,#FAF4E8_100%)] border-[#EADDC2]",
+    surface: "bg-[linear-gradient(180deg,#FEFDFB_0%,#FBF7F0_100%)] border-[#EADDC2]",
     bar: "bg-[#B45309]",
     badge: "bg-white text-[#92400E] ring-1 ring-[#EADDC2]",
     accentText: "text-[#92400E]",
@@ -113,10 +138,10 @@ const toneMap: Record<
     aiIcon: "bg-[#F7ECD4] text-[#92400E] ring-1 ring-[#EADDC2]",
     aiTitle: "text-[#7C2D12]",
     chip: "bg-white text-slate-600 ring-1 ring-[#EADDC2]",
-    metricPanel: "border-slate-200/70 bg-white/80",
+    metricPanel: "border-slate-200/70 bg-white",
   },
   neutral: {
-    surface: "bg-[linear-gradient(180deg,#F9FAFC_0%,#F2F5FA_100%)] border-[#DCE3ED]",
+    surface: "bg-[linear-gradient(180deg,#FCFDFE_0%,#F6F8FC_100%)] border-[#DCE3ED]",
     bar: "bg-[#2563EB]",
     badge: "bg-white text-[#1D4ED8] ring-1 ring-[#DCE3ED]",
     accentText: "text-[#1D4ED8]",
@@ -124,7 +149,7 @@ const toneMap: Record<
     aiIcon: "bg-[#E7EEFA] text-[#1D4ED8] ring-1 ring-[#DCE3ED]",
     aiTitle: "text-[#1E3A8A]",
     chip: "bg-white text-slate-600 ring-1 ring-[#DCE3ED]",
-    metricPanel: "border-slate-200/70 bg-white/80",
+    metricPanel: "border-slate-200/70 bg-white",
   },
   muted: {
     surface: "bg-[linear-gradient(180deg,#FCFCFD_0%,#F4F5F8_100%)] border-slate-200",
@@ -392,7 +417,7 @@ function diagnoseSignal(p: Stuck): string {
   if (v > 0 && s === 0) return "Produto recebendo visitas, mas sem conversão em vendas.";
   if (v > 30 && s > 0 && s / v < 0.02) return "Tráfego presente, porém com conversão abaixo do esperado.";
   if (days >= 30) return `Estoque parado há ${days} dias sem nova venda.`;
-  return p.problem_label ?? "Sinal de baixa performance detectado.";
+  return formatStatus(p.problem_label) || "Sinal de baixa performance detectado.";
 }
 
 function StuckCard({ p }: { p: Stuck }) {
@@ -432,7 +457,7 @@ function StuckCard({ p }: { p: Stuck }) {
             <div className="flex flex-wrap items-center gap-1 pt-0.5">
               {p.problem_label && (
                 <span className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-semibold uppercase tracking-[0.08em] ${t.badge}`}>
-                  {p.problem_label}
+                  {formatStatus(p.problem_label)}
                 </span>
               )}
               {badges.map((b) => (

@@ -1,6 +1,5 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
   UserCog,
   Settings,
   RefreshCw,
@@ -15,9 +14,11 @@ import {
   TrendingUp,
   BrainCircuit,
   BarChart3,
+  LogOut,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 import acLogo from "@/assets/ac-logo.png";
 
 const navGroups = [
@@ -40,7 +41,22 @@ const navGroups = [
 ] as const;
 
 export function EcommerceLayout({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = useCallback(async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await supabase.auth.signOut();
+      navigate({ to: "/ecommerce/login" });
+    } catch {
+      toast.error("Não foi possível encerrar a sessão. Tente novamente.");
+      setSigningOut(false);
+    }
+  }, [navigate, signingOut]);
+
   const [today, setToday] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
@@ -149,10 +165,20 @@ export function EcommerceLayout({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div
-          className="px-6 py-4 border-t text-[11px] tracking-wide text-white/45"
+          className="border-t px-3 py-3 space-y-2"
           style={{ borderColor: "var(--sidebar-brand-border)" }}
         >
-          v1.0 · E-commerce Intelligence
+          <button
+            onClick={handleSignOut}
+            disabled={signingOut}
+            className="flex w-full items-center gap-3 rounded-lg px-3.5 py-2 text-sm font-medium text-white/70 transition hover:bg-white/[0.06] hover:text-white disabled:opacity-50"
+          >
+            <LogOut className="h-4 w-4 shrink-0" />
+            <span>{signingOut ? "Saindo…" : "Sair"}</span>
+          </button>
+          <div className="px-3.5 text-[11px] tracking-wide text-white/40">
+            v1.0 · E-commerce Intelligence
+          </div>
         </div>
       </aside>
 

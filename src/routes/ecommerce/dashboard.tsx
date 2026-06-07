@@ -188,16 +188,16 @@ function EcommerceDashboard() {
   const wordProduto = (n: number) => (n === 1 ? "produto" : "produtos");
 
   const aiText = summary
-    ? `${fmtInt(derived.noVisits)} ${wordProduto(derived.noVisits)} sem visita, ${fmtInt(
+    ? `Existem ${fmtInt(derived.noVisits)} ${wordProduto(derived.noVisits)} sem visita, ${fmtInt(
         derived.visitsNoSales,
       )} ${wordProduto(derived.visitsNoSales)} com visitas sem venda e ${fmtInt(
         derived.lowConv,
-      )} ${wordProduto(derived.lowConv)} com baixa conversão. ${fmtInt(
+      )} ${wordProduto(derived.lowConv)} com baixa conversão. Há ${fmtInt(
         Number(summary.critical_insights ?? 0),
       )} ${wordInsight(Number(summary.critical_insights ?? 0))} e ${fmtInt(
         Number(summary.pending_tasks ?? 0),
       )} ${wordTarefa(Number(summary.pending_tasks ?? 0))} para análise.`
-    : "Carregando leitura da IA…";
+    : null;
 
   const healthyText = summary
     ? `Operação com ${fmtInt(summary.total_accounts)} ${
@@ -249,7 +249,15 @@ function EcommerceDashboard() {
                   Resumo da IA
                 </div>
               </div>
-              <p className="mt-2 text-[13px] leading-relaxed text-slate-700">{aiText}</p>
+              {aiText ? (
+                <p className="mt-2 text-[13px] leading-relaxed text-slate-700">{aiText}</p>
+              ) : (
+                <div className="mt-3 space-y-1.5" aria-label="Carregando resumo">
+                  <div className="h-2.5 w-full animate-pulse rounded bg-slate-100" />
+                  <div className="h-2.5 w-11/12 animate-pulse rounded bg-slate-100" />
+                  <div className="h-2.5 w-2/3 animate-pulse rounded bg-slate-100" />
+                </div>
+              )}
             </div>
           </div>
         </div>

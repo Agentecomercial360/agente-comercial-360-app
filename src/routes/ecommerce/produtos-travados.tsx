@@ -28,6 +28,9 @@ type Stuck = {
   task_title?: string | null;
   insight_title?: string | null;
   recommended_action?: string | null;
+  metric_status?: string | null;
+  stock_status?: string | null;
+  ads_status?: string | null;
 };
 
 const PRIORITY_LABEL: Record<string, string> = {
@@ -35,6 +38,27 @@ const PRIORITY_LABEL: Record<string, string> = {
   high: "Alta",
   medium: "Média",
   low: "Baixa",
+};
+
+const MARKETPLACE_LABEL: Record<string, string> = {
+  mercado_livre: "Mercado Livre",
+  mercadolivre: "Mercado Livre",
+  shopee: "Shopee",
+  amazon: "Amazon",
+  bling: "Bling",
+  loja_propria: "Loja própria",
+  outro: "Outro",
+};
+
+const formatMarketplace = (m: string | null | undefined) => {
+  if (!m) return "—";
+  const k = m.toLowerCase().trim();
+  return MARKETPLACE_LABEL[k] ?? m;
+};
+
+const formatStatus = (s: string | null | undefined) => {
+  if (!s) return "";
+  return s.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };
 
 const fmtBRL = (v: number | null | undefined) =>

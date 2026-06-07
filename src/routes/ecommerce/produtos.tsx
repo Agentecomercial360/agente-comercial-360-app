@@ -234,90 +234,144 @@ function ProductRow({ p }: { p: Product }) {
     <div
       className={`relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-shadow hover:shadow-[0_6px_24px_-12px_rgba(15,23,42,0.18)] before:absolute before:left-0 before:top-4 before:h-[calc(100%-2rem)] before:w-[3px] before:rounded-r-full ${tone.accent}`}
     >
+function MetricGroup({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl bg-white/70 px-4 py-3 ring-1 ring-inset ring-slate-100">
+      <div className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-400">
+        {title}
+      </div>
+      <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function ProductRow({ p }: { p: Product }) {
+  const status = p.product_health_status ?? "normal";
+  const tone = getTone(status);
+  const mkts = toMarketplacesList(p.marketplaces);
+  const roas = Number(p.avg_roas ?? 0);
+  const roasTone =
+    roas >= 3
+      ? "text-emerald-700"
+      : roas >= 1.5
+        ? "text-slate-900"
+        : roas > 0
+          ? "text-rose-700"
+          : "text-slate-400";
+  const reading = STATUS_READING[status] ?? STATUS_READING.normal;
+
+  return (
+    <div
+      className={`relative overflow-hidden rounded-2xl border border-slate-200/80 ${tone.surface} p-6 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-shadow hover:shadow-[0_8px_28px_-14px_rgba(15,23,42,0.18)] before:absolute before:left-0 before:top-5 before:h-[calc(100%-2.5rem)] before:w-[3px] before:rounded-r-full ${tone.accent}`}
+    >
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="truncate text-[15px] font-semibold text-slate-900">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h3 className="truncate text-[17px] font-semibold tracking-tight text-slate-900">
               {p.product_name ?? "—"}
             </h3>
             <StatusChip status={status} />
           </div>
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
-            <span className="font-mono uppercase tracking-wider text-slate-600">
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-slate-500">
+            <span className="font-mono uppercase tracking-wider text-slate-500">
               {p.sku ?? "—"}
             </span>
             {p.category ? (
               <>
-                <span className="text-slate-300">•</span>
+                <span className="text-slate-300">·</span>
                 <span>{p.category}</span>
               </>
             ) : null}
             {p.brand ? (
               <>
-                <span className="text-slate-300">•</span>
+                <span className="text-slate-300">·</span>
                 <span>{p.brand}</span>
+              </>
+            ) : null}
+            {mkts.length > 0 ? (
+              <>
+                <span className="text-slate-300">·</span>
+                <span className="flex flex-wrap items-center gap-1">
+                  {mkts.map((m, i) => (
+                    <span
+                      key={i}
+                      className="inline-flex items-center rounded-md bg-white px-1.5 py-0.5 text-[10.5px] font-medium text-slate-600 ring-1 ring-inset ring-slate-200"
+                    >
+                      {m}
+                    </span>
+                  ))}
+                </span>
               </>
             ) : null}
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          {mkts.length === 0 ? (
-            <span className="text-[11px] text-slate-400">Sem marketplace</span>
-          ) : (
-            mkts.map((m, i) => (
-              <span
-                key={i}
-                className="inline-flex items-center rounded-md bg-slate-50 px-2 py-0.5 text-[11px] font-medium text-slate-600 ring-1 ring-inset ring-slate-200"
-              >
-                {m}
-              </span>
-            ))
-          )}
+      </div>
+
+      {/* Reading */}
+      <div className="mt-4 flex items-start gap-2 rounded-lg bg-white/80 px-3.5 py-2.5 ring-1 ring-inset ring-slate-100">
+        <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${tone.dot}`} />
+        <div className="min-w-0">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-400">
+            Leitura do produto
+          </div>
+          <div className="mt-0.5 text-[12.5px] leading-relaxed text-slate-700">
+            {reading}
+          </div>
         </div>
       </div>
 
-      {/* Metrics grid */}
-      <div className="mt-5 grid grid-cols-2 gap-x-5 gap-y-4 border-t border-slate-100 pt-4 sm:grid-cols-4 lg:grid-cols-7">
-        <Stat label="Estoque" value={fmtInt(p.total_stock)} hint={`${fmtInt(p.available_stock)} disp.`} />
-        <Stat label="Dias s/ venda" value={fmtInt(p.days_without_sale)} />
-        <Stat label="Valor estoque" value={fmtBRL(p.estimated_stock_value)} />
-        <Stat label="Anúncios" value={fmtInt(p.total_listings)} />
-        <Stat label="Visitas" value={fmtInt(p.total_visits)} />
-        <Stat label="Vendas" value={fmtInt(p.total_sales_count)} />
-        <Stat label="Receita" value={fmtBRL(p.total_gross_revenue)} />
-      </div>
-
-      {/* Ads block */}
-      <div className="mt-4 grid grid-cols-2 gap-3 rounded-xl bg-slate-50/70 px-4 py-3 ring-1 ring-inset ring-slate-100 sm:grid-cols-4">
-        <Stat label="Inv. Ads" value={fmtBRL(p.total_ads_investment)} />
-        <Stat label="Rec. Ads" value={fmtBRL(p.total_ads_revenue)} />
-        <Stat
-          label="ROAS"
-          value={
-            <span className={roasTone}>
-              {roas > 0 ? `${fmtNum(roas, 2)}x` : "—"}
-            </span>
-          }
-        />
-        <Stat
-          label="Tarefas"
-          value={
-            <span
-              className={
-                Number(p.open_tasks ?? 0) > 0
-                  ? "text-amber-700"
-                  : "text-slate-900"
-              }
-            >
-              {fmtInt(p.open_tasks)}
-            </span>
-          }
-        />
+      {/* Grouped metrics */}
+      <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
+        <MetricGroup title="Estoque">
+          <Stat label="Estoque" value={fmtInt(p.total_stock)} />
+          <Stat label="Disponível" value={fmtInt(p.available_stock)} />
+          <Stat label="Dias s/ venda" value={fmtInt(p.days_without_sale)} />
+          <Stat label="Valor estoque" value={fmtBRL(p.estimated_stock_value)} />
+        </MetricGroup>
+        <MetricGroup title="Performance comercial">
+          <Stat label="Visitas" value={fmtInt(p.total_visits)} />
+          <Stat label="Vendas" value={fmtInt(p.total_sales_count)} />
+          <Stat label="Receita" value={fmtBRL(p.total_gross_revenue)} />
+        </MetricGroup>
+        <MetricGroup title="Ads">
+          <Stat label="Investimento" value={fmtBRL(p.total_ads_investment)} />
+          <Stat label="Receita Ads" value={fmtBRL(p.total_ads_revenue)} />
+          <Stat
+            label="ROAS"
+            value={
+              <span className={roasTone}>
+                {roas > 0 ? `${fmtNum(roas, 2)}x` : "—"}
+              </span>
+            }
+          />
+          <Stat
+            label="Tarefas"
+            value={
+              <span
+                className={
+                  Number(p.open_tasks ?? 0) > 0
+                    ? "text-amber-700"
+                    : "text-slate-900"
+                }
+              >
+                {fmtInt(p.open_tasks)}
+              </span>
+            }
+          />
+        </MetricGroup>
       </div>
 
       {/* Footer actions */}
-      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
+      <div className="mt-4 flex items-center justify-between border-t border-slate-200/60 pt-3">
         <div className="text-[11px] text-slate-400">
           Visão consolidada por SKU
         </div>

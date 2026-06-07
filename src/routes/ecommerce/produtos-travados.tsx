@@ -566,6 +566,32 @@ function StuckCard({
             </div>
           )}
         </div>
+
+        {/* Ações */}
+        <div className="mt-3 flex flex-wrap items-center justify-end gap-1.5 border-t border-slate-200/70 pt-2.5">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onCreateTask();
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11.5px] font-medium text-slate-600 transition-colors hover:bg-white hover:text-slate-900 hover:ring-1 hover:ring-slate-200"
+          >
+            <ListPlus className="h-3.5 w-3.5" strokeWidth={2} />
+            Criar tarefa
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenDiagnostic();
+            }}
+            className="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-2.5 py-1 text-[11.5px] font-medium text-white transition-colors hover:bg-slate-800"
+          >
+            <FileSearch className="h-3.5 w-3.5" strokeWidth={2} />
+            Ver diagnóstico
+          </button>
+        </div>
       </div>
     </div>
   );

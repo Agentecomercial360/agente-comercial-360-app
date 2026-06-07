@@ -340,11 +340,6 @@ function Shortcut({ to, label, hint }: { to: string; label: string; hint: string
   );
 }
 
-  return (
-    <div className={`${baseCls} hover:shadow-[0_8px_24px_-16px_rgba(15,23,42,0.18)]`}>{inner}</div>
-  );
-}
-
 function ReadingCard({
   title,
   tone,

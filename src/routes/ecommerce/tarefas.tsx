@@ -103,6 +103,7 @@ function fmtDate(d?: string | null) {
 
 function TarefasEcommerce() {
   const navigate = useNavigate();
+  const { status: statusFilter } = Route.useSearch();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tasks, setTasks] = useState<TaskRow[]>([]);

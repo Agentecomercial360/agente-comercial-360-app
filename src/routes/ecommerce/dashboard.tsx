@@ -241,6 +241,7 @@ function EcommerceDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [period, setPeriod] = useState<PeriodKey>("30d");
 
   useEffect(() => {
     let cancelled = false;

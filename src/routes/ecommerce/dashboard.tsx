@@ -590,28 +590,29 @@ function EvolutionSection({
 
         {/* Chart + side panel */}
         <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px]">
-          <div className="rounded-xl border border-slate-100 bg-white p-3">
+          <div className="rounded-xl border border-slate-100 bg-gradient-to-b from-white to-slate-50/40 p-3">
             <FormationChart variant={tab} period={period} />
-            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-[11px] text-slate-500">
-              <span className="inline-flex items-center gap-1.5">
+            <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1.5 px-1 text-[11.5px] text-slate-600">
+              <span className="inline-flex items-center gap-1.5 font-medium">
                 <span
-                  className={`h-2.5 w-2.5 rounded-${series.aType === "bar" ? "sm" : "full"}`}
-                  style={{ background: "#2563eb", opacity: 0.55 }}
+                  className={series.aType === "bar" ? "h-2.5 w-2.5 rounded-[2px]" : "h-[3px] w-4 rounded-full"}
+                  style={{ background: series.aColor }}
                 />
                 {series.aLabel}
               </span>
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1.5 font-medium">
                 <span
-                  className={`h-2.5 w-2.5 rounded-${series.bType === "bar" ? "sm" : "full"}`}
-                  style={{ background: "#7c3aed", opacity: 0.5 }}
+                  className={series.bType === "bar" ? "h-2.5 w-2.5 rounded-[2px]" : "h-[3px] w-4 rounded-full"}
+                  style={{ background: series.bColor }}
                 />
                 {series.bLabel}
               </span>
-              <span className="ml-auto text-[10.5px] text-slate-400">
-                Período: {PERIOD_LABEL[period]} · em formação
+              <span className="ml-auto text-[10.5px] uppercase tracking-[0.08em] text-slate-400">
+                {PERIOD_LABEL[period]} · em formação
               </span>
             </div>
           </div>
+
 
           {/* Leitura do período */}
           <aside className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/40 p-4">

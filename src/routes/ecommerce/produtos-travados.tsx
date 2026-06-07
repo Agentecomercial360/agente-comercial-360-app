@@ -176,6 +176,7 @@ const toneMap: Record<
 
 function ProdutosTravados() {
   const navigate = useNavigate();
+  const { filter } = Route.useSearch();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<Stuck[]>([]);

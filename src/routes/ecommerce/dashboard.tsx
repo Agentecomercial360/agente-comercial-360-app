@@ -188,16 +188,16 @@ function EcommerceDashboard() {
   const wordProduto = (n: number) => (n === 1 ? "produto" : "produtos");
 
   const aiText = summary
-    ? `${fmtInt(derived.noVisits)} ${wordProduto(derived.noVisits)} sem visita, ${fmtInt(
+    ? `Existem ${fmtInt(derived.noVisits)} ${wordProduto(derived.noVisits)} sem visita, ${fmtInt(
         derived.visitsNoSales,
       )} ${wordProduto(derived.visitsNoSales)} com visitas sem venda e ${fmtInt(
         derived.lowConv,
-      )} ${wordProduto(derived.lowConv)} com baixa conversão. ${fmtInt(
+      )} ${wordProduto(derived.lowConv)} com baixa conversão. Há ${fmtInt(
         Number(summary.critical_insights ?? 0),
       )} ${wordInsight(Number(summary.critical_insights ?? 0))} e ${fmtInt(
         Number(summary.pending_tasks ?? 0),
       )} ${wordTarefa(Number(summary.pending_tasks ?? 0))} para análise.`
-    : "Carregando leitura da IA…";
+    : null;
 
   const healthyText = summary
     ? `Operação com ${fmtInt(summary.total_accounts)} ${

@@ -27,12 +27,16 @@ type Summary = {
   open_insights?: number | null;
 };
 
-const fmtBRL = (v: number | null | undefined) =>
-  new Intl.NumberFormat("pt-BR", {
+const fmtBRL = (v: number | null | undefined) => {
+  const n = Number(v ?? 0);
+  const hasCents = Math.abs(n - Math.trunc(n)) > 0.0049;
+  return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-    maximumFractionDigits: 0,
-  }).format(Number(v ?? 0));
+    minimumFractionDigits: hasCents ? 2 : 0,
+    maximumFractionDigits: hasCents ? 2 : 0,
+  }).format(n);
+};
 const fmtInt = (v: number | null | undefined) =>
   new Intl.NumberFormat("pt-BR").format(Number(v ?? 0));
 const fmtNum = (v: number | null | undefined, d = 2) =>
@@ -760,7 +764,7 @@ function EvolutionSection({
               <div className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">
                 Receita do período
               </div>
-              <div className="mt-0.5 text-[20px] font-semibold leading-none tracking-tight text-slate-900 tabular-nums">
+              <div className="mt-1 whitespace-nowrap text-[19px] font-semibold leading-none tracking-tight text-slate-900 tabular-nums">
                 {fmtBRL(revenue)}
               </div>
               <div className="mt-1.5 inline-flex items-center gap-1.5 text-[10.5px] font-medium text-slate-500">
@@ -842,16 +846,16 @@ function EvolutionSection({
 
 function MiniStat({ label, value, dotColor }: { label: string; value: React.ReactNode; dotColor?: string }) {
   return (
-    <div className="rounded-lg border border-slate-200/80 bg-white px-3 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+    <div className="min-w-0 rounded-lg border border-slate-200/80 bg-white px-3 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
       <div className="flex items-center gap-1.5">
         {dotColor && (
-          <span className="h-1.5 w-1.5 rounded-full" style={{ background: dotColor }} />
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ background: dotColor }} />
         )}
-        <div className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">
+        <div className="truncate text-[9.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">
           {label}
         </div>
       </div>
-      <div className="mt-1 text-[15px] font-semibold tabular-nums leading-tight text-slate-900">
+      <div className="mt-1 whitespace-nowrap text-[14px] font-semibold tabular-nums leading-tight text-slate-900">
         {value}
       </div>
     </div>

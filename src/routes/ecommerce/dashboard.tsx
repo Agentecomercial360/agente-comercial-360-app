@@ -1264,35 +1264,42 @@ function EcommerceDashboard() {
                 <PeriodTabs value={period} onChange={setPeriod} />
               </div>
 
-              {/* Grupo 1 — Performance executiva */}
+              {/* Grupo 1 — Performance executiva (bento) */}
               <div>
                 <GroupHeader
-                  eyebrow="Grupo 1"
+                  eyebrow="Bloco A"
                   title="Performance executiva"
-                  hint="Visão geral do tamanho da operação"
+                  hint="Tamanho atual da operação"
                   tone="success"
                 />
-                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                  <KpiCard
-                    label="Faturamento total"
-                    value={fmtBRL(summary.total_gross_revenue)}
-                    context="Receita acumulada no período analisado."
-                    impact="Mostra o tamanho atual da operação."
-                    tone="success"
-                    emphasis
-                    trend={null}
-                    to="/ecommerce/produtos"
-                  />
-                  <KpiCard
-                    label="Vendas totais"
-                    value={fmtInt(summary.total_sales_count)}
-                    context="Pedidos e vendas registrados no período."
-                    impact="Indica o volume comercial da operação."
-                    tone="info"
-                    emphasis
-                    trend={null}
-                    to="/ecommerce/produtos"
-                  />
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {/* Hero card — Faturamento ocupa 2 colunas em telas grandes */}
+                  <div className="sm:col-span-2 lg:col-span-2">
+                    <KpiHero
+                      label="Faturamento total"
+                      value={fmtBRL(summary.total_gross_revenue)}
+                      context="Receita bruta acumulada no período analisado."
+                      to="/ecommerce/produtos"
+                      subStats={[
+                        {
+                          label: "Ticket médio",
+                          value:
+                            Number(summary.total_sales_count ?? 0) > 0
+                              ? fmtBRL(
+                                  Number(summary.total_gross_revenue ?? 0) /
+                                    Number(summary.total_sales_count),
+                                )
+                              : "—",
+                          dot: "#2563eb",
+                        },
+                        {
+                          label: "Vendas no período",
+                          value: fmtInt(summary.total_sales_count),
+                          dot: "#16a34a",
+                        },
+                      ]}
+                    />
+                  </div>
                   <KpiCard
                     label="Contas conectadas"
                     value={fmtInt(summary.total_accounts)}
@@ -1315,6 +1322,7 @@ function EcommerceDashboard() {
                   />
                 </div>
               </div>
+
 
               {/* Grupo 2 — Performance de Ads */}
               <div>

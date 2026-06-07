@@ -606,7 +606,7 @@ function Metric({ label, value, className }: { label: string; value: string; cla
   );
 }
 
-function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+function DetailRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 py-1.5 last:border-b-0">
       <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</span>

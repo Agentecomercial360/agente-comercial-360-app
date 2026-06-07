@@ -1321,7 +1321,7 @@ function EcommerceDashboard() {
                     tone="info"
                     trend={null}
                     to="/ecommerce/contas"
-                    cta="Ver contas conectadas →"
+                    cta="Ver contas conectadas"
                   />
                   <KpiCard
                     label="Produtos ativos"
@@ -1330,7 +1330,7 @@ function EcommerceDashboard() {
                     tone="neutral"
                     trend={null}
                     to="/ecommerce/produtos"
-                    cta="Analisar produtos →"
+                    cta="Analisar produtos"
                   />
                 </div>
               </div>
@@ -1353,7 +1353,7 @@ function EcommerceDashboard() {
                     emphasis
                     trend={null}
                     to="/ecommerce/ads"
-                    cta="Ver campanhas →"
+                    cta="Analisar investimento"
                   />
                   <KpiCard
                     label="Receita Ads"
@@ -1372,7 +1372,7 @@ function EcommerceDashboard() {
                     emphasis
                     trend={null}
                     to="/ecommerce/ads"
-                    cta="Ver receita de Ads →"
+                    cta="Ver retorno dos anúncios"
                   />
                   <KpiCard
                     label="ROAS médio"
@@ -1391,7 +1391,7 @@ function EcommerceDashboard() {
                     emphasis
                     trend={null}
                     to="/ecommerce/ads"
-                    cta="Analisar eficiência →"
+                    cta="Analisar ROAS"
                   />
                 </div>
               </div>
@@ -1413,7 +1413,7 @@ function EcommerceDashboard() {
                     compact
                     trend={null}
                     to="/ecommerce/produtos-travados"
-                    cta="Destravar agora →"
+                    cta="Investigar travas"
                   />
                   <KpiCard
                     label="Sem venda"
@@ -1424,7 +1424,7 @@ function EcommerceDashboard() {
                     trend={null}
                     to="/ecommerce/produtos-travados"
                     search={{ filter: "no_sales" }}
-                    cta="Revisar oferta →"
+                    cta="Ver produtos sem venda"
                   />
                   <KpiCard
                     label="Sem visita"
@@ -1435,7 +1435,7 @@ function EcommerceDashboard() {
                     trend={null}
                     to="/ecommerce/produtos-travados"
                     search={{ filter: "no_visits" }}
-                    cta="Gerar exposição →"
+                    cta="Ver produtos sem visita"
                   />
                   <KpiCard
                     label="Alertas críticos"
@@ -1446,7 +1446,7 @@ function EcommerceDashboard() {
                     trend={null}
                     to="/ecommerce/prioridades"
                     search={{ priority: "critical" }}
-                    cta="Ver alertas →"
+                    cta="Ver alertas críticos"
                   />
                   <KpiCard
                     label="Tarefas pendentes"
@@ -1457,7 +1457,7 @@ function EcommerceDashboard() {
                     trend={null}
                     to="/ecommerce/tarefas"
                     search={{ status: "pending" }}
-                    cta="Revisar tarefas →"
+                    cta="Revisar tarefas"
                   />
                   <KpiCard
                     label="Insights abertos"
@@ -1467,7 +1467,7 @@ function EcommerceDashboard() {
                     compact
                     trend={null}
                     to="/ecommerce/consultor-ia"
-                    cta="Explorar insights →"
+                    cta="Explorar insights"
                   />
                 </div>
               </div>

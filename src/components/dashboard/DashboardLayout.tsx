@@ -53,6 +53,7 @@ const navGroups = [
 ] as const;
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
+  const { allowed, checking } = useModuleGuard("crm");
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [today, setToday] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);

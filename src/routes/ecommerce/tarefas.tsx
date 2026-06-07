@@ -271,7 +271,7 @@ function TarefasEcommerce() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {tasks.map((t, i) => {
+                  {filteredTasks.map((t, i) => {
                     const prioKey = (t.priority ?? "").toLowerCase();
                     const statusKey = (t.status ?? "").toLowerCase();
                     const prioLabel = PRIORITY_LABEL[prioKey] ?? t.priority ?? "—";

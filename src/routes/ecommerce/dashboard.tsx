@@ -340,47 +340,6 @@ function Shortcut({ to, label, hint }: { to: string; label: string; hint: string
   );
 }
 
-function ReadingCard({
-  title,
-  tone,
-  text,
-}: {
-  title: string;
-  tone: Tone;
-  text: string;
-}) {
-  const t = TONE[tone];
-  return (
-    <div className="relative overflow-hidden rounded-xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
-      <span className={`absolute left-0 top-0 h-full w-[3px] ${t.accent}`} aria-hidden />
-      <div className="flex items-center gap-2">
-        <span className={`h-1.5 w-1.5 rounded-full ${t.dot}`} />
-        <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
-          {title}
-        </div>
-      </div>
-      <p className="mt-2 text-[13px] leading-relaxed text-slate-700">{text}</p>
-    </div>
-  );
-}
-
-function Shortcut({ to, label, hint }: { to: string; label: string; hint: string }) {
-  return (
-    <Link
-      to={to}
-      className="group flex items-center justify-between rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-shadow hover:shadow-[0_8px_24px_-16px_rgba(15,23,42,0.18)]"
-    >
-      <div className="min-w-0">
-        <div className="text-[13px] font-semibold text-slate-900">{label}</div>
-        <div className="mt-0.5 text-[11.5px] text-slate-500">{hint}</div>
-      </div>
-      <span className="ml-3 text-[12px] text-slate-400 transition-colors group-hover:text-slate-700">
-        →
-      </span>
-    </Link>
-  );
-}
-
 type EvoTab = "rev_inv" | "sales_conv" | "clicks_imp" | "roas_acos";
 
 const EVO_TABS: { k: EvoTab; label: string }[] = [

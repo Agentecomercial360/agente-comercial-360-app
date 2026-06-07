@@ -216,24 +216,6 @@ function SummaryCard({
   );
 }
 
-function ProductRow({ p }: { p: Product }) {
-  const status = p.product_health_status ?? "normal";
-  const tone = getTone(status);
-  const mkts = toMarketplacesList(p.marketplaces);
-  const roas = Number(p.avg_roas ?? 0);
-  const roasTone =
-    roas >= 3
-      ? "text-emerald-700"
-      : roas >= 1.5
-        ? "text-slate-900"
-        : roas > 0
-          ? "text-rose-700"
-          : "text-slate-400";
-
-  return (
-    <div
-      className={`relative rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-shadow hover:shadow-[0_6px_24px_-12px_rgba(15,23,42,0.18)] before:absolute before:left-0 before:top-4 before:h-[calc(100%-2rem)] before:w-[3px] before:rounded-r-full ${tone.accent}`}
-    >
 function MetricGroup({
   title,
   children,

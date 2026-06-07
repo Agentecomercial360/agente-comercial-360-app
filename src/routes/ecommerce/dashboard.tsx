@@ -182,6 +182,7 @@ function KpiCard({
   label,
   value,
   context,
+  impact,
   tone = "neutral",
   emphasis = false,
   trend,
@@ -191,6 +192,7 @@ function KpiCard({
   label: string;
   value: React.ReactNode;
   context?: string;
+  impact?: string;
   tone?: Tone;
   emphasis?: boolean;
   trend?: Trend | null;
@@ -200,44 +202,143 @@ function KpiCard({
   const t = TONE[tone];
   const inner = (
     <>
-      <span className={`absolute left-0 top-0 h-full w-[2px] ${t.accent}`} aria-hidden />
+      <span
+        className={`absolute left-0 top-0 h-full w-[3px] ${t.accent}`}
+        aria-hidden
+      />
       <div className="flex items-start justify-between gap-2">
-        <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
-          {label}
+        <div className="flex items-center gap-1.5">
+          <span className={`h-1.5 w-1.5 rounded-full ${t.dot}`} aria-hidden />
+          <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+            {label}
+          </div>
         </div>
         <TrendPill trend={trend} />
       </div>
+
       <div
-        className={`mt-2 ${emphasis ? "text-[24px]" : "text-[20px]"} font-semibold leading-none tabular-nums tracking-tight ${t.value}`}
+        className={`mt-2.5 ${emphasis ? "text-[26px]" : "text-[22px]"} font-semibold leading-none tabular-nums tracking-tight ${t.value} whitespace-nowrap`}
       >
         {value}
       </div>
+
       {context && (
-        <div className="mt-2 text-[11.5px] leading-snug text-slate-500">{context}</div>
+        <div className="mt-2.5 text-[11.5px] leading-snug text-slate-600">
+          {context}
+        </div>
       )}
+
+      {impact && (
+        <div className="mt-1 flex items-start gap-1.5 text-[11px] leading-snug text-slate-400">
+          <span
+            className={`mt-[5px] h-[3px] w-[3px] flex-none rounded-full ${t.dot}`}
+            aria-hidden
+          />
+          <span>{impact}</span>
+        </div>
+      )}
+
       {to && (
-        <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-[10.5px] font-medium text-slate-400 transition-colors group-hover:text-slate-700">
+        <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-slate-400 transition-colors group-hover:text-slate-800">
           <span>Investigar</span>
-          <span aria-hidden>→</span>
+          <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
         </div>
       )}
     </>
   );
 
   const baseCls =
-    "group relative block overflow-hidden rounded-xl border border-slate-200/80 bg-white px-4 py-3.5 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-all";
+    "group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white px-4 pt-3.5 pb-3 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-all";
 
   if (to) {
     return (
       <Link
         to={to as any}
         search={search as any}
-        className={`${baseCls} cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_8px_24px_-16px_rgba(15,23,42,0.22)]`}
+        className={`${baseCls} cursor-pointer hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_10px_28px_-18px_rgba(15,23,42,0.28)]`}
       >
         {inner}
       </Link>
     );
   }
+
+  return (
+    <div className={`${baseCls} hover:shadow-[0_8px_24px_-16px_rgba(15,23,42,0.18)]`}>{inner}</div>
+  );
+}
+
+function GroupHeader({
+  eyebrow,
+  title,
+  hint,
+  tone = "neutral",
+}: {
+  eyebrow: string;
+  title: string;
+  hint?: string;
+  tone?: Tone;
+}) {
+  const t = TONE[tone];
+  return (
+    <div className="mb-2.5 flex items-end justify-between gap-3">
+      <div className="flex items-center gap-2.5">
+        <span className={`h-3.5 w-[3px] rounded-full ${t.accent}`} aria-hidden />
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            {eyebrow}
+          </div>
+          <div className="text-[13px] font-semibold tracking-tight text-slate-800">
+            {title}
+          </div>
+        </div>
+      </div>
+      {hint && (
+        <div className="hidden text-[11px] text-slate-400 sm:block">{hint}</div>
+      )}
+    </div>
+  );
+}
+
+function ReadingCard({
+  title,
+  tone,
+  text,
+}: {
+  title: string;
+  tone: Tone;
+  text: string;
+}) {
+  const t = TONE[tone];
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_0_rgba(15,23,42,0.04)]">
+      <span className={`absolute left-0 top-0 h-full w-[3px] ${t.accent}`} aria-hidden />
+      <div className="flex items-center gap-2">
+        <span className={`h-1.5 w-1.5 rounded-full ${t.dot}`} />
+        <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+          {title}
+        </div>
+      </div>
+      <p className="mt-2 text-[13px] leading-relaxed text-slate-700">{text}</p>
+    </div>
+  );
+}
+
+function Shortcut({ to, label, hint }: { to: string; label: string; hint: string }) {
+  return (
+    <Link
+      to={to}
+      className="group flex items-center justify-between rounded-xl border border-slate-200/80 bg-white px-4 py-3 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-shadow hover:shadow-[0_8px_24px_-16px_rgba(15,23,42,0.18)]"
+    >
+      <div className="min-w-0">
+        <div className="text-[13px] font-semibold text-slate-900">{label}</div>
+        <div className="mt-0.5 text-[11.5px] text-slate-500">{hint}</div>
+      </div>
+      <span className="ml-3 text-[12px] text-slate-400 transition-colors group-hover:text-slate-700">
+        →
+      </span>
+    </Link>
+  );
+}
 
   return (
     <div className={`${baseCls} hover:shadow-[0_8px_24px_-16px_rgba(15,23,42,0.18)]`}>{inner}</div>

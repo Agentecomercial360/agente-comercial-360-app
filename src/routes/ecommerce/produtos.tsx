@@ -224,15 +224,20 @@ function MetricGroup({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl bg-white/70 px-4 py-3 ring-1 ring-inset ring-slate-100">
-      <div className="mb-2.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-400">
+    <div className="rounded-lg bg-white/60 px-3.5 py-2.5 ring-1 ring-inset ring-slate-100">
+      <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-400">
         {title}
       </div>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
         {children}
       </div>
     </div>
   );
+}
+
+function tasksLabel(n: number) {
+  if (!n || n <= 0) return "Sem tarefas abertas";
+  return n === 1 ? "1 tarefa aberta" : `${fmtInt(n)} tarefas abertas`;
 }
 
 function ProductRow({ p }: { p: Product }) {
@@ -252,18 +257,18 @@ function ProductRow({ p }: { p: Product }) {
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border border-slate-200/80 ${tone.surface} p-6 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-shadow hover:shadow-[0_8px_28px_-14px_rgba(15,23,42,0.18)] before:absolute before:left-0 before:top-5 before:h-[calc(100%-2.5rem)] before:w-[3px] before:rounded-r-full ${tone.accent}`}
+      className={`relative overflow-hidden rounded-2xl border border-slate-200/80 ${tone.surface} px-5 py-4 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-shadow hover:shadow-[0_8px_28px_-14px_rgba(15,23,42,0.18)] before:absolute before:left-0 before:top-4 before:h-[calc(100%-2rem)] before:w-[3px] before:rounded-r-full ${tone.accent}`}
     >
       {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2.5">
-            <h3 className="truncate text-[17px] font-semibold tracking-tight text-slate-900">
+            <h3 className="truncate text-[15.5px] font-semibold tracking-tight text-slate-900">
               {p.product_name ?? "—"}
             </h3>
             <StatusChip status={status} />
           </div>
-          <div className="mt-1.5 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-slate-500">
+          <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-slate-500">
             <span className="font-mono uppercase tracking-wider text-slate-500">
               {p.sku ?? "—"}
             </span>
@@ -298,21 +303,21 @@ function ProductRow({ p }: { p: Product }) {
         </div>
       </div>
 
-      {/* Reading */}
-      <div className="mt-4 flex items-start gap-2 rounded-lg bg-white/80 px-3.5 py-2.5 ring-1 ring-inset ring-slate-100">
-        <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${tone.dot}`} />
-        <div className="min-w-0">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-400">
-            Leitura do produto
+      {/* Reading — refined insight block */}
+      <div className={`mt-3 flex items-start gap-2.5 rounded-lg border border-slate-200/70 bg-white/70 px-3.5 py-2 ring-1 ring-inset ${tone.ring}`}>
+        <span className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${tone.dot}`} />
+        <div className="min-w-0 flex-1">
+          <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+            Leitura do sistema
           </div>
-          <div className="mt-0.5 text-[12.5px] leading-relaxed text-slate-700">
+          <p className="mt-0.5 text-[12.5px] leading-snug text-slate-700">
             {reading}
-          </div>
+          </p>
         </div>
       </div>
 
       {/* Grouped metrics */}
-      <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
+      <div className="mt-3 grid grid-cols-1 gap-2.5 lg:grid-cols-3">
         <MetricGroup title="Estoque">
           <Stat label="Estoque" value={fmtInt(p.total_stock)} />
           <Stat label="Disponível" value={fmtInt(p.available_stock)} />
@@ -342,10 +347,10 @@ function ProductRow({ p }: { p: Product }) {
                 className={
                   Number(p.open_tasks ?? 0) > 0
                     ? "text-amber-700"
-                    : "text-slate-900"
+                    : "text-slate-500"
                 }
               >
-                {fmtInt(p.open_tasks)}
+                {tasksLabel(Number(p.open_tasks ?? 0))}
               </span>
             }
           />
@@ -353,7 +358,7 @@ function ProductRow({ p }: { p: Product }) {
       </div>
 
       {/* Footer actions */}
-      <div className="mt-4 flex items-center justify-between border-t border-slate-200/60 pt-3">
+      <div className="mt-3 flex items-center justify-between border-t border-slate-200/60 pt-2.5">
         <div className="text-[11px] text-slate-400">
           Visão consolidada por SKU
         </div>

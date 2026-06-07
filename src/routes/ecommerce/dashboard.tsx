@@ -551,6 +551,11 @@ function EcommerceDashboard() {
               </div>
             </section>
 
+            {/* Evolução da operação */}
+            <EvolutionSection summary={summary} period={period} />
+
+
+
             {/* Executive reading */}
             <section className="space-y-2.5">
               <div className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-slate-400">

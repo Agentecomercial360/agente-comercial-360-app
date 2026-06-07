@@ -245,121 +245,226 @@ const EVO_TABS: { k: EvoTab; label: string }[] = [
   { k: "roas_acos", label: "ROAS x ACOS" },
 ];
 
-function PlaceholderChart({ variant }: { variant: EvoTab }) {
-  // Two decorative curves with low opacity. Deterministic per-tab to avoid layout shifts.
-  const seeds: Record<EvoTab, [number[], number[]]> = {
-    rev_inv: [
-      [38, 42, 36, 48, 52, 47, 58, 62, 55, 66, 71, 78],
-      [22, 25, 24, 28, 27, 30, 32, 31, 34, 33, 36, 38],
-    ],
-    sales_conv: [
-      [30, 34, 32, 40, 44, 42, 50, 48, 56, 58, 62, 68],
-      [18, 20, 22, 21, 24, 26, 25, 28, 27, 30, 31, 32],
-    ],
-    clicks_imp: [
-      [40, 46, 50, 48, 55, 60, 58, 64, 68, 72, 70, 76],
-      [25, 28, 27, 30, 32, 31, 34, 36, 35, 38, 40, 42],
-    ],
-    roas_acos: [
-      [50, 48, 54, 52, 58, 60, 56, 62, 64, 60, 66, 70],
-      [38, 40, 36, 42, 40, 44, 42, 46, 44, 48, 46, 50],
-    ],
-  };
-  const [a, b] = seeds[variant];
-  const W = 800;
-  const H = 220;
-  const PAD = 24;
-  const toPath = (arr: number[]) => {
-    const max = 90;
-    const stepX = (W - PAD * 2) / (arr.length - 1);
-    return arr
-      .map((v, i) => {
-        const x = PAD + i * stepX;
-        const y = H - PAD - (v / max) * (H - PAD * 2);
-        return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-      })
+const EVO_TAB_SERIES: Record<
+  EvoTab,
+  { aLabel: string; bLabel: string; aType: "bar" | "line"; bType: "bar" | "line" }
+> = {
+  rev_inv: { aLabel: "Receita", bLabel: "Investimento Ads", aType: "bar", bType: "line" },
+  sales_conv: { aLabel: "Vendas", bLabel: "Conversão (%)", aType: "bar", bType: "line" },
+  clicks_imp: { aLabel: "Cliques", bLabel: "Impressões", aType: "bar", bType: "bar" },
+  roas_acos: { aLabel: "ROAS", bLabel: "ACOS", aType: "line", bType: "line" },
+};
+
+const PERIOD_POINTS: Record<PeriodKey, number> = {
+  "7d": 7,
+  "15d": 15,
+  "30d": 30,
+  mtd: new Date().getDate(),
+};
+
+// Deterministic in-formation shapes (NOT real data). Used only to convey
+// the chart structure visually. Values are intentionally unitless and the
+// series are rendered at low opacity with a clear "em formação" note.
+function makeFormationSeries(points: number, variant: EvoTab): [number[], number[]] {
+  const seed = variant === "rev_inv" ? 11 : variant === "sales_conv" ? 23 : variant === "clicks_imp" ? 37 : 53;
+  const a: number[] = [];
+  const b: number[] = [];
+  for (let i = 0; i < points; i++) {
+    const t = i / Math.max(1, points - 1);
+    a.push(0.45 + 0.35 * Math.sin(seed * 0.13 + t * Math.PI * 1.6) + 0.12 * t);
+    b.push(0.32 + 0.28 * Math.cos(seed * 0.17 + t * Math.PI * 1.3) + 0.08 * t);
+  }
+  return [a, b];
+}
+
+function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKey }) {
+  const points = PERIOD_POINTS[period];
+  const [a, b] = makeFormationSeries(points, variant);
+  const cfg = EVO_TAB_SERIES[variant];
+
+  const W = 820;
+  const H = 260;
+  const PAD_L = 36;
+  const PAD_R = 16;
+  const PAD_T = 16;
+  const PAD_B = 28;
+  const innerW = W - PAD_L - PAD_R;
+  const innerH = H - PAD_T - PAD_B;
+
+  // X positions per index (center of slot)
+  const slotW = innerW / points;
+  const xCenter = (i: number) => PAD_L + slotW * (i + 0.5);
+  const yOf = (v: number) => PAD_T + (1 - v) * innerH;
+
+  const ticks = 4;
+  const gridYs = Array.from({ length: ticks + 1 }, (_, i) => PAD_T + (innerH / ticks) * i);
+
+  const colorA = "#2563eb"; // primary brand-ish
+  const colorB = "#7c3aed";
+
+  const linePath = (arr: number[]) =>
+    arr
+      .map((v, i) => `${i === 0 ? "M" : "L"}${xCenter(i).toFixed(1)},${yOf(v).toFixed(1)}`)
       .join(" ");
-  };
-  const grid = Array.from({ length: 4 }, (_, i) => PAD + ((H - PAD * 2) / 4) * (i + 1));
+
+  // X-axis labels: show ~6 ticks
+  const labelEvery = Math.max(1, Math.round(points / 6));
+  const xLabels: { i: number; label: string }[] = [];
+  for (let i = 0; i < points; i++) {
+    if (i % labelEvery === 0 || i === points - 1) {
+      xLabels.push({ i, label: `D${i + 1}` });
+    }
+  }
+
   return (
-    <svg
-      viewBox={`0 0 ${W} ${H}`}
-      preserveAspectRatio="none"
-      className="h-[220px] w-full"
-      role="img"
-      aria-label="Gráfico placeholder de evolução — histórico em formação"
-    >
-      <defs>
-        <linearGradient id="evoBlue" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.18" />
-          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {grid.map((y, i) => (
-        <line
-          key={i}
-          x1={PAD}
-          x2={W - PAD}
-          y1={y}
-          y2={y}
-          stroke="#e2e8f0"
-          strokeDasharray="3 4"
-          strokeWidth={1}
-        />
-      ))}
-      <path
-        d={`${toPath(a)} L${W - PAD},${H - PAD} L${PAD},${H - PAD} Z`}
-        fill="url(#evoBlue)"
-        opacity={0.6}
-      />
-      <path
-        d={toPath(a)}
-        fill="none"
-        stroke="#3b82f6"
-        strokeWidth={1.75}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        opacity={0.35}
-      />
-      <path
-        d={toPath(b)}
-        fill="none"
-        stroke="#7c3aed"
-        strokeWidth={1.5}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeDasharray="4 5"
-        opacity={0.3}
-      />
-    </svg>
+    <div className="relative">
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="none"
+        className="h-[260px] w-full"
+        role="img"
+        aria-label="Estrutura do gráfico — histórico em formação"
+      >
+        <defs>
+          <linearGradient id={`evoBarA-${variant}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={colorA} stopOpacity="0.55" />
+            <stop offset="100%" stopColor={colorA} stopOpacity="0.18" />
+          </linearGradient>
+          <linearGradient id={`evoBarB-${variant}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={colorB} stopOpacity="0.5" />
+            <stop offset="100%" stopColor={colorB} stopOpacity="0.15" />
+          </linearGradient>
+        </defs>
+
+        {/* Y grid */}
+        {gridYs.map((y, i) => (
+          <g key={i}>
+            <line
+              x1={PAD_L}
+              x2={W - PAD_R}
+              y1={y}
+              y2={y}
+              stroke="#eef2f7"
+              strokeWidth={1}
+            />
+            <text
+              x={PAD_L - 8}
+              y={y + 3}
+              textAnchor="end"
+              className="fill-slate-300"
+              style={{ fontSize: 9 }}
+            >
+              {/* axis ticks left blank to avoid implying real values */}
+              {"·"}
+            </text>
+          </g>
+        ))}
+
+        {/* Axes */}
+        <line x1={PAD_L} x2={W - PAD_R} y1={H - PAD_B} y2={H - PAD_B} stroke="#e2e8f0" />
+        <line x1={PAD_L} x2={PAD_L} y1={PAD_T} y2={H - PAD_B} stroke="#e2e8f0" />
+
+        {/* Series A */}
+        {cfg.aType === "bar" ? (
+          <g opacity={0.45}>
+            {a.map((v, i) => {
+              const bw = Math.max(3, slotW * (cfg.bType === "bar" ? 0.35 : 0.55));
+              const x = xCenter(i) - (cfg.bType === "bar" ? bw + 1 : bw / 2);
+              const y = yOf(v);
+              const h = H - PAD_B - y;
+              return (
+                <rect
+                  key={i}
+                  x={x}
+                  y={y}
+                  width={bw}
+                  height={Math.max(1, h)}
+                  fill={`url(#evoBarA-${variant})`}
+                  rx={2}
+                />
+              );
+            })}
+          </g>
+        ) : (
+          <path d={linePath(a)} fill="none" stroke={colorA} strokeWidth={1.75} opacity={0.5} />
+        )}
+
+        {/* Series B */}
+        {cfg.bType === "bar" ? (
+          <g opacity={0.4}>
+            {b.map((v, i) => {
+              const bw = Math.max(3, slotW * 0.35);
+              const x = xCenter(i) + 1;
+              const y = yOf(v);
+              const h = H - PAD_B - y;
+              return (
+                <rect
+                  key={i}
+                  x={x}
+                  y={y}
+                  width={bw}
+                  height={Math.max(1, h)}
+                  fill={`url(#evoBarB-${variant})`}
+                  rx={2}
+                />
+              );
+            })}
+          </g>
+        ) : (
+          <path
+            d={linePath(b)}
+            fill="none"
+            stroke={colorB}
+            strokeWidth={1.5}
+            strokeDasharray={cfg.aType === "line" ? "0" : "4 4"}
+            opacity={0.5}
+          />
+        )}
+
+        {/* X labels */}
+        {xLabels.map(({ i, label }) => (
+          <text
+            key={i}
+            x={xCenter(i)}
+            y={H - PAD_B + 16}
+            textAnchor="middle"
+            className="fill-slate-400"
+            style={{ fontSize: 10 }}
+          >
+            {label}
+          </text>
+        ))}
+      </svg>
+    </div>
   );
 }
 
 function EvolutionSection({
   summary,
   period,
+  onPeriodChange,
+  derived,
+  pendingTasks,
 }: {
   summary: Summary;
   period: PeriodKey;
+  onPeriodChange: (p: PeriodKey) => void;
+  derived: { noVisits: number; visitsNoSales: number; stuck: number };
+  pendingTasks: number;
 }) {
   const [tab, setTab] = useState<EvoTab>("rev_inv");
   const series = EVO_TAB_SERIES[tab];
 
-  const adsRevenue =
-    Number(summary.total_ads_investment ?? 0) > 0 &&
-    Number(summary.avg_roas ?? 0) > 0
-      ? Number(summary.total_ads_investment) * Number(summary.avg_roas)
-      : 0;
+  const revenue = Number(summary.total_gross_revenue ?? 0);
+  const invest = Number(summary.total_ads_investment ?? 0);
+  const sales = Number(summary.total_sales_count ?? 0);
+  const roas = Number(summary.avg_roas ?? 0);
 
   const readingText = `Com os dados atuais, a operação registra ${fmtBRL(
-    summary.total_gross_revenue,
-  )} em faturamento, ${fmtBRL(
-    summary.total_ads_investment,
-  )} em investimento Ads, ${fmtInt(summary.total_sales_count)} ${
-    Number(summary.total_sales_count ?? 0) === 1 ? "venda" : "vendas"
-  } e ROAS médio de ${
-    Number(summary.avg_roas ?? 0) > 0 ? `${fmtNum(summary.avg_roas, 2)}x` : "—"
-  }. O histórico comparativo será exibido conforme novas sincronizações forem registradas.`;
+    revenue,
+  )} em faturamento, ${fmtBRL(invest)} em investimento Ads, ${fmtInt(sales)} ${
+    sales === 1 ? "venda" : "vendas"
+  } e ROAS médio de ${roas > 0 ? `${fmtNum(roas, 2)}x` : "—"}. O histórico comparativo será ampliado conforme novas sincronizações forem registradas.`;
 
   return (
     <section className="space-y-2.5">
@@ -378,10 +483,13 @@ function EvolutionSection({
               anúncios.
             </p>
           </div>
-          <span className="inline-flex h-fit items-center gap-1.5 self-start rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10.5px] font-medium text-slate-600">
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-            Aguardando histórico
-          </span>
+          <div className="flex items-center gap-2 self-start">
+            <PeriodTabs value={period} onChange={onPeriodChange} />
+            <span className="inline-flex h-fit items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10.5px] font-medium text-slate-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+              Aguardando histórico
+            </span>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -394,9 +502,7 @@ function EvolutionSection({
                 type="button"
                 onClick={() => setTab(t.k)}
                 className={`relative px-3 py-2 text-[12px] font-medium transition-colors ${
-                  active
-                    ? "text-slate-900"
-                    : "text-slate-500 hover:text-slate-800"
+                  active ? "text-slate-900" : "text-slate-500 hover:text-slate-800"
                 }`}
               >
                 {t.label}
@@ -410,73 +516,111 @@ function EvolutionSection({
           })}
         </div>
 
-        {/* Chart + legend */}
-        <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[1fr_280px]">
-          <div className="relative overflow-hidden rounded-xl border border-slate-100 bg-gradient-to-b from-slate-50/60 to-white p-3">
-            <PlaceholderChart variant={tab} />
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-              <div className="rounded-lg border border-slate-200 bg-white/90 px-3.5 py-2 text-center shadow-sm backdrop-blur-sm">
-                <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
-                  Histórico em formação
-                </div>
-                <div className="mt-0.5 text-[11.5px] text-slate-500">
-                  Os gráficos serão preenchidos conforme novas sincronizações forem
-                  registradas.
-                </div>
-              </div>
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-[11px] text-slate-500">
+        {/* Informative note above chart (replaces central overlay) */}
+        <p className="mt-3 text-[11.5px] text-slate-500">
+          Os gráficos comparativos serão preenchidos conforme novas sincronizações forem
+          registradas. A estrutura abaixo mostra como a leitura será apresentada.
+        </p>
+
+        {/* Chart + side panel */}
+        <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px]">
+          <div className="rounded-xl border border-slate-100 bg-white p-3">
+            <FormationChart variant={tab} period={period} />
+            <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-[11px] text-slate-500">
               <span className="inline-flex items-center gap-1.5">
-                <span className="h-[2px] w-3.5 rounded-full bg-[#3b82f6]" />
+                <span
+                  className={`h-2.5 w-2.5 rounded-${series.aType === "bar" ? "sm" : "full"}`}
+                  style={{ background: "#2563eb", opacity: 0.55 }}
+                />
                 {series.aLabel}
               </span>
               <span className="inline-flex items-center gap-1.5">
-                <span className="h-[2px] w-3.5 rounded-full bg-[#7c3aed]" />
+                <span
+                  className={`h-2.5 w-2.5 rounded-${series.bType === "bar" ? "sm" : "full"}`}
+                  style={{ background: "#7c3aed", opacity: 0.5 }}
+                />
                 {series.bLabel}
               </span>
               <span className="ml-auto text-[10.5px] text-slate-400">
-                Período: {PERIOD_LABEL[period]}
+                Período: {PERIOD_LABEL[period]} · em formação
               </span>
             </div>
           </div>
 
           {/* Leitura do período */}
-          <aside className="rounded-xl border border-slate-200/80 bg-slate-50/40 p-4">
-            <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
-              Leitura do período
+          <aside className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/40 p-4">
+            <div>
+              <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+                Leitura do período
+              </div>
+              <p className="mt-2 text-[12.5px] leading-relaxed text-slate-700">
+                {readingText}
+              </p>
             </div>
-            <p className="mt-2 text-[12.5px] leading-relaxed text-slate-700">
-              {readingText}
-            </p>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <MiniStat label="Receita" value={fmtBRL(summary.total_gross_revenue)} />
-              <MiniStat label="Investimento" value={fmtBRL(summary.total_ads_investment)} />
-              <MiniStat label="Vendas" value={fmtInt(summary.total_sales_count)} />
+            <div className="grid grid-cols-2 gap-2">
+              <MiniStat label="Receita" value={fmtBRL(revenue)} />
+              <MiniStat label="Investimento" value={fmtBRL(invest)} />
+              <MiniStat label="Vendas" value={fmtInt(sales)} />
               <MiniStat
                 label="ROAS médio"
-                value={
-                  Number(summary.avg_roas ?? 0) > 0
-                    ? `${fmtNum(summary.avg_roas, 2)}x`
-                    : "—"
-                }
+                value={roas > 0 ? `${fmtNum(roas, 2)}x` : "—"}
               />
-              {adsRevenue > 0 && (
-                <MiniStat label="Receita Ads" value={fmtBRL(adsRevenue)} />
-              )}
+            </div>
+            <div className="rounded-lg border border-blue-100 bg-blue-50/60 p-3">
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-blue-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                Leitura da IA
+              </div>
+              <p className="mt-1.5 text-[12px] leading-relaxed text-slate-700">
+                {roas >= 1.5
+                  ? `Eficiência saudável: cada R$ 1 em Ads retorna ${fmtNum(roas, 2)}x. Mantenha o ritmo de investimento e priorize escalar campanhas com melhor retorno.`
+                  : roas > 0
+                    ? `ROAS atual de ${fmtNum(roas, 2)}x sugere revisão de campanhas. Reavalie criativos, segmentação e palavras-chave para elevar o retorno.`
+                    : `Sem ROAS consolidado no período. Conecte campanhas e aguarde a próxima sincronização para uma leitura precisa de eficiência.`}
+              </p>
             </div>
           </aside>
+        </div>
+
+        {/* Leitura analítica */}
+        <div className="mt-5 border-t border-slate-100 pt-4">
+          <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+            Leitura analítica
+          </div>
+          <div className="mt-2 grid grid-cols-1 gap-2.5 md:grid-cols-3">
+            <AnalyticalBlock
+              tone="success"
+              title="Eficiência"
+              text={
+                roas > 0
+                  ? `ROAS atual de ${fmtNum(roas, 2)}x com ${fmtBRL(invest)} investidos em Ads.`
+                  : `Aguardando dados de ROAS para leitura de eficiência.`
+              }
+            />
+            <AnalyticalBlock
+              tone="info"
+              title="Escala"
+              text={
+                sales > 0
+                  ? `${fmtInt(sales)} ${sales === 1 ? "venda registrada" : "vendas registradas"} na operação no período atual.`
+                  : `Nenhuma venda registrada no período atual.`
+              }
+            />
+            <AnalyticalBlock
+              tone="warning"
+              title="Atenção operacional"
+              text={
+                derived.stuck > 0 || pendingTasks > 0
+                  ? `${fmtInt(derived.noVisits)} sem visita · ${fmtInt(derived.visitsNoSales)} sem venda · ${fmtInt(pendingTasks)} ${pendingTasks === 1 ? "tarefa pendente" : "tarefas pendentes"}.`
+                  : `Operação sem alertas críticos no momento.`
+              }
+            />
+          </div>
         </div>
       </div>
     </section>
   );
 }
-
-const EVO_TAB_SERIES: Record<EvoTab, { aLabel: string; bLabel: string }> = {
-  rev_inv: { aLabel: "Receita", bLabel: "Investimento Ads" },
-  sales_conv: { aLabel: "Vendas", bLabel: "Conversão (%)" },
-  clicks_imp: { aLabel: "Cliques", bLabel: "Impressões" },
-  roas_acos: { aLabel: "ROAS", bLabel: "ACOS" },
-};
 
 function MiniStat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -487,6 +631,31 @@ function MiniStat({ label, value }: { label: string; value: React.ReactNode }) {
       <div className="mt-0.5 text-[13px] font-semibold tabular-nums text-slate-900">
         {value}
       </div>
+    </div>
+  );
+}
+
+function AnalyticalBlock({
+  tone,
+  title,
+  text,
+}: {
+  tone: "success" | "info" | "warning";
+  title: string;
+  text: string;
+}) {
+  const toneCfg = {
+    success: { dot: "bg-emerald-500", label: "text-emerald-700", ring: "border-emerald-100 bg-emerald-50/40" },
+    info: { dot: "bg-blue-500", label: "text-blue-700", ring: "border-blue-100 bg-blue-50/40" },
+    warning: { dot: "bg-amber-500", label: "text-amber-700", ring: "border-amber-100 bg-amber-50/40" },
+  }[tone];
+  return (
+    <div className={`rounded-lg border ${toneCfg.ring} p-3`}>
+      <div className={`flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] ${toneCfg.label}`}>
+        <span className={`h-1.5 w-1.5 rounded-full ${toneCfg.dot}`} />
+        {title}
+      </div>
+      <p className="mt-1.5 text-[12px] leading-relaxed text-slate-700">{text}</p>
     </div>
   );
 }
@@ -807,7 +976,17 @@ function EcommerceDashboard() {
             </section>
 
             {/* Evolução da operação */}
-            <EvolutionSection summary={summary} period={period} />
+            <EvolutionSection
+              summary={summary}
+              period={period}
+              onPeriodChange={setPeriod}
+              derived={{
+                noVisits: derived.noVisits,
+                visitsNoSales: derived.visitsNoSales,
+                stuck: derived.stuck,
+              }}
+              pendingTasks={Number(summary.pending_tasks ?? 0)}
+            />
 
 
 

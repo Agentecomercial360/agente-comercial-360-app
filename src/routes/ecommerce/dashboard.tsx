@@ -764,7 +764,7 @@ function EvolutionSection({
               <div className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">
                 Receita do período
               </div>
-              <div className="mt-0.5 text-[20px] font-semibold leading-none tracking-tight text-slate-900 tabular-nums">
+              <div className="mt-1 whitespace-nowrap text-[19px] font-semibold leading-none tracking-tight text-slate-900 tabular-nums">
                 {fmtBRL(revenue)}
               </div>
               <div className="mt-1.5 inline-flex items-center gap-1.5 text-[10.5px] font-medium text-slate-500">

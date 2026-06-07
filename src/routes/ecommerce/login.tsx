@@ -28,7 +28,7 @@ function EcommerceLoginPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(() => consumeAuthMessage());
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

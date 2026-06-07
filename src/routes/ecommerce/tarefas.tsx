@@ -15,6 +15,9 @@ import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/tarefas")({
   component: TarefasEcommerce,
+  validateSearch: (s: Record<string, unknown>) => ({
+    status: s.status === "pending" ? ("pending" as const) : undefined,
+  }),
   head: () => ({
     meta: [{ title: "Tarefas Operacionais | Agente Comercial 360" }],
   }),

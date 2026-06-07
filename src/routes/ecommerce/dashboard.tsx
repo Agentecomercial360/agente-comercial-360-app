@@ -936,8 +936,9 @@ function EvolutionSection({
             </div>
             <FormationChart variant={tab} period={period} />
             <p className="mt-1 px-1 text-[11px] leading-relaxed text-slate-500">
-              A estrutura acima reflete como a comparação será exibida. Os valores serão
-              preenchidos conforme novas sincronizações forem registradas.
+              Os rótulos “Período 1 → Período {`{N}`}” representam a posição dentro da janela
+              analisada (não o dia do mês). Os gráficos comparativos serão preenchidos conforme
+              novas sincronizações forem registradas.
             </p>
           </div>
 

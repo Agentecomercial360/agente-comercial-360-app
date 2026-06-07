@@ -153,6 +153,7 @@ function PrioridadeCard({ task }: { task: TaskRow }) {
 
 function PrioridadesEcommerce() {
   const navigate = useNavigate();
+  const { priority: priorityFilter } = Route.useSearch();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rows, setRows] = useState<TaskRow[]>([]);

@@ -15,6 +15,9 @@ import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/prioridades")({
   component: PrioridadesEcommerce,
+  validateSearch: (s: Record<string, unknown>) => ({
+    priority: s.priority === "critical" ? ("critical" as const) : undefined,
+  }),
   head: () => ({
     meta: [{ title: "Prioridades E-commerce | Agente Comercial 360" }],
   }),
@@ -150,6 +153,7 @@ function PrioridadeCard({ task }: { task: TaskRow }) {
 
 function PrioridadesEcommerce() {
   const navigate = useNavigate();
+  const { priority: priorityFilter } = Route.useSearch();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rows, setRows] = useState<TaskRow[]>([]);
@@ -199,18 +203,25 @@ function PrioridadesEcommerce() {
     };
   }, [navigate]);
 
+  const filteredRows = useMemo(() => {
+    if (priorityFilter === "critical") {
+      return rows.filter((r) => (r.priority ?? "").toLowerCase() === "critical");
+    }
+    return rows;
+  }, [rows, priorityFilter]);
+
   const grouped = useMemo(() => {
     const high: TaskRow[] = [];
     const med: TaskRow[] = [];
     const low: TaskRow[] = [];
-    for (const r of rows) {
+    for (const r of filteredRows) {
       const p = (r.priority ?? "low").toLowerCase();
       if (p === "critical" || p === "high") high.push(r);
       else if (p === "medium") med.push(r);
       else low.push(r);
     }
     return { high, med, low };
-  }, [rows]);
+  }, [filteredRows]);
 
   const columns = [
     { id: "alta", label: "Alta Prioridade", icon: Flame, color: "text-rose-600", bg: "bg-rose-50", items: grouped.high },
@@ -225,6 +236,21 @@ function PrioridadesEcommerce() {
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">Painel de Prioridades</h1>
           <p className="text-slate-500">Ações recomendadas pela IA com base no impacto financeiro estimado.</p>
         </div>
+
+        {priorityFilter === "critical" && (
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 text-xs text-slate-600">
+            <span>
+              Filtro aplicado:{" "}
+              <strong className="font-semibold text-slate-900">Prioridade crítica</strong>
+            </span>
+            <button
+              onClick={() => navigate({ to: "/ecommerce/prioridades", search: {} })}
+              className="font-medium text-slate-500 underline-offset-2 hover:text-slate-900 hover:underline"
+            >
+              Limpar filtro
+            </button>
+          </div>
+        )}
 
         {loading && (
           <div className="rounded-2xl border border-slate-200 bg-card p-6 text-sm text-slate-500">

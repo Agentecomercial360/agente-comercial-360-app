@@ -10,6 +10,12 @@ import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/ecommerce/produtos-travados")({
   component: ProdutosTravados,
+  validateSearch: (s: Record<string, unknown>) => ({
+    filter:
+      s.filter === "no_sales" || s.filter === "no_visits"
+        ? (s.filter as "no_sales" | "no_visits")
+        : undefined,
+  }),
   head: () => ({
     meta: [{ title: "Produtos Travados | Agente Comercial 360" }],
   }),
@@ -170,6 +176,7 @@ const toneMap: Record<
 
 function ProdutosTravados() {
   const navigate = useNavigate();
+  const { filter } = Route.useSearch();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<Stuck[]>([]);
@@ -253,6 +260,25 @@ function ProdutosTravados() {
     }
     return { critical, high, noVisits, visitsNoSales, lowConversion, stockStuck };
   }, [items]);
+
+  const filteredItems = useMemo(() => {
+    if (filter === "no_sales") {
+      return items.filter(
+        (p) => Number(p.visits ?? 0) > 0 && Number(p.sales_count ?? 0) === 0,
+      );
+    }
+    if (filter === "no_visits") {
+      return items.filter((p) => Number(p.visits ?? 0) === 0);
+    }
+    return items;
+  }, [items, filter]);
+
+  const filterLabel =
+    filter === "no_sales"
+      ? "Produtos sem venda"
+      : filter === "no_visits"
+        ? "Produtos sem visita"
+        : null;
 
   return (
     <EcommerceLayout>
@@ -353,17 +379,34 @@ function ProdutosTravados() {
 
             {/* Lista */}
             <section className="space-y-4">
+              {filterLabel && (
+                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 text-xs text-slate-600">
+                  <span>
+                    Filtro aplicado:{" "}
+                    <strong className="font-semibold text-slate-900">{filterLabel}</strong>
+                    <span className="ml-2 text-slate-400">
+                      ({filteredItems.length} de {items.length})
+                    </span>
+                  </span>
+                  <button
+                    onClick={() => navigate({ to: "/ecommerce/produtos-travados", search: {} })}
+                    className="font-medium text-slate-500 underline-offset-2 hover:text-slate-900 hover:underline"
+                  >
+                    Limpar filtro
+                  </button>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold tracking-tight text-slate-900">
                   Diagnóstico Detalhado
                 </h3>
                 <span className="text-xs text-slate-500">
-                  {items.length} {items.length === 1 ? "produto" : "produtos"}
+                  {filteredItems.length} {filteredItems.length === 1 ? "produto" : "produtos"}
                 </span>
               </div>
 
               <div className="space-y-4">
-                {items.map((p, i) => (
+                {filteredItems.map((p, i) => (
                   <StuckCard
                     key={i}
                     p={p}
@@ -375,6 +418,11 @@ function ProdutosTravados() {
                     }}
                   />
                 ))}
+                {filteredItems.length === 0 && (
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+                    Nenhum produto corresponde ao filtro selecionado.
+                  </div>
+                )}
               </div>
             </section>
           </>

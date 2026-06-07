@@ -45,43 +45,130 @@ type Tone = "neutral" | "info" | "success" | "attention" | "critical" | "ads";
 
 const TONE: Record<Tone, { accent: string; dot: string; value: string }> = {
   neutral: { accent: "bg-slate-300", dot: "bg-slate-400", value: "text-slate-900" },
-  info: { accent: "bg-sky-400", dot: "bg-sky-500", value: "text-slate-900" },
-  success: { accent: "bg-emerald-400", dot: "bg-emerald-500", value: "text-slate-900" },
-  attention: { accent: "bg-amber-400", dot: "bg-amber-500", value: "text-slate-900" },
-  critical: { accent: "bg-rose-400", dot: "bg-rose-500", value: "text-rose-700" },
-  ads: { accent: "bg-violet-400", dot: "bg-violet-500", value: "text-slate-900" },
+  info: { accent: "bg-sky-500", dot: "bg-sky-500", value: "text-slate-900" },
+  success: { accent: "bg-emerald-500", dot: "bg-emerald-500", value: "text-slate-900" },
+  attention: { accent: "bg-amber-500", dot: "bg-amber-500", value: "text-slate-900" },
+  critical: { accent: "bg-rose-500", dot: "bg-rose-500", value: "text-rose-700" },
+  ads: { accent: "bg-violet-500", dot: "bg-violet-500", value: "text-slate-900" },
 };
+
+type PeriodKey = "7d" | "15d" | "30d" | "mtd";
+const PERIOD_LABEL: Record<PeriodKey, string> = {
+  "7d": "Últimos 7 dias",
+  "15d": "Últimos 15 dias",
+  "30d": "Últimos 30 dias",
+  mtd: "Este mês",
+};
+
+function PeriodTabs({
+  value,
+  onChange,
+}: {
+  value: PeriodKey;
+  onChange: (p: PeriodKey) => void;
+}) {
+  const opts: { k: PeriodKey; label: string }[] = [
+    { k: "7d", label: "7 dias" },
+    { k: "15d", label: "15 dias" },
+    { k: "30d", label: "30 dias" },
+    { k: "mtd", label: "Este mês" },
+  ];
+  return (
+    <div className="inline-flex items-center rounded-lg border border-slate-200/80 bg-white p-0.5 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+      {opts.map((o) => {
+        const active = o.k === value;
+        return (
+          <button
+            key={o.k}
+            type="button"
+            onClick={() => onChange(o.k)}
+            className={`rounded-md px-2.5 py-1 text-[11.5px] font-medium tabular-nums transition-colors ${
+              active
+                ? "bg-slate-900 text-white"
+                : "text-slate-500 hover:text-slate-900"
+            }`}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+type Trend = { dir: "up" | "down" | "flat"; pct?: number; positiveIsGood?: boolean };
+
+function TrendPill({ trend }: { trend?: Trend | null }) {
+  if (!trend) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10.5px] font-medium text-slate-400">
+        <span className="h-1 w-1 rounded-full bg-slate-300" />
+        Histórico em formação
+      </span>
+    );
+  }
+  const positiveIsGood = trend.positiveIsGood ?? true;
+  const isGood =
+    trend.dir === "flat"
+      ? null
+      : (trend.dir === "up") === positiveIsGood;
+  const color =
+    isGood === null
+      ? "text-slate-500 bg-slate-50 ring-slate-200"
+      : isGood
+        ? "text-emerald-700 bg-emerald-50 ring-emerald-100"
+        : "text-rose-700 bg-rose-50 ring-rose-100";
+  const arrow = trend.dir === "up" ? "▲" : trend.dir === "down" ? "▼" : "■";
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold tabular-nums ring-1 ring-inset ${color}`}
+    >
+      <span className="text-[8px] leading-none">{arrow}</span>
+      {trend.pct !== undefined ? `${trend.pct.toFixed(1)}%` : "—"}
+    </span>
+  );
+}
 
 function KpiCard({
   label,
   value,
+  context,
   tone = "neutral",
   emphasis = false,
+  trend,
   to,
   search,
 }: {
   label: string;
   value: React.ReactNode;
+  context?: string;
   tone?: Tone;
   emphasis?: boolean;
+  trend?: Trend | null;
   to?: string;
   search?: Record<string, string>;
 }) {
   const t = TONE[tone];
   const inner = (
     <>
-      <span className={`absolute left-0 top-0 h-full w-[3px] ${t.accent}`} aria-hidden />
-      <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
-        {label}
+      <span className={`absolute left-0 top-0 h-full w-[2px] ${t.accent}`} aria-hidden />
+      <div className="flex items-start justify-between gap-2">
+        <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+          {label}
+        </div>
+        <TrendPill trend={trend} />
       </div>
       <div
-        className={`mt-1.5 ${emphasis ? "text-[22px]" : "text-[18px]"} font-semibold tabular-nums ${t.value}`}
+        className={`mt-2 ${emphasis ? "text-[24px]" : "text-[20px]"} font-semibold leading-none tabular-nums tracking-tight ${t.value}`}
       >
         {value}
       </div>
+      {context && (
+        <div className="mt-2 text-[11.5px] leading-snug text-slate-500">{context}</div>
+      )}
       {to && (
-        <div className="mt-3 flex items-center justify-between text-[10.5px] font-medium text-slate-400 transition-colors group-hover:text-slate-700">
-          <span>Ver detalhes</span>
+        <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-[10.5px] font-medium text-slate-400 transition-colors group-hover:text-slate-700">
+          <span>Investigar</span>
           <span aria-hidden>→</span>
         </div>
       )}
@@ -89,7 +176,7 @@ function KpiCard({
   );
 
   const baseCls =
-    "group relative block overflow-hidden rounded-xl border border-slate-200/80 bg-white px-5 py-4 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-all";
+    "group relative block overflow-hidden rounded-xl border border-slate-200/80 bg-white px-4 py-3.5 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-all";
 
   if (to) {
     return (
@@ -154,6 +241,7 @@ function EcommerceDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [period, setPeriod] = useState<PeriodKey>("30d");
 
   useEffect(() => {
     let cancelled = false;
@@ -310,73 +398,86 @@ function EcommerceDashboard() {
 
         {!loading && !error && summary && (
           <>
-            {/* Executive KPIs */}
-            <section className="space-y-2.5">
-              <div className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-slate-400">
-                Indicadores executivos
+            {/* Métricas — header + filtro de período */}
+            <section className="space-y-3">
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <div className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                    Métricas da operação
+                  </div>
+                  <div className="mt-0.5 text-[12px] text-slate-500">
+                    Período: <span className="font-medium text-slate-700">{PERIOD_LABEL[period]}</span>
+                    <span className="mx-1.5 text-slate-300">·</span>
+                    Comparativo histórico em formação
+                  </div>
+                </div>
+                <PeriodTabs value={period} onChange={setPeriod} />
               </div>
+
+              {/* Indicadores executivos */}
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <KpiCard
                   label="Faturamento total"
                   value={fmtBRL(summary.total_gross_revenue)}
+                  context="Receita acumulada no período"
                   tone="success"
                   emphasis
+                  trend={null}
                   to="/ecommerce/produtos"
                 />
                 <KpiCard
                   label="Vendas totais"
                   value={fmtInt(summary.total_sales_count)}
+                  context="Pedidos e vendas registrados"
                   tone="info"
                   emphasis
+                  trend={null}
                   to="/ecommerce/produtos"
                 />
                 <KpiCard
                   label="Contas conectadas"
                   value={fmtInt(summary.total_accounts)}
+                  context="Marketplaces integrados ao AC360"
                   tone="neutral"
                   emphasis
+                  trend={null}
                   to="/ecommerce/contas"
                 />
                 <KpiCard
                   label="Produtos ativos"
                   value={fmtInt(summary.total_products)}
+                  context="Anúncios em operação"
                   tone="neutral"
                   emphasis
+                  trend={null}
                   to="/ecommerce/produtos"
                 />
               </div>
-            </section>
 
-            {/* Attention KPIs */}
-            <section className="space-y-2.5">
-              <div className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-slate-400">
-                Indicadores de atenção
-              </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                <KpiCard
-                  label="Produtos travados"
-                  value={fmtInt(derived.stuck)}
-                  tone="critical"
-                  to="/ecommerce/produtos-travados"
-                />
-                <KpiCard
-                  label="Produtos sem venda"
-                  value={fmtInt(summary.products_visits_no_sales)}
-                  tone="attention"
-                  to="/ecommerce/produtos-travados"
-                  search={{ filter: "no_sales" }}
-                />
-                <KpiCard
-                  label="Produtos sem visita"
-                  value={fmtInt(summary.products_no_visits)}
-                  tone="info"
-                  to="/ecommerce/produtos-travados"
-                  search={{ filter: "no_visits" }}
-                />
+              {/* Performance de Ads */}
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
                 <KpiCard
                   label="Investimento Ads"
                   value={fmtBRL(summary.total_ads_investment)}
+                  context="Valor investido em campanhas"
                   tone="ads"
+                  trend={null}
+                  to="/ecommerce/ads"
+                />
+                <KpiCard
+                  label="Receita Ads"
+                  value={
+                    Number(summary.total_ads_investment ?? 0) > 0 &&
+                    Number(summary.avg_roas ?? 0) > 0
+                      ? fmtBRL(
+                          Number(summary.total_ads_investment) *
+                            Number(summary.avg_roas),
+                        )
+                      : "—"
+                  }
+                  context="Receita atribuída a campanhas"
+                  tone="ads"
+                  trend={null}
                   to="/ecommerce/ads"
                 />
                 <KpiCard
@@ -386,27 +487,65 @@ function EcommerceDashboard() {
                       ? `${fmtNum(summary.avg_roas, 2)}x`
                       : "—"
                   }
+                  context="Retorno médio sobre anúncios"
                   tone={Number(summary.avg_roas ?? 0) >= 1.5 ? "success" : "critical"}
+                  trend={null}
                   to="/ecommerce/ads"
+                />
+              </div>
+
+              {/* Indicadores de atenção */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                <KpiCard
+                  label="Produtos travados"
+                  value={fmtInt(derived.stuck)}
+                  context="Itens exigindo análise"
+                  tone="critical"
+                  trend={null}
+                  to="/ecommerce/produtos-travados"
+                />
+                <KpiCard
+                  label="Produtos sem venda"
+                  value={fmtInt(summary.products_visits_no_sales)}
+                  context="Recebem visitas, mas não convertem"
+                  tone="attention"
+                  trend={null}
+                  to="/ecommerce/produtos-travados"
+                  search={{ filter: "no_sales" }}
+                />
+                <KpiCard
+                  label="Produtos sem visita"
+                  value={fmtInt(summary.products_no_visits)}
+                  context="Produtos sem tráfego no período"
+                  tone="info"
+                  trend={null}
+                  to="/ecommerce/produtos-travados"
+                  search={{ filter: "no_visits" }}
                 />
                 <KpiCard
                   label="Alertas críticos"
                   value={fmtInt(derived.criticalAlerts)}
+                  context="Sinais que exigem ação imediata"
                   tone="critical"
+                  trend={null}
                   to="/ecommerce/prioridades"
                   search={{ priority: "critical" }}
                 />
                 <KpiCard
                   label="Tarefas pendentes"
                   value={fmtInt(summary.pending_tasks)}
+                  context="Ações aguardando execução"
                   tone="attention"
+                  trend={null}
                   to="/ecommerce/tarefas"
                   search={{ status: "pending" }}
                 />
                 <KpiCard
                   label="Insights abertos"
                   value={fmtInt(summary.open_insights)}
+                  context="Recomendações da IA para revisão"
                   tone="info"
+                  trend={null}
                   to="/ecommerce/consultor-ia"
                 />
               </div>

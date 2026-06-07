@@ -560,7 +560,7 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
   const xLabels: { i: number; label: string }[] = [];
   for (let i = 0; i < points; i++) {
     if (i % labelEvery === 0 || i === points - 1) {
-      xLabels.push({ i, label: `D${i + 1}` });
+      xLabels.push({ i, label: `Período ${i + 1}` });
     }
   }
 

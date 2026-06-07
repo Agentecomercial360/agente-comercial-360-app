@@ -398,73 +398,86 @@ function EcommerceDashboard() {
 
         {!loading && !error && summary && (
           <>
-            {/* Executive KPIs */}
-            <section className="space-y-2.5">
-              <div className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-slate-400">
-                Indicadores executivos
+            {/* Métricas — header + filtro de período */}
+            <section className="space-y-3">
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <div className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                    Métricas da operação
+                  </div>
+                  <div className="mt-0.5 text-[12px] text-slate-500">
+                    Período: <span className="font-medium text-slate-700">{PERIOD_LABEL[period]}</span>
+                    <span className="mx-1.5 text-slate-300">·</span>
+                    Comparativo histórico em formação
+                  </div>
+                </div>
+                <PeriodTabs value={period} onChange={setPeriod} />
               </div>
+
+              {/* Indicadores executivos */}
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <KpiCard
                   label="Faturamento total"
                   value={fmtBRL(summary.total_gross_revenue)}
+                  context="Receita acumulada no período"
                   tone="success"
                   emphasis
+                  trend={null}
                   to="/ecommerce/produtos"
                 />
                 <KpiCard
                   label="Vendas totais"
                   value={fmtInt(summary.total_sales_count)}
+                  context="Pedidos e vendas registrados"
                   tone="info"
                   emphasis
+                  trend={null}
                   to="/ecommerce/produtos"
                 />
                 <KpiCard
                   label="Contas conectadas"
                   value={fmtInt(summary.total_accounts)}
+                  context="Marketplaces integrados ao AC360"
                   tone="neutral"
                   emphasis
+                  trend={null}
                   to="/ecommerce/contas"
                 />
                 <KpiCard
                   label="Produtos ativos"
                   value={fmtInt(summary.total_products)}
+                  context="Anúncios em operação"
                   tone="neutral"
                   emphasis
+                  trend={null}
                   to="/ecommerce/produtos"
                 />
               </div>
-            </section>
 
-            {/* Attention KPIs */}
-            <section className="space-y-2.5">
-              <div className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-slate-400">
-                Indicadores de atenção
-              </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                <KpiCard
-                  label="Produtos travados"
-                  value={fmtInt(derived.stuck)}
-                  tone="critical"
-                  to="/ecommerce/produtos-travados"
-                />
-                <KpiCard
-                  label="Produtos sem venda"
-                  value={fmtInt(summary.products_visits_no_sales)}
-                  tone="attention"
-                  to="/ecommerce/produtos-travados"
-                  search={{ filter: "no_sales" }}
-                />
-                <KpiCard
-                  label="Produtos sem visita"
-                  value={fmtInt(summary.products_no_visits)}
-                  tone="info"
-                  to="/ecommerce/produtos-travados"
-                  search={{ filter: "no_visits" }}
-                />
+              {/* Performance de Ads */}
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
                 <KpiCard
                   label="Investimento Ads"
                   value={fmtBRL(summary.total_ads_investment)}
+                  context="Valor investido em campanhas"
                   tone="ads"
+                  trend={null}
+                  to="/ecommerce/ads"
+                />
+                <KpiCard
+                  label="Receita Ads"
+                  value={
+                    Number(summary.total_ads_investment ?? 0) > 0 &&
+                    Number(summary.avg_roas ?? 0) > 0
+                      ? fmtBRL(
+                          Number(summary.total_ads_investment) *
+                            Number(summary.avg_roas),
+                        )
+                      : "—"
+                  }
+                  context="Receita atribuída a campanhas"
+                  tone="ads"
+                  trend={null}
                   to="/ecommerce/ads"
                 />
                 <KpiCard
@@ -474,27 +487,65 @@ function EcommerceDashboard() {
                       ? `${fmtNum(summary.avg_roas, 2)}x`
                       : "—"
                   }
+                  context="Retorno médio sobre anúncios"
                   tone={Number(summary.avg_roas ?? 0) >= 1.5 ? "success" : "critical"}
+                  trend={null}
                   to="/ecommerce/ads"
+                />
+              </div>
+
+              {/* Indicadores de atenção */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                <KpiCard
+                  label="Produtos travados"
+                  value={fmtInt(derived.stuck)}
+                  context="Itens exigindo análise"
+                  tone="critical"
+                  trend={null}
+                  to="/ecommerce/produtos-travados"
+                />
+                <KpiCard
+                  label="Produtos sem venda"
+                  value={fmtInt(summary.products_visits_no_sales)}
+                  context="Recebem visitas, mas não convertem"
+                  tone="attention"
+                  trend={null}
+                  to="/ecommerce/produtos-travados"
+                  search={{ filter: "no_sales" }}
+                />
+                <KpiCard
+                  label="Produtos sem visita"
+                  value={fmtInt(summary.products_no_visits)}
+                  context="Produtos sem tráfego no período"
+                  tone="info"
+                  trend={null}
+                  to="/ecommerce/produtos-travados"
+                  search={{ filter: "no_visits" }}
                 />
                 <KpiCard
                   label="Alertas críticos"
                   value={fmtInt(derived.criticalAlerts)}
+                  context="Sinais que exigem ação imediata"
                   tone="critical"
+                  trend={null}
                   to="/ecommerce/prioridades"
                   search={{ priority: "critical" }}
                 />
                 <KpiCard
                   label="Tarefas pendentes"
                   value={fmtInt(summary.pending_tasks)}
+                  context="Ações aguardando execução"
                   tone="attention"
+                  trend={null}
                   to="/ecommerce/tarefas"
                   search={{ status: "pending" }}
                 />
                 <KpiCard
                   label="Insights abertos"
                   value={fmtInt(summary.open_insights)}
+                  context="Recomendações da IA para revisão"
                   tone="info"
+                  trend={null}
                   to="/ecommerce/consultor-ia"
                 />
               </div>

@@ -150,6 +150,15 @@ function AdminLoginPage() {
                   </div>
                 </div>
 
+                {errorMsg && (
+                  <div
+                    role="alert"
+                    className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-medium text-rose-700"
+                  >
+                    {errorMsg}
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   disabled={loading}

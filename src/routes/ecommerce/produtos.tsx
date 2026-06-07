@@ -44,50 +44,73 @@ const STATUS_LABEL: Record<string, string> = {
 
 const STATUS_TONE: Record<
   string,
-  { dot: string; chip: string; ring: string; accent: string }
+  { dot: string; chip: string; ring: string; accent: string; surface: string }
 > = {
   critical: {
     dot: "bg-rose-500",
     chip: "bg-rose-50 text-rose-700 ring-rose-200",
     ring: "ring-rose-100",
     accent: "before:bg-rose-400",
+    surface: "bg-[#FDFAFA]",
   },
   attention: {
     dot: "bg-amber-500",
     chip: "bg-amber-50 text-amber-700 ring-amber-200",
     ring: "ring-amber-100",
     accent: "before:bg-amber-400",
+    surface: "bg-[#FDFBF6]",
   },
   ads_wasting: {
     dot: "bg-rose-500",
     chip: "bg-rose-50 text-rose-700 ring-rose-200",
     ring: "ring-rose-100",
     accent: "before:bg-rose-400",
+    surface: "bg-[#FDFAFA]",
   },
   visits_no_sales: {
     dot: "bg-orange-500",
     chip: "bg-orange-50 text-orange-700 ring-orange-200",
     ring: "ring-orange-100",
     accent: "before:bg-orange-400",
+    surface: "bg-[#FEFBF7]",
   },
   no_traffic: {
     dot: "bg-sky-500",
     chip: "bg-sky-50 text-sky-700 ring-sky-200",
     ring: "ring-sky-100",
     accent: "before:bg-sky-400",
+    surface: "bg-[#F8FBFD]",
   },
   growth_opportunity: {
     dot: "bg-emerald-500",
     chip: "bg-emerald-50 text-emerald-700 ring-emerald-200",
     ring: "ring-emerald-100",
     accent: "before:bg-emerald-400",
+    surface: "bg-[#F8FCFA]",
   },
   normal: {
     dot: "bg-slate-400",
     chip: "bg-slate-50 text-slate-600 ring-slate-200",
     ring: "ring-slate-100",
     accent: "before:bg-slate-300",
+    surface: "bg-white",
   },
+};
+
+const STATUS_READING: Record<string, string> = {
+  critical:
+    "Produto exige atenção imediata por apresentar sinais críticos de performance.",
+  attention:
+    "Produto em atenção, com indicadores que precisam ser acompanhados.",
+  growth_opportunity:
+    "Produto com sinais positivos e oportunidade de crescimento.",
+  no_traffic:
+    "Produto com baixa exposição e necessidade de gerar tráfego.",
+  visits_no_sales:
+    "Produto recebe visitas, mas não converte em vendas.",
+  ads_wasting:
+    "Produto com investimento em Ads sem retorno proporcional.",
+  normal: "Produto com indicadores dentro do esperado.",
 };
 
 const MARKETPLACE_LABEL: Record<string, string> = {

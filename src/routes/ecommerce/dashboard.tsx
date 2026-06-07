@@ -245,14 +245,54 @@ const EVO_TABS: { k: EvoTab; label: string }[] = [
   { k: "roas_acos", label: "ROAS x ACOS" },
 ];
 
+type SeriesType = "bar" | "line";
 const EVO_TAB_SERIES: Record<
   EvoTab,
-  { aLabel: string; bLabel: string; aType: "bar" | "line"; bType: "bar" | "line" }
+  {
+    aLabel: string;
+    bLabel: string;
+    aType: SeriesType;
+    bType: SeriesType;
+    aColor: string;
+    bColor: string;
+  }
 > = {
-  rev_inv: { aLabel: "Receita", bLabel: "Investimento Ads", aType: "bar", bType: "line" },
-  sales_conv: { aLabel: "Vendas", bLabel: "Conversão (%)", aType: "bar", bType: "line" },
-  clicks_imp: { aLabel: "Cliques", bLabel: "Impressões", aType: "bar", bType: "bar" },
-  roas_acos: { aLabel: "ROAS", bLabel: "ACOS", aType: "line", bType: "line" },
+  // Receita (azul forte) x Investimento Ads (roxo)
+  rev_inv: {
+    aLabel: "Receita",
+    bLabel: "Investimento Ads",
+    aType: "bar",
+    bType: "line",
+    aColor: "#2563eb",
+    bColor: "#7c3aed",
+  },
+  // Vendas (verde) x Conversão (laranja)
+  sales_conv: {
+    aLabel: "Vendas",
+    bLabel: "Conversão (%)",
+    aType: "bar",
+    bType: "line",
+    aColor: "#16a34a",
+    bColor: "#f97316",
+  },
+  // Cliques (azul-ciano) x Impressões (cinza-azulado, em linha para diferenciar)
+  clicks_imp: {
+    aLabel: "Cliques",
+    bLabel: "Impressões",
+    aType: "bar",
+    bType: "line",
+    aColor: "#06b6d4",
+    bColor: "#64748b",
+  },
+  // ROAS (verde esmeralda) x ACOS (vermelho/rosa crítico)
+  roas_acos: {
+    aLabel: "ROAS",
+    bLabel: "ACOS",
+    aType: "line",
+    bType: "line",
+    aColor: "#059669",
+    bColor: "#e11d48",
+  },
 };
 
 const PERIOD_POINTS: Record<PeriodKey, number> = {
@@ -264,15 +304,15 @@ const PERIOD_POINTS: Record<PeriodKey, number> = {
 
 // Deterministic in-formation shapes (NOT real data). Used only to convey
 // the chart structure visually. Values are intentionally unitless and the
-// series are rendered at low opacity with a clear "em formação" note.
+// series are rendered with a clear "em formação" note.
 function makeFormationSeries(points: number, variant: EvoTab): [number[], number[]] {
   const seed = variant === "rev_inv" ? 11 : variant === "sales_conv" ? 23 : variant === "clicks_imp" ? 37 : 53;
   const a: number[] = [];
   const b: number[] = [];
   for (let i = 0; i < points; i++) {
     const t = i / Math.max(1, points - 1);
-    a.push(0.45 + 0.35 * Math.sin(seed * 0.13 + t * Math.PI * 1.6) + 0.12 * t);
-    b.push(0.32 + 0.28 * Math.cos(seed * 0.17 + t * Math.PI * 1.3) + 0.08 * t);
+    a.push(0.45 + 0.32 * Math.sin(seed * 0.13 + t * Math.PI * 1.6) + 0.14 * t);
+    b.push(0.32 + 0.26 * Math.cos(seed * 0.17 + t * Math.PI * 1.3) + 0.1 * t);
   }
   return [a, b];
 }
@@ -283,15 +323,14 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
   const cfg = EVO_TAB_SERIES[variant];
 
   const W = 820;
-  const H = 260;
-  const PAD_L = 36;
-  const PAD_R = 16;
-  const PAD_T = 16;
-  const PAD_B = 28;
+  const H = 280;
+  const PAD_L = 40;
+  const PAD_R = 18;
+  const PAD_T = 18;
+  const PAD_B = 30;
   const innerW = W - PAD_L - PAD_R;
   const innerH = H - PAD_T - PAD_B;
 
-  // X positions per index (center of slot)
   const slotW = innerW / points;
   const xCenter = (i: number) => PAD_L + slotW * (i + 0.5);
   const yOf = (v: number) => PAD_T + (1 - v) * innerH;
@@ -299,15 +338,22 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
   const ticks = 4;
   const gridYs = Array.from({ length: ticks + 1 }, (_, i) => PAD_T + (innerH / ticks) * i);
 
-  const colorA = "#2563eb"; // primary brand-ish
-  const colorB = "#7c3aed";
+  const colorA = cfg.aColor;
+  const colorB = cfg.bColor;
 
   const linePath = (arr: number[]) =>
     arr
       .map((v, i) => `${i === 0 ? "M" : "L"}${xCenter(i).toFixed(1)},${yOf(v).toFixed(1)}`)
       .join(" ");
 
-  // X-axis labels: show ~6 ticks
+  const areaPath = (arr: number[]) => {
+    const top = arr
+      .map((v, i) => `${i === 0 ? "M" : "L"}${xCenter(i).toFixed(1)},${yOf(v).toFixed(1)}`)
+      .join(" ");
+    const baseY = H - PAD_B;
+    return `${top} L${xCenter(arr.length - 1).toFixed(1)},${baseY} L${xCenter(0).toFixed(1)},${baseY} Z`;
+  };
+
   const labelEvery = Math.max(1, Math.round(points / 6));
   const xLabels: { i: number; label: string }[] = [];
   for (let i = 0; i < points; i++) {
@@ -316,60 +362,60 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
     }
   }
 
+  const uid = variant;
+
   return (
     <div className="relative">
       <svg
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
-        className="h-[260px] w-full"
+        className="h-[280px] w-full"
         role="img"
         aria-label="Estrutura do gráfico — histórico em formação"
       >
         <defs>
-          <linearGradient id={`evoBarA-${variant}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={colorA} stopOpacity="0.55" />
-            <stop offset="100%" stopColor={colorA} stopOpacity="0.18" />
+          <linearGradient id={`evoBarA-${uid}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={colorA} stopOpacity="0.95" />
+            <stop offset="100%" stopColor={colorA} stopOpacity="0.55" />
           </linearGradient>
-          <linearGradient id={`evoBarB-${variant}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={colorB} stopOpacity="0.5" />
-            <stop offset="100%" stopColor={colorB} stopOpacity="0.15" />
+          <linearGradient id={`evoBarB-${uid}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={colorB} stopOpacity="0.9" />
+            <stop offset="100%" stopColor={colorB} stopOpacity="0.5" />
+          </linearGradient>
+          <linearGradient id={`evoAreaA-${uid}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={colorA} stopOpacity="0.22" />
+            <stop offset="100%" stopColor={colorA} stopOpacity="0" />
+          </linearGradient>
+          <linearGradient id={`evoAreaB-${uid}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={colorB} stopOpacity="0.18" />
+            <stop offset="100%" stopColor={colorB} stopOpacity="0" />
           </linearGradient>
         </defs>
 
         {/* Y grid */}
         {gridYs.map((y, i) => (
-          <g key={i}>
-            <line
-              x1={PAD_L}
-              x2={W - PAD_R}
-              y1={y}
-              y2={y}
-              stroke="#eef2f7"
-              strokeWidth={1}
-            />
-            <text
-              x={PAD_L - 8}
-              y={y + 3}
-              textAnchor="end"
-              className="fill-slate-300"
-              style={{ fontSize: 9 }}
-            >
-              {/* axis ticks left blank to avoid implying real values */}
-              {"·"}
-            </text>
-          </g>
+          <line
+            key={i}
+            x1={PAD_L}
+            x2={W - PAD_R}
+            y1={y}
+            y2={y}
+            stroke="#eef2f7"
+            strokeWidth={1}
+            strokeDasharray={i === gridYs.length - 1 ? "0" : "3 4"}
+          />
         ))}
 
         {/* Axes */}
-        <line x1={PAD_L} x2={W - PAD_R} y1={H - PAD_B} y2={H - PAD_B} stroke="#e2e8f0" />
+        <line x1={PAD_L} x2={W - PAD_R} y1={H - PAD_B} y2={H - PAD_B} stroke="#cbd5e1" />
         <line x1={PAD_L} x2={PAD_L} y1={PAD_T} y2={H - PAD_B} stroke="#e2e8f0" />
 
         {/* Series A */}
         {cfg.aType === "bar" ? (
-          <g opacity={0.45}>
+          <g>
             {a.map((v, i) => {
-              const bw = Math.max(3, slotW * (cfg.bType === "bar" ? 0.35 : 0.55));
-              const x = xCenter(i) - (cfg.bType === "bar" ? bw + 1 : bw / 2);
+              const bw = Math.max(4, slotW * (cfg.bType === "bar" ? 0.36 : 0.58));
+              const x = xCenter(i) - (cfg.bType === "bar" ? bw + 1.5 : bw / 2);
               const y = yOf(v);
               const h = H - PAD_B - y;
               return (
@@ -379,22 +425,35 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
                   y={y}
                   width={bw}
                   height={Math.max(1, h)}
-                  fill={`url(#evoBarA-${variant})`}
-                  rx={2}
+                  fill={`url(#evoBarA-${uid})`}
+                  rx={3}
                 />
               );
             })}
           </g>
         ) : (
-          <path d={linePath(a)} fill="none" stroke={colorA} strokeWidth={1.75} opacity={0.5} />
+          <>
+            <path d={areaPath(a)} fill={`url(#evoAreaA-${uid})`} />
+            <path
+              d={linePath(a)}
+              fill="none"
+              stroke={colorA}
+              strokeWidth={2.25}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+            {a.map((v, i) => (
+              <circle key={i} cx={xCenter(i)} cy={yOf(v)} r={2.4} fill="#ffffff" stroke={colorA} strokeWidth={1.5} />
+            ))}
+          </>
         )}
 
         {/* Series B */}
         {cfg.bType === "bar" ? (
-          <g opacity={0.4}>
+          <g>
             {b.map((v, i) => {
-              const bw = Math.max(3, slotW * 0.35);
-              const x = xCenter(i) + 1;
+              const bw = Math.max(4, slotW * 0.36);
+              const x = xCenter(i) + 1.5;
               const y = yOf(v);
               const h = H - PAD_B - y;
               return (
@@ -404,21 +463,28 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
                   y={y}
                   width={bw}
                   height={Math.max(1, h)}
-                  fill={`url(#evoBarB-${variant})`}
-                  rx={2}
+                  fill={`url(#evoBarB-${uid})`}
+                  rx={3}
                 />
               );
             })}
           </g>
         ) : (
-          <path
-            d={linePath(b)}
-            fill="none"
-            stroke={colorB}
-            strokeWidth={1.5}
-            strokeDasharray={cfg.aType === "line" ? "0" : "4 4"}
-            opacity={0.5}
-          />
+          <>
+            {cfg.aType === "line" && <path d={areaPath(b)} fill={`url(#evoAreaB-${uid})`} />}
+            <path
+              d={linePath(b)}
+              fill="none"
+              stroke={colorB}
+              strokeWidth={2}
+              strokeDasharray={cfg.aType === "line" ? "0" : "5 4"}
+              strokeLinejoin="round"
+              strokeLinecap="round"
+            />
+            {b.map((v, i) => (
+              <circle key={i} cx={xCenter(i)} cy={yOf(v)} r={2.2} fill="#ffffff" stroke={colorB} strokeWidth={1.4} />
+            ))}
+          </>
         )}
 
         {/* X labels */}
@@ -426,10 +492,10 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
           <text
             key={i}
             x={xCenter(i)}
-            y={H - PAD_B + 16}
+            y={H - PAD_B + 18}
             textAnchor="middle"
-            className="fill-slate-400"
-            style={{ fontSize: 10 }}
+            className="fill-slate-500"
+            style={{ fontSize: 10.5, fontWeight: 500 }}
           >
             {label}
           </text>

@@ -249,7 +249,15 @@ function EcommerceDashboard() {
                   Resumo da IA
                 </div>
               </div>
-              <p className="mt-2 text-[13px] leading-relaxed text-slate-700">{aiText}</p>
+              {aiText ? (
+                <p className="mt-2 text-[13px] leading-relaxed text-slate-700">{aiText}</p>
+              ) : (
+                <div className="mt-3 space-y-1.5" aria-label="Carregando resumo">
+                  <div className="h-2.5 w-full animate-pulse rounded bg-slate-100" />
+                  <div className="h-2.5 w-11/12 animate-pulse rounded bg-slate-100" />
+                  <div className="h-2.5 w-2/3 animate-pulse rounded bg-slate-100" />
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -56,10 +56,35 @@ const formatMarketplace = (m: string | null | undefined) => {
   return MARKETPLACE_LABEL[k] ?? m;
 };
 
+const STATUS_LABEL: Record<string, string> = {
+  low_conversion: "Baixa conversão",
+  visits_no_sales: "Visitas sem venda",
+  no_visits: "Sem visitas",
+  no_sales: "Sem venda",
+  excess_stock: "Excesso de estoque",
+  stopped: "Estoque parado",
+  risk_of_stockout: "Risco de ruptura",
+  low_stock: "Estoque baixo",
+  high_tacos: "TACoS alto",
+  high_acos: "ACOS alto",
+  spending_no_sales: "Ads sem venda",
+  reduce_budget: "Reduzir orçamento",
+  scale: "Escalar",
+  growth: "Crescimento",
+  needs_review: "Precisa revisão",
+  normal: "Normal",
+  pause: "Pausar",
+  ok: "Normal",
+  healthy: "Normal",
+};
+
 const formatStatus = (s: string | null | undefined) => {
   if (!s) return "";
+  const k = s.toLowerCase().trim();
+  if (STATUS_LABEL[k]) return STATUS_LABEL[k];
   return s.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };
+
 
 const fmtBRL = (v: number | null | undefined) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(Number(v ?? 0));

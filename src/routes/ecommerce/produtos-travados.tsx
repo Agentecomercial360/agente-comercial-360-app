@@ -605,3 +605,192 @@ function Metric({ label, value, className }: { label: string; value: string; cla
     </div>
   );
 }
+
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 py-1.5 last:border-b-0">
+      <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</span>
+      <span className="text-right text-[12.5px] font-medium tabular-nums text-slate-800">{value}</span>
+    </div>
+  );
+}
+
+function DiagnosticSheet({ product, onClose }: { product: Stuck | null; onClose: () => void }) {
+  const open = !!product;
+  const p = product;
+  const tone = p ? classifyTone(p) : "muted";
+  const t = toneMap[tone];
+  return (
+    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent className="w-full overflow-y-auto p-0 sm:max-w-md">
+        {p && (
+          <div className="flex h-full flex-col">
+            <div className={`border-b border-slate-200 px-6 pb-5 pt-6 ${t.surface}`}>
+              <SheetHeader className="space-y-2 text-left">
+                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                  Diagnóstico do produto
+                </span>
+                <SheetTitle className="text-lg font-semibold tracking-tight text-slate-900">
+                  {p.product_name ?? "Produto sem nome"}
+                </SheetTitle>
+                <SheetDescription className="text-[12.5px] text-slate-600">
+                  {[p.sku && `SKU ${p.sku}`, p.account_name, formatMarketplace(p.marketplace)]
+                    .filter(Boolean)
+                    .join(" · ")}
+                </SheetDescription>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-semibold uppercase tracking-[0.08em] ${t.badge}`}>
+                    {PRIORITY_LABEL[(p.priority_level ?? "low").toLowerCase()] ?? p.priority_level}
+                  </span>
+                  {p.problem_label && (
+                    <span className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-semibold uppercase tracking-[0.08em] ${t.chip}`}>
+                      {formatStatus(p.problem_label)}
+                    </span>
+                  )}
+                </div>
+              </SheetHeader>
+            </div>
+
+            <div className="flex-1 space-y-6 px-6 py-5">
+              <section>
+                <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  Identificação
+                </h4>
+                <div className="rounded-lg border border-slate-200 bg-white px-3 py-1">
+                  <DetailRow label="Produto" value={p.product_name ?? "—"} />
+                  <DetailRow label="SKU" value={p.sku ?? "—"} />
+                  <DetailRow label="Conta" value={p.account_name ?? "—"} />
+                  <DetailRow label="Marketplace" value={formatMarketplace(p.marketplace)} />
+                  <DetailRow label="Problema" value={formatStatus(p.problem_label) || "—"} />
+                </div>
+              </section>
+
+              <section>
+                <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  Métricas
+                </h4>
+                <div className="rounded-lg border border-slate-200 bg-white px-3 py-1">
+                  <DetailRow label="Visitas" value={fmtInt(p.visits)} />
+                  <DetailRow label="Vendas" value={fmtInt(p.sales_count)} />
+                  <DetailRow label="Conversão" value={
+                    Number(p.visits ?? 0) > 0
+                      ? `${fmtNum((Number(p.sales_count ?? 0) / Number(p.visits)) * 100, 2)}%`
+                      : "—"
+                  } />
+                  <DetailRow label="Estoque" value={fmtInt(p.total_stock)} />
+                  <DetailRow label="Dias s/ venda" value={fmtInt(p.days_without_sale)} />
+                  <DetailRow label="Inv. Ads" value={fmtBRL(p.ads_investment)} />
+                  <DetailRow label="Rec. Ads" value={fmtBRL(p.ads_revenue)} />
+                  <DetailRow label="ROAS" value={fmtNum(p.roas, 2)} />
+                </div>
+              </section>
+
+              <section className={`rounded-lg border px-4 py-3 ${t.aiSurface}`}>
+                <p className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${t.aiTitle}`}>
+                  Sinal detectado
+                </p>
+                <p className="mt-1 text-[13px] leading-relaxed text-slate-700">{diagnoseSignal(p)}</p>
+              </section>
+
+              {(p.task_title || p.recommended_action || p.insight_title) && (
+                <section className={`rounded-lg border px-4 py-3 ${t.aiSurface}`}>
+                  <div className="flex items-start gap-2.5">
+                    <div className={`mt-0.5 shrink-0 rounded p-1 ${t.aiIcon}`}>
+                      <Zap className="h-3.5 w-3.5" strokeWidth={2.25} />
+                    </div>
+                    <div className="min-w-0 space-y-1.5">
+                      <p className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${t.aiTitle}`}>
+                        Ação recomendada
+                      </p>
+                      {p.task_title && (
+                        <p className="text-[13px] font-semibold leading-snug text-slate-900">{p.task_title}</p>
+                      )}
+                      {p.recommended_action && (
+                        <p className="text-[12.5px] leading-relaxed text-slate-700">{p.recommended_action}</p>
+                      )}
+                      {p.insight_title && (
+                        <p className="border-t border-slate-200 pt-2 text-[12px] italic leading-relaxed text-slate-500">
+                          {p.insight_title}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </section>
+              )}
+            </div>
+          </div>
+        )}
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function CreateTaskDialog({
+  product,
+  note,
+  setNote,
+  saved,
+  onConfirm,
+  onClose,
+}: {
+  product: Stuck | null;
+  note: string;
+  setNote: (v: string) => void;
+  saved: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  const open = !!product;
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-base font-semibold tracking-tight">Criar tarefa</DialogTitle>
+          <DialogDescription className="text-[12.5px] text-slate-500">
+            Pré-preenchida com a ação recomendada pela IA. (visualização)
+          </DialogDescription>
+        </DialogHeader>
+        {product && (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Produto</p>
+              <p className="mt-0.5 text-[13px] font-medium text-slate-900">{product.product_name ?? "—"}</p>
+              <p className="text-[11.5px] text-slate-500">
+                {[product.sku && `SKU ${product.sku}`, formatMarketplace(product.marketplace)].filter(Boolean).join(" · ")}
+              </p>
+            </div>
+            <div>
+              <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                Descrição da tarefa
+              </label>
+              <Textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={4}
+                disabled={saved}
+                className="text-[13px]"
+              />
+            </div>
+            {saved && (
+              <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12.5px] text-emerald-700">
+                <Check className="h-4 w-4" />
+                Tarefa preparada. Em breve será integrada ao módulo de Tarefas.
+              </div>
+            )}
+          </div>
+        )}
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>
+            <X className="h-4 w-4" />
+            Fechar
+          </Button>
+          <Button onClick={onConfirm} disabled={saved || !note.trim()}>
+            <Check className="h-4 w-4" />
+            Confirmar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+

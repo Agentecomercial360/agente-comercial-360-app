@@ -237,6 +237,21 @@ function PrioridadesEcommerce() {
           <p className="text-slate-500">Ações recomendadas pela IA com base no impacto financeiro estimado.</p>
         </div>
 
+        {priorityFilter === "critical" && (
+          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 text-xs text-slate-600">
+            <span>
+              Filtro aplicado:{" "}
+              <strong className="font-semibold text-slate-900">Prioridade crítica</strong>
+            </span>
+            <button
+              onClick={() => navigate({ to: "/ecommerce/prioridades", search: {} })}
+              className="font-medium text-slate-500 underline-offset-2 hover:text-slate-900 hover:underline"
+            >
+              Limpar filtro
+            </button>
+          </div>
+        )}
+
         {loading && (
           <div className="rounded-2xl border border-slate-200 bg-card p-6 text-sm text-slate-500">
             Carregando prioridades...

@@ -166,6 +166,13 @@ function TarefasEcommerce() {
     return { pending, inProgress, completed };
   }, [tasks]);
 
+  const filteredTasks = useMemo(() => {
+    if (statusFilter === "pending") {
+      return tasks.filter((t) => (t.status ?? "").toLowerCase() === "pending");
+    }
+    return tasks;
+  }, [tasks, statusFilter]);
+
   return (
     <EcommerceLayout>
       <div className="mx-auto max-w-7xl space-y-8">

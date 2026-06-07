@@ -417,7 +417,7 @@ function diagnoseSignal(p: Stuck): string {
   if (v > 0 && s === 0) return "Produto recebendo visitas, mas sem conversão em vendas.";
   if (v > 30 && s > 0 && s / v < 0.02) return "Tráfego presente, porém com conversão abaixo do esperado.";
   if (days >= 30) return `Estoque parado há ${days} dias sem nova venda.`;
-  return p.problem_label ?? "Sinal de baixa performance detectado.";
+  return formatStatus(p.problem_label) || "Sinal de baixa performance detectado.";
 }
 
 function StuckCard({ p }: { p: Stuck }) {

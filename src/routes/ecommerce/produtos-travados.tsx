@@ -10,6 +10,12 @@ import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/ecommerce/produtos-travados")({
   component: ProdutosTravados,
+  validateSearch: (s: Record<string, unknown>) => ({
+    filter:
+      s.filter === "no_sales" || s.filter === "no_visits"
+        ? (s.filter as "no_sales" | "no_visits")
+        : undefined,
+  }),
   head: () => ({
     meta: [{ title: "Produtos Travados | Agente Comercial 360" }],
   }),

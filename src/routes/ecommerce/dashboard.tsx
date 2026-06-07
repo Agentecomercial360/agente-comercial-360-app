@@ -323,11 +323,11 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
   const cfg = EVO_TAB_SERIES[variant];
 
   const W = 820;
-  const H = 280;
-  const PAD_L = 40;
-  const PAD_R = 18;
+  const H = 300;
+  const PAD_L = 48;
+  const PAD_R = 22;
   const PAD_T = 18;
-  const PAD_B = 30;
+  const PAD_B = 34;
   const innerW = W - PAD_L - PAD_R;
   const innerH = H - PAD_T - PAD_B;
 
@@ -336,7 +336,10 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
   const yOf = (v: number) => PAD_T + (1 - v) * innerH;
 
   const ticks = 4;
-  const gridYs = Array.from({ length: ticks + 1 }, (_, i) => PAD_T + (innerH / ticks) * i);
+  const gridYs = Array.from({ length: ticks + 1 }, (_, i) => ({
+    y: PAD_T + (innerH / ticks) * i,
+    pct: 1 - i / ticks,
+  }));
 
   const colorA = cfg.aColor;
   const colorB = cfg.bColor;
@@ -363,15 +366,34 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
   }
 
   const uid = variant;
+  const [hover, setHover] = useState<number | null>(null);
+  const svgRef = React.useRef<SVGSVGElement | null>(null);
+
+  const handleMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const svg = svgRef.current;
+    if (!svg) return;
+    const rect = svg.getBoundingClientRect();
+    const xRatio = (e.clientX - rect.left) / rect.width;
+    const xPx = xRatio * W;
+    if (xPx < PAD_L || xPx > W - PAD_R) {
+      setHover(null);
+      return;
+    }
+    const i = Math.min(points - 1, Math.max(0, Math.floor((xPx - PAD_L) / slotW)));
+    setHover(i);
+  };
 
   return (
     <div className="relative">
       <svg
+        ref={svgRef}
         viewBox={`0 0 ${W} ${H}`}
         preserveAspectRatio="none"
-        className="h-[280px] w-full"
+        className="h-[300px] w-full"
         role="img"
         aria-label="Estrutura do gráfico — histórico em formação"
+        onMouseMove={handleMove}
+        onMouseLeave={() => setHover(null)}
       >
         <defs>
           <linearGradient id={`evoBarA-${uid}`} x1="0" y1="0" x2="0" y2="1">
@@ -383,32 +405,56 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
             <stop offset="100%" stopColor={colorB} stopOpacity="0.5" />
           </linearGradient>
           <linearGradient id={`evoAreaA-${uid}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={colorA} stopOpacity="0.22" />
+            <stop offset="0%" stopColor={colorA} stopOpacity="0.18" />
             <stop offset="100%" stopColor={colorA} stopOpacity="0" />
           </linearGradient>
           <linearGradient id={`evoAreaB-${uid}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={colorB} stopOpacity="0.18" />
+            <stop offset="0%" stopColor={colorB} stopOpacity="0.14" />
             <stop offset="100%" stopColor={colorB} stopOpacity="0" />
           </linearGradient>
         </defs>
 
-        {/* Y grid */}
-        {gridYs.map((y, i) => (
-          <line
-            key={i}
-            x1={PAD_L}
-            x2={W - PAD_R}
-            y1={y}
-            y2={y}
-            stroke="#eef2f7"
-            strokeWidth={1}
-            strokeDasharray={i === gridYs.length - 1 ? "0" : "3 4"}
-          />
+        {/* Y grid + tick labels */}
+        {gridYs.map(({ y, pct }, i) => (
+          <g key={i}>
+            <line
+              x1={PAD_L}
+              x2={W - PAD_R}
+              y1={y}
+              y2={y}
+              stroke="#eef2f7"
+              strokeWidth={1}
+              strokeDasharray={i === gridYs.length - 1 ? "0" : "2 5"}
+            />
+            <text
+              x={PAD_L - 8}
+              y={y + 3.5}
+              textAnchor="end"
+              className="fill-slate-400"
+              style={{ fontSize: 10, fontWeight: 500, letterSpacing: 0.2 }}
+            >
+              {Math.round(pct * 100)}
+            </text>
+          </g>
         ))}
 
         {/* Axes */}
-        <line x1={PAD_L} x2={W - PAD_R} y1={H - PAD_B} y2={H - PAD_B} stroke="#cbd5e1" />
+        <line x1={PAD_L} x2={W - PAD_R} y1={H - PAD_B} y2={H - PAD_B} stroke="#cbd5e1" strokeWidth={1} />
         <line x1={PAD_L} x2={PAD_L} y1={PAD_T} y2={H - PAD_B} stroke="#e2e8f0" />
+
+        {/* Hover guide */}
+        {hover !== null && (
+          <line
+            x1={xCenter(hover)}
+            x2={xCenter(hover)}
+            y1={PAD_T}
+            y2={H - PAD_B}
+            stroke="#94a3b8"
+            strokeDasharray="3 3"
+            strokeWidth={1}
+            opacity={0.7}
+          />
+        )}
 
         {/* Series A */}
         {cfg.aType === "bar" ? (
@@ -427,6 +473,7 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
                   height={Math.max(1, h)}
                   fill={`url(#evoBarA-${uid})`}
                   rx={3}
+                  opacity={hover === null || hover === i ? 1 : 0.45}
                 />
               );
             })}
@@ -443,7 +490,15 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
               strokeLinecap="round"
             />
             {a.map((v, i) => (
-              <circle key={i} cx={xCenter(i)} cy={yOf(v)} r={2.4} fill="#ffffff" stroke={colorA} strokeWidth={1.5} />
+              <circle
+                key={i}
+                cx={xCenter(i)}
+                cy={yOf(v)}
+                r={hover === i ? 4 : 2.4}
+                fill="#ffffff"
+                stroke={colorA}
+                strokeWidth={hover === i ? 2 : 1.5}
+              />
             ))}
           </>
         )}
@@ -465,6 +520,7 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
                   height={Math.max(1, h)}
                   fill={`url(#evoBarB-${uid})`}
                   rx={3}
+                  opacity={hover === null || hover === i ? 1 : 0.45}
                 />
               );
             })}
@@ -482,7 +538,15 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
               strokeLinecap="round"
             />
             {b.map((v, i) => (
-              <circle key={i} cx={xCenter(i)} cy={yOf(v)} r={2.2} fill="#ffffff" stroke={colorB} strokeWidth={1.4} />
+              <circle
+                key={i}
+                cx={xCenter(i)}
+                cy={yOf(v)}
+                r={hover === i ? 3.8 : 2.2}
+                fill="#ffffff"
+                stroke={colorB}
+                strokeWidth={hover === i ? 1.8 : 1.4}
+              />
             ))}
           </>
         )}
@@ -492,15 +556,64 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
           <text
             key={i}
             x={xCenter(i)}
-            y={H - PAD_B + 18}
+            y={H - PAD_B + 20}
             textAnchor="middle"
             className="fill-slate-500"
-            style={{ fontSize: 10.5, fontWeight: 500 }}
+            style={{ fontSize: 10.5, fontWeight: 500, letterSpacing: 0.2 }}
           >
             {label}
           </text>
         ))}
       </svg>
+
+      {/* Tooltip */}
+      {hover !== null && (() => {
+        const svg = svgRef.current;
+        const rect = svg?.getBoundingClientRect();
+        if (!rect) return null;
+        const leftPct = (xCenter(hover) / W) * 100;
+        const flip = leftPct > 70;
+        return (
+          <div
+            className="pointer-events-none absolute top-2 z-10 min-w-[150px] rounded-lg border border-slate-200/90 bg-white/95 px-2.5 py-2 text-[11px] shadow-[0_8px_24px_-12px_rgba(15,23,42,0.25)] backdrop-blur"
+            style={{
+              left: flip ? undefined : `calc(${leftPct}% + 10px)`,
+              right: flip ? `calc(${100 - leftPct}% + 10px)` : undefined,
+            }}
+          >
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-1.5">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+                Dia {hover + 1}
+              </span>
+              <span className="text-[9.5px] font-medium uppercase tracking-[0.08em] text-amber-600">
+                em formação
+              </span>
+            </div>
+            <div className="mt-1.5 space-y-1">
+              <div className="flex items-center justify-between gap-3">
+                <span className="inline-flex items-center gap-1.5 text-slate-600">
+                  <span
+                    className="h-2 w-2 rounded-[2px]"
+                    style={{ background: colorA }}
+                  />
+                  {cfg.aLabel}
+                </span>
+                <span className="font-mono text-slate-400">—</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="inline-flex items-center gap-1.5 text-slate-600">
+                  <span
+                    className="h-2 w-2 rounded-[2px]"
+                    style={{ background: colorB }}
+                  />
+                  {cfg.bLabel}
+                </span>
+                <span className="font-mono text-slate-400">—</span>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -551,89 +664,127 @@ function EvolutionSection({
           </div>
           <div className="flex items-center gap-2 self-start">
             <PeriodTabs value={period} onChange={onPeriodChange} />
-            <span className="inline-flex h-fit items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10.5px] font-medium text-slate-600">
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
-              Aguardando histórico
+            <span className="inline-flex h-fit items-center gap-1.5 rounded-md border border-amber-200/80 bg-amber-50 px-2 py-1 text-[10.5px] font-medium text-amber-700">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-60" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-amber-500" />
+              </span>
+              Histórico em formação
             </span>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="mt-4 -mx-1 flex flex-wrap items-center gap-1 border-b border-slate-100 pb-0">
+        {/* Tabs — BI chip style */}
+        <div className="mt-4 flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-200/70 bg-slate-50/70 p-1">
           {EVO_TABS.map((t) => {
             const active = t.k === tab;
+            const cfgT = EVO_TAB_SERIES[t.k];
             return (
               <button
                 key={t.k}
                 type="button"
                 onClick={() => setTab(t.k)}
-                className={`relative px-3 py-2 text-[12px] font-medium transition-colors ${
-                  active ? "text-slate-900" : "text-slate-500 hover:text-slate-800"
+                className={`inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-[12px] font-medium transition-all ${
+                  active
+                    ? "bg-white text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.08),0_0_0_1px_rgba(15,23,42,0.05)]"
+                    : "text-slate-500 hover:text-slate-800"
                 }`}
               >
+                <span className="flex items-center -space-x-0.5">
+                  <span
+                    className="h-2 w-2 rounded-full ring-2 ring-white"
+                    style={{ background: cfgT.aColor }}
+                  />
+                  <span
+                    className="h-2 w-2 rounded-full ring-2 ring-white"
+                    style={{ background: cfgT.bColor }}
+                  />
+                </span>
                 {t.label}
-                <span
-                  className={`absolute inset-x-2 -bottom-px h-[2px] rounded-full transition-all ${
-                    active ? "bg-slate-900" : "bg-transparent"
-                  }`}
-                />
               </button>
             );
           })}
         </div>
 
-        {/* Informative note above chart (replaces central overlay) */}
-        <p className="mt-3 text-[11.5px] text-slate-500">
-          Os gráficos comparativos serão preenchidos conforme novas sincronizações forem
-          registradas. A estrutura abaixo mostra como a leitura será apresentada.
-        </p>
-
         {/* Chart + side panel */}
-        <div className="mt-3 grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px]">
-          <div className="rounded-xl border border-slate-100 bg-gradient-to-b from-white to-slate-50/40 p-3">
-            <FormationChart variant={tab} period={period} />
-            <div className="mt-2 flex flex-wrap items-center gap-x-5 gap-y-1.5 px-1 text-[11.5px] text-slate-600">
-              <span className="inline-flex items-center gap-1.5 font-medium">
-                <span
-                  className={series.aType === "bar" ? "h-2.5 w-2.5 rounded-[2px]" : "h-[3px] w-4 rounded-full"}
-                  style={{ background: series.aColor }}
-                />
-                {series.aLabel}
-              </span>
-              <span className="inline-flex items-center gap-1.5 font-medium">
-                <span
-                  className={series.bType === "bar" ? "h-2.5 w-2.5 rounded-[2px]" : "h-[3px] w-4 rounded-full"}
-                  style={{ background: series.bColor }}
-                />
-                {series.bLabel}
-              </span>
-              <span className="ml-auto text-[10.5px] uppercase tracking-[0.08em] text-slate-400">
-                {PERIOD_LABEL[period]} · em formação
+        <div className="mt-4 grid grid-cols-1 gap-5 lg:grid-cols-[1fr_300px]">
+          <div className="rounded-xl border border-slate-200/70 bg-white p-3">
+            {/* Legend top — BI style with metric chips */}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 px-1 pb-2.5">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11.5px]">
+                <span className="inline-flex items-center gap-1.5 font-medium text-slate-700">
+                  <span
+                    className={series.aType === "bar" ? "h-2.5 w-2.5 rounded-[2px]" : "h-[3px] w-5 rounded-full"}
+                    style={{ background: series.aColor }}
+                  />
+                  {series.aLabel}
+                </span>
+                <span className="inline-flex items-center gap-1.5 font-medium text-slate-700">
+                  <span
+                    className={series.bType === "bar" ? "h-2.5 w-2.5 rounded-[2px]" : "h-[3px] w-5 rounded-full"}
+                    style={{ background: series.bColor }}
+                  />
+                  {series.bLabel}
+                </span>
+              </div>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-400">
+                {PERIOD_LABEL[period]} · escala relativa
               </span>
             </div>
+            <FormationChart variant={tab} period={period} />
+            <p className="mt-1 px-1 text-[11px] leading-relaxed text-slate-500">
+              A estrutura acima reflete como a comparação será exibida. Os valores serão
+              preenchidos conforme novas sincronizações forem registradas.
+            </p>
           </div>
 
 
           {/* Leitura do período */}
-          <aside className="flex flex-col gap-3 rounded-xl border border-slate-200/80 bg-slate-50/40 p-4">
+          <aside className="flex flex-col gap-3.5 rounded-xl border border-slate-200/80 bg-gradient-to-b from-slate-50/60 to-white p-4">
             <div>
-              <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
-                Leitura do período
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+                  Leitura do período
+                </div>
+                <span className="text-[9.5px] font-medium uppercase tracking-[0.1em] text-slate-400">
+                  {PERIOD_LABEL[period]}
+                </span>
               </div>
-              <p className="mt-2 text-[12.5px] leading-relaxed text-slate-700">
+              <p className="mt-2 text-[12px] leading-relaxed text-slate-600">
                 {readingText}
               </p>
             </div>
+
+            {/* Hero stat */}
+            <div className="rounded-lg border border-slate-200/80 bg-white px-3 py-2.5 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+              <div className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">
+                Receita do período
+              </div>
+              <div className="mt-0.5 text-[20px] font-semibold leading-none tracking-tight text-slate-900 tabular-nums">
+                {fmtBRL(revenue)}
+              </div>
+              <div className="mt-1.5 inline-flex items-center gap-1.5 text-[10.5px] font-medium text-slate-500">
+                <span className="h-1 w-1 rounded-full bg-blue-500" />
+                Faturamento bruto consolidado
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-2">
-              <MiniStat label="Receita" value={fmtBRL(revenue)} />
-              <MiniStat label="Investimento" value={fmtBRL(invest)} />
-              <MiniStat label="Vendas" value={fmtInt(sales)} />
+              <MiniStat label="Investimento" value={fmtBRL(invest)} dotColor="#7c3aed" />
+              <MiniStat label="Vendas" value={fmtInt(sales)} dotColor="#16a34a" />
               <MiniStat
                 label="ROAS médio"
                 value={roas > 0 ? `${fmtNum(roas, 2)}x` : "—"}
+                dotColor="#059669"
+              />
+              <MiniStat
+                label="Ticket médio"
+                value={sales > 0 ? fmtBRL(revenue / sales) : "—"}
+                dotColor="#2563eb"
               />
             </div>
-            <div className="rounded-lg border border-blue-100 bg-blue-50/60 p-3">
+
+            <div className="rounded-lg border border-blue-100 bg-blue-50/50 p-3">
               <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-blue-700">
                 <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                 Leitura da IA
@@ -651,10 +802,10 @@ function EvolutionSection({
 
         {/* Leitura analítica */}
         <div className="mt-5 border-t border-slate-100 pt-4">
-          <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
             Leitura analítica
           </div>
-          <div className="mt-2 grid grid-cols-1 gap-2.5 md:grid-cols-3">
+          <div className="mt-2.5 grid grid-cols-1 gap-2.5 md:grid-cols-3">
             <AnalyticalBlock
               tone="success"
               title="Eficiência"
@@ -689,11 +840,16 @@ function EvolutionSection({
   );
 }
 
-function MiniStat({ label, value }: { label: string; value: React.ReactNode }) {
+function MiniStat({ label, value, dotColor }: { label: string; value: React.ReactNode; dotColor?: string }) {
   return (
     <div className="rounded-lg border border-slate-200/80 bg-white px-3 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
-      <div className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">
-        {label}
+      <div className="flex items-center gap-1.5">
+        {dotColor && (
+          <span className="h-1.5 w-1.5 rounded-full" style={{ background: dotColor }} />
+        )}
+        <div className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">
+          {label}
+        </div>
       </div>
       <div className="mt-1 text-[15px] font-semibold tabular-nums leading-tight text-slate-900">
         {value}
@@ -713,13 +869,30 @@ function AnalyticalBlock({
   text: string;
 }) {
   const toneCfg = {
-    success: { dot: "bg-emerald-500", label: "text-emerald-700", ring: "border-emerald-100 bg-emerald-50/40" },
-    info: { dot: "bg-blue-500", label: "text-blue-700", ring: "border-blue-100 bg-blue-50/40" },
-    warning: { dot: "bg-amber-500", label: "text-amber-700", ring: "border-amber-100 bg-amber-50/40" },
+    success: {
+      dot: "bg-emerald-500",
+      label: "text-emerald-700",
+      ring: "border-emerald-200/70 bg-gradient-to-br from-emerald-50/70 to-white",
+      accent: "before:bg-emerald-500",
+    },
+    info: {
+      dot: "bg-blue-500",
+      label: "text-blue-700",
+      ring: "border-blue-200/70 bg-gradient-to-br from-blue-50/70 to-white",
+      accent: "before:bg-blue-500",
+    },
+    warning: {
+      dot: "bg-amber-500",
+      label: "text-amber-700",
+      ring: "border-amber-200/70 bg-gradient-to-br from-amber-50/70 to-white",
+      accent: "before:bg-amber-500",
+    },
   }[tone];
   return (
-    <div className={`rounded-lg border ${toneCfg.ring} p-3`}>
-      <div className={`flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] ${toneCfg.label}`}>
+    <div
+      className={`relative overflow-hidden rounded-lg border ${toneCfg.ring} p-3 pl-3.5 shadow-[0_1px_0_rgba(15,23,42,0.03)] before:absolute before:inset-y-0 before:left-0 before:w-[3px] ${toneCfg.accent}`}
+    >
+      <div className={`flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${toneCfg.label}`}>
         <span className={`h-1.5 w-1.5 rounded-full ${toneCfg.dot}`} />
         {title}
       </div>

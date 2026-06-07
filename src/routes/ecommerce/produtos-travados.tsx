@@ -173,6 +173,10 @@ function ProdutosTravados() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [items, setItems] = useState<Stuck[]>([]);
+  const [selected, setSelected] = useState<Stuck | null>(null);
+  const [taskTarget, setTaskTarget] = useState<Stuck | null>(null);
+  const [taskNote, setTaskNote] = useState("");
+  const [taskSaved, setTaskSaved] = useState(false);
 
   useEffect(() => {
     let cancelled = false;

@@ -41,7 +41,22 @@ const navGroups = [
 ] as const;
 
 export function EcommerceLayout({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = useCallback(async () => {
+    if (signingOut) return;
+    setSigningOut(true);
+    try {
+      await supabase.auth.signOut();
+      navigate({ to: "/ecommerce/login" });
+    } catch {
+      toast.error("Não foi possível encerrar a sessão. Tente novamente.");
+      setSigningOut(false);
+    }
+  }, [navigate, signingOut]);
+
   const [today, setToday] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);

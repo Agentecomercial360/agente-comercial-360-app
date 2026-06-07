@@ -18,6 +18,7 @@ import {
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import acLogo from "@/assets/ac-logo.png";
+import { useModuleGuard } from "@/lib/use-module-guard";
 
 const navGroups = [
   {

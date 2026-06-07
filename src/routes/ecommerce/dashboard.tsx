@@ -185,9 +185,11 @@ function KpiCard({
   impact,
   tone = "neutral",
   emphasis = false,
+  compact = false,
   trend,
   to,
   search,
+  cta,
 }: {
   label: string;
   value: React.ReactNode;
@@ -195,11 +197,20 @@ function KpiCard({
   impact?: string;
   tone?: Tone;
   emphasis?: boolean;
+  compact?: boolean;
   trend?: Trend | null;
   to?: string;
   search?: Record<string, string>;
+  cta?: string;
 }) {
   const t = TONE[tone];
+  const valueSize = compact
+    ? "text-[20px]"
+    : emphasis
+      ? "text-[26px]"
+      : "text-[22px]";
+  const padCls = compact ? "px-3.5 pt-3 pb-2.5" : "px-4 pt-3.5 pb-3";
+
   const inner = (
     <>
       <span
@@ -217,18 +228,20 @@ function KpiCard({
       </div>
 
       <div
-        className={`mt-2.5 ${emphasis ? "text-[26px]" : "text-[22px]"} font-semibold leading-none tabular-nums tracking-tight ${t.value} whitespace-nowrap`}
+        className={`mt-2.5 ${valueSize} font-semibold leading-none tabular-nums tracking-tight ${t.value} whitespace-nowrap`}
       >
         {value}
       </div>
 
       {context && (
-        <div className="mt-2.5 text-[11.5px] leading-snug text-slate-600">
+        <div
+          className={`${compact ? "mt-2 text-[11px]" : "mt-2.5 text-[11.5px]"} leading-snug text-slate-600`}
+        >
           {context}
         </div>
       )}
 
-      {impact && (
+      {impact && !compact && (
         <div className="mt-1 flex items-start gap-1.5 text-[11px] leading-snug text-slate-400">
           <span
             className={`mt-[5px] h-[3px] w-[3px] flex-none rounded-full ${t.dot}`}
@@ -239,16 +252,17 @@ function KpiCard({
       )}
 
       {to && (
-        <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-slate-400 transition-colors group-hover:text-slate-800">
-          <span>Investigar</span>
+        <div
+          className={`${compact ? "mt-2.5 pt-2" : "mt-3 pt-2.5"} flex items-center justify-between border-t border-slate-100 text-[11px] font-medium tracking-tight text-slate-500 transition-colors group-hover:text-slate-900`}
+        >
+          <span>{cta ?? "Investigar"}</span>
           <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
         </div>
       )}
     </>
   );
 
-  const baseCls =
-    "group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white px-4 pt-3.5 pb-3 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-all";
+  const baseCls = `group relative flex h-full flex-col overflow-hidden rounded-xl border border-slate-200/80 bg-white ${padCls} shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-all`;
 
   if (to) {
     return (
@@ -380,9 +394,9 @@ function KpiHero({
         </div>
       )}
       {to && (
-        <div className="relative mt-auto flex items-center justify-between border-t border-slate-100 pt-2.5 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-slate-400 transition-colors group-hover:text-slate-800">
-          <span>Investigar receita</span>
-          <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+        <div className="relative mt-auto flex items-center justify-between border-t border-slate-100 pt-2.5 text-[11px] font-medium tracking-tight text-slate-500 transition-colors group-hover:text-slate-900">
+          <span>Investigar receita →</span>
+          <span aria-hidden className="transition-transform group-hover:translate-x-0.5">↗</span>
         </div>
       )}
     </>
@@ -1278,7 +1292,7 @@ function EcommerceDashboard() {
                     <KpiHero
                       label="Faturamento total"
                       value={fmtBRL(summary.total_gross_revenue)}
-                      context="Receita bruta acumulada no período analisado."
+                      context="Receita bruta consolidada de todos os canais no período."
                       to="/ecommerce/produtos"
                       subStats={[
                         {
@@ -1303,22 +1317,20 @@ function EcommerceDashboard() {
                   <KpiCard
                     label="Contas conectadas"
                     value={fmtInt(summary.total_accounts)}
-                    context="Marketplaces integrados ao AC360."
-                    impact="Base de canais monitorados."
+                    context="Marketplaces ativos na operação."
                     tone="info"
-                    emphasis
                     trend={null}
                     to="/ecommerce/contas"
+                    cta="Ver contas conectadas →"
                   />
                   <KpiCard
                     label="Produtos ativos"
                     value={fmtInt(summary.total_products)}
-                    context="Produtos e anúncios em operação."
-                    impact="Base atual de itens analisados."
+                    context="Catálogo monitorado pelo AC360."
                     tone="neutral"
-                    emphasis
                     trend={null}
                     to="/ecommerce/produtos"
+                    cta="Analisar produtos →"
                   />
                 </div>
               </div>
@@ -1336,12 +1348,12 @@ function EcommerceDashboard() {
                   <KpiCard
                     label="Investimento Ads"
                     value={fmtBRL(summary.total_ads_investment)}
-                    context="Valor investido em campanhas."
-                    impact="Deve ser acompanhado junto com o retorno."
+                    context="Total aplicado em mídia paga."
                     tone="ads"
                     emphasis
                     trend={null}
                     to="/ecommerce/ads"
+                    cta="Ver campanhas →"
                   />
                   <KpiCard
                     label="Receita Ads"
@@ -1355,11 +1367,12 @@ function EcommerceDashboard() {
                         : "—"
                     }
                     context="Receita atribuída às campanhas."
-                    impact="Mostra quanto os anúncios estão retornando."
+                    impact="Quanto os anúncios retornam em vendas."
                     tone="ads"
                     emphasis
                     trend={null}
                     to="/ecommerce/ads"
+                    cta="Ver receita de Ads →"
                   />
                   <KpiCard
                     label="ROAS médio"
@@ -1368,12 +1381,17 @@ function EcommerceDashboard() {
                         ? `${fmtNum(summary.avg_roas, 2)}x`
                         : "—"
                     }
-                    context="Retorno médio sobre o investimento em anúncios."
-                    impact="Ajuda a medir a eficiência das campanhas."
+                    context="Retorno por real investido em mídia."
+                    impact={
+                      Number(summary.avg_roas ?? 0) >= 1.5
+                        ? "Eficiência saudável."
+                        : "Abaixo do mínimo recomendado."
+                    }
                     tone={Number(summary.avg_roas ?? 0) >= 1.5 ? "success" : "critical"}
                     emphasis
                     trend={null}
                     to="/ecommerce/ads"
+                    cta="Analisar eficiência →"
                   />
                 </div>
               </div>
@@ -1390,60 +1408,66 @@ function EcommerceDashboard() {
                   <KpiCard
                     label="Produtos travados"
                     value={fmtInt(derived.stuck)}
-                    context="Itens exigindo análise por baixo desempenho."
-                    impact="Podem estar segurando faturamento."
+                    context="Baixo desempenho. Podem segurar receita."
                     tone="critical"
+                    compact
                     trend={null}
                     to="/ecommerce/produtos-travados"
+                    cta="Destravar agora →"
                   />
                   <KpiCard
-                    label="Produtos sem venda"
+                    label="Sem venda"
                     value={fmtInt(summary.products_visits_no_sales)}
-                    context="Produtos que não venderam no período."
-                    impact="Exigem revisão de oferta, preço ou anúncio."
+                    context="Tem visita, mas não converte."
                     tone="attention"
+                    compact
                     trend={null}
                     to="/ecommerce/produtos-travados"
                     search={{ filter: "no_sales" }}
+                    cta="Revisar oferta →"
                   />
                   <KpiCard
-                    label="Produtos sem visita"
+                    label="Sem visita"
                     value={fmtInt(summary.products_no_visits)}
-                    context="Produtos sem tráfego relevante."
-                    impact="Podem precisar de exposição, categoria ou campanha."
+                    context="Sem tráfego relevante no período."
                     tone="info"
+                    compact
                     trend={null}
                     to="/ecommerce/produtos-travados"
                     search={{ filter: "no_visits" }}
+                    cta="Gerar exposição →"
                   />
                   <KpiCard
                     label="Alertas críticos"
                     value={fmtInt(derived.criticalAlerts)}
                     context="Sinais que exigem ação imediata."
-                    impact="Prioridade para evitar perda de receita."
                     tone="critical"
+                    compact
                     trend={null}
                     to="/ecommerce/prioridades"
                     search={{ priority: "critical" }}
+                    cta="Ver alertas →"
                   />
                   <KpiCard
                     label="Tarefas pendentes"
                     value={fmtInt(summary.pending_tasks)}
                     context="Ações aguardando execução."
-                    impact="Quanto mais atrasar, maior o risco operacional."
                     tone="attention"
+                    compact
                     trend={null}
                     to="/ecommerce/tarefas"
                     search={{ status: "pending" }}
+                    cta="Revisar tarefas →"
                   />
                   <KpiCard
                     label="Insights abertos"
                     value={fmtInt(summary.open_insights)}
-                    context="Recomendações da IA ainda não tratadas."
-                    impact="Podem virar ações comerciais ou operacionais."
+                    context="Recomendações da IA não tratadas."
                     tone="info"
+                    compact
                     trend={null}
                     to="/ecommerce/consultor-ia"
+                    cta="Explorar insights →"
                   />
                 </div>
               </div>

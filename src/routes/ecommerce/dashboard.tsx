@@ -45,43 +45,130 @@ type Tone = "neutral" | "info" | "success" | "attention" | "critical" | "ads";
 
 const TONE: Record<Tone, { accent: string; dot: string; value: string }> = {
   neutral: { accent: "bg-slate-300", dot: "bg-slate-400", value: "text-slate-900" },
-  info: { accent: "bg-sky-400", dot: "bg-sky-500", value: "text-slate-900" },
-  success: { accent: "bg-emerald-400", dot: "bg-emerald-500", value: "text-slate-900" },
-  attention: { accent: "bg-amber-400", dot: "bg-amber-500", value: "text-slate-900" },
-  critical: { accent: "bg-rose-400", dot: "bg-rose-500", value: "text-rose-700" },
-  ads: { accent: "bg-violet-400", dot: "bg-violet-500", value: "text-slate-900" },
+  info: { accent: "bg-sky-500", dot: "bg-sky-500", value: "text-slate-900" },
+  success: { accent: "bg-emerald-500", dot: "bg-emerald-500", value: "text-slate-900" },
+  attention: { accent: "bg-amber-500", dot: "bg-amber-500", value: "text-slate-900" },
+  critical: { accent: "bg-rose-500", dot: "bg-rose-500", value: "text-rose-700" },
+  ads: { accent: "bg-violet-500", dot: "bg-violet-500", value: "text-slate-900" },
 };
+
+type PeriodKey = "7d" | "15d" | "30d" | "mtd";
+const PERIOD_LABEL: Record<PeriodKey, string> = {
+  "7d": "Últimos 7 dias",
+  "15d": "Últimos 15 dias",
+  "30d": "Últimos 30 dias",
+  mtd: "Este mês",
+};
+
+function PeriodTabs({
+  value,
+  onChange,
+}: {
+  value: PeriodKey;
+  onChange: (p: PeriodKey) => void;
+}) {
+  const opts: { k: PeriodKey; label: string }[] = [
+    { k: "7d", label: "7 dias" },
+    { k: "15d", label: "15 dias" },
+    { k: "30d", label: "30 dias" },
+    { k: "mtd", label: "Este mês" },
+  ];
+  return (
+    <div className="inline-flex items-center rounded-lg border border-slate-200/80 bg-white p-0.5 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+      {opts.map((o) => {
+        const active = o.k === value;
+        return (
+          <button
+            key={o.k}
+            type="button"
+            onClick={() => onChange(o.k)}
+            className={`rounded-md px-2.5 py-1 text-[11.5px] font-medium tabular-nums transition-colors ${
+              active
+                ? "bg-slate-900 text-white"
+                : "text-slate-500 hover:text-slate-900"
+            }`}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+type Trend = { dir: "up" | "down" | "flat"; pct?: number; positiveIsGood?: boolean };
+
+function TrendPill({ trend }: { trend?: Trend | null }) {
+  if (!trend) {
+    return (
+      <span className="inline-flex items-center gap-1 text-[10.5px] font-medium text-slate-400">
+        <span className="h-1 w-1 rounded-full bg-slate-300" />
+        Histórico em formação
+      </span>
+    );
+  }
+  const positiveIsGood = trend.positiveIsGood ?? true;
+  const isGood =
+    trend.dir === "flat"
+      ? null
+      : (trend.dir === "up") === positiveIsGood;
+  const color =
+    isGood === null
+      ? "text-slate-500 bg-slate-50 ring-slate-200"
+      : isGood
+        ? "text-emerald-700 bg-emerald-50 ring-emerald-100"
+        : "text-rose-700 bg-rose-50 ring-rose-100";
+  const arrow = trend.dir === "up" ? "▲" : trend.dir === "down" ? "▼" : "■";
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold tabular-nums ring-1 ring-inset ${color}`}
+    >
+      <span className="text-[8px] leading-none">{arrow}</span>
+      {trend.pct !== undefined ? `${trend.pct.toFixed(1)}%` : "—"}
+    </span>
+  );
+}
 
 function KpiCard({
   label,
   value,
+  context,
   tone = "neutral",
   emphasis = false,
+  trend,
   to,
   search,
 }: {
   label: string;
   value: React.ReactNode;
+  context?: string;
   tone?: Tone;
   emphasis?: boolean;
+  trend?: Trend | null;
   to?: string;
   search?: Record<string, string>;
 }) {
   const t = TONE[tone];
   const inner = (
     <>
-      <span className={`absolute left-0 top-0 h-full w-[3px] ${t.accent}`} aria-hidden />
-      <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
-        {label}
+      <span className={`absolute left-0 top-0 h-full w-[2px] ${t.accent}`} aria-hidden />
+      <div className="flex items-start justify-between gap-2">
+        <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+          {label}
+        </div>
+        <TrendPill trend={trend} />
       </div>
       <div
-        className={`mt-1.5 ${emphasis ? "text-[22px]" : "text-[18px]"} font-semibold tabular-nums ${t.value}`}
+        className={`mt-2 ${emphasis ? "text-[24px]" : "text-[20px]"} font-semibold leading-none tabular-nums tracking-tight ${t.value}`}
       >
         {value}
       </div>
+      {context && (
+        <div className="mt-2 text-[11.5px] leading-snug text-slate-500">{context}</div>
+      )}
       {to && (
-        <div className="mt-3 flex items-center justify-between text-[10.5px] font-medium text-slate-400 transition-colors group-hover:text-slate-700">
-          <span>Ver detalhes</span>
+        <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 text-[10.5px] font-medium text-slate-400 transition-colors group-hover:text-slate-700">
+          <span>Investigar</span>
           <span aria-hidden>→</span>
         </div>
       )}
@@ -89,7 +176,7 @@ function KpiCard({
   );
 
   const baseCls =
-    "group relative block overflow-hidden rounded-xl border border-slate-200/80 bg-white px-5 py-4 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-all";
+    "group relative block overflow-hidden rounded-xl border border-slate-200/80 bg-white px-4 py-3.5 shadow-[0_1px_0_rgba(15,23,42,0.04)] transition-all";
 
   if (to) {
     return (

@@ -27,12 +27,16 @@ type Summary = {
   open_insights?: number | null;
 };
 
-const fmtBRL = (v: number | null | undefined) =>
-  new Intl.NumberFormat("pt-BR", {
+const fmtBRL = (v: number | null | undefined) => {
+  const n = Number(v ?? 0);
+  const hasCents = Math.abs(n - Math.trunc(n)) > 0.0049;
+  return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
-    maximumFractionDigits: 0,
-  }).format(Number(v ?? 0));
+    minimumFractionDigits: hasCents ? 2 : 0,
+    maximumFractionDigits: hasCents ? 2 : 0,
+  }).format(n);
+};
 const fmtInt = (v: number | null | undefined) =>
   new Intl.NumberFormat("pt-BR").format(Number(v ?? 0));
 const fmtNum = (v: number | null | undefined, d = 2) =>

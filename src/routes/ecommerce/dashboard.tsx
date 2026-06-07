@@ -236,6 +236,261 @@ function Shortcut({ to, label, hint }: { to: string; label: string; hint: string
   );
 }
 
+type EvoTab = "rev_inv" | "sales_conv" | "clicks_imp" | "roas_acos";
+
+const EVO_TABS: { k: EvoTab; label: string }[] = [
+  { k: "rev_inv", label: "Receita x Investimento" },
+  { k: "sales_conv", label: "Vendas x Conversão" },
+  { k: "clicks_imp", label: "Cliques x Impressões" },
+  { k: "roas_acos", label: "ROAS x ACOS" },
+];
+
+function PlaceholderChart({ variant }: { variant: EvoTab }) {
+  // Two decorative curves with low opacity. Deterministic per-tab to avoid layout shifts.
+  const seeds: Record<EvoTab, [number[], number[]]> = {
+    rev_inv: [
+      [38, 42, 36, 48, 52, 47, 58, 62, 55, 66, 71, 78],
+      [22, 25, 24, 28, 27, 30, 32, 31, 34, 33, 36, 38],
+    ],
+    sales_conv: [
+      [30, 34, 32, 40, 44, 42, 50, 48, 56, 58, 62, 68],
+      [18, 20, 22, 21, 24, 26, 25, 28, 27, 30, 31, 32],
+    ],
+    clicks_imp: [
+      [40, 46, 50, 48, 55, 60, 58, 64, 68, 72, 70, 76],
+      [25, 28, 27, 30, 32, 31, 34, 36, 35, 38, 40, 42],
+    ],
+    roas_acos: [
+      [50, 48, 54, 52, 58, 60, 56, 62, 64, 60, 66, 70],
+      [38, 40, 36, 42, 40, 44, 42, 46, 44, 48, 46, 50],
+    ],
+  };
+  const [a, b] = seeds[variant];
+  const W = 800;
+  const H = 220;
+  const PAD = 24;
+  const toPath = (arr: number[]) => {
+    const max = 90;
+    const stepX = (W - PAD * 2) / (arr.length - 1);
+    return arr
+      .map((v, i) => {
+        const x = PAD + i * stepX;
+        const y = H - PAD - (v / max) * (H - PAD * 2);
+        return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+      })
+      .join(" ");
+  };
+  const grid = Array.from({ length: 4 }, (_, i) => PAD + ((H - PAD * 2) / 4) * (i + 1));
+  return (
+    <svg
+      viewBox={`0 0 ${W} ${H}`}
+      preserveAspectRatio="none"
+      className="h-[220px] w-full"
+      role="img"
+      aria-label="Gráfico placeholder de evolução — histórico em formação"
+    >
+      <defs>
+        <linearGradient id="evoBlue" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {grid.map((y, i) => (
+        <line
+          key={i}
+          x1={PAD}
+          x2={W - PAD}
+          y1={y}
+          y2={y}
+          stroke="#e2e8f0"
+          strokeDasharray="3 4"
+          strokeWidth={1}
+        />
+      ))}
+      <path
+        d={`${toPath(a)} L${W - PAD},${H - PAD} L${PAD},${H - PAD} Z`}
+        fill="url(#evoBlue)"
+        opacity={0.6}
+      />
+      <path
+        d={toPath(a)}
+        fill="none"
+        stroke="#3b82f6"
+        strokeWidth={1.75}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        opacity={0.35}
+      />
+      <path
+        d={toPath(b)}
+        fill="none"
+        stroke="#7c3aed"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeDasharray="4 5"
+        opacity={0.3}
+      />
+    </svg>
+  );
+}
+
+function EvolutionSection({
+  summary,
+  period,
+}: {
+  summary: Summary;
+  period: PeriodKey;
+}) {
+  const [tab, setTab] = useState<EvoTab>("rev_inv");
+  const series = EVO_TAB_SERIES[tab];
+
+  const adsRevenue =
+    Number(summary.total_ads_investment ?? 0) > 0 &&
+    Number(summary.avg_roas ?? 0) > 0
+      ? Number(summary.total_ads_investment) * Number(summary.avg_roas)
+      : 0;
+
+  const readingText = `Com os dados atuais, a operação registra ${fmtBRL(
+    summary.total_gross_revenue,
+  )} em faturamento, ${fmtBRL(
+    summary.total_ads_investment,
+  )} em investimento Ads, ${fmtInt(summary.total_sales_count)} ${
+    Number(summary.total_sales_count ?? 0) === 1 ? "venda" : "vendas"
+  } e ROAS médio de ${
+    Number(summary.avg_roas ?? 0) > 0 ? `${fmtNum(summary.avg_roas, 2)}x` : "—"
+  }. O histórico comparativo será exibido conforme novas sincronizações forem registradas.`;
+
+  return (
+    <section className="space-y-2.5">
+      <div className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+        Análise temporal
+      </div>
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_0_rgba(15,23,42,0.04)] lg:p-6">
+        {/* Header */}
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+          <div>
+            <h2 className="text-[15px] font-semibold tracking-tight text-slate-900">
+              Evolução da operação
+            </h2>
+            <p className="mt-0.5 text-[12.5px] text-slate-500">
+              Acompanhe a relação entre receita, investimento, vendas e eficiência dos
+              anúncios.
+            </p>
+          </div>
+          <span className="inline-flex h-fit items-center gap-1.5 self-start rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10.5px] font-medium text-slate-600">
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+            Aguardando histórico
+          </span>
+        </div>
+
+        {/* Tabs */}
+        <div className="mt-4 -mx-1 flex flex-wrap items-center gap-1 border-b border-slate-100 pb-0">
+          {EVO_TABS.map((t) => {
+            const active = t.k === tab;
+            return (
+              <button
+                key={t.k}
+                type="button"
+                onClick={() => setTab(t.k)}
+                className={`relative px-3 py-2 text-[12px] font-medium transition-colors ${
+                  active
+                    ? "text-slate-900"
+                    : "text-slate-500 hover:text-slate-800"
+                }`}
+              >
+                {t.label}
+                <span
+                  className={`absolute inset-x-2 -bottom-px h-[2px] rounded-full transition-all ${
+                    active ? "bg-slate-900" : "bg-transparent"
+                  }`}
+                />
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Chart + legend */}
+        <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[1fr_280px]">
+          <div className="relative overflow-hidden rounded-xl border border-slate-100 bg-gradient-to-b from-slate-50/60 to-white p-3">
+            <PlaceholderChart variant={tab} />
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+              <div className="rounded-lg border border-slate-200 bg-white/90 px-3.5 py-2 text-center shadow-sm backdrop-blur-sm">
+                <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+                  Histórico em formação
+                </div>
+                <div className="mt-0.5 text-[11.5px] text-slate-500">
+                  Os gráficos serão preenchidos conforme novas sincronizações forem
+                  registradas.
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 px-1 text-[11px] text-slate-500">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-[2px] w-3.5 rounded-full bg-[#3b82f6]" />
+                {series.aLabel}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-[2px] w-3.5 rounded-full bg-[#7c3aed]" />
+                {series.bLabel}
+              </span>
+              <span className="ml-auto text-[10.5px] text-slate-400">
+                Período: {PERIOD_LABEL[period]}
+              </span>
+            </div>
+          </div>
+
+          {/* Leitura do período */}
+          <aside className="rounded-xl border border-slate-200/80 bg-slate-50/40 p-4">
+            <div className="text-[10.5px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+              Leitura do período
+            </div>
+            <p className="mt-2 text-[12.5px] leading-relaxed text-slate-700">
+              {readingText}
+            </p>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <MiniStat label="Receita" value={fmtBRL(summary.total_gross_revenue)} />
+              <MiniStat label="Investimento" value={fmtBRL(summary.total_ads_investment)} />
+              <MiniStat label="Vendas" value={fmtInt(summary.total_sales_count)} />
+              <MiniStat
+                label="ROAS médio"
+                value={
+                  Number(summary.avg_roas ?? 0) > 0
+                    ? `${fmtNum(summary.avg_roas, 2)}x`
+                    : "—"
+                }
+              />
+              {adsRevenue > 0 && (
+                <MiniStat label="Receita Ads" value={fmtBRL(adsRevenue)} />
+              )}
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const EVO_TAB_SERIES: Record<EvoTab, { aLabel: string; bLabel: string }> = {
+  rev_inv: { aLabel: "Receita", bLabel: "Investimento Ads" },
+  sales_conv: { aLabel: "Vendas", bLabel: "Conversão (%)" },
+  clicks_imp: { aLabel: "Cliques", bLabel: "Impressões" },
+  roas_acos: { aLabel: "ROAS", bLabel: "ACOS" },
+};
+
+function MiniStat({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5">
+      <div className="text-[9.5px] font-medium uppercase tracking-[0.08em] text-slate-400">
+        {label}
+      </div>
+      <div className="mt-0.5 text-[13px] font-semibold tabular-nums text-slate-900">
+        {value}
+      </div>
+    </div>
+  );
+}
+
 function EcommerceDashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);

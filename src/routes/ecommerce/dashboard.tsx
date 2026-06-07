@@ -691,16 +691,17 @@ function EvolutionSection({
 
 function MiniStat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5">
-      <div className="text-[9.5px] font-medium uppercase tracking-[0.08em] text-slate-400">
+    <div className="rounded-lg border border-slate-200/80 bg-white px-3 py-2 shadow-[0_1px_0_rgba(15,23,42,0.03)]">
+      <div className="text-[9.5px] font-semibold uppercase tracking-[0.1em] text-slate-400">
         {label}
       </div>
-      <div className="mt-0.5 text-[13px] font-semibold tabular-nums text-slate-900">
+      <div className="mt-1 text-[15px] font-semibold tabular-nums leading-tight text-slate-900">
         {value}
       </div>
     </div>
   );
 }
+
 
 function AnalyticalBlock({
   tone,

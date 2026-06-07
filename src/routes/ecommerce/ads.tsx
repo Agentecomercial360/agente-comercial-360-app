@@ -344,48 +344,59 @@ function PriorityBlock({
 }) {
   const styles = {
     rose: {
-      surface: "bg-[#FFF6F7] border-[#F3D6DB]",
-      iconBg: "bg-white text-[#E54861] ring-1 ring-[#F3D6DB]",
-      num: "text-[#E54861]",
-      badge: "bg-white text-[#E54861] ring-1 ring-[#F3D6DB]",
-      divider: "border-[#F3D6DB]/70",
-      row: "bg-white/70 ring-1 ring-[#F3D6DB]/60",
+      surface:
+        "bg-[linear-gradient(180deg,#FDF8F9_0%,#FBF2F4_100%)] border-[#EFD9DE]",
+      iconBg: "bg-white text-[#C8324C] ring-1 ring-[#EFD9DE]",
+      num: "text-[#C8324C]",
+      badge: "bg-white text-[#C8324C] ring-1 ring-[#EFD9DE]",
+      divider: "border-[#EFD9DE]",
+      row: "bg-white/80 ring-1 ring-[#EFD9DE]/70 hover:ring-[#EFD9DE]",
+      label: "text-[#9F1F35]",
     },
     emerald: {
-      surface: "bg-[#F5FBF7] border-[#D7EEE0]",
-      iconBg: "bg-white text-[#16A34A] ring-1 ring-[#D7EEE0]",
-      num: "text-[#16A34A]",
-      badge: "bg-white text-[#16A34A] ring-1 ring-[#D7EEE0]",
-      divider: "border-[#D7EEE0]/70",
-      row: "bg-white/70 ring-1 ring-[#D7EEE0]/60",
+      surface:
+        "bg-[linear-gradient(180deg,#F7FBF8_0%,#F0F7F3_100%)] border-[#D4E8DC]",
+      iconBg: "bg-white text-[#15803D] ring-1 ring-[#D4E8DC]",
+      num: "text-[#15803D]",
+      badge: "bg-white text-[#15803D] ring-1 ring-[#D4E8DC]",
+      divider: "border-[#D4E8DC]",
+      row: "bg-white/80 ring-1 ring-[#D4E8DC]/70 hover:ring-[#D4E8DC]",
+      label: "text-[#14532D]",
     },
     blue: {
-      surface: "bg-[#F5F8FF] border-[#DCE7FF]",
-      iconBg: "bg-white text-[#2563EB] ring-1 ring-[#DCE7FF]",
-      num: "text-[#2563EB]",
-      badge: "bg-white text-[#2563EB] ring-1 ring-[#DCE7FF]",
-      divider: "border-[#DCE7FF]/70",
-      row: "bg-white/70 ring-1 ring-[#DCE7FF]/60",
+      surface:
+        "bg-[linear-gradient(180deg,#F7F9FD_0%,#EFF3FB_100%)] border-[#DAE3F2]",
+      iconBg: "bg-white text-[#1D4ED8] ring-1 ring-[#DAE3F2]",
+      num: "text-[#1D4ED8]",
+      badge: "bg-white text-[#1D4ED8] ring-1 ring-[#DAE3F2]",
+      divider: "border-[#DAE3F2]",
+      row: "bg-white/80 ring-1 ring-[#DAE3F2]/70 hover:ring-[#DAE3F2]",
+      label: "text-[#1E3A8A]",
     },
   }[accent];
 
   return (
-    <div className={`rounded-2xl border ${styles.surface} p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)]`}>
-      <div className={`flex items-center justify-between border-b ${styles.divider} pb-4`}>
+    <div className={`rounded-2xl border ${styles.surface} p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-18px_rgba(15,23,42,0.12)]`}>
+      <div className={`flex items-start justify-between border-b ${styles.divider} pb-5`}>
         <div className="flex items-center gap-3">
           <div className={`rounded-lg p-2 ${styles.iconBg}`}>
             <Icon className="h-[18px] w-[18px]" />
           </div>
-          <h4 className="text-[15px] font-semibold tracking-tight text-slate-900">{title}</h4>
+          <div>
+            <h4 className="text-[14px] font-semibold tracking-tight text-slate-900">{title}</h4>
+            <p className={`mt-0.5 text-[10px] font-medium uppercase tracking-[0.14em] ${styles.label}`}>
+              {count === 1 ? "1 item" : `${count} itens`}
+            </p>
+          </div>
         </div>
-        <span className={`text-3xl font-bold tabular-nums leading-none ${styles.num}`}>{pad2(count)}</span>
+        <span className={`text-[32px] font-semibold tabular-nums leading-none ${styles.num}`}>{pad2(count)}</span>
       </div>
-      <div className="mt-4 space-y-2">
+      <div className="mt-5 space-y-2">
         {items.length === 0 ? (
           <p className="px-1 py-2 text-xs text-slate-500">{emptyText}</p>
         ) : (
           items.map((it, i) => (
-            <div key={i} className={`flex items-center justify-between rounded-lg ${styles.row} px-3 py-2.5`}>
+            <div key={i} className={`flex items-center justify-between rounded-lg ${styles.row} px-3 py-2.5 transition-all`}>
               <span
                 className="truncate pr-3 text-[13px] font-medium text-slate-800"
                 title={it.campaign_name ?? ""}

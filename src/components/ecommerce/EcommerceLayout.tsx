@@ -1,6 +1,5 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard,
   UserCog,
   Settings,
   RefreshCw,
@@ -15,9 +14,11 @@ import {
   TrendingUp,
   BrainCircuit,
   BarChart3,
+  LogOut,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 import acLogo from "@/assets/ac-logo.png";
 
 const navGroups = [

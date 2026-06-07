@@ -176,28 +176,33 @@ function AdsInteligente() {
           </div>
 
           {!loading && !error && rows.length > 0 && (
-            <div className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-6 text-white shadow-xl shadow-slate-200/50 lg:w-96">
+            <div className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B1220] via-[#0F1B33] to-[#13294B] p-6 text-white shadow-[0_8px_24px_-12px_rgba(15,23,42,0.35)] ring-1 ring-white/5 lg:w-[420px]">
               <div className="relative z-10">
-                <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Resumo da IA
-                </h3>
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-2xl font-bold tabular-nums text-rose-400">{pad2(buckets.critical.length)}</p>
-                    <p className="text-[10px] uppercase tracking-tight text-slate-300">Críticas</p>
+                <div className="mb-5 flex items-center justify-between">
+                  <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300/80">
+                    Resumo da IA
+                  </h3>
+                  <span className="rounded-full bg-white/5 px-2 py-0.5 text-[9px] font-medium uppercase tracking-widest text-slate-300 ring-1 ring-white/10">
+                    Tempo real
+                  </span>
+                </div>
+                <div className="grid grid-cols-3 divide-x divide-white/10">
+                  <div className="pr-3">
+                    <p className="text-[28px] font-semibold leading-none tabular-nums text-rose-300">{pad2(buckets.critical.length)}</p>
+                    <p className="mt-2 text-[10px] uppercase tracking-wider text-slate-400">Críticas</p>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold tabular-nums text-emerald-400">{pad2(buckets.opportunity.length)}</p>
-                    <p className="text-[10px] uppercase tracking-tight text-slate-300">Oportunidades</p>
+                  <div className="px-3">
+                    <p className="text-[28px] font-semibold leading-none tabular-nums text-emerald-300">{pad2(buckets.opportunity.length)}</p>
+                    <p className="mt-2 text-[10px] uppercase tracking-wider text-slate-400">Oportunidades</p>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold tabular-nums text-blue-400">{pad2(buckets.actionable.length)}</p>
-                    <p className="text-[10px] uppercase tracking-tight text-slate-300">Recomendações</p>
+                  <div className="pl-3">
+                    <p className="text-[28px] font-semibold leading-none tabular-nums text-sky-300">{pad2(buckets.actionable.length)}</p>
+                    <p className="mt-2 text-[10px] uppercase tracking-wider text-slate-400">Recomendações</p>
                   </div>
                 </div>
               </div>
-              <div className="pointer-events-none absolute -bottom-4 -right-4 opacity-10">
-                <Sparkles className="h-32 w-32" strokeWidth={1.5} />
+              <div className="pointer-events-none absolute -bottom-6 -right-6 opacity-[0.07]">
+                <Sparkles className="h-36 w-36" strokeWidth={1.25} />
               </div>
             </div>
           )}

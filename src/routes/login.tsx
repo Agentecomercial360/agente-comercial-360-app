@@ -5,6 +5,7 @@ import { MessageCircle, Users, Sparkles } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
 import loginHeroAsset from "@/assets/login-hero-v2.jpg.asset.json";
 import { supabase } from "@/lib/supabase";
+import { consumeAuthMessage } from "@/lib/use-module-guard";
 
 const loginHero = loginHeroAsset.url;
 

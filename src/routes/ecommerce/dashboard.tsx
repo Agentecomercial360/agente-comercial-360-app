@@ -976,7 +976,17 @@ function EcommerceDashboard() {
             </section>
 
             {/* Evolução da operação */}
-            <EvolutionSection summary={summary} period={period} />
+            <EvolutionSection
+              summary={summary}
+              period={period}
+              onPeriodChange={setPeriod}
+              derived={{
+                noVisits: derived.noVisits,
+                visitsNoSales: derived.visitsNoSales,
+                stuck: derived.stuck,
+              }}
+              pendingTasks={Number(summary.pending_tasks ?? 0)}
+            />
 
 
 

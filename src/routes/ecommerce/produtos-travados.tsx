@@ -453,7 +453,15 @@ function diagnoseSignal(p: Stuck): string {
   return formatStatus(p.problem_label) || "Sinal de baixa performance detectado.";
 }
 
-function StuckCard({ p }: { p: Stuck }) {
+function StuckCard({
+  p,
+  onOpenDiagnostic,
+  onCreateTask,
+}: {
+  p: Stuck;
+  onOpenDiagnostic: () => void;
+  onCreateTask: () => void;
+}) {
   const prio = (p.priority_level ?? "low").toLowerCase();
   const tone = classifyTone(p);
   const t = toneMap[tone];
@@ -464,7 +472,16 @@ function StuckCard({ p }: { p: Stuck }) {
 
   return (
     <div
-      className={`flex overflow-hidden rounded-xl border ${t.surface} shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_22px_-18px_rgba(15,23,42,0.16)]`}
+      role="button"
+      tabIndex={0}
+      onClick={onOpenDiagnostic}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          onOpenDiagnostic();
+        }
+      }}
+      className={`group flex cursor-pointer overflow-hidden rounded-xl border ${t.surface} shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_22px_-18px_rgba(15,23,42,0.16)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_2px_4px_rgba(15,23,42,0.06),0_18px_36px_-20px_rgba(15,23,42,0.22)] hover:border-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300`}
     >
       <div className={`w-[3px] shrink-0 ${t.bar}`} />
       <div className="flex-1 px-5 py-4">

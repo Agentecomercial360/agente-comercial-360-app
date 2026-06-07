@@ -782,7 +782,7 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
           >
             <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-1.5">
               <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-500">
-                Dia {hover + 1}
+                Período {hover + 1}
               </span>
               <span className="text-[9.5px] font-medium uppercase tracking-[0.08em] text-amber-600">
                 em formação
@@ -808,6 +808,10 @@ function FormationChart({ variant, period }: { variant: EvoTab; period: PeriodKe
                   {cfg.bLabel}
                 </span>
                 <span className="font-mono text-slate-400">—</span>
+              </div>
+              <div className="mt-1 flex items-center gap-1.5 border-t border-slate-100 pt-1.5 text-[10px] text-slate-500">
+                <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                Status: histórico em formação
               </div>
             </div>
           </div>

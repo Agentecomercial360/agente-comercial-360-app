@@ -364,13 +364,38 @@ function ProdutosTravados() {
 
               <div className="space-y-4">
                 {items.map((p, i) => (
-                  <StuckCard key={i} p={p} />
+                  <StuckCard
+                    key={i}
+                    p={p}
+                    onOpenDiagnostic={() => setSelected(p)}
+                    onCreateTask={() => {
+                      setTaskTarget(p);
+                      setTaskNote(p.recommended_action ?? p.task_title ?? "");
+                      setTaskSaved(false);
+                    }}
+                  />
                 ))}
               </div>
             </section>
           </>
         )}
       </div>
+
+      <DiagnosticSheet
+        product={selected}
+        onClose={() => setSelected(null)}
+      />
+      <CreateTaskDialog
+        product={taskTarget}
+        note={taskNote}
+        setNote={setTaskNote}
+        saved={taskSaved}
+        onConfirm={() => setTaskSaved(true)}
+        onClose={() => {
+          setTaskTarget(null);
+          setTaskSaved(false);
+        }}
+      />
     </EcommerceLayout>
   );
 }

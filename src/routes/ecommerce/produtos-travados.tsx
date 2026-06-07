@@ -457,7 +457,7 @@ function StuckCard({ p }: { p: Stuck }) {
             <div className="flex flex-wrap items-center gap-1 pt-0.5">
               {p.problem_label && (
                 <span className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-semibold uppercase tracking-[0.08em] ${t.badge}`}>
-                  {p.problem_label}
+                  {formatStatus(p.problem_label)}
                 </span>
               )}
               {badges.map((b) => (

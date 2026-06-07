@@ -379,17 +379,34 @@ function ProdutosTravados() {
 
             {/* Lista */}
             <section className="space-y-4">
+              {filterLabel && (
+                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 text-xs text-slate-600">
+                  <span>
+                    Filtro aplicado:{" "}
+                    <strong className="font-semibold text-slate-900">{filterLabel}</strong>
+                    <span className="ml-2 text-slate-400">
+                      ({filteredItems.length} de {items.length})
+                    </span>
+                  </span>
+                  <button
+                    onClick={() => navigate({ to: "/ecommerce/produtos-travados", search: {} })}
+                    className="font-medium text-slate-500 underline-offset-2 hover:text-slate-900 hover:underline"
+                  >
+                    Limpar filtro
+                  </button>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <h3 className="text-xl font-bold tracking-tight text-slate-900">
                   Diagnóstico Detalhado
                 </h3>
                 <span className="text-xs text-slate-500">
-                  {items.length} {items.length === 1 ? "produto" : "produtos"}
+                  {filteredItems.length} {filteredItems.length === 1 ? "produto" : "produtos"}
                 </span>
               </div>
 
               <div className="space-y-4">
-                {items.map((p, i) => (
+                {filteredItems.map((p, i) => (
                   <StuckCard
                     key={i}
                     p={p}
@@ -401,6 +418,11 @@ function ProdutosTravados() {
                     }}
                   />
                 ))}
+                {filteredItems.length === 0 && (
+                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+                    Nenhum produto corresponde ao filtro selecionado.
+                  </div>
+                )}
               </div>
             </section>
           </>

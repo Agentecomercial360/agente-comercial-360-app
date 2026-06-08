@@ -320,6 +320,10 @@ function MapaVendas() {
               title="Top cidades por pedidos"
               icon={<Building2 className="h-4 w-4" />}
             />
+            <RankingCard
+              title="Estados com mais cancelamentos"
+              icon={<XCircle className="h-4 w-4" />}
+            />
           </aside>
         </section>
 

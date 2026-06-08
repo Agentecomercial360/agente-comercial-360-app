@@ -285,7 +285,6 @@ function MapaVendas() {
               </div>
             </div>
           </div>
-          </div>
 
           {/* Side panel */}
           <aside className="space-y-4">

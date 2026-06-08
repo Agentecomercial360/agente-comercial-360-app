@@ -443,28 +443,30 @@ function RankingCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-      <div className="flex items-center gap-2 border-b border-border px-5 py-3">
-        <span className="text-muted-foreground">{icon}</span>
+    <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-card shadow-[0_4px_18px_-10px_rgba(15,23,42,0.15)]">
+      <div className="flex items-center gap-2 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 px-5 py-3">
+        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+          {icon}
+        </span>
         <div className="text-xs font-semibold text-foreground">{title}</div>
       </div>
       <div className="space-y-2 px-5 py-4">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2"
+            className="flex items-center justify-between rounded-lg border border-dashed border-slate-200 bg-slate-50/60 px-3 py-2"
           >
             <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-md border border-border bg-white text-[10px] font-semibold text-muted-foreground">
+              <span className="flex h-5 w-5 items-center justify-center rounded-md border border-slate-200 bg-white text-[10px] font-semibold text-slate-400">
                 {i + 1}
               </span>
-              <span className="text-xs text-muted-foreground">—</span>
+              <span className="h-2 w-20 rounded-full bg-slate-200/80" />
             </div>
-            <span className="text-xs text-muted-foreground">—</span>
+            <span className="h-2 w-10 rounded-full bg-slate-200/80" />
           </div>
         ))}
-        <p className="pt-1 text-[11px] text-muted-foreground">
-          Dados regionais serão exibidos após integração de pedidos e
+        <p className="pt-1 text-[11px] leading-snug text-muted-foreground">
+          Dados regionais serão exibidos após a integração de pedidos e
           localidades.
         </p>
       </div>

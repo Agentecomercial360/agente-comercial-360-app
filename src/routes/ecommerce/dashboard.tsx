@@ -1510,15 +1510,19 @@ function EcommerceDashboard() {
 
             {/* Executive reading */}
             <section className="space-y-2.5">
-              <div className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-slate-400">
-                Leitura executiva
-              </div>
+              <GroupHeader
+                eyebrow="Bloco E"
+                title="Leitura executiva da IA"
+                hint="Tradução do painel em pontos de decisão"
+                tone="info"
+              />
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <ReadingCard title="O que está saudável" tone="success" text={healthyText} />
                 <ReadingCard title="O que exige atenção" tone="attention" text={attentionText} />
                 <ReadingCard title="Próxima prioridade" tone="critical" text={priorityText} />
               </div>
             </section>
+
 
             {/* Strategic shortcuts */}
             <section className="space-y-2.5">

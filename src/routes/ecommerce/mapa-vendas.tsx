@@ -406,10 +406,19 @@ function TipRow({ k }: { k: string }) {
 }
 
 function KV({ k, v }: { k: string; v: string }) {
+  const pending = v === "Aguardando integração";
   return (
     <div className="flex items-center justify-between">
       <span className="text-muted-foreground">{k}</span>
-      <span className="font-medium text-foreground">{v}</span>
+      <span
+        className={
+          pending
+            ? "text-[11px] italic text-muted-foreground/80"
+            : "font-medium text-foreground"
+        }
+      >
+        {v}
+      </span>
     </div>
   );
 }

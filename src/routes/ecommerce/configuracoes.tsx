@@ -1,16 +1,45 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { 
-  Settings, 
-  UserCog, 
-  BrainCircuit, 
-  RefreshCw, 
-  Bell, 
+import { useEffect, useState } from "react";
+import {
+  UserCog,
+  BrainCircuit,
+  RefreshCw,
+  Bell,
   ShieldCheck,
   ToggleLeft,
   ToggleRight,
-  Plus
+  Plus,
+  Plug,
+  CheckCircle2,
+  AlertTriangle,
+  Clock,
+  Package,
+  ShoppingCart,
+  Boxes,
+  Megaphone,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { supabase } from "@/lib/supabase";
+
+type IntegrationRow = {
+  company_name: string | null;
+  account_name: string | null;
+  marketplace: string | null;
+  integration_name: string | null;
+  integration_status: string | null;
+  readable_status: string | null;
+  is_token_valid: boolean | null;
+  last_sync_at: string | null;
+  next_sync_at: string | null;
+  sync_products: boolean | null;
+  sync_orders: boolean | null;
+  sync_ads: boolean | null;
+  sync_inventory: boolean | null;
+  last_error_message: string | null;
+  last_error_at: string | null;
+};
 
 export const Route = createFileRoute("/ecommerce/configuracoes")({
   component: EcommerceConfiguracoes,

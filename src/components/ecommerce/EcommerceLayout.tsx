@@ -6,6 +6,7 @@ import {
   Bot,
   Calendar,
   Store,
+  Map,
   ShoppingCart,
   ShieldAlert,
   Boxes,

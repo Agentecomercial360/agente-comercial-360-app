@@ -1215,7 +1215,7 @@ function EcommerceDashboard() {
 
   return (
     <EcommerceLayout>
-      <div className="mx-auto max-w-7xl space-y-6">
+      <div className="mx-auto max-w-7xl space-y-8">
         {/* Executive header */}
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl">

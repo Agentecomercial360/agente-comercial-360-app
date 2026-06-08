@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Map as MapIcon,
@@ -9,8 +9,10 @@ import {
   BrainCircuit,
   Package,
   Info,
+  TrendingUp,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import brStatesData from "@/data/br-states.json";
 
 export const Route = createFileRoute("/ecommerce/mapa-vendas")({
   component: MapaVendas,
@@ -19,35 +21,8 @@ export const Route = createFileRoute("/ecommerce/mapa-vendas")({
   }),
 });
 
-const STATES: { uf: string; name: string; cx: number; cy: number; r: number }[] = [
-  { uf: "AC", name: "Acre", cx: 90, cy: 200, r: 22 },
-  { uf: "AM", name: "Amazonas", cx: 170, cy: 150, r: 44 },
-  { uf: "RR", name: "Roraima", cx: 200, cy: 70, r: 22 },
-  { uf: "AP", name: "Amapá", cx: 290, cy: 80, r: 20 },
-  { uf: "PA", name: "Pará", cx: 280, cy: 150, r: 40 },
-  { uf: "RO", name: "Rondônia", cx: 160, cy: 230, r: 24 },
-  { uf: "MT", name: "Mato Grosso", cx: 260, cy: 250, r: 36 },
-  { uf: "TO", name: "Tocantins", cx: 330, cy: 220, r: 24 },
-  { uf: "MA", name: "Maranhão", cx: 370, cy: 170, r: 28 },
-  { uf: "PI", name: "Piauí", cx: 400, cy: 210, r: 24 },
-  { uf: "CE", name: "Ceará", cx: 440, cy: 170, r: 22 },
-  { uf: "RN", name: "Rio G. do Norte", cx: 485, cy: 175, r: 16 },
-  { uf: "PB", name: "Paraíba", cx: 495, cy: 200, r: 14 },
-  { uf: "PE", name: "Pernambuco", cx: 475, cy: 220, r: 18 },
-  { uf: "AL", name: "Alagoas", cx: 490, cy: 245, r: 13 },
-  { uf: "SE", name: "Sergipe", cx: 475, cy: 265, r: 12 },
-  { uf: "BA", name: "Bahia", cx: 420, cy: 270, r: 36 },
-  { uf: "DF", name: "Distrito Federal", cx: 340, cy: 290, r: 10 },
-  { uf: "GO", name: "Goiás", cx: 315, cy: 300, r: 26 },
-  { uf: "MS", name: "Mato G. do Sul", cx: 270, cy: 340, r: 26 },
-  { uf: "MG", name: "Minas Gerais", cx: 370, cy: 330, r: 34 },
-  { uf: "ES", name: "Espírito Santo", cx: 430, cy: 340, r: 16 },
-  { uf: "RJ", name: "Rio de Janeiro", cx: 410, cy: 380, r: 18 },
-  { uf: "SP", name: "São Paulo", cx: 340, cy: 380, r: 28 },
-  { uf: "PR", name: "Paraná", cx: 300, cy: 420, r: 24 },
-  { uf: "SC", name: "Santa Catarina", cx: 305, cy: 460, r: 20 },
-  { uf: "RS", name: "Rio G. do Sul", cx: 270, cy: 500, r: 30 },
-];
+type BrState = { uf: string; name: string; d: string; cx: number; cy: number };
+const STATES = brStatesData as BrState[];
 
 const VIEW_TABS = [
   { id: "receita", label: "Receita" },
@@ -58,29 +33,37 @@ const VIEW_TABS = [
 
 function MapaVendas() {
   const [view, setView] = useState<(typeof VIEW_TABS)[number]["id"]>("receita");
-  const [hover, setHover] = useState<(typeof STATES)[number] | null>(null);
+  const [hover, setHover] = useState<BrState | null>(null);
+  const [selected, setSelected] = useState<string | null>(null);
+
+  const tooltipPos = useMemo(() => {
+    if (!hover) return null;
+    // svg viewBox is 800x800
+    const left = (hover.cx / 800) * 100;
+    const top = (hover.cy / 800) * 100;
+    return { left: `${left}%`, top: `${top}%` };
+  }, [hover]);
 
   return (
     <EcommerceLayout>
       <div className="space-y-8">
         {/* Header */}
         <header className="flex flex-wrap items-start justify-between gap-4">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-xl text-white"
-                style={{ background: "var(--gradient-brand)" }}
-              >
-                <MapIcon className="h-5 w-5" />
-              </div>
-              <div>
-                <h1 className="font-display text-2xl font-bold text-foreground">
-                  Mapa de Vendas
-                </h1>
-                <p className="text-sm text-muted-foreground max-w-2xl">
-                  Visualize onde a operação concentra receita, pedidos, cancelamentos e oportunidades regionais.
-                </p>
-              </div>
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-white"
+              style={{ background: "var(--gradient-brand)" }}
+            >
+              <MapIcon className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="font-display text-2xl font-bold text-foreground">
+                Mapa de Vendas
+              </h1>
+              <p className="text-sm text-muted-foreground max-w-2xl">
+                Visualize a distribuição geográfica da operação e acompanhe,
+                futuramente, pedidos, vendas e cancelamentos por região.
+              </p>
             </div>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5">
@@ -91,7 +74,7 @@ function MapaVendas() {
           </div>
         </header>
 
-        {/* Top cards */}
+        {/* Top summary */}
         <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
             icon={<MapPin className="h-4 w-4" />}
@@ -123,10 +106,10 @@ function MapaVendas() {
           />
         </section>
 
-        {/* Map + Ranking */}
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {/* Map + Side */}
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
           {/* Map */}
-          <div className="lg:col-span-2 rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
+          <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
               <div>
                 <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
@@ -154,106 +137,158 @@ function MapaVendas() {
             </div>
 
             <div className="relative p-6">
-              <div className="relative mx-auto aspect-[4/5] max-w-[560px]">
-                <svg
-                  viewBox="0 0 580 580"
-                  className="h-full w-full"
-                  role="img"
-                  aria-label="Mapa esquemático do Brasil"
+              <div className="relative mx-auto w-full max-w-[760px]">
+                <div
+                  className="relative rounded-2xl"
+                  style={{
+                    background:
+                      "radial-gradient(ellipse at 50% 35%, #EFF4FB 0%, #F8FAFC 70%)",
+                  }}
                 >
-                  <defs>
-                    <radialGradient id="bgGlow" cx="50%" cy="40%" r="70%">
-                      <stop offset="0%" stopColor="#EFF4FB" />
-                      <stop offset="100%" stopColor="#F8FAFC" />
-                    </radialGradient>
-                  </defs>
-                  <rect width="580" height="580" rx="24" fill="url(#bgGlow)" />
-                  {STATES.map((s) => {
-                    const isHover = hover?.uf === s.uf;
-                    return (
-                      <g
-                        key={s.uf}
-                        onMouseEnter={() => setHover(s)}
-                        onMouseLeave={() => setHover(null)}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <circle
-                          cx={s.cx}
-                          cy={s.cy}
-                          r={s.r}
-                          fill={isHover ? "#1E3A8A" : "#E2E8F0"}
-                          stroke={isHover ? "#1E3A8A" : "#CBD5E1"}
-                          strokeWidth={1}
-                          style={{ transition: "all 200ms ease" }}
-                          opacity={isHover ? 0.92 : 0.85}
-                        />
-                        <text
-                          x={s.cx}
-                          y={s.cy + 3}
-                          textAnchor="middle"
-                          fontSize={s.r > 22 ? 11 : 9}
-                          fontWeight={600}
-                          fill={isHover ? "#FFFFFF" : "#475569"}
-                          style={{ pointerEvents: "none", userSelect: "none" }}
-                        >
-                          {s.uf}
-                        </text>
-                      </g>
-                    );
-                  })}
-                </svg>
-
-                {hover && (
-                  <div
-                    className="pointer-events-none absolute z-10 w-56 rounded-xl border border-border bg-white p-3 shadow-lg"
-                    style={{
-                      left: `${(hover.cx / 580) * 100}%`,
-                      top: `${(hover.cy / 580) * 100}%`,
-                      transform: "translate(12px, 12px)",
-                    }}
+                  <svg
+                    viewBox="0 0 800 800"
+                    className="block h-auto w-full"
+                    role="img"
+                    aria-label="Mapa do Brasil"
                   >
-                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                      {hover.uf}
-                    </div>
-                    <div className="font-display text-sm font-semibold text-foreground">
-                      {hover.name}
-                    </div>
-                    <div className="mt-2 space-y-1 text-xs">
-                      <Row k="Receita" v="—" />
-                      <Row k="Pedidos" v="—" />
-                      <Row k="Cancelamentos" v="—" />
-                    </div>
-                    <div className="mt-2 border-t border-border pt-2 text-[10.5px] text-muted-foreground">
-                      Aguardando dados reais
-                    </div>
-                  </div>
-                )}
-              </div>
+                    <defs>
+                      <filter
+                        id="stateShadow"
+                        x="-5%"
+                        y="-5%"
+                        width="110%"
+                        height="110%"
+                      >
+                        <feDropShadow
+                          dx="0"
+                          dy="1"
+                          stdDeviation="1"
+                          floodColor="#0F172A"
+                          floodOpacity="0.08"
+                        />
+                      </filter>
+                    </defs>
+                    <g filter="url(#stateShadow)">
+                      {STATES.map((s) => {
+                        const isHover = hover?.uf === s.uf;
+                        const isSelected = selected === s.uf;
+                        const fill = isSelected
+                          ? "#1D4ED8"
+                          : isHover
+                            ? "#3B82F6"
+                            : "#E2E8F0";
+                        const stroke = isSelected || isHover ? "#1E3A8A" : "#FFFFFF";
+                        return (
+                          <path
+                            key={s.uf}
+                            d={s.d}
+                            fill={fill}
+                            stroke={stroke}
+                            strokeWidth={isSelected || isHover ? 1.2 : 0.8}
+                            style={{
+                              cursor: "pointer",
+                              transition: "fill 180ms ease, stroke 180ms ease",
+                            }}
+                            onMouseEnter={() => setHover(s)}
+                            onMouseLeave={() => setHover(null)}
+                            onClick={() =>
+                              setSelected((cur) => (cur === s.uf ? null : s.uf))
+                            }
+                          />
+                        );
+                      })}
+                    </g>
+                    {/* UF labels */}
+                    <g style={{ pointerEvents: "none" }}>
+                      {STATES.map((s) => {
+                        const isActive = hover?.uf === s.uf || selected === s.uf;
+                        return (
+                          <text
+                            key={s.uf}
+                            x={s.cx}
+                            y={s.cy + 3}
+                            textAnchor="middle"
+                            fontSize={10}
+                            fontWeight={600}
+                            fill={isActive ? "#FFFFFF" : "#475569"}
+                            style={{ userSelect: "none" }}
+                          >
+                            {s.uf}
+                          </text>
+                        );
+                      })}
+                    </g>
+                  </svg>
 
-              <div className="mt-4 flex items-start gap-2 rounded-lg border border-dashed border-border bg-muted/40 px-3 py-2 text-[11.5px] text-muted-foreground">
-                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                <span>
-                  Estrutura preparada para interação por estado. Os dados serão exibidos após a integração de pedidos e localidades.
-                </span>
+                  {hover && tooltipPos && (
+                    <div
+                      className="pointer-events-none absolute z-10 w-56 -translate-x-1/2 -translate-y-[120%] rounded-xl border border-border bg-white p-3 shadow-lg"
+                      style={tooltipPos}
+                    >
+                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                        {hover.uf}
+                      </div>
+                      <div className="font-display text-sm font-semibold text-foreground">
+                        {hover.name}
+                      </div>
+                      <div className="mt-2 flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700">
+                        <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                        Dados em integração
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Legend */}
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-border bg-muted/30 px-3 py-2 text-[11.5px] text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-4">
+                    <LegendDot color="#E2E8F0" label="Estado neutro" />
+                    <LegendDot color="#3B82F6" label="Estado em foco" />
+                    <LegendDot color="#1D4ED8" label="Selecionado" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Info className="h-3.5 w-3.5" />
+                    <span>Dados em integração</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Ranking */}
-          <aside className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-            <div className="border-b border-border px-6 py-4">
-              <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                Painel lateral
+          {/* Side panel */}
+          <aside className="space-y-4">
+            <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
+              <div className="border-b border-border px-5 py-4">
+                <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                  Estado selecionado
+                </div>
+                <div className="font-display text-base font-semibold text-foreground">
+                  {selected
+                    ? STATES.find((s) => s.uf === selected)?.name
+                    : "Nenhum estado"}
+                </div>
               </div>
-              <div className="font-display text-base font-semibold text-foreground">
-                Ranking regional
+              <div className="space-y-3 px-5 py-4 text-xs">
+                <KV k="Receita" v="—" />
+                <KV k="Pedidos" v="—" />
+                <KV k="Ticket médio" v="—" />
+                <KV k="Cancelamentos" v="—" />
+                <div className="rounded-md bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
+                  {selected
+                    ? "Indicadores serão exibidos após a integração de pedidos por UF."
+                    : "Clique em um estado no mapa para visualizar o detalhamento."}
+                </div>
               </div>
             </div>
-            <div className="divide-y divide-border">
-              <RankingSection title="Top estados por faturamento" />
-              <RankingSection title="Top cidades por pedidos" />
-              <RankingSection title="Estados com mais cancelamentos" />
-            </div>
+
+            <RankingCard
+              title="Top estados por faturamento"
+              icon={<TrendingUp className="h-4 w-4" />}
+            />
+            <RankingCard
+              title="Top cidades por pedidos"
+              icon={<Building2 className="h-4 w-4" />}
+            />
           </aside>
         </section>
 
@@ -279,14 +314,27 @@ function MapaVendas() {
         </section>
 
         <p className="text-center text-xs text-muted-foreground">
-          Os dados do Mapa de Vendas serão preenchidos após a integração de pedidos, clientes e localidades.
+          Os dados do Mapa de Vendas serão preenchidos após a integração de
+          pedidos, clientes e localidades.
         </p>
       </div>
     </EcommerceLayout>
   );
 }
 
-function Row({ k, v }: { k: string; v: string }) {
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <span
+        className="inline-block h-2.5 w-2.5 rounded-full border border-white shadow-sm"
+        style={{ backgroundColor: color }}
+      />
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function KV({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-muted-foreground">{k}</span>
@@ -330,18 +378,27 @@ function SummaryCard({
   );
 }
 
-function RankingSection({ title }: { title: string }) {
+function RankingCard({
+  title,
+  icon,
+}: {
+  title: string;
+  icon: React.ReactNode;
+}) {
   return (
-    <div className="px-6 py-5">
-      <div className="text-xs font-semibold text-foreground">{title}</div>
-      <div className="mt-3 space-y-2">
+    <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
+      <div className="flex items-center gap-2 border-b border-border px-5 py-3">
+        <span className="text-muted-foreground">{icon}</span>
+        <div className="text-xs font-semibold text-foreground">{title}</div>
+      </div>
+      <div className="space-y-2 px-5 py-4">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
             className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2"
           >
             <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-md bg-white text-[10px] font-semibold text-muted-foreground border border-border">
+              <span className="flex h-5 w-5 items-center justify-center rounded-md border border-border bg-white text-[10px] font-semibold text-muted-foreground">
                 {i + 1}
               </span>
               <span className="text-xs text-muted-foreground">—</span>
@@ -349,10 +406,11 @@ function RankingSection({ title }: { title: string }) {
             <span className="text-xs text-muted-foreground">—</span>
           </div>
         ))}
+        <p className="pt-1 text-[11px] text-muted-foreground">
+          Dados regionais serão exibidos após integração de pedidos e
+          localidades.
+        </p>
       </div>
-      <p className="mt-3 text-[11px] text-muted-foreground">
-        Dados regionais serão exibidos após a integração de pedidos e localidades.
-      </p>
     </div>
   );
 }

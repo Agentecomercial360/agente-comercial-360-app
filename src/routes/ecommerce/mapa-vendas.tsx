@@ -144,24 +144,33 @@ function MapaVendas() {
             </div>
 
             <div
-              className="relative px-6 py-8"
+              className="relative px-6 py-10"
               style={{
                 background:
-                  "radial-gradient(ellipse at 50% 30%, #EEF4FB 0%, #F4F7FB 55%, #F8FAFC 100%)",
+                  "linear-gradient(180deg, #F4F8FD 0%, #EAF1F9 100%)",
               }}
             >
-              <div className="relative mx-auto w-full max-w-[720px]">
+              {/* Soft radial glow behind the map */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0"
+                style={{
+                  background:
+                    "radial-gradient(60% 50% at 50% 38%, rgba(59,130,246,0.16) 0%, rgba(59,130,246,0) 70%)",
+                }}
+              />
+              <div className="relative mx-auto w-full max-w-[680px]">
                 <div className="relative">
                   <svg
                     viewBox="0 0 800 800"
-                    className="block h-auto w-full drop-shadow-[0_8px_24px_rgba(30,58,138,0.08)]"
+                    className="block h-auto w-full drop-shadow-[0_14px_30px_rgba(30,58,138,0.12)]"
                     role="img"
                     aria-label="Mapa do Brasil"
                   >
                     <defs>
                       <linearGradient id="stateNeutral" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#DDE6F1" />
-                        <stop offset="100%" stopColor="#CDD8E6" />
+                        <stop offset="0%" stopColor="#CFDBEC" />
+                        <stop offset="100%" stopColor="#B8C7DD" />
                       </linearGradient>
                       <linearGradient id="stateHover" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#3B82F6" />
@@ -169,7 +178,7 @@ function MapaVendas() {
                       </linearGradient>
                       <linearGradient id="stateSelected" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="#1D4ED8" />
-                        <stop offset="100%" stopColor="#172554" />
+                        <stop offset="100%" stopColor="#1E3A8A" />
                       </linearGradient>
                     </defs>
                     <g>
@@ -185,23 +194,25 @@ function MapaVendas() {
                           ? "#0B1E59"
                           : isHover
                             ? "#1E3A8A"
-                            : "#FFFFFF";
+                            : "#F8FAFC";
                         return (
                           <path
                             key={s.uf}
                             d={s.d}
                             fill={fill}
                             stroke={stroke}
-                            strokeWidth={isSelected || isHover ? 1.4 : 1}
+                            strokeWidth={isSelected || isHover ? 1.6 : 1.2}
                             strokeLinejoin="round"
                             style={{
                               cursor: "pointer",
                               transition:
-                                "fill 200ms ease, stroke 200ms ease, filter 200ms ease",
+                                "fill 220ms ease, stroke 220ms ease, filter 220ms ease",
                               filter:
-                                isSelected || isHover
-                                  ? "drop-shadow(0 2px 6px rgba(29,78,216,0.35))"
-                                  : "none",
+                                isSelected
+                                  ? "drop-shadow(0 4px 10px rgba(29,78,216,0.45))"
+                                  : isHover
+                                    ? "drop-shadow(0 3px 8px rgba(59,130,246,0.40))"
+                                    : "none",
                             }}
                             onMouseEnter={() => setHover(s)}
                             onMouseLeave={() => setHover(null)}
@@ -224,8 +235,8 @@ function MapaVendas() {
                             textAnchor="middle"
                             fontSize={10}
                             fontWeight={700}
-                            fill={isActive ? "#FFFFFF" : "#334155"}
-                            style={{ userSelect: "none", letterSpacing: 0.2 }}
+                            fill={isActive ? "#FFFFFF" : "#1E293B"}
+                            style={{ userSelect: "none", letterSpacing: 0.3 }}
                           >
                             {s.uf}
                           </text>
@@ -267,15 +278,11 @@ function MapaVendas() {
                 </div>
 
                 {/* Legend */}
-                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-2.5 text-[11.5px] text-muted-foreground backdrop-blur">
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white/80 px-4 py-2.5 text-[11.5px] text-muted-foreground backdrop-blur">
                   <div className="flex flex-wrap items-center gap-4">
-                    <LegendDot color="#CDD8E6" label="Aguardando dados" />
+                    <LegendDot color="#B8C7DD" label="Aguardando dados" />
                     <LegendDot color="#2563EB" label="Estado em foco" />
-                    <LegendDot
-                      color="#10B981"
-                      label="Alta performance (futuro)"
-                      future
-                    />
+                    <LegendDot color="#1E3A8A" label="Estado selecionado" />
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Info className="h-3.5 w-3.5" />
@@ -288,25 +295,32 @@ function MapaVendas() {
 
           {/* Side panel */}
           <aside className="space-y-4">
-            <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-              <div className="border-b border-border px-5 py-4">
-                <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                  Estado selecionado
+            <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-card shadow-[0_4px_18px_-10px_rgba(15,23,42,0.15)]">
+              <div className="flex items-start justify-between gap-3 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 px-5 py-4">
+                <div>
+                  <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                    Estado selecionado
+                  </div>
+                  <div className="font-display text-base font-semibold text-foreground">
+                    {selected
+                      ? STATES.find((s) => s.uf === selected)?.name
+                      : "Nenhum estado"}
+                  </div>
                 </div>
-                <div className="font-display text-base font-semibold text-foreground">
-                  {selected
-                    ? STATES.find((s) => s.uf === selected)?.name
-                    : "Nenhum estado"}
-                </div>
+                {selected && (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                    {selected}
+                  </span>
+                )}
               </div>
               <div className="space-y-3 px-5 py-4 text-xs">
-                <KV k="Receita" v="—" />
-                <KV k="Pedidos" v="—" />
-                <KV k="Ticket médio" v="—" />
-                <KV k="Cancelamentos" v="—" />
-                <div className="rounded-md bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
+                <KV k="Receita" v="Aguardando integração" />
+                <KV k="Pedidos" v="Aguardando integração" />
+                <KV k="Ticket médio" v="Aguardando integração" />
+                <KV k="Cancelamentos" v="Aguardando integração" />
+                <div className="rounded-md border border-dashed border-slate-200 bg-slate-50/70 px-3 py-2 text-[11px] leading-snug text-muted-foreground">
                   {selected
-                    ? "Indicadores serão exibidos após a integração de pedidos por UF."
+                    ? "Os indicadores deste estado serão exibidos após a integração de pedidos e localidades."
                     : "Clique em um estado no mapa para visualizar o detalhamento."}
                 </div>
               </div>
@@ -392,10 +406,19 @@ function TipRow({ k }: { k: string }) {
 }
 
 function KV({ k, v }: { k: string; v: string }) {
+  const pending = v === "Aguardando integração";
   return (
     <div className="flex items-center justify-between">
       <span className="text-muted-foreground">{k}</span>
-      <span className="font-medium text-foreground">{v}</span>
+      <span
+        className={
+          pending
+            ? "text-[11px] italic text-muted-foreground/80"
+            : "font-medium text-foreground"
+        }
+      >
+        {v}
+      </span>
     </div>
   );
 }

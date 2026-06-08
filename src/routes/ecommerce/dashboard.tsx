@@ -1295,13 +1295,13 @@ function EcommerceDashboard() {
                   hint="Tamanho atual da operação"
                   tone="success"
                 />
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
                   {/* Hero card — Faturamento ocupa 2 colunas em telas grandes */}
                   <div className="sm:col-span-2 lg:col-span-2">
                     <KpiHero
                       label="Faturamento total"
                       value={fmtBRL(summary.total_gross_revenue)}
-                      context="Receita bruta consolidada de todos os canais no período."
+                      context="Receita bruta acumulada no período analisado."
                       to="/ecommerce/produtos"
                       subStats={[
                         {
@@ -1324,6 +1324,15 @@ function EcommerceDashboard() {
                     />
                   </div>
                   <KpiCard
+                    label="Vendas totais"
+                    value={fmtInt(summary.total_sales_count)}
+                    context="Pedidos concluídos no período analisado."
+                    tone="success"
+                    trend={null}
+                    to="/ecommerce/resultados"
+                    cta="Analisar vendas"
+                  />
+                  <KpiCard
                     label="Contas conectadas"
                     value={fmtInt(summary.total_accounts)}
                     context="Marketplaces ativos na operação."
@@ -1343,6 +1352,7 @@ function EcommerceDashboard() {
                   />
                 </div>
               </div>
+
 
 
               {/* Grupo 2 — Performance de Ads */}

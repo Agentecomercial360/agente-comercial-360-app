@@ -353,14 +353,36 @@ function MapaVendas() {
   );
 }
 
-function LegendDot({ color, label }: { color: string; label: string }) {
+function LegendDot({
+  color,
+  label,
+  future = false,
+}: {
+  color: string;
+  label: string;
+  future?: boolean;
+}) {
   return (
     <div className="flex items-center gap-1.5">
       <span
         className="inline-block h-2.5 w-2.5 rounded-full border border-white shadow-sm"
-        style={{ backgroundColor: color }}
+        style={{
+          backgroundColor: color,
+          opacity: future ? 0.55 : 1,
+        }}
       />
-      <span>{label}</span>
+      <span className={future ? "italic text-muted-foreground/80" : ""}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function TipRow({ k }: { k: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-white/60">{k}</span>
+      <span className="text-white/80">Aguardando integração</span>
     </div>
   );
 }

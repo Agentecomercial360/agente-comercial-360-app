@@ -190,6 +190,7 @@ function KpiCard({
   to,
   search,
   cta,
+  badge,
 }: {
   label: string;
   value: React.ReactNode;
@@ -202,6 +203,7 @@ function KpiCard({
   to?: string;
   search?: Record<string, string>;
   cta?: string;
+  badge?: { label: string; tone?: Tone };
 }) {
   const t = TONE[tone];
   const valueSize = compact
@@ -210,11 +212,13 @@ function KpiCard({
       ? "text-[26px]"
       : "text-[22px]";
   const padCls = compact ? "px-3.5 pt-3 pb-2.5" : "px-4 pt-3.5 pb-3";
+  const accentW = tone === "critical" || tone === "attention" ? "w-[4px]" : "w-[3px]";
+  const bt = badge ? TONE[badge.tone ?? tone] : null;
 
   const inner = (
     <>
       <span
-        className={`absolute left-0 top-0 h-full w-[3px] ${t.accent}`}
+        className={`absolute left-0 top-0 h-full ${accentW} ${t.accent}`}
         aria-hidden
       />
       <div className="flex items-start justify-between gap-2">
@@ -224,7 +228,15 @@ function KpiCard({
             {label}
           </div>
         </div>
-        <TrendPill trend={trend} />
+        {badge && bt ? (
+          <span
+            className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[9.5px] font-semibold uppercase tracking-[0.08em] ring-1 ring-inset ${bt.soft} ${bt.chipText} ${bt.ring}`}
+          >
+            {badge.label}
+          </span>
+        ) : (
+          <TrendPill trend={trend} />
+        )}
       </div>
 
       <div
@@ -241,8 +253,10 @@ function KpiCard({
         </div>
       )}
 
-      {impact && !compact && (
-        <div className="mt-1 flex items-start gap-1.5 text-[11px] leading-snug text-slate-400">
+      {impact && (
+        <div
+          className={`${compact ? "mt-1 text-[10.5px]" : "mt-1 text-[11px]"} flex items-start gap-1.5 leading-snug text-slate-400`}
+        >
           <span
             className={`mt-[5px] h-[3px] w-[3px] flex-none rounded-full ${t.dot}`}
             aria-hidden
@@ -253,7 +267,7 @@ function KpiCard({
 
       {to && (
         <div
-          className={`${compact ? "mt-2.5 pt-2" : "mt-3 pt-2.5"} flex items-center justify-between border-t border-slate-100 text-[11px] font-medium tracking-tight text-slate-500 transition-colors group-hover:text-slate-900`}
+          className={`${compact ? "mt-2.5 pt-2" : "mt-3 pt-2.5"} mt-auto flex items-center justify-between border-t border-slate-100 text-[11px] font-medium tracking-tight text-slate-500 transition-colors group-hover:text-slate-900`}
         >
           <span>{cta ?? "Investigar"}</span>
           <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
@@ -280,6 +294,7 @@ function KpiCard({
     <div className={`${baseCls} hover:shadow-[0_8px_24px_-16px_rgba(15,23,42,0.18)]`}>{inner}</div>
   );
 }
+
 
 function GroupHeader({
   eyebrow,

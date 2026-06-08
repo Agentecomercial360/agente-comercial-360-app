@@ -426,7 +426,7 @@ function EcommerceConfiguracoes() {
 
         <div className="grid grid-cols-1 gap-8">
           <IntegrationsSection loading={loading} rows={rows} error={error} />
-          <AccountsSection loading={loading} rows={rows} error={error} />
+          <AccountsSection />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <ConfigSection title="Regras de Análise" icon={RefreshCw}>

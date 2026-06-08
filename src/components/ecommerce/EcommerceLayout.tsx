@@ -27,6 +27,7 @@ const navGroups = [
     title: "E-COMMERCE",
     items: [
       { label: "Visão Geral", to: "/ecommerce/dashboard", icon: Store },
+      { label: "Mapa de Vendas", to: "/ecommerce/mapa-vendas", icon: Map },
       { label: "Contas ML", to: "/ecommerce/contas", icon: UserCog },
       { label: "Produto Unificado", to: "/ecommerce/produtos", icon: ShoppingCart },
       { label: "Produtos Travados", to: "/ecommerce/produtos-travados", icon: ShieldAlert },
@@ -36,7 +37,6 @@ const navGroups = [
       { label: "Tarefas", to: "/ecommerce/tarefas", icon: ListTodo },
       { label: "Consultor IA", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
       { label: "Resultados das Ações", to: "/ecommerce/resultados", icon: BarChart3 },
-      { label: "Mapa de Vendas", to: "/ecommerce/mapa-vendas", icon: Map },
       { label: "Configurações", to: "/ecommerce/configuracoes", icon: Settings },
     ],
   },

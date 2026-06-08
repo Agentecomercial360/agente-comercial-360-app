@@ -278,15 +278,11 @@ function MapaVendas() {
                 </div>
 
                 {/* Legend */}
-                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-2.5 text-[11.5px] text-muted-foreground backdrop-blur">
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white/80 px-4 py-2.5 text-[11.5px] text-muted-foreground backdrop-blur">
                   <div className="flex flex-wrap items-center gap-4">
-                    <LegendDot color="#CDD8E6" label="Aguardando dados" />
+                    <LegendDot color="#B8C7DD" label="Aguardando dados" />
                     <LegendDot color="#2563EB" label="Estado em foco" />
-                    <LegendDot
-                      color="#10B981"
-                      label="Alta performance (futuro)"
-                      future
-                    />
+                    <LegendDot color="#1E3A8A" label="Estado selecionado" />
                   </div>
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Info className="h-3.5 w-3.5" />

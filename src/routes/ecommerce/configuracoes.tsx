@@ -220,10 +220,20 @@ function IntegrationCard({ row }: { row: IntegrationRow }) {
   );
 }
 
-function AccountCard({ row }: { row: IntegrationRow }) {
+type AccountRow = {
+  id?: string;
+  account_name: string | null;
+  marketplace: string | null;
+  external_account_code: string | null;
+  ml_user_id: string | number | null;
+  created_at?: string | null;
+};
+
+function AccountCard({ row }: { row: AccountRow }) {
   const marketplaceLabel = prettyMarketplace(row.marketplace);
   const initial = (row.account_name || marketplaceLabel || "?").charAt(0).toUpperCase();
-  const code = row.external_account_code || (row.ml_user_id != null ? String(row.ml_user_id) : null);
+  const code =
+    row.external_account_code || (row.ml_user_id != null ? String(row.ml_user_id) : null);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -239,23 +249,65 @@ function AccountCard({ row }: { row: IntegrationRow }) {
             <p className="text-xs text-slate-500">{marketplaceLabel}</p>
           </div>
         </div>
-        <StatusBadge row={row} />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700 border border-amber-200">
+          <Clock className="h-3 w-3" /> Aguardando conexão
+        </span>
       </div>
 
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
         <div className="rounded-lg bg-slate-50/60 border border-slate-100 px-3 py-2">
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Identificador</p>
-          <p className="mt-0.5 font-semibold text-slate-700 truncate">{code ?? "—"}</p>
+          <p className="mt-0.5 font-semibold text-slate-700 truncate">
+            {code ?? <span className="italic text-slate-400 font-medium">Aguardando identificador</span>}
+          </p>
         </div>
         <div className="rounded-lg bg-slate-50/60 border border-slate-100 px-3 py-2">
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sincronização</p>
-          <p className="mt-0.5 font-semibold text-slate-700">
-            {row.last_sync_at ? fmtDateTime(row.last_sync_at) : "Aguardando conexão"}
-          </p>
+          <p className="mt-0.5 font-semibold text-slate-700">Ainda não sincronizado</p>
         </div>
       </div>
     </div>
   );
+}
+
+function useAccounts() {
+  const [loading, setLoading] = useState(true);
+  const [rows, setRows] = useState<AccountRow[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const { data: ctx } = await supabase
+          .from("vw_user_access_context")
+          .select("company_id")
+          .maybeSingle();
+        if (!ctx?.company_id) {
+          if (!cancelled) setRows([]);
+          return;
+        }
+        const { data, error: err } = await supabase
+          .from("ecommerce_accounts")
+          .select("id, account_name, marketplace, external_account_code, ml_user_id, created_at")
+          .eq("company_id", ctx.company_id)
+          .order("created_at", { ascending: true });
+        if (err) throw err;
+        if (!cancelled) setRows((data as AccountRow[]) ?? []);
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message ?? "Erro ao carregar contas.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  return { loading, rows, error };
 }
 
 function useIntegrationData() {

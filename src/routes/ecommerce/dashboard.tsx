@@ -850,9 +850,13 @@ function EvolutionSection({
 
   return (
     <section className="space-y-2.5">
-      <div className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-slate-400">
-        Análise temporal
-      </div>
+      <GroupHeader
+        eyebrow="Bloco D"
+        title="Análise temporal"
+        hint="Evolução comparativa da operação no período"
+        tone="info"
+      />
+
       <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_0_rgba(15,23,42,0.04)] lg:p-6">
         {/* Header */}
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">

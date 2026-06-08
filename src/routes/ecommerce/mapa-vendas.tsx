@@ -295,25 +295,32 @@ function MapaVendas() {
 
           {/* Side panel */}
           <aside className="space-y-4">
-            <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-              <div className="border-b border-border px-5 py-4">
-                <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                  Estado selecionado
+            <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-card shadow-[0_4px_18px_-10px_rgba(15,23,42,0.15)]">
+              <div className="flex items-start justify-between gap-3 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 px-5 py-4">
+                <div>
+                  <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                    Estado selecionado
+                  </div>
+                  <div className="font-display text-base font-semibold text-foreground">
+                    {selected
+                      ? STATES.find((s) => s.uf === selected)?.name
+                      : "Nenhum estado"}
+                  </div>
                 </div>
-                <div className="font-display text-base font-semibold text-foreground">
-                  {selected
-                    ? STATES.find((s) => s.uf === selected)?.name
-                    : "Nenhum estado"}
-                </div>
+                {selected && (
+                  <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                    {selected}
+                  </span>
+                )}
               </div>
               <div className="space-y-3 px-5 py-4 text-xs">
-                <KV k="Receita" v="—" />
-                <KV k="Pedidos" v="—" />
-                <KV k="Ticket médio" v="—" />
-                <KV k="Cancelamentos" v="—" />
-                <div className="rounded-md bg-muted/40 px-3 py-2 text-[11px] text-muted-foreground">
+                <KV k="Receita" v="Aguardando integração" />
+                <KV k="Pedidos" v="Aguardando integração" />
+                <KV k="Ticket médio" v="Aguardando integração" />
+                <KV k="Cancelamentos" v="Aguardando integração" />
+                <div className="rounded-md border border-dashed border-slate-200 bg-slate-50/70 px-3 py-2 text-[11px] leading-snug text-muted-foreground">
                   {selected
-                    ? "Indicadores serão exibidos após a integração de pedidos por UF."
+                    ? "Os indicadores deste estado serão exibidos após a integração de pedidos e localidades."
                     : "Clique em um estado no mapa para visualizar o detalhamento."}
                 </div>
               </div>

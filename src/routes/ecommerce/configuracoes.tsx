@@ -380,12 +380,11 @@ function IntegrationsSection({ loading, rows, error }: { loading: boolean; rows:
   );
 }
 
-function AccountsSection({ loading, rows, error }: { loading: boolean; rows: IntegrationRow[]; error: string | null }) {
-  const marketplaces = new Set(rows.map((r) => (r.marketplace || "").toLowerCase()).filter(Boolean));
-  const title = marketplaces.size > 1 ? "Contas de Marketplace" : "Contas de Marketplace";
+function AccountsSection() {
+  const { loading, rows, error } = useAccounts();
 
   return (
-    <ConfigSection title={title} icon={UserCog}>
+    <ConfigSection title="Contas de Marketplace" icon={UserCog}>
       {loading ? (
         <div className="flex items-center justify-center gap-2 py-10 text-sm text-slate-500">
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -406,7 +405,7 @@ function AccountsSection({ loading, rows, error }: { loading: boolean; rows: Int
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {rows.map((row, i) => (
-            <AccountCard key={i} row={row} />
+            <AccountCard key={row.id ?? i} row={row} />
           ))}
         </div>
       )}

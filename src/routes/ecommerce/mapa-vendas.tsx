@@ -49,25 +49,32 @@ function MapaVendas() {
       <div className="space-y-8">
         {/* Header */}
         <header className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
             <div
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-white"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white"
               style={{ background: "var(--gradient-brand)" }}
             >
               <MapIcon className="h-5 w-5" />
             </div>
-            <div>
+            <div className="space-y-1">
               <h1 className="font-display text-2xl font-bold text-foreground">
                 Mapa de Vendas
               </h1>
               <p className="text-sm text-muted-foreground max-w-2xl">
-                Visualize a distribuição geográfica da operação e acompanhe,
-                futuramente, pedidos, vendas e cancelamentos por região.
+                Visualize onde a operação concentra receita, pedidos,
+                cancelamentos e oportunidades regionais.
+              </p>
+              <p className="text-xs text-muted-foreground/90 max-w-2xl">
+                Este módulo será conectado aos pedidos reais para identificar
+                estados e cidades com maior impacto comercial.
               </p>
             </div>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5">
-            <span className="h-2 w-2 rounded-full bg-blue-500" />
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
+            </span>
             <span className="text-xs font-semibold text-blue-700">
               Dados geográficos em preparação
             </span>
@@ -109,8 +116,8 @@ function MapaVendas() {
         {/* Map + Side */}
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
           {/* Map */}
-          <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-6 py-4">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
               <div>
                 <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
                   Visão geográfica
@@ -119,14 +126,14 @@ function MapaVendas() {
                   Mapa do Brasil
                 </div>
               </div>
-              <div className="inline-flex items-center rounded-lg bg-muted p-1">
+              <div className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-100/70 p-1">
                 {VIEW_TABS.map((t) => (
                   <button
                     key={t.id}
                     onClick={() => setView(t.id)}
                     className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
                       view === t.id
-                        ? "bg-white text-foreground shadow-sm"
+                        ? "bg-white text-foreground shadow-sm ring-1 ring-slate-200"
                         : "text-muted-foreground hover:text-foreground"
                     }`}
                   >
@@ -136,58 +143,65 @@ function MapaVendas() {
               </div>
             </div>
 
-            <div className="relative p-6">
-              <div className="relative mx-auto w-full max-w-[760px]">
-                <div
-                  className="relative rounded-2xl"
-                  style={{
-                    background:
-                      "radial-gradient(ellipse at 50% 35%, #EFF4FB 0%, #F8FAFC 70%)",
-                  }}
-                >
+            <div
+              className="relative px-6 py-8"
+              style={{
+                background:
+                  "radial-gradient(ellipse at 50% 30%, #EEF4FB 0%, #F4F7FB 55%, #F8FAFC 100%)",
+              }}
+            >
+              <div className="relative mx-auto w-full max-w-[720px]">
+                <div className="relative">
                   <svg
                     viewBox="0 0 800 800"
-                    className="block h-auto w-full"
+                    className="block h-auto w-full drop-shadow-[0_8px_24px_rgba(30,58,138,0.08)]"
                     role="img"
                     aria-label="Mapa do Brasil"
                   >
                     <defs>
-                      <filter
-                        id="stateShadow"
-                        x="-5%"
-                        y="-5%"
-                        width="110%"
-                        height="110%"
-                      >
-                        <feDropShadow
-                          dx="0"
-                          dy="1"
-                          stdDeviation="1"
-                          floodColor="#0F172A"
-                          floodOpacity="0.08"
-                        />
-                      </filter>
+                      <linearGradient id="stateNeutral" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#DDE6F1" />
+                        <stop offset="100%" stopColor="#CDD8E6" />
+                      </linearGradient>
+                      <linearGradient id="stateHover" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3B82F6" />
+                        <stop offset="100%" stopColor="#2563EB" />
+                      </linearGradient>
+                      <linearGradient id="stateSelected" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#1D4ED8" />
+                        <stop offset="100%" stopColor="#172554" />
+                      </linearGradient>
                     </defs>
-                    <g filter="url(#stateShadow)">
+                    <g>
                       {STATES.map((s) => {
                         const isHover = hover?.uf === s.uf;
                         const isSelected = selected === s.uf;
                         const fill = isSelected
-                          ? "#1D4ED8"
+                          ? "url(#stateSelected)"
                           : isHover
-                            ? "#3B82F6"
-                            : "#E2E8F0";
-                        const stroke = isSelected || isHover ? "#1E3A8A" : "#FFFFFF";
+                            ? "url(#stateHover)"
+                            : "url(#stateNeutral)";
+                        const stroke = isSelected
+                          ? "#0B1E59"
+                          : isHover
+                            ? "#1E3A8A"
+                            : "#FFFFFF";
                         return (
                           <path
                             key={s.uf}
                             d={s.d}
                             fill={fill}
                             stroke={stroke}
-                            strokeWidth={isSelected || isHover ? 1.2 : 0.8}
+                            strokeWidth={isSelected || isHover ? 1.4 : 1}
+                            strokeLinejoin="round"
                             style={{
                               cursor: "pointer",
-                              transition: "fill 180ms ease, stroke 180ms ease",
+                              transition:
+                                "fill 200ms ease, stroke 200ms ease, filter 200ms ease",
+                              filter:
+                                isSelected || isHover
+                                  ? "drop-shadow(0 2px 6px rgba(29,78,216,0.35))"
+                                  : "none",
                             }}
                             onMouseEnter={() => setHover(s)}
                             onMouseLeave={() => setHover(null)}
@@ -198,10 +212,10 @@ function MapaVendas() {
                         );
                       })}
                     </g>
-                    {/* UF labels */}
                     <g style={{ pointerEvents: "none" }}>
                       {STATES.map((s) => {
-                        const isActive = hover?.uf === s.uf || selected === s.uf;
+                        const isActive =
+                          hover?.uf === s.uf || selected === s.uf;
                         return (
                           <text
                             key={s.uf}
@@ -209,9 +223,9 @@ function MapaVendas() {
                             y={s.cy + 3}
                             textAnchor="middle"
                             fontSize={10}
-                            fontWeight={600}
-                            fill={isActive ? "#FFFFFF" : "#475569"}
-                            style={{ userSelect: "none" }}
+                            fontWeight={700}
+                            fill={isActive ? "#FFFFFF" : "#334155"}
+                            style={{ userSelect: "none", letterSpacing: 0.2 }}
                           >
                             {s.uf}
                           </text>
@@ -222,33 +236,50 @@ function MapaVendas() {
 
                   {hover && tooltipPos && (
                     <div
-                      className="pointer-events-none absolute z-10 w-56 -translate-x-1/2 -translate-y-[120%] rounded-xl border border-border bg-white p-3 shadow-lg"
+                      className="pointer-events-none absolute z-10 w-64 -translate-x-1/2 -translate-y-[112%] rounded-xl border border-slate-700/40 bg-slate-900/95 p-3 text-white shadow-[0_12px_30px_-8px_rgba(15,23,42,0.45)] backdrop-blur-sm"
                       style={tooltipPos}
                     >
-                      <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
-                        {hover.uf}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-[10px] uppercase tracking-widest text-blue-300/80">
+                            {hover.uf}
+                          </div>
+                          <div className="font-display text-sm font-semibold">
+                            {hover.name}
+                          </div>
+                        </div>
+                        <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-blue-300">
+                          <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+                          Em integração
+                        </span>
                       </div>
-                      <div className="font-display text-sm font-semibold text-foreground">
-                        {hover.name}
+                      <div className="mt-2 space-y-1 border-t border-white/10 pt-2 text-[11px]">
+                        <TipRow k="Receita" />
+                        <TipRow k="Pedidos" />
+                        <TipRow k="Cancelamentos" />
                       </div>
-                      <div className="mt-2 flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-700">
-                        <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                        Dados em integração
-                      </div>
+                      <p className="mt-2 text-[10.5px] leading-snug text-white/60">
+                        Dados serão exibidos após sincronização de pedidos e
+                        localidades.
+                      </p>
                     </div>
                   )}
                 </div>
 
                 {/* Legend */}
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed border-border bg-muted/30 px-3 py-2 text-[11.5px] text-muted-foreground">
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-4 py-2.5 text-[11.5px] text-muted-foreground backdrop-blur">
                   <div className="flex flex-wrap items-center gap-4">
-                    <LegendDot color="#E2E8F0" label="Estado neutro" />
-                    <LegendDot color="#3B82F6" label="Estado em foco" />
-                    <LegendDot color="#1D4ED8" label="Selecionado" />
+                    <LegendDot color="#CDD8E6" label="Aguardando dados" />
+                    <LegendDot color="#2563EB" label="Estado em foco" />
+                    <LegendDot
+                      color="#10B981"
+                      label="Alta performance (futuro)"
+                      future
+                    />
                   </div>
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Info className="h-3.5 w-3.5" />
-                    <span>Dados em integração</span>
+                    <span>Leitura ativada após integração</span>
                   </div>
                 </div>
               </div>
@@ -289,6 +320,10 @@ function MapaVendas() {
               title="Top cidades por pedidos"
               icon={<Building2 className="h-4 w-4" />}
             />
+            <RankingCard
+              title="Estados com mais cancelamentos"
+              icon={<XCircle className="h-4 w-4" />}
+            />
           </aside>
         </section>
 
@@ -322,14 +357,36 @@ function MapaVendas() {
   );
 }
 
-function LegendDot({ color, label }: { color: string; label: string }) {
+function LegendDot({
+  color,
+  label,
+  future = false,
+}: {
+  color: string;
+  label: string;
+  future?: boolean;
+}) {
   return (
     <div className="flex items-center gap-1.5">
       <span
         className="inline-block h-2.5 w-2.5 rounded-full border border-white shadow-sm"
-        style={{ backgroundColor: color }}
+        style={{
+          backgroundColor: color,
+          opacity: future ? 0.55 : 1,
+        }}
       />
-      <span>{label}</span>
+      <span className={future ? "italic text-muted-foreground/80" : ""}>
+        {label}
+      </span>
+    </div>
+  );
+}
+
+function TipRow({ k }: { k: string }) {
+  return (
+    <div className="flex items-center justify-between">
+      <span className="text-white/60">{k}</span>
+      <span className="text-white/80">Aguardando integração</span>
     </div>
   );
 }
@@ -386,28 +443,30 @@ function RankingCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-card shadow-[var(--shadow-soft)]">
-      <div className="flex items-center gap-2 border-b border-border px-5 py-3">
-        <span className="text-muted-foreground">{icon}</span>
+    <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-card shadow-[0_4px_18px_-10px_rgba(15,23,42,0.15)]">
+      <div className="flex items-center gap-2 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 px-5 py-3">
+        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+          {icon}
+        </span>
         <div className="text-xs font-semibold text-foreground">{title}</div>
       </div>
       <div className="space-y-2 px-5 py-4">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2"
+            className="flex items-center justify-between rounded-lg border border-dashed border-slate-200 bg-slate-50/60 px-3 py-2"
           >
             <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-md border border-border bg-white text-[10px] font-semibold text-muted-foreground">
+              <span className="flex h-5 w-5 items-center justify-center rounded-md border border-slate-200 bg-white text-[10px] font-semibold text-slate-400">
                 {i + 1}
               </span>
-              <span className="text-xs text-muted-foreground">—</span>
+              <span className="h-2 w-20 rounded-full bg-slate-200/80" />
             </div>
-            <span className="text-xs text-muted-foreground">—</span>
+            <span className="h-2 w-10 rounded-full bg-slate-200/80" />
           </div>
         ))}
-        <p className="pt-1 text-[11px] text-muted-foreground">
-          Dados regionais serão exibidos após integração de pedidos e
+        <p className="pt-1 text-[11px] leading-snug text-muted-foreground">
+          Dados regionais serão exibidos após a integração de pedidos e
           localidades.
         </p>
       </div>

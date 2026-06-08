@@ -49,25 +49,32 @@ function MapaVendas() {
       <div className="space-y-8">
         {/* Header */}
         <header className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3">
             <div
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-white"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white"
               style={{ background: "var(--gradient-brand)" }}
             >
               <MapIcon className="h-5 w-5" />
             </div>
-            <div>
+            <div className="space-y-1">
               <h1 className="font-display text-2xl font-bold text-foreground">
                 Mapa de Vendas
               </h1>
               <p className="text-sm text-muted-foreground max-w-2xl">
-                Visualize a distribuição geográfica da operação e acompanhe,
-                futuramente, pedidos, vendas e cancelamentos por região.
+                Visualize onde a operação concentra receita, pedidos,
+                cancelamentos e oportunidades regionais.
+              </p>
+              <p className="text-xs text-muted-foreground/90 max-w-2xl">
+                Este módulo será conectado aos pedidos reais para identificar
+                estados e cidades com maior impacto comercial.
               </p>
             </div>
           </div>
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5">
-            <span className="h-2 w-2 rounded-full bg-blue-500" />
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-60" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
+            </span>
             <span className="text-xs font-semibold text-blue-700">
               Dados geográficos em preparação
             </span>

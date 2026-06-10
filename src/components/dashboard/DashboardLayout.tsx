@@ -189,7 +189,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   );
                 })}
               </div>
-              {gi < navGroups.length - 1 && (
+              {gi < visibleNavGroups.length - 1 && (
                 <div
                   className="mx-3.5 mt-3 h-px"
                   style={{ background: "var(--sidebar-brand-border)" }}

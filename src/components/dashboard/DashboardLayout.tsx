@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   Headphones,
@@ -16,11 +16,14 @@ import {
   Crown,
   Package,
   CalendarClock,
+  LogOut,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import acLogo from "@/assets/ac-logo.png";
 import { useModuleGuard } from "@/lib/use-module-guard";
+import { supabase } from "@/lib/supabase";
+
 
 const navGroups = [
   {
@@ -56,6 +59,21 @@ const navGroups = [
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { allowed, checking } = useModuleGuard("crm");
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = useCallback(async () => {
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+    try {
+      await supabase.auth.signOut();
+      toast.success("Sessão encerrada.");
+    } catch {
+      toast.error("Erro ao sair. Tente novamente.");
+    } finally {
+      navigate({ to: "/login" });
+    }
+  }, [isSigningOut, navigate]);
   const [today, setToday] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
@@ -172,10 +190,21 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           ))}
         </nav>
         <div
-          className="px-6 py-4 border-t text-[11px] tracking-wide text-white/45"
+          className="px-3 py-3 border-t"
           style={{ borderColor: "var(--sidebar-brand-border)" }}
         >
-          v1.0 · União Auto Peças
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+            className="group w-full flex items-center gap-3 rounded-lg px-3.5 py-2 text-sm font-medium text-white/65 hover:bg-red-500/10 hover:text-red-300 transition disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <LogOut className="h-4 w-4 shrink-0 group-hover:text-red-300" size={16} />
+            <span className="truncate">{isSigningOut ? "Saindo..." : "Sair"}</span>
+          </button>
+          <div className="px-3.5 pt-2 text-[11px] tracking-wide text-white/40">
+            v1.0 · União Auto Peças
+          </div>
         </div>
       </aside>
 

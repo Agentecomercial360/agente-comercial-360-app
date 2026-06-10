@@ -233,15 +233,13 @@ export function EcommerceLayout({ children }: { children: ReactNode }) {
         >
           <div className="flex flex-wrap items-center justify-between gap-3 px-4 md:px-6 py-3 md:py-3.5">
             <div className="flex items-center gap-3 md:gap-4 min-w-0">
-              <SheetTrigger asChild>
-                <button
-                  onClick={() => setMobileOpen(true)}
-                  className="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border/60 text-foreground hover:bg-muted transition"
-                  aria-label="Abrir menu"
-                >
-                  <Menu className="h-5 w-5" />
-                </button>
-              </SheetTrigger>
+              <button
+                onClick={() => setMobileOpen(true)}
+                className="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-lg border border-border/60 text-foreground hover:bg-muted transition"
+                aria-label="Abrir menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
               <Link
                 to="/modulos"
                 className="hidden sm:flex text-[11px] uppercase tracking-wider text-muted-foreground hover:text-primary transition-colors items-center gap-1"

@@ -112,13 +112,20 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     }, delay);
   }, [isUpdating]);
 
-  if (checking || !allowed) {
+  if (checking || !allowed || roleState.loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
         Validando acesso…
       </div>
     );
   }
+
+  const visibleNavGroups = navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => roleState.canAccessRoute(item.to)),
+    }))
+    .filter((group) => group.items.length > 0);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -149,7 +156,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-5">
-          {navGroups.map((group, gi) => (
+          {visibleNavGroups.map((group, gi) => (
             <div key={gi}>
               <div className="px-3.5 mb-2 text-[10px] font-semibold uppercase tracking-widest text-white/40">
                 {group.title}

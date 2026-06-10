@@ -22,6 +22,7 @@ import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import acLogo from "@/assets/ac-logo.png";
 import { useModuleGuard } from "@/lib/use-module-guard";
+import { useCrmRoleGuard } from "@/lib/use-crm-role";
 import { supabase } from "@/lib/supabase";
 
 
@@ -58,6 +59,7 @@ const navGroups = [
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { allowed, checking } = useModuleGuard("crm");
+  const roleState = useCrmRoleGuard();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -110,13 +112,20 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
     }, delay);
   }, [isUpdating]);
 
-  if (checking || !allowed) {
+  if (checking || !allowed || roleState.loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">
         Validando acesso…
       </div>
     );
   }
+
+  const visibleNavGroups = navGroups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => roleState.canAccessRoute(item.to)),
+    }))
+    .filter((group) => group.items.length > 0);
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -147,7 +156,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
         <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-5">
-          {navGroups.map((group, gi) => (
+          {visibleNavGroups.map((group, gi) => (
             <div key={gi}>
               <div className="px-3.5 mb-2 text-[10px] font-semibold uppercase tracking-widest text-white/40">
                 {group.title}
@@ -180,7 +189,7 @@ export function DashboardLayout({ children }: { children: ReactNode }) {
                   );
                 })}
               </div>
-              {gi < navGroups.length - 1 && (
+              {gi < visibleNavGroups.length - 1 && (
                 <div
                   className="mx-3.5 mt-3 h-px"
                   style={{ background: "var(--sidebar-brand-border)" }}

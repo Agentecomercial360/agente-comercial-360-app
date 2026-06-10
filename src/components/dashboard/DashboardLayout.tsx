@@ -22,6 +22,7 @@ import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import acLogo from "@/assets/ac-logo.png";
 import { useModuleGuard } from "@/lib/use-module-guard";
+import { useCrmRoleGuard } from "@/lib/use-crm-role";
 import { supabase } from "@/lib/supabase";
 
 
@@ -58,6 +59,7 @@ const navGroups = [
 
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { allowed, checking } = useModuleGuard("crm");
+  const roleState = useCrmRoleGuard();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const [isSigningOut, setIsSigningOut] = useState(false);

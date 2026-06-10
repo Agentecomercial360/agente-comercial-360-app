@@ -59,6 +59,21 @@ const navGroups = [
 export function DashboardLayout({ children }: { children: ReactNode }) {
   const { allowed, checking } = useModuleGuard("crm");
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+
+  const handleSignOut = useCallback(async () => {
+    if (isSigningOut) return;
+    setIsSigningOut(true);
+    try {
+      await supabase.auth.signOut();
+      toast.success("Sessão encerrada.");
+    } catch {
+      toast.error("Erro ao sair. Tente novamente.");
+    } finally {
+      navigate({ to: "/login" });
+    }
+  }, [isSigningOut, navigate]);
   const [today, setToday] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);

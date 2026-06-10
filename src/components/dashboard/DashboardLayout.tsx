@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import acLogo from "@/assets/ac-logo.png";
 import { useModuleGuard } from "@/lib/use-module-guard";
 import { supabase } from "@/lib/supabase";
-import { useNavigate } from "@tanstack/react-router";
+
 
 const navGroups = [
   {

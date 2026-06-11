@@ -120,7 +120,7 @@ type Conversa = {
   ultimaMensagem: string;
   horario: string;
   status: Status;
-  setor: string;
+  setor: SectorKey | null;
 };
 
 const conversas: Conversa[] = [

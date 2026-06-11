@@ -110,6 +110,7 @@ const filtroStatusMap: Record<string, ConversationStatus[]> = {
 
 function AtendimentosPage() {
   const [filtro, setFiltro] = useState("Todos");
+  const [sectorFilter, setSectorFilter] = useState<SectorFilterOption>("all");
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<Atendimento[]>(atendimentosMock);
   const [selectedId, setSelectedId] = useState<string | number | null>(null);

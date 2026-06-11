@@ -91,8 +91,6 @@ const atendimentosMock: Atendimento[] = [
 ];
 
 
-const setores = new Set<SectorKey>(["vendas", "financeiro", "caixa", "administrativo", "geral"]);
-void setores;
 
 const prioridades = [
   "Responder clientes sem retorno",

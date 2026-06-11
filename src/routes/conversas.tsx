@@ -785,8 +785,8 @@ function ConversasPage() {
                         <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border px-2 py-0.5 text-[11px] font-medium text-foreground">
                           <MessageCircle className="h-3 w-3 text-muted-foreground" /> {selected.canal}
                         </span>
-                        <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border px-2 py-0.5 text-[11px] font-medium text-foreground">
-                          <Briefcase className="h-3 w-3 text-muted-foreground" /> {selected.setor && selected.setor !== "—" ? selected.setor : "Não definido"}
+                        <span className={`inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[11px] font-medium ${getSectorBadgeClass(selected.setor)}`}>
+                          <Briefcase className="h-3 w-3" /> Setor: {getSectorLabel(selected.setor)}
                         </span>
                       </div>
                     </div>

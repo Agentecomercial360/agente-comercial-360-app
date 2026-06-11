@@ -468,7 +468,6 @@ function AtendimentosPage() {
                   {filtered.map((a) => {
                     const isSelected = selectedId === a.id;
                     const initial = (a.cliente?.trim()?.charAt(0) || "?").toUpperCase();
-                    const setorVazio = !a.setor || a.setor === "—";
                     const responsavelVazio = !a.responsavel || a.responsavel === "—";
                     return (
                       <tr
@@ -487,13 +486,9 @@ function AtendimentosPage() {
                         <td className="px-4 py-4 max-w-xs truncate text-slate-600">{a.mensagem}</td>
                         <td className="px-4 py-4">
                           <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${
-                              setorVazio
-                                ? "bg-slate-50 text-slate-500 ring-slate-200 italic"
-                                : setorBadge[a.setor] ?? "bg-slate-100 text-slate-700 ring-slate-200"
-                            }`}
+                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${getSectorBadgeClass(a.setor)}`}
                           >
-                            {setorVazio ? "A definir" : a.setor}
+                            {getSectorLabel(a.setor)}
                           </span>
                         </td>
                         <td className="px-4 py-4">

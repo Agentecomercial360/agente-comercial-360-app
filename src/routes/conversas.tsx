@@ -214,6 +214,7 @@ const responsaveis = ["Amanda", "Thaís", "Vinicius", "Lorenzzo", "Vitor", "Ivan
 
 function ConversasPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
+  const [sectorFilter, setSectorFilter] = useState<SectorFilterOption>("all");
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<Conversa[]>(conversas);
   const [selectedId, setSelectedId] = useState<string | number | null>(1);

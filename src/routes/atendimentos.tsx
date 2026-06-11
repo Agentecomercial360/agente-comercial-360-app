@@ -201,18 +201,24 @@ function AtendimentosPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const adminLike = canRoleSeeAllSectors(role);
     return items.filter((a) => {
       if (filtro !== "Todos") {
-        if (setores.has(filtro) && a.setor !== filtro) return false;
         const allowed = filtroStatusMap[filtro];
         if (allowed && !allowed.includes(a.status)) return false;
       }
+      if (adminLike && sectorFilter !== "all") {
+        if (sectorFilter === "none") {
+          if (a.setor !== null) return false;
+        } else if (a.setor !== sectorFilter) return false;
+      }
       if (!q) return true;
       const statusLabel = getConversationStatusLabel(a.status).toLowerCase();
-      return [a.cliente, a.telefone, a.mensagem, a.setor, statusLabel, a.responsavel, a.horario]
+      const setorLabel = getSectorLabel(a.setor).toLowerCase();
+      return [a.cliente, a.telefone, a.mensagem, setorLabel, statusLabel, a.responsavel, a.horario]
         .some((v) => v.toLowerCase().includes(q));
     });
-  }, [items, filtro, search]);
+  }, [items, filtro, search, role, sectorFilter]);
 
   const selected = items.find((a) => a.id === selectedId) || null;
 

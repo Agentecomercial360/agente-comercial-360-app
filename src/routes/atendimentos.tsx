@@ -18,7 +18,16 @@ import {
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 import { useCrmRole } from "@/lib/use-crm-role";
-import { sectorFilterFor } from "@/lib/crm-permissions";
+import {
+  sectorFilterFor,
+  normalizeSector,
+  getSectorLabel,
+  getSectorBadgeClass,
+  canRoleSeeAllSectors,
+  ALL_SECTOR_OPTIONS,
+  type SectorKey,
+  type SectorFilterOption,
+} from "@/lib/crm-permissions";
 import {
   type ConversationStatus,
   normalizeConversationStatus,
@@ -55,10 +64,6 @@ const cards = [
 
 const filtros = [
   "Todos",
-  "Vendas",
-  "Financeiro",
-  "Administrativo",
-  "Orçamentos",
   "Abertos",
   "Em andamento",
   "Finalizados",
@@ -70,28 +75,22 @@ type Atendimento = {
   cliente: string;
   telefone: string;
   mensagem: string;
-  setor: string;
+  setor: SectorKey | null;
   status: ConversationStatus;
   responsavel: string;
   horario: string;
 };
 
 const atendimentosMock: Atendimento[] = [
-  { id: 1, cliente: "João Martins", telefone: "(15) 99999-1020", mensagem: "Preciso de orçamento do kit embreagem.", setor: "Vendas", status: "em_andamento", responsavel: "Amanda", horario: "09:41" },
-  { id: 2, cliente: "Carlos Souza", telefone: "(15) 98888-2211", mensagem: "Vocês têm pastilha de freio do Onix?", setor: "Vendas", status: "sem_resposta", responsavel: "Vinicius", horario: "10:12" },
-  { id: 3, cliente: "Fernanda Lima", telefone: "(15) 97777-3344", mensagem: "Quero saber se tem bateria 60Ah.", setor: "Vendas", status: "aberta", responsavel: "Thaís", horario: "11:05" },
-  { id: 4, cliente: "Roberto Alves", telefone: "(15) 96666-4455", mensagem: "Tenho uma cobrança em aberto?", setor: "Financeiro", status: "em_andamento", responsavel: "Vinicius", horario: "11:48" },
-  { id: 5, cliente: "Mariana Costa", telefone: "(15) 95555-7788", mensagem: "Qual horário de funcionamento?", setor: "Administrativo", status: "finalizada", responsavel: "Lorenzzo", horario: "12:20" },
-  { id: 6, cliente: "Pedro Henrique", telefone: "(15) 94444-8899", mensagem: "Preciso de amortecedor dianteiro.", setor: "Orçamentos", status: "sem_resposta", responsavel: "Vitor", horario: "13:02" },
+  { id: 1, cliente: "João Martins", telefone: "(15) 99999-1020", mensagem: "Preciso de orçamento do kit embreagem.", setor: "vendas", status: "em_andamento", responsavel: "Amanda", horario: "09:41" },
+  { id: 2, cliente: "Carlos Souza", telefone: "(15) 98888-2211", mensagem: "Vocês têm pastilha de freio do Onix?", setor: "vendas", status: "sem_resposta", responsavel: "Vinicius", horario: "10:12" },
+  { id: 3, cliente: "Fernanda Lima", telefone: "(15) 97777-3344", mensagem: "Quero saber se tem bateria 60Ah.", setor: "vendas", status: "aberta", responsavel: "Thaís", horario: "11:05" },
+  { id: 4, cliente: "Roberto Alves", telefone: "(15) 96666-4455", mensagem: "Tenho uma cobrança em aberto?", setor: "financeiro", status: "em_andamento", responsavel: "Vinicius", horario: "11:48" },
+  { id: 5, cliente: "Mariana Costa", telefone: "(15) 95555-7788", mensagem: "Qual horário de funcionamento?", setor: "administrativo", status: "finalizada", responsavel: "Lorenzzo", horario: "12:20" },
+  { id: 6, cliente: "Pedro Henrique", telefone: "(15) 94444-8899", mensagem: "Preciso de amortecedor dianteiro.", setor: "geral", status: "sem_resposta", responsavel: "Vitor", horario: "13:02" },
 ];
 
 
-const setorBadge: Record<string, string> = {
-  Vendas: "bg-blue-50 text-blue-700 ring-blue-200",
-  Financeiro: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  Administrativo: "bg-slate-100 text-slate-700 ring-slate-200",
-  Orçamentos: "bg-amber-50 text-amber-700 ring-amber-200",
-};
 
 const prioridades = [
   "Responder clientes sem retorno",
@@ -111,6 +110,7 @@ const filtroStatusMap: Record<string, ConversationStatus[]> = {
 
 function AtendimentosPage() {
   const [filtro, setFiltro] = useState("Todos");
+  const [sectorFilter, setSectorFilter] = useState<SectorFilterOption>("all");
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<Atendimento[]>(atendimentosMock);
   const [selectedId, setSelectedId] = useState<string | number | null>(null);
@@ -149,7 +149,7 @@ function AtendimentosPage() {
         let query = supabase
           .from("conversations")
           .select(
-            `id, channel, status, last_message_at, created_at, customer_id,
+            `id, channel, status, sector, last_message_at, created_at, customer_id,
              customers ( name, phone, city, customer_type )`,
           )
           .eq("company_id", cu.company_id);
@@ -179,7 +179,7 @@ function AtendimentosPage() {
             cliente: cust?.name ?? "Cliente sem nome",
             telefone: cust?.phone ?? "—",
             mensagem: "Histórico do atendimento disponível",
-            setor: "—",
+            setor: normalizeSector(r.sector),
             status: normalizeConversationStatus(r.status),
             responsavel: "—",
             horario: formatHorario(r.last_message_at, r.created_at),
@@ -201,18 +201,24 @@ function AtendimentosPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const adminLike = canRoleSeeAllSectors(role);
     return items.filter((a) => {
       if (filtro !== "Todos") {
-        if (setores.has(filtro) && a.setor !== filtro) return false;
         const allowed = filtroStatusMap[filtro];
         if (allowed && !allowed.includes(a.status)) return false;
       }
+      if (adminLike && sectorFilter !== "all") {
+        if (sectorFilter === "none") {
+          if (a.setor !== null) return false;
+        } else if (a.setor !== sectorFilter) return false;
+      }
       if (!q) return true;
       const statusLabel = getConversationStatusLabel(a.status).toLowerCase();
-      return [a.cliente, a.telefone, a.mensagem, a.setor, statusLabel, a.responsavel, a.horario]
+      const setorLabel = getSectorLabel(a.setor).toLowerCase();
+      return [a.cliente, a.telefone, a.mensagem, setorLabel, statusLabel, a.responsavel, a.horario]
         .some((v) => v.toLowerCase().includes(q));
     });
-  }, [items, filtro, search]);
+  }, [items, filtro, search, role, sectorFilter]);
 
   const selected = items.find((a) => a.id === selectedId) || null;
 
@@ -429,6 +435,30 @@ function AtendimentosPage() {
               </button>
             ))}
           </div>
+          {canRoleSeeAllSectors(role) && (
+            <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Setor
+              </span>
+              {ALL_SECTOR_OPTIONS.map((opt) => {
+                const active = sectorFilter === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setSectorFilter(opt.value)}
+                    className={`rounded-full px-3 py-1 text-[11px] font-semibold transition ${
+                      active
+                        ? "bg-foreground text-background shadow-sm"
+                        : "bg-muted/60 text-muted-foreground hover:bg-muted ring-1 ring-border"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Tabela ou vazio */}
@@ -462,7 +492,6 @@ function AtendimentosPage() {
                   {filtered.map((a) => {
                     const isSelected = selectedId === a.id;
                     const initial = (a.cliente?.trim()?.charAt(0) || "?").toUpperCase();
-                    const setorVazio = !a.setor || a.setor === "—";
                     const responsavelVazio = !a.responsavel || a.responsavel === "—";
                     return (
                       <tr
@@ -481,13 +510,9 @@ function AtendimentosPage() {
                         <td className="px-4 py-4 max-w-xs truncate text-slate-600">{a.mensagem}</td>
                         <td className="px-4 py-4">
                           <span
-                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ring-1 ${
-                              setorVazio
-                                ? "bg-slate-50 text-slate-500 ring-slate-200 italic"
-                                : setorBadge[a.setor] ?? "bg-slate-100 text-slate-700 ring-slate-200"
-                            }`}
+                            className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold ${getSectorBadgeClass(a.setor)}`}
                           >
-                            {setorVazio ? "A definir" : a.setor}
+                            {getSectorLabel(a.setor)}
                           </span>
                         </td>
                         <td className="px-4 py-4">
@@ -576,7 +601,7 @@ function AtendimentosPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-500">Setor</p>
-                  <p className="mt-0.5 font-medium text-slate-800">{selected.setor}</p>
+                  <p className="mt-0.5 font-medium text-slate-800">{getSectorLabel(selected.setor)}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-500">Status</p>

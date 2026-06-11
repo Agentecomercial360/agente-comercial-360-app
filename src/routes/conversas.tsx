@@ -21,7 +21,16 @@ import {
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 import { useCrmRole } from "@/lib/use-crm-role";
-import { sectorFilterFor } from "@/lib/crm-permissions";
+import {
+  sectorFilterFor,
+  normalizeSector,
+  getSectorLabel,
+  getSectorBadgeClass,
+  canRoleSeeAllSectors,
+  ALL_SECTOR_OPTIONS,
+  type SectorKey,
+  type SectorFilterOption,
+} from "@/lib/crm-permissions";
 import {
   type ConversationStatus,
   CONVERSATION_STATUSES,
@@ -111,7 +120,7 @@ type Conversa = {
   ultimaMensagem: string;
   horario: string;
   status: Status;
-  setor: string;
+  setor: SectorKey | null;
 };
 
 const conversas: Conversa[] = [
@@ -123,7 +132,7 @@ const conversas: Conversa[] = [
     ultimaMensagem: "Preciso de orçamento do kit embreagem.",
     horario: "09:41",
     status: "aberta",
-    setor: "Vendas",
+    setor: "vendas",
   },
   {
     id: 2,
@@ -133,7 +142,7 @@ const conversas: Conversa[] = [
     ultimaMensagem: "Vocês têm pastilha de freio do Onix?",
     horario: "10:12",
     status: "aguardando_cliente",
-    setor: "Vendas",
+    setor: "vendas",
   },
   {
     id: 3,
@@ -143,7 +152,7 @@ const conversas: Conversa[] = [
     ultimaMensagem: "Quero saber se tem bateria 60Ah.",
     horario: "11:05",
     status: "encaminhada",
-    setor: "Vendas",
+    setor: "vendas",
   },
   {
     id: 4,
@@ -153,7 +162,7 @@ const conversas: Conversa[] = [
     ultimaMensagem: "Tenho uma cobrança em aberto?",
     horario: "11:48",
     status: "em_andamento",
-    setor: "Financeiro",
+    setor: "financeiro",
   },
   {
     id: 5,
@@ -163,7 +172,7 @@ const conversas: Conversa[] = [
     ultimaMensagem: "Qual horário de funcionamento?",
     horario: "12:20",
     status: "finalizada",
-    setor: "Administrativo",
+    setor: "administrativo",
   },
 ];
 
@@ -205,6 +214,7 @@ const responsaveis = ["Amanda", "Thaís", "Vinicius", "Lorenzzo", "Vitor", "Ivan
 
 function ConversasPage() {
   const [activeFilter, setActiveFilter] = useState("Todas");
+  const [sectorFilter, setSectorFilter] = useState<SectorFilterOption>("all");
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<Conversa[]>(conversas);
   const [selectedId, setSelectedId] = useState<string | number | null>(1);
@@ -254,7 +264,7 @@ function ConversasPage() {
         let query = supabase
           .from("conversations")
           .select(
-            `id, channel, status, last_message_at, created_at, customer_id,
+            `id, channel, status, sector, last_message_at, created_at, customer_id,
              customers ( name, phone, city, customer_type )`,
           )
           .eq("company_id", cu.company_id);
@@ -293,7 +303,7 @@ function ConversasPage() {
             ultimaMensagem: "Histórico do atendimento disponível",
             horario: formatHorario(r.last_message_at, r.created_at),
             status: normalizeConversationStatus(r.status),
-            setor: "—",
+            setor: normalizeSector(r.sector),
           };
         });
 
@@ -390,16 +400,23 @@ function ConversasPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const adminLike = canRoleSeeAllSectors(role);
     return items.filter((c) => {
       if (activeFilter !== "Todas") {
         const allowed = filterToStatus[activeFilter];
         if (allowed && !allowed.includes(c.status)) return false;
       }
+      if (adminLike && sectorFilter !== "all") {
+        if (sectorFilter === "none") {
+          if (c.setor !== null) return false;
+        } else if (c.setor !== sectorFilter) return false;
+      }
       if (!q) return true;
-      return [c.cliente, c.telefone, c.canal, c.ultimaMensagem, c.status, c.setor]
+      const setorLabel = getSectorLabel(c.setor).toLowerCase();
+      return [c.cliente, c.telefone, c.canal, c.ultimaMensagem, c.status, setorLabel]
         .some((v) => v.toLowerCase().includes(q));
     });
-  }, [items, activeFilter, search]);
+  }, [items, activeFilter, search, role, sectorFilter]);
 
   const selected = items.find((c) => c.id === selectedId) ?? items[0];
   const mensagens = messagesById[selected?.id] ?? [];
@@ -628,6 +645,30 @@ function ConversasPage() {
               ))}
             </div>
           </div>
+          {canRoleSeeAllSectors(role) && (
+            <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <Briefcase className="h-3 w-3" /> Setor
+              </span>
+              {ALL_SECTOR_OPTIONS.map((opt) => {
+                const active = sectorFilter === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setSectorFilter(opt.value)}
+                    className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-all ${
+                      active
+                        ? "bg-foreground text-background shadow-sm"
+                        : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground ring-1 ring-border"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           <div className="relative group">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <input
@@ -730,12 +771,12 @@ function ConversasPage() {
                               >
                                 {getConversationStatusLabel(c.status)}
                               </span>
-                              {c.setor && c.setor !== "—" && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                  <Briefcase className="h-2.5 w-2.5" />
-                                  {c.setor}
-                                </span>
-                              )}
+                              <span
+                                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${getSectorBadgeClass(c.setor)}`}
+                              >
+                                <Briefcase className="h-2.5 w-2.5" />
+                                {getSectorLabel(c.setor)}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -768,8 +809,8 @@ function ConversasPage() {
                         <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border px-2 py-0.5 text-[11px] font-medium text-foreground">
                           <MessageCircle className="h-3 w-3 text-muted-foreground" /> {selected.canal}
                         </span>
-                        <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 border border-border px-2 py-0.5 text-[11px] font-medium text-foreground">
-                          <Briefcase className="h-3 w-3 text-muted-foreground" /> {selected.setor && selected.setor !== "—" ? selected.setor : "Não definido"}
+                        <span className={`inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[11px] font-medium ${getSectorBadgeClass(selected.setor)}`}>
+                          <Briefcase className="h-3 w-3" /> Setor: {getSectorLabel(selected.setor)}
                         </span>
                       </div>
                     </div>
@@ -1203,8 +1244,7 @@ function KanbanView({
                     ) : (
                       colItems.map((c) => {
                         const isActive = c.id === selectedId;
-                        const setorLabel =
-                          c.setor && c.setor !== "—" ? c.setor : "Não definido";
+                        const setorLabel = getSectorLabel(c.setor);
                         const responsavelLabel = "Não atribuído";
                         const prio = priorityBadge(c.status);
                         const initial = getInitial(c.cliente);

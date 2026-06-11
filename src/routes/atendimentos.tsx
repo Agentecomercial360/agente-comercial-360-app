@@ -64,10 +64,6 @@ const cards = [
 
 const filtros = [
   "Todos",
-  "Vendas",
-  "Financeiro",
-  "Administrativo",
-  "Orçamentos",
   "Abertos",
   "Em andamento",
   "Finalizados",

@@ -149,7 +149,7 @@ function AtendimentosPage() {
         let query = supabase
           .from("conversations")
           .select(
-            `id, channel, status, last_message_at, created_at, customer_id,
+            `id, channel, status, sector, last_message_at, created_at, customer_id,
              customers ( name, phone, city, customer_type )`,
           )
           .eq("company_id", cu.company_id);

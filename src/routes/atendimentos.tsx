@@ -179,7 +179,7 @@ function AtendimentosPage() {
             cliente: cust?.name ?? "Cliente sem nome",
             telefone: cust?.phone ?? "—",
             mensagem: "Histórico do atendimento disponível",
-            setor: "—",
+            setor: normalizeSector(r.sector),
             status: normalizeConversationStatus(r.status),
             responsavel: "—",
             horario: formatHorario(r.last_message_at, r.created_at),

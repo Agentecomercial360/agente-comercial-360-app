@@ -645,6 +645,30 @@ function ConversasPage() {
               ))}
             </div>
           </div>
+          {canRoleSeeAllSectors(role) && (
+            <div className="flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <Briefcase className="h-3 w-3" /> Setor
+              </span>
+              {ALL_SECTOR_OPTIONS.map((opt) => {
+                const active = sectorFilter === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setSectorFilter(opt.value)}
+                    className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-all ${
+                      active
+                        ? "bg-foreground text-background shadow-sm"
+                        : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground ring-1 ring-border"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          )}
           <div className="relative group">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <input

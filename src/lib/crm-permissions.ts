@@ -104,3 +104,25 @@ export function firstAllowedRouteFor(role: CrmRole): string | null {
   const list = ROUTE_PERMISSIONS[role] ?? [];
   return list[0] ?? null;
 }
+
+/**
+ * Filtro de setor (coluna conversations.sector) por role.
+ * - admin/gestor: sem filtro (veem tudo, inclusive sector = null).
+ * - vendas: apenas "vendas".
+ * - financeiro: "financeiro" ou "caixa".
+ * - administrativo: apenas "administrativo".
+ *
+ * Camada de UX — RLS continua sendo a segurança real.
+ */
+export type SectorFilter = { all: true } | { all: false; sectors: string[] };
+
+export function sectorFilterFor(role: CrmRole | null): SectorFilter {
+  if (!role) return { all: false, sectors: [] };
+  if (role === "admin" || role === "gestor") return { all: true };
+  if (role === "vendas") return { all: false, sectors: ["vendas"] };
+  if (role === "financeiro")
+    return { all: false, sectors: ["financeiro", "caixa"] };
+  if (role === "administrativo")
+    return { all: false, sectors: ["administrativo"] };
+  return { all: false, sectors: [] };
+}

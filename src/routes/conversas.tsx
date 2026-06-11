@@ -747,12 +747,12 @@ function ConversasPage() {
                               >
                                 {getConversationStatusLabel(c.status)}
                               </span>
-                              {c.setor && c.setor !== "—" && (
-                                <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                  <Briefcase className="h-2.5 w-2.5" />
-                                  {c.setor}
-                                </span>
-                              )}
+                              <span
+                                className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${getSectorBadgeClass(c.setor)}`}
+                              >
+                                <Briefcase className="h-2.5 w-2.5" />
+                                {getSectorLabel(c.setor)}
+                              </span>
                             </div>
                           </div>
                         </div>

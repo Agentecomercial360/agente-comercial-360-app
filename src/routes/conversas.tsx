@@ -132,7 +132,7 @@ const conversas: Conversa[] = [
     ultimaMensagem: "Preciso de orçamento do kit embreagem.",
     horario: "09:41",
     status: "aberta",
-    setor: "Vendas",
+    setor: "vendas",
   },
   {
     id: 2,
@@ -142,7 +142,7 @@ const conversas: Conversa[] = [
     ultimaMensagem: "Vocês têm pastilha de freio do Onix?",
     horario: "10:12",
     status: "aguardando_cliente",
-    setor: "Vendas",
+    setor: "vendas",
   },
   {
     id: 3,
@@ -152,7 +152,7 @@ const conversas: Conversa[] = [
     ultimaMensagem: "Quero saber se tem bateria 60Ah.",
     horario: "11:05",
     status: "encaminhada",
-    setor: "Vendas",
+    setor: "vendas",
   },
   {
     id: 4,
@@ -162,7 +162,7 @@ const conversas: Conversa[] = [
     ultimaMensagem: "Tenho uma cobrança em aberto?",
     horario: "11:48",
     status: "em_andamento",
-    setor: "Financeiro",
+    setor: "financeiro",
   },
   {
     id: 5,
@@ -172,7 +172,7 @@ const conversas: Conversa[] = [
     ultimaMensagem: "Qual horário de funcionamento?",
     horario: "12:20",
     status: "finalizada",
-    setor: "Administrativo",
+    setor: "administrativo",
   },
 ];
 

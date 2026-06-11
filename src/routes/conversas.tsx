@@ -400,16 +400,23 @@ function ConversasPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const adminLike = canRoleSeeAllSectors(role);
     return items.filter((c) => {
       if (activeFilter !== "Todas") {
         const allowed = filterToStatus[activeFilter];
         if (allowed && !allowed.includes(c.status)) return false;
       }
+      if (adminLike && sectorFilter !== "all") {
+        if (sectorFilter === "none") {
+          if (c.setor !== null) return false;
+        } else if (c.setor !== sectorFilter) return false;
+      }
       if (!q) return true;
-      return [c.cliente, c.telefone, c.canal, c.ultimaMensagem, c.status, c.setor]
+      const setorLabel = getSectorLabel(c.setor).toLowerCase();
+      return [c.cliente, c.telefone, c.canal, c.ultimaMensagem, c.status, setorLabel]
         .some((v) => v.toLowerCase().includes(q));
     });
-  }, [items, activeFilter, search]);
+  }, [items, activeFilter, search, role, sectorFilter]);
 
   const selected = items.find((c) => c.id === selectedId) ?? items[0];
   const mensagens = messagesById[selected?.id] ?? [];

@@ -577,7 +577,7 @@ function AtendimentosPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-500">Setor</p>
-                  <p className="mt-0.5 font-medium text-slate-800">{selected.setor}</p>
+                  <p className="mt-0.5 font-medium text-slate-800">{getSectorLabel(selected.setor)}</p>
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-wide text-slate-500">Status</p>

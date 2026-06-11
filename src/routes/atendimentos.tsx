@@ -79,19 +79,19 @@ type Atendimento = {
   cliente: string;
   telefone: string;
   mensagem: string;
-  setor: string;
+  setor: SectorKey | null;
   status: ConversationStatus;
   responsavel: string;
   horario: string;
 };
 
 const atendimentosMock: Atendimento[] = [
-  { id: 1, cliente: "João Martins", telefone: "(15) 99999-1020", mensagem: "Preciso de orçamento do kit embreagem.", setor: "Vendas", status: "em_andamento", responsavel: "Amanda", horario: "09:41" },
-  { id: 2, cliente: "Carlos Souza", telefone: "(15) 98888-2211", mensagem: "Vocês têm pastilha de freio do Onix?", setor: "Vendas", status: "sem_resposta", responsavel: "Vinicius", horario: "10:12" },
-  { id: 3, cliente: "Fernanda Lima", telefone: "(15) 97777-3344", mensagem: "Quero saber se tem bateria 60Ah.", setor: "Vendas", status: "aberta", responsavel: "Thaís", horario: "11:05" },
-  { id: 4, cliente: "Roberto Alves", telefone: "(15) 96666-4455", mensagem: "Tenho uma cobrança em aberto?", setor: "Financeiro", status: "em_andamento", responsavel: "Vinicius", horario: "11:48" },
-  { id: 5, cliente: "Mariana Costa", telefone: "(15) 95555-7788", mensagem: "Qual horário de funcionamento?", setor: "Administrativo", status: "finalizada", responsavel: "Lorenzzo", horario: "12:20" },
-  { id: 6, cliente: "Pedro Henrique", telefone: "(15) 94444-8899", mensagem: "Preciso de amortecedor dianteiro.", setor: "Orçamentos", status: "sem_resposta", responsavel: "Vitor", horario: "13:02" },
+  { id: 1, cliente: "João Martins", telefone: "(15) 99999-1020", mensagem: "Preciso de orçamento do kit embreagem.", setor: "vendas", status: "em_andamento", responsavel: "Amanda", horario: "09:41" },
+  { id: 2, cliente: "Carlos Souza", telefone: "(15) 98888-2211", mensagem: "Vocês têm pastilha de freio do Onix?", setor: "vendas", status: "sem_resposta", responsavel: "Vinicius", horario: "10:12" },
+  { id: 3, cliente: "Fernanda Lima", telefone: "(15) 97777-3344", mensagem: "Quero saber se tem bateria 60Ah.", setor: "vendas", status: "aberta", responsavel: "Thaís", horario: "11:05" },
+  { id: 4, cliente: "Roberto Alves", telefone: "(15) 96666-4455", mensagem: "Tenho uma cobrança em aberto?", setor: "financeiro", status: "em_andamento", responsavel: "Vinicius", horario: "11:48" },
+  { id: 5, cliente: "Mariana Costa", telefone: "(15) 95555-7788", mensagem: "Qual horário de funcionamento?", setor: "administrativo", status: "finalizada", responsavel: "Lorenzzo", horario: "12:20" },
+  { id: 6, cliente: "Pedro Henrique", telefone: "(15) 94444-8899", mensagem: "Preciso de amortecedor dianteiro.", setor: "geral", status: "sem_resposta", responsavel: "Vitor", horario: "13:02" },
 ];
 
 

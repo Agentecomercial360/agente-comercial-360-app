@@ -18,7 +18,16 @@ import {
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 import { useCrmRole } from "@/lib/use-crm-role";
-import { sectorFilterFor } from "@/lib/crm-permissions";
+import {
+  sectorFilterFor,
+  normalizeSector,
+  getSectorLabel,
+  getSectorBadgeClass,
+  canRoleSeeAllSectors,
+  ALL_SECTOR_OPTIONS,
+  type SectorKey,
+  type SectorFilterOption,
+} from "@/lib/crm-permissions";
 import {
   type ConversationStatus,
   normalizeConversationStatus,

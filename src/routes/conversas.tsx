@@ -1220,8 +1220,7 @@ function KanbanView({
                     ) : (
                       colItems.map((c) => {
                         const isActive = c.id === selectedId;
-                        const setorLabel =
-                          c.setor && c.setor !== "—" ? c.setor : "Não definido";
+                        const setorLabel = getSectorLabel(c.setor);
                         const responsavelLabel = "Não atribuído";
                         const prio = priorityBadge(c.status);
                         const initial = getInitial(c.cliente);

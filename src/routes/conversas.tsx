@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
+import { useCrmRole } from "@/lib/use-crm-role";
+import { sectorFilterFor } from "@/lib/crm-permissions";
 import {
   type ConversationStatus,
   CONVERSATION_STATUSES,

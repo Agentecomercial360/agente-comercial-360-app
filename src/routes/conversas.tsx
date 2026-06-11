@@ -302,7 +302,7 @@ function ConversasPage() {
             ultimaMensagem: "Histórico do atendimento disponível",
             horario: formatHorario(r.last_message_at, r.created_at),
             status: normalizeConversationStatus(r.status),
-            setor: "—",
+            setor: normalizeSector(r.sector),
           };
         });
 

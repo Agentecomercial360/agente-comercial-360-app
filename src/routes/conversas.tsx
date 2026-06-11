@@ -221,7 +221,12 @@ function ConversasPage() {
   const [viewMode, setViewMode] = useState<"lista" | "kanban">("lista");
   const [companyId, setCompanyId] = useState<string | null>(null);
 
+  const crmRole = useCrmRole();
+  const roleLoading = crmRole.loading;
+  const role = crmRole.role;
+
   useEffect(() => {
+    if (roleLoading) return;
     let cancelled = false;
     (async () => {
       try {
@@ -246,13 +251,22 @@ function ConversasPage() {
           return;
         }
 
-        const { data: rows, error: convErr } = await supabase
+        let query = supabase
           .from("conversations")
           .select(
             `id, channel, status, last_message_at, created_at, customer_id,
              customers ( name, phone, city, customer_type )`,
           )
-          .eq("company_id", cu.company_id)
+          .eq("company_id", cu.company_id);
+
+        // Filtro por setor (UX): admin/gestor veem tudo (inclusive sector = null).
+        // Demais perfis veem apenas seus setores permitidos.
+        const sf = sectorFilterFor(role);
+        if (!sf.all) {
+          query = query.in("sector", sf.sectors);
+        }
+
+        const { data: rows, error: convErr } = await query
           .order("last_message_at", { ascending: false, nullsFirst: false })
           .limit(100);
         if (cancelled) return;
@@ -296,7 +310,7 @@ function ConversasPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [roleLoading, role]);
 
   // Etapa 1B: carregar mensagens reais da conversa selecionada
   useEffect(() => {

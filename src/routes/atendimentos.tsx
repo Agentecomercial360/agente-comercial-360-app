@@ -16,7 +16,7 @@ import {
   Activity,
   Plus,
 } from "lucide-react";
-import { NovoAtendimentoModal } from "@/components/atendimentos/NovoAtendimentoModal";
+import { NovoAtendimentoModal, type NovoAtendimentoData } from "@/components/atendimentos/NovoAtendimentoModal";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 import { useCrmRole } from "@/lib/use-crm-role";
@@ -83,6 +83,25 @@ type Atendimento = {
   horario: string;
 };
 
+type CommercialAttendance = {
+  id: string;
+  customer_name: string | null;
+  customer_phone: string | null;
+  channel: string | null;
+  service_type: string | null;
+  requested_item: string | null;
+  status: string | null;
+  estimated_value: number | null;
+  next_followup_at: string | null;
+  notes: string | null;
+  source: string | null;
+  created_at: string | null;
+};
+
+// Fallback temporário SOMENTE para preview quando não houver contexto real de empresa.
+// Em produção, o company_id sempre virá de company_users do usuário autenticado.
+const FALLBACK_DEMO_COMPANY_ID = "00000000-0000-0000-0000-000000000000";
+
 const atendimentosMock: Atendimento[] = [
   { id: 1, cliente: "João Martins", telefone: "(15) 99999-1020", mensagem: "Preciso de orçamento do kit embreagem.", setor: "vendas", status: "em_andamento", responsavel: "Amanda", horario: "09:41" },
   { id: 2, cliente: "Carlos Souza", telefone: "(15) 98888-2211", mensagem: "Vocês têm pastilha de freio do Onix?", setor: "vendas", status: "sem_resposta", responsavel: "Vinicius", horario: "10:12" },
@@ -121,6 +140,8 @@ function AtendimentosPage() {
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [finishingId, setFinishingId] = useState<string | number | null>(null);
   const [novoOpen, setNovoOpen] = useState(false);
+  const [manualItems, setManualItems] = useState<CommercialAttendance[]>([]);
+  const [manualLoadStatus, setManualLoadStatus] = useState<LoadStatus>("loading");
 
 
   const crmRole = useCrmRole();
@@ -201,6 +222,92 @@ function AtendimentosPage() {
       cancelled = true;
     };
   }, [roleLoading, role]);
+
+  // Carrega atendimentos manuais (commercial_attendances) quando companyId estiver disponível.
+  const loadManualAtendimentos = async (cid: string) => {
+    setManualLoadStatus("loading");
+    try {
+      const { data, error } = await supabase
+        .from("commercial_attendances")
+        .select(
+          "id, customer_name, customer_phone, channel, service_type, requested_item, status, estimated_value, next_followup_at, notes, source, created_at",
+        )
+        .eq("company_id", cid)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) {
+        setManualLoadStatus("error");
+        return;
+      }
+      setManualItems((data ?? []) as CommercialAttendance[]);
+      setManualLoadStatus(data && data.length > 0 ? "loaded" : "empty");
+    } catch {
+      setManualLoadStatus("error");
+    }
+  };
+
+  useEffect(() => {
+    if (!companyId) return;
+    void loadManualAtendimentos(companyId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId]);
+
+  const handleSaveNovoAtendimento = async (form: NovoAtendimentoData) => {
+    const cid = companyId ?? FALLBACK_DEMO_COMPANY_ID;
+    if (!companyId) {
+      // Fallback temporário identificado em código — apenas para preview sem contexto real.
+      console.warn(
+        "[atendimentos] Salvando com FALLBACK_DEMO_COMPANY_ID — empresa ativa não detectada.",
+      );
+    }
+
+    // Conversões seguras dos campos do formulário.
+    const trimmed = (s: string) => {
+      const v = s?.trim();
+      return v && v.length > 0 ? v : null;
+    };
+
+    let estimated_value: number | null = null;
+    if (form.valor && form.valor.trim().length > 0) {
+      const normalized = form.valor.replace(/\./g, "").replace(",", ".");
+      const n = Number(normalized);
+      estimated_value = Number.isFinite(n) ? n : null;
+    }
+
+    let next_followup_at: string | null = null;
+    if (form.proximoRetorno && form.proximoRetorno.trim().length > 0) {
+      const d = new Date(form.proximoRetorno);
+      next_followup_at = isNaN(d.getTime()) ? null : d.toISOString();
+    }
+
+    const payload = {
+      company_id: cid,
+      customer_name: trimmed(form.cliente),
+      customer_phone: trimmed(form.telefone),
+      channel: trimmed(form.canal),
+      service_type: trimmed(form.tipo),
+      requested_item: trimmed(form.produto),
+      responsible_id: null as string | null, // nome livre ainda não mapeia para responsible_id
+      status: trimmed(form.status),
+      estimated_value,
+      next_followup_at,
+      notes: trimmed(form.observacoes),
+      source: "manual_form",
+    };
+
+    const { error } = await supabase.from("commercial_attendances").insert(payload);
+    if (error) {
+      toast.error(
+        error.message
+          ? `Não foi possível salvar o atendimento: ${error.message}`
+          : "Não foi possível salvar o atendimento.",
+      );
+      throw error;
+    }
+
+    toast.success("Atendimento registrado com sucesso.");
+    await loadManualAtendimentos(cid);
+  };
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -555,6 +662,146 @@ function AtendimentosPage() {
           </div>
         )}
 
+        {/* Atendimentos registrados manualmente (commercial_attendances) */}
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white px-5 py-4">
+            <div>
+              <h3 className="text-base font-bold tracking-tight text-slate-900">
+                Atendimentos registrados
+              </h3>
+              <p className="mt-0.5 text-xs text-slate-500">
+                Registros criados via formulário (WhatsApp, balcão, telefone, Instagram, e-mail, manual).
+              </p>
+            </div>
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                manualLoadStatus === "loaded"
+                  ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                  : manualLoadStatus === "loading"
+                    ? "bg-slate-100 text-slate-600 ring-1 ring-slate-200"
+                    : manualLoadStatus === "empty"
+                      ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
+                      : "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
+              }`}
+            >
+              {manualLoadStatus === "loading"
+                ? "Carregando..."
+                : manualLoadStatus === "loaded"
+                  ? `${manualItems.length} ${manualItems.length === 1 ? "registro" : "registros"}`
+                  : manualLoadStatus === "empty"
+                    ? "Nenhum registro ainda"
+                    : "Erro ao carregar"}
+            </span>
+          </div>
+
+          {manualItems.length === 0 ? (
+            <div className="px-6 py-10 text-center">
+              <Plus className="mx-auto h-8 w-8 text-slate-300" />
+              <p className="mt-2 text-sm font-semibold text-slate-700">
+                {manualLoadStatus === "loading"
+                  ? "Carregando atendimentos..."
+                  : manualLoadStatus === "error"
+                    ? "Não foi possível carregar os atendimentos."
+                    : "Nenhum atendimento registrado ainda."}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Use o botão “Novo atendimento” para registrar o primeiro.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-4 py-3">Cliente</th>
+                    <th className="px-4 py-3">Telefone</th>
+                    <th className="px-4 py-3">Canal</th>
+                    <th className="px-4 py-3">Tipo</th>
+                    <th className="px-4 py-3">Item solicitado</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Valor estimado</th>
+                    <th className="px-4 py-3">Próximo retorno</th>
+                    <th className="px-4 py-3">Criado em</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {manualItems.map((m) => {
+                    const initial = (m.customer_name?.trim()?.charAt(0) || "?").toUpperCase();
+                    const valor =
+                      m.estimated_value !== null && m.estimated_value !== undefined
+                        ? m.estimated_value.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })
+                        : "—";
+                    const fmtDate = (iso: string | null) => {
+                      if (!iso) return "—";
+                      const d = new Date(iso);
+                      if (isNaN(d.getTime())) return "—";
+                      return d.toLocaleString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
+                    };
+                    return (
+                      <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-blue-50 text-[11px] font-bold text-blue-700 ring-1 ring-blue-200/70">
+                              {initial}
+                            </span>
+                            <span className="font-semibold text-slate-900">
+                              {m.customer_name || "—"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 tabular-nums">
+                          {m.customer_phone || "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          {m.channel ? (
+                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 ring-1 ring-slate-200">
+                              {m.channel}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-slate-700">{m.service_type || "—"}</td>
+                        <td className="px-4 py-3 max-w-xs truncate text-slate-600">
+                          {m.requested_item || "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          {m.status ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700 ring-1 ring-blue-200">
+                              <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                              {m.status}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-slate-900 tabular-nums">
+                          {valor}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 tabular-nums">
+                          {fmtDate(m.next_followup_at)}
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 tabular-nums">
+                          {fmtDate(m.created_at)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
         {/* Resumo IA + Prioridades */}
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-600 to-slate-900 p-6 text-white shadow-sm">
@@ -684,7 +931,11 @@ function AtendimentosPage() {
           </div>
         </div>
       )}
-      <NovoAtendimentoModal open={novoOpen} onClose={() => setNovoOpen(false)} />
+      <NovoAtendimentoModal
+        open={novoOpen}
+        onClose={() => setNovoOpen(false)}
+        onSave={handleSaveNovoAtendimento}
+      />
     </DashboardLayout>
   );
 }

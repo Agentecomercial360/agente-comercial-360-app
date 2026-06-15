@@ -16,7 +16,7 @@ import {
   Activity,
   Plus,
 } from "lucide-react";
-import { NovoAtendimentoModal } from "@/components/atendimentos/NovoAtendimentoModal";
+import { NovoAtendimentoModal, type NovoAtendimentoData } from "@/components/atendimentos/NovoAtendimentoModal";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { supabase } from "@/lib/supabase";
 import { useCrmRole } from "@/lib/use-crm-role";

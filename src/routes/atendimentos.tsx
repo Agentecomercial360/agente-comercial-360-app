@@ -791,7 +791,11 @@ function AtendimentosPage() {
           </div>
         </div>
       )}
-      <NovoAtendimentoModal open={novoOpen} onClose={() => setNovoOpen(false)} />
+      <NovoAtendimentoModal
+        open={novoOpen}
+        onClose={() => setNovoOpen(false)}
+        onSave={handleSaveNovoAtendimento}
+      />
     </DashboardLayout>
   );
 }

@@ -223,6 +223,92 @@ function AtendimentosPage() {
     };
   }, [roleLoading, role]);
 
+  // Carrega atendimentos manuais (commercial_attendances) quando companyId estiver disponível.
+  const loadManualAtendimentos = async (cid: string) => {
+    setManualLoadStatus("loading");
+    try {
+      const { data, error } = await supabase
+        .from("commercial_attendances")
+        .select(
+          "id, customer_name, customer_phone, channel, service_type, requested_item, status, estimated_value, next_followup_at, notes, source, created_at",
+        )
+        .eq("company_id", cid)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) {
+        setManualLoadStatus("error");
+        return;
+      }
+      setManualItems((data ?? []) as CommercialAttendance[]);
+      setManualLoadStatus(data && data.length > 0 ? "loaded" : "empty");
+    } catch {
+      setManualLoadStatus("error");
+    }
+  };
+
+  useEffect(() => {
+    if (!companyId) return;
+    void loadManualAtendimentos(companyId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId]);
+
+  const handleSaveNovoAtendimento = async (form: NovoAtendimentoData) => {
+    const cid = companyId ?? FALLBACK_DEMO_COMPANY_ID;
+    if (!companyId) {
+      // Fallback temporário identificado em código — apenas para preview sem contexto real.
+      console.warn(
+        "[atendimentos] Salvando com FALLBACK_DEMO_COMPANY_ID — empresa ativa não detectada.",
+      );
+    }
+
+    // Conversões seguras dos campos do formulário.
+    const trimmed = (s: string) => {
+      const v = s?.trim();
+      return v && v.length > 0 ? v : null;
+    };
+
+    let estimated_value: number | null = null;
+    if (form.valor && form.valor.trim().length > 0) {
+      const normalized = form.valor.replace(/\./g, "").replace(",", ".");
+      const n = Number(normalized);
+      estimated_value = Number.isFinite(n) ? n : null;
+    }
+
+    let next_followup_at: string | null = null;
+    if (form.proximoRetorno && form.proximoRetorno.trim().length > 0) {
+      const d = new Date(form.proximoRetorno);
+      next_followup_at = isNaN(d.getTime()) ? null : d.toISOString();
+    }
+
+    const payload = {
+      company_id: cid,
+      customer_name: trimmed(form.cliente),
+      customer_phone: trimmed(form.telefone),
+      channel: trimmed(form.canal),
+      service_type: trimmed(form.tipo),
+      requested_item: trimmed(form.produto),
+      responsible_id: null as string | null, // nome livre ainda não mapeia para responsible_id
+      status: trimmed(form.status),
+      estimated_value,
+      next_followup_at,
+      notes: trimmed(form.observacoes),
+      source: "manual_form",
+    };
+
+    const { error } = await supabase.from("commercial_attendances").insert(payload);
+    if (error) {
+      toast.error(
+        error.message
+          ? `Não foi possível salvar o atendimento: ${error.message}`
+          : "Não foi possível salvar o atendimento.",
+      );
+      throw error;
+    }
+
+    toast.success("Atendimento registrado com sucesso.");
+    await loadManualAtendimentos(cid);
+  };
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const adminLike = canRoleSeeAllSectors(role);

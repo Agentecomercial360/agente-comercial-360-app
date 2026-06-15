@@ -83,6 +83,25 @@ type Atendimento = {
   horario: string;
 };
 
+type CommercialAttendance = {
+  id: string;
+  customer_name: string | null;
+  customer_phone: string | null;
+  channel: string | null;
+  service_type: string | null;
+  requested_item: string | null;
+  status: string | null;
+  estimated_value: number | null;
+  next_followup_at: string | null;
+  notes: string | null;
+  source: string | null;
+  created_at: string | null;
+};
+
+// Fallback temporário SOMENTE para preview quando não houver contexto real de empresa.
+// Em produção, o company_id sempre virá de company_users do usuário autenticado.
+const FALLBACK_DEMO_COMPANY_ID = "00000000-0000-0000-0000-000000000000";
+
 const atendimentosMock: Atendimento[] = [
   { id: 1, cliente: "João Martins", telefone: "(15) 99999-1020", mensagem: "Preciso de orçamento do kit embreagem.", setor: "vendas", status: "em_andamento", responsavel: "Amanda", horario: "09:41" },
   { id: 2, cliente: "Carlos Souza", telefone: "(15) 98888-2211", mensagem: "Vocês têm pastilha de freio do Onix?", setor: "vendas", status: "sem_resposta", responsavel: "Vinicius", horario: "10:12" },

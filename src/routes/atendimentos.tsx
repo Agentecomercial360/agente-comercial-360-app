@@ -662,6 +662,146 @@ function AtendimentosPage() {
           </div>
         )}
 
+        {/* Atendimentos registrados manualmente (commercial_attendances) */}
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white px-5 py-4">
+            <div>
+              <h3 className="text-base font-bold tracking-tight text-slate-900">
+                Atendimentos registrados
+              </h3>
+              <p className="mt-0.5 text-xs text-slate-500">
+                Registros criados via formulário (WhatsApp, balcão, telefone, Instagram, e-mail, manual).
+              </p>
+            </div>
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                manualLoadStatus === "loaded"
+                  ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                  : manualLoadStatus === "loading"
+                    ? "bg-slate-100 text-slate-600 ring-1 ring-slate-200"
+                    : manualLoadStatus === "empty"
+                      ? "bg-amber-50 text-amber-700 ring-1 ring-amber-200"
+                      : "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
+              }`}
+            >
+              {manualLoadStatus === "loading"
+                ? "Carregando..."
+                : manualLoadStatus === "loaded"
+                  ? `${manualItems.length} ${manualItems.length === 1 ? "registro" : "registros"}`
+                  : manualLoadStatus === "empty"
+                    ? "Nenhum registro ainda"
+                    : "Erro ao carregar"}
+            </span>
+          </div>
+
+          {manualItems.length === 0 ? (
+            <div className="px-6 py-10 text-center">
+              <Plus className="mx-auto h-8 w-8 text-slate-300" />
+              <p className="mt-2 text-sm font-semibold text-slate-700">
+                {manualLoadStatus === "loading"
+                  ? "Carregando atendimentos..."
+                  : manualLoadStatus === "error"
+                    ? "Não foi possível carregar os atendimentos."
+                    : "Nenhum atendimento registrado ainda."}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Use o botão “Novo atendimento” para registrar o primeiro.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <tr>
+                    <th className="px-4 py-3">Cliente</th>
+                    <th className="px-4 py-3">Telefone</th>
+                    <th className="px-4 py-3">Canal</th>
+                    <th className="px-4 py-3">Tipo</th>
+                    <th className="px-4 py-3">Item solicitado</th>
+                    <th className="px-4 py-3">Status</th>
+                    <th className="px-4 py-3 text-right">Valor estimado</th>
+                    <th className="px-4 py-3">Próximo retorno</th>
+                    <th className="px-4 py-3">Criado em</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {manualItems.map((m) => {
+                    const initial = (m.customer_name?.trim()?.charAt(0) || "?").toUpperCase();
+                    const valor =
+                      m.estimated_value !== null && m.estimated_value !== undefined
+                        ? m.estimated_value.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })
+                        : "—";
+                    const fmtDate = (iso: string | null) => {
+                      if (!iso) return "—";
+                      const d = new Date(iso);
+                      if (isNaN(d.getTime())) return "—";
+                      return d.toLocaleString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      });
+                    };
+                    return (
+                      <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-3">
+                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-blue-50 text-[11px] font-bold text-blue-700 ring-1 ring-blue-200/70">
+                              {initial}
+                            </span>
+                            <span className="font-semibold text-slate-900">
+                              {m.customer_name || "—"}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 tabular-nums">
+                          {m.customer_phone || "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          {m.channel ? (
+                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 ring-1 ring-slate-200">
+                              {m.channel}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-slate-700">{m.service_type || "—"}</td>
+                        <td className="px-4 py-3 max-w-xs truncate text-slate-600">
+                          {m.requested_item || "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          {m.status ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700 ring-1 ring-blue-200">
+                              <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                              {m.status}
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-slate-900 tabular-nums">
+                          {valor}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600 tabular-nums">
+                          {fmtDate(m.next_followup_at)}
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 tabular-nums">
+                          {fmtDate(m.created_at)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
         {/* Resumo IA + Prioridades */}
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-600 to-slate-900 p-6 text-white shadow-sm">

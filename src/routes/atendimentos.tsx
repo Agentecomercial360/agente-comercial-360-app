@@ -120,6 +120,7 @@ function AtendimentosPage() {
   const [atendimentosLoadStatus, setAtendimentosLoadStatus] = useState<LoadStatus>("loading");
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [finishingId, setFinishingId] = useState<string | number | null>(null);
+  const [novoOpen, setNovoOpen] = useState(false);
 
 
   const crmRole = useCrmRole();

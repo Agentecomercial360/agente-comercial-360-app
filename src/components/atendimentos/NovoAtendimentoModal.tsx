@@ -48,7 +48,7 @@ const STATUS = ["Novo", "Em andamento", "Aguardando cliente", "Fechado", "Perdid
 type Props = {
   open: boolean;
   onClose: () => void;
-  onSave?: (data: NovoAtendimentoData) => void;
+  onSave?: (data: NovoAtendimentoData) => void | Promise<void>;
 };
 
 export function NovoAtendimentoModal({ open, onClose, onSave }: Props) {
@@ -77,19 +77,22 @@ export function NovoAtendimentoModal({ open, onClose, onSave }: Props) {
   const update = <K extends keyof NovoAtendimentoData>(key: K, value: NovoAtendimentoData[K]) =>
     setData((prev) => ({ ...prev, [key]: value }));
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!data.cliente.trim()) {
       toast.error("Informe o nome do cliente.");
       return;
     }
     setSaving(true);
-    setTimeout(() => {
-      onSave?.(data);
-      toast.success("Atendimento registrado (visualização). Persistência será conectada em seguida.");
-      setSaving(false);
+    try {
+      await onSave?.(data);
       onClose();
-    }, 350);
+    } catch {
+      // O handler do parent já exibe um toast de erro.
+      // Mantém o modal aberto para o usuário corrigir/re-tentar.
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

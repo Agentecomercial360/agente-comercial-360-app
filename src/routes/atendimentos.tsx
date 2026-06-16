@@ -487,6 +487,44 @@ function AtendimentosPage() {
     [items],
   );
 
+  // KPIs da Central de Atendimentos (commercial_attendances)
+  const manualKpis = useMemo(() => {
+    const total = manualItems.length;
+    let pendentes = 0;
+    let fechados = 0;
+    let whatsapp = 0;
+    let manuaisBalcao = 0;
+    for (const m of manualItems) {
+      const s = normalizeManualStatus(m.status);
+      const c = normalizeChannel(m.channel);
+      if (s === "fechado" || s === "perdido") fechados++;
+      else pendentes++;
+      if (c === "whatsapp") whatsapp++;
+      if (c === "manual" || c === "balcao") manuaisBalcao++;
+    }
+    return { total, pendentes, fechados, whatsapp, manuaisBalcao };
+  }, [manualItems]);
+
+  // Listagem filtrada de atendimentos manuais conforme a aba selecionada.
+  const manualFiltered = useMemo(() => {
+    if (manualTab === "todos") return manualItems;
+    if (manualTab === "pendentes") {
+      return manualItems.filter((m) => {
+        const s = normalizeManualStatus(m.status);
+        return s !== "fechado" && s !== "perdido";
+      });
+    }
+    if (manualTab === "fechados") {
+      return manualItems.filter((m) => {
+        const s = normalizeManualStatus(m.status);
+        return s === "fechado" || s === "perdido";
+      });
+    }
+    return manualItems.filter((m) => normalizeChannel(m.channel) === manualTab);
+  }, [manualItems, manualTab]);
+
+
+
   const statusMsg =
     atendimentosLoadStatus === "loading"
       ? "Carregando atendimentos do Supabase..."

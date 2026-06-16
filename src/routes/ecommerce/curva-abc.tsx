@@ -25,13 +25,13 @@ const cards: CardDef[] = [
   },
   {
     label: "Produtos Classe B",
-    hint: "Faturamento intermediário",
+    hint: "Produtos com potencial de crescimento",
     icon: Layers,
     accent: "from-sky-600 to-sky-800",
   },
   {
     label: "Produtos Classe C",
-    hint: "Cauda longa do catálogo",
+    hint: "Baixo impacto ou baixo giro",
     icon: PieChart,
     accent: "from-slate-600 to-slate-800",
   },

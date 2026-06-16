@@ -713,14 +713,11 @@ function AtendimentosPage() {
                 className="w-full rounded-xl border border-border bg-background py-3 pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
               />
             </div>
-            <button
-              type="button"
-              onClick={() => setNovoOpen(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-700 to-blue-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:from-blue-800 hover:to-blue-950 transition whitespace-nowrap"
-            >
-              <Plus className="h-4 w-4" />
-              Novo atendimento
-            </button>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200">
+              <Headphones className="h-3 w-3" />
+              Fluxo operacional / WhatsApp
+            </span>
+
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             {filtros.map((f) => (

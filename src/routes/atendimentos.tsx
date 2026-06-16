@@ -91,6 +91,84 @@ type Atendimento = {
   horario: string;
 };
 
+// ============================================================
+// Normalização de CANAL para a listagem de commercial_attendances.
+// Mapeia valores livres do banco para chaves canônicas com label + estilo.
+// ============================================================
+type ChannelKey = "whatsapp" | "balcao" | "telefone" | "instagram" | "email" | "manual" | "outros";
+
+function normalizeChannel(raw: string | null | undefined): ChannelKey {
+  const v = (raw ?? "").toString().trim().toLowerCase();
+  if (!v) return "manual";
+  if (v.includes("whats")) return "whatsapp";
+  if (v.includes("balc")) return "balcao";
+  if (v.includes("tele") || v.includes("fone") || v === "phone") return "telefone";
+  if (v.includes("insta") || v.includes("ig")) return "instagram";
+  if (v.includes("mail") || v.includes("e-mail") || v.includes("email")) return "email";
+  if (v.includes("manual") || v.includes("form")) return "manual";
+  return "outros";
+}
+
+const CHANNEL_META: Record<ChannelKey, { label: string; badge: string; Icon: typeof MessageCircle }> = {
+  whatsapp:  { label: "WhatsApp",  badge: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200", Icon: MessageCircle },
+  balcao:    { label: "Balcão",    badge: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",       Icon: Store },
+  telefone:  { label: "Telefone",  badge: "bg-sky-50 text-sky-700 ring-1 ring-sky-200",             Icon: Phone },
+  instagram: { label: "Instagram", badge: "bg-pink-50 text-pink-700 ring-1 ring-pink-200",          Icon: Instagram },
+  email:     { label: "E-mail",    badge: "bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200",    Icon: Mail },
+  manual:    { label: "Manual",    badge: "bg-slate-100 text-slate-700 ring-1 ring-slate-200",      Icon: PenLine },
+  outros:    { label: "Outro",     badge: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",      Icon: Inbox },
+};
+
+// ============================================================
+// Normalização de STATUS para commercial_attendances.
+// ============================================================
+type ManualStatusKey = "novo" | "em_andamento" | "aguardando_cliente" | "fechado" | "perdido" | "outro";
+
+function normalizeManualStatus(raw: string | null | undefined): ManualStatusKey {
+  const v = (raw ?? "").toString().trim().toLowerCase();
+  if (!v) return "novo";
+  if (v.includes("novo") || v.includes("aberto") || v === "new" || v === "open") return "novo";
+  if (v.includes("andamento") || v.includes("progress")) return "em_andamento";
+  if (v.includes("aguard")) return "aguardando_cliente";
+  if (v.includes("fech") || v.includes("ganho") || v.includes("conclu") || v.includes("closed") || v.includes("won")) return "fechado";
+  if (v.includes("perd") || v.includes("lost") || v.includes("cancel")) return "perdido";
+  return "outro";
+}
+
+const MANUAL_STATUS_META: Record<ManualStatusKey, { label: string; badge: string }> = {
+  novo:                { label: "Novo",                badge: "bg-blue-50 text-blue-700 ring-1 ring-blue-200" },
+  em_andamento:        { label: "Em andamento",        badge: "bg-amber-50 text-amber-700 ring-1 ring-amber-200" },
+  aguardando_cliente:  { label: "Aguardando cliente",  badge: "bg-violet-50 text-violet-700 ring-1 ring-violet-200" },
+  fechado:             { label: "Fechado",             badge: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200" },
+  perdido:             { label: "Perdido",             badge: "bg-rose-50 text-rose-700 ring-1 ring-rose-200" },
+  outro:               { label: "Outro",               badge: "bg-slate-100 text-slate-600 ring-1 ring-slate-200" },
+};
+
+type ManualTab =
+  | "todos"
+  | "whatsapp"
+  | "balcao"
+  | "telefone"
+  | "instagram"
+  | "email"
+  | "manual"
+  | "pendentes"
+  | "fechados";
+
+const MANUAL_TABS: { value: ManualTab; label: string }[] = [
+  { value: "todos",     label: "Todos" },
+  { value: "whatsapp",  label: "WhatsApp" },
+  { value: "balcao",    label: "Balcão" },
+  { value: "telefone",  label: "Telefone" },
+  { value: "instagram", label: "Instagram" },
+  { value: "email",     label: "E-mail" },
+  { value: "manual",    label: "Manual" },
+  { value: "pendentes", label: "Pendentes" },
+  { value: "fechados",  label: "Fechados" },
+];
+
+const MANUAL_PAGE_SIZE = 50;
+
 type CommercialAttendance = {
   id: string;
   customer_name: string | null;

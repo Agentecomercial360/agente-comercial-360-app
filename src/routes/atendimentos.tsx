@@ -1112,6 +1112,8 @@ function AtendimentosPage() {
             </ul>
           </div>
         </div>
+        )}
+
       </div>
 
       {/* Drawer */}

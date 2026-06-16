@@ -608,8 +608,60 @@ function AtendimentosPage() {
           </div>
         </div>
 
+        {/* Navegação principal: Visão geral / Operacionais / Manuais */}
+        <div className="rounded-2xl border border-border/70 bg-card p-2 shadow-[var(--shadow-soft)]">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-wrap gap-1.5">
+              {([
+                { value: "overview",      label: "Visão geral",  Icon: Activity,    hint: "KPIs e resumo da operação" },
+                { value: "operacionais",  label: "Operacionais", Icon: Headphones,  hint: "Conversas vindas do fluxo operacional / WhatsApp", count: items.length },
+                { value: "manuais",       label: "Manuais",      Icon: PenLine,     hint: "Registros lançados via formulário Novo atendimento", count: manualItems.length },
+              ] as const).map((t) => {
+                const active = mainTab === t.value;
+                const Icon = t.Icon;
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setMainTab(t.value)}
+                    title={t.hint}
+                    className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition ${
+                      active
+                        ? "bg-gradient-to-r from-blue-700 to-blue-900 text-white shadow-sm"
+                        : "bg-muted/60 text-muted-foreground hover:bg-muted ring-1 ring-border"
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {t.label}
+                    {"count" in t && (
+                      <span
+                        className={`inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] tabular-nums ${
+                          active ? "bg-white/20 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"
+                        }`}
+                      >
+                        {t.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={() => setNovoOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-700 to-blue-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-blue-800 hover:to-blue-950 transition whitespace-nowrap"
+            >
+              <Plus className="h-4 w-4" />
+              Novo atendimento
+            </button>
+          </div>
+        </div>
+
+        {/* ============ VISÃO GERAL ============ */}
+        {mainTab === "overview" && (<>
         {/* KPI Cards */}
         {(() => {
+
           const themes = [
             { icon: "bg-blue-50 text-blue-600", accent: "bg-blue-500", ring: "group-hover:ring-blue-200" },
             { icon: "bg-amber-50 text-amber-600", accent: "bg-amber-500", ring: "group-hover:ring-amber-200" },

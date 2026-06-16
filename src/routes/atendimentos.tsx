@@ -787,15 +787,19 @@ function AtendimentosPage() {
           </div>
         )}
 
-        {/* Atendimentos registrados manualmente (commercial_attendances) */}
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white px-5 py-4">
+        {/* ===========================================================
+            CENTRAL DE ATENDIMENTOS (commercial_attendances)
+            KPIs + Abas por canal/status + Tabela
+            =========================================================== */}
+        <section className="space-y-4">
+          {/* Cabeçalho da seção */}
+          <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h3 className="text-base font-bold tracking-tight text-slate-900">
-                Atendimentos registrados
-              </h3>
+              <h2 className="text-lg font-bold tracking-tight text-slate-900">
+                Central de atendimentos
+              </h2>
               <p className="mt-0.5 text-xs text-slate-500">
-                Registros criados via formulário (WhatsApp, balcão, telefone, Instagram, e-mail, manual).
+                Registros de WhatsApp, balcão, telefone, Instagram, e-mail e manuais — exibindo os {MANUAL_PAGE_SIZE} mais recentes.
               </p>
             </div>
             <span
@@ -819,113 +823,208 @@ function AtendimentosPage() {
             </span>
           </div>
 
-          {manualItems.length === 0 ? (
-            <div className="px-6 py-10 text-center">
-              <Plus className="mx-auto h-8 w-8 text-slate-300" />
-              <p className="mt-2 text-sm font-semibold text-slate-700">
-                {manualLoadStatus === "loading"
-                  ? "Carregando atendimentos..."
-                  : manualLoadStatus === "error"
-                    ? "Não foi possível carregar os atendimentos."
-                    : "Nenhum atendimento registrado ainda."}
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                Use o botão “Novo atendimento” para registrar o primeiro.
-              </p>
+          {/* KPIs compactos */}
+          {(() => {
+            const kpis = [
+              { label: "Total",            value: manualKpis.total,         Icon: ListChecks,    accent: "from-blue-50 to-white",      icon: "bg-blue-50 text-blue-700",       bar: "bg-blue-500" },
+              { label: "Pendentes",        value: manualKpis.pendentes,     Icon: Clock,         accent: "from-amber-50 to-white",     icon: "bg-amber-50 text-amber-700",     bar: "bg-amber-500" },
+              { label: "Fechados",         value: manualKpis.fechados,      Icon: CheckCircle2,  accent: "from-emerald-50 to-white",   icon: "bg-emerald-50 text-emerald-700", bar: "bg-emerald-500" },
+              { label: "WhatsApp",         value: manualKpis.whatsapp,      Icon: MessageCircle, accent: "from-emerald-50 to-white",   icon: "bg-emerald-50 text-emerald-700", bar: "bg-emerald-500" },
+              { label: "Manuais / Balcão", value: manualKpis.manuaisBalcao, Icon: Store,         accent: "from-slate-50 to-white",     icon: "bg-slate-100 text-slate-700",    bar: "bg-slate-500" },
+            ];
+            return (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                {kpis.map((k) => {
+                  const Icon = k.Icon;
+                  return (
+                    <div
+                      key={k.label}
+                      className={`relative overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-br ${k.accent} p-4 shadow-sm`}
+                    >
+                      <span className={`absolute left-0 top-0 bottom-0 w-1 ${k.bar}`} />
+                      <div className="flex items-start justify-between">
+                        <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${k.icon}`}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                      </div>
+                      <div className="mt-3 text-2xl font-bold tracking-tight text-slate-900 tabular-nums">
+                        {k.value}
+                      </div>
+                      <div className="mt-0.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                        {k.label}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
+          {/* Card com abas + tabela */}
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            {/* Abas por canal/status */}
+            <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white px-5 py-3">
+              {MANUAL_TABS.map((t) => {
+                const active = manualTab === t.value;
+                const count =
+                  t.value === "todos"
+                    ? manualItems.length
+                    : t.value === "pendentes"
+                      ? manualKpis.pendentes
+                      : t.value === "fechados"
+                        ? manualKpis.fechados
+                        : manualItems.filter((m) => normalizeChannel(m.channel) === t.value).length;
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setManualTab(t.value)}
+                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                      active
+                        ? "bg-gradient-to-r from-blue-700 to-blue-900 text-white shadow-sm"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200 ring-1 ring-slate-200"
+                    }`}
+                  >
+                    {t.label}
+                    <span
+                      className={`inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] tabular-nums ${
+                        active ? "bg-white/20 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  <tr>
-                    <th className="px-4 py-3">Cliente</th>
-                    <th className="px-4 py-3">Telefone</th>
-                    <th className="px-4 py-3">Canal</th>
-                    <th className="px-4 py-3">Tipo</th>
-                    <th className="px-4 py-3">Item solicitado</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Valor estimado</th>
-                    <th className="px-4 py-3">Próximo retorno</th>
-                    <th className="px-4 py-3">Criado em</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {manualItems.map((m) => {
-                    const initial = (m.customer_name?.trim()?.charAt(0) || "?").toUpperCase();
-                    const valor =
-                      m.estimated_value !== null && m.estimated_value !== undefined
-                        ? m.estimated_value.toLocaleString("pt-BR", {
-                            style: "currency",
-                            currency: "BRL",
-                          })
-                        : "—";
-                    const fmtDate = (iso: string | null) => {
-                      if (!iso) return "—";
-                      const d = new Date(iso);
-                      if (isNaN(d.getTime())) return "—";
-                      return d.toLocaleString("pt-BR", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      });
-                    };
-                    return (
-                      <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-blue-50 text-[11px] font-bold text-blue-700 ring-1 ring-blue-200/70">
-                              {initial}
+
+            {manualFiltered.length === 0 ? (
+              <div className="px-6 py-12 text-center">
+                <Inbox className="mx-auto h-9 w-9 text-slate-300" />
+                <p className="mt-2 text-sm font-semibold text-slate-700">
+                  {manualLoadStatus === "loading"
+                    ? "Carregando atendimentos..."
+                    : manualLoadStatus === "error"
+                      ? "Não foi possível carregar os atendimentos."
+                      : manualItems.length === 0
+                        ? "Nenhum atendimento registrado ainda."
+                        : "Nenhum atendimento para este filtro."}
+                </p>
+                <p className="mt-1 text-xs text-slate-500">
+                  {manualItems.length === 0
+                    ? "Use o botão “Novo atendimento” para registrar o primeiro."
+                    : "Selecione outra aba para ver mais registros."}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    <tr>
+                      <th className="px-4 py-3">Cliente</th>
+                      <th className="px-4 py-3">Telefone</th>
+                      <th className="px-4 py-3">Canal</th>
+                      <th className="px-4 py-3">Tipo</th>
+                      <th className="px-4 py-3">Item solicitado</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3 text-right">Valor estimado</th>
+                      <th className="px-4 py-3">Próximo retorno</th>
+                      <th className="px-4 py-3">Criado em</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {manualFiltered.map((m) => {
+                      const initial = (m.customer_name?.trim()?.charAt(0) || "?").toUpperCase();
+                      const ch = normalizeChannel(m.channel);
+                      const chMeta = CHANNEL_META[ch];
+                      const ChIcon = chMeta.Icon;
+                      const st = normalizeManualStatus(m.status);
+                      const stMeta = MANUAL_STATUS_META[st];
+                      const valor =
+                        m.estimated_value !== null && m.estimated_value !== undefined
+                          ? m.estimated_value.toLocaleString("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            })
+                          : "—";
+                      const fmtDate = (iso: string | null) => {
+                        if (!iso) return "—";
+                        const d = new Date(iso);
+                        if (isNaN(d.getTime())) return "—";
+                        return d.toLocaleString("pt-BR", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        });
+                      };
+                      return (
+                        <tr key={m.id} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-blue-50 text-[11px] font-bold text-blue-700 ring-1 ring-blue-200/70">
+                                {initial}
+                              </span>
+                              <span className="font-semibold text-slate-900">
+                                {m.customer_name || "—"}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-slate-600 tabular-nums">
+                            {m.customer_phone || "—"}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${chMeta.badge}`}
+                            >
+                              <ChIcon className="h-3 w-3" />
+                              {chMeta.label}
                             </span>
-                            <span className="font-semibold text-slate-900">
-                              {m.customer_name || "—"}
+                          </td>
+                          <td className="px-4 py-3 text-slate-700">{m.service_type || "—"}</td>
+                          <td className="px-4 py-3 max-w-xs truncate text-slate-600">
+                            {m.requested_item || "—"}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${stMeta.badge}`}
+                            >
+                              <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
+                              {stMeta.label}
                             </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-slate-600 tabular-nums">
-                          {m.customer_phone || "—"}
-                        </td>
-                        <td className="px-4 py-3">
-                          {m.channel ? (
-                            <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 ring-1 ring-slate-200">
-                              {m.channel}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400">—</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-slate-700">{m.service_type || "—"}</td>
-                        <td className="px-4 py-3 max-w-xs truncate text-slate-600">
-                          {m.requested_item || "—"}
-                        </td>
-                        <td className="px-4 py-3">
-                          {m.status ? (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700 ring-1 ring-blue-200">
-                              <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-                              {m.status}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400">—</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-right font-semibold text-slate-900 tabular-nums">
-                          {valor}
-                        </td>
-                        <td className="px-4 py-3 text-slate-600 tabular-nums">
-                          {fmtDate(m.next_followup_at)}
-                        </td>
-                        <td className="px-4 py-3 text-slate-500 tabular-nums">
-                          {fmtDate(m.created_at)}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                          </td>
+                          <td className="px-4 py-3 text-right font-semibold text-slate-900 tabular-nums">
+                            {valor}
+                          </td>
+                          <td className="px-4 py-3 text-slate-600 tabular-nums">
+                            {fmtDate(m.next_followup_at)}
+                          </td>
+                          <td className="px-4 py-3 text-slate-500 tabular-nums">
+                            {fmtDate(m.created_at)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Rodapé / placeholder de paginação futura */}
+            {manualItems.length >= MANUAL_PAGE_SIZE && (
+              <div className="flex items-center justify-between border-t border-slate-200 bg-slate-50/60 px-5 py-3 text-[11px] text-slate-500">
+                <span>
+                  Exibindo os {MANUAL_PAGE_SIZE} atendimentos mais recentes.
+                </span>
+                <span className="font-medium text-slate-400">
+                  Paginação será habilitada em uma próxima etapa.
+                </span>
+              </div>
+            )}
+          </div>
+        </section>
+
 
         {/* Resumo IA + Prioridades */}
         <div className="grid gap-4 lg:grid-cols-2">

@@ -842,12 +842,12 @@ function AtendimentosPage() {
             </div>
           </div>
         )}
+        </>)}
 
-        {/* ===========================================================
-            CENTRAL DE ATENDIMENTOS (commercial_attendances)
-            KPIs + Abas por canal/status + Tabela
-            =========================================================== */}
+        {/* ============ MANUAIS ============ */}
+        {mainTab === "manuais" && (
         <section className="space-y-4">
+
           {/* Cabeçalho da seção */}
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>

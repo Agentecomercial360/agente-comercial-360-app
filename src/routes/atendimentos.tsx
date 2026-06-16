@@ -1080,10 +1080,13 @@ function AtendimentosPage() {
             )}
           </div>
         </section>
+        )}
 
 
-        {/* Resumo IA + Prioridades */}
+        {/* Resumo IA + Prioridades (apenas na Visão geral) */}
+        {mainTab === "overview" && (
         <div className="grid gap-4 lg:grid-cols-2">
+
           <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-600 to-slate-900 p-6 text-white shadow-sm">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />

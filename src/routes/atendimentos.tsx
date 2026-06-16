@@ -694,9 +694,13 @@ function AtendimentosPage() {
         </div>
           );
         })()}
+        </>)}
 
 
+        {/* ============ OPERACIONAIS ============ */}
+        {mainTab === "operacionais" && (<>
         {/* Filtros */}
+
         <div className="rounded-2xl border border-border/70 bg-card p-4 shadow-[var(--shadow-soft)]">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="relative md:w-96">

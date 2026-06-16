@@ -321,7 +321,7 @@ function AtendimentosPage() {
         )
         .eq("company_id", cid)
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(MANUAL_PAGE_SIZE);
       if (error) {
         setManualLoadStatus("error");
         return;

@@ -229,6 +229,9 @@ function AtendimentosPage() {
   const [manualItems, setManualItems] = useState<CommercialAttendance[]>([]);
   const [manualLoadStatus, setManualLoadStatus] = useState<LoadStatus>("loading");
   const [manualTab, setManualTab] = useState<ManualTab>("todos");
+  const [mainTab, setMainTab] = useState<"overview" | "operacionais" | "manuais">("overview");
+
+
 
 
   const crmRole = useCrmRole();

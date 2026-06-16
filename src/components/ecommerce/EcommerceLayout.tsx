@@ -1,6 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  UserCog,
   Settings,
   RefreshCw,
   Bot,
@@ -17,6 +16,7 @@ import {
   BarChart3,
   LogOut,
   Menu,
+  PieChart,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -27,19 +27,39 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 const navGroups = [
   {
-    title: "E-COMMERCE",
+    title: "VISÃO",
     items: [
       { label: "Visão Geral", to: "/ecommerce/dashboard", icon: Store },
+    ],
+  },
+  {
+    title: "INTELIGÊNCIA",
+    items: [
+      { label: "Inteligência de Produtos", to: "/ecommerce/produtos", icon: ShoppingCart },
+      { label: "Curva ABC", to: "/ecommerce/curva-abc", icon: PieChart },
+      { label: "Produtos Problema", to: "/ecommerce/produtos-travados", icon: ShieldAlert },
+    ],
+  },
+  {
+    title: "OPERAÇÃO",
+    items: [
+      { label: "Estoque e Compras", to: "/ecommerce/estoque", icon: Boxes },
+      { label: "Anúncios e Ads", to: "/ecommerce/ads", icon: Zap },
       { label: "Mapa de Vendas", to: "/ecommerce/mapa-vendas", icon: Map },
-      { label: "Contas ML", to: "/ecommerce/contas", icon: UserCog },
-      { label: "Produto Unificado", to: "/ecommerce/produtos", icon: ShoppingCart },
-      { label: "Produtos Travados", to: "/ecommerce/produtos-travados", icon: ShieldAlert },
-      { label: "Estoque Unificado", to: "/ecommerce/estoque", icon: Boxes },
-      { label: "Ads Inteligente", to: "/ecommerce/ads", icon: Zap },
-      { label: "Prioridades", to: "/ecommerce/prioridades", icon: TrendingUp },
-      { label: "Tarefas", to: "/ecommerce/tarefas", icon: ListTodo },
-      { label: "Consultor IA", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
+    ],
+  },
+  {
+    title: "AÇÕES",
+    items: [
+      { label: "Central de Ações", to: "/ecommerce/prioridades", icon: TrendingUp },
+      { label: "Tarefas dos Operadores", to: "/ecommerce/tarefas", icon: ListTodo },
       { label: "Resultados das Ações", to: "/ecommerce/resultados", icon: BarChart3 },
+    ],
+  },
+  {
+    title: "SISTEMA",
+    items: [
+      { label: "Consultor IA", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
       { label: "Configurações", to: "/ecommerce/configuracoes", icon: Settings },
     ],
   },

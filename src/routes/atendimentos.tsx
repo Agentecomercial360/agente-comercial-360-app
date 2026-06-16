@@ -15,6 +15,14 @@ import {
   Loader2,
   Activity,
   Plus,
+  MessageCircle,
+  Store,
+  Phone,
+  Instagram,
+  Mail,
+  PenLine,
+  Inbox,
+  ListChecks,
 } from "lucide-react";
 import { NovoAtendimentoModal, type NovoAtendimentoData } from "@/components/atendimentos/NovoAtendimentoModal";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";

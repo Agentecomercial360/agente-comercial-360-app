@@ -228,6 +228,7 @@ function AtendimentosPage() {
   const [novoOpen, setNovoOpen] = useState(false);
   const [manualItems, setManualItems] = useState<CommercialAttendance[]>([]);
   const [manualLoadStatus, setManualLoadStatus] = useState<LoadStatus>("loading");
+  const [manualTab, setManualTab] = useState<ManualTab>("todos");
 
 
   const crmRole = useCrmRole();

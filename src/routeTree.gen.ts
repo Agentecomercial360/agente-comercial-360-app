@@ -36,6 +36,7 @@ import { Route as EcommerceMapaVendasRouteImport } from './routes/ecommerce/mapa
 import { Route as EcommerceLoginRouteImport } from './routes/ecommerce/login'
 import { Route as EcommerceEstoqueRouteImport } from './routes/ecommerce/estoque'
 import { Route as EcommerceDashboardRouteImport } from './routes/ecommerce/dashboard'
+import { Route as EcommerceCurvaAbcRouteImport } from './routes/ecommerce/curva-abc'
 import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
 import { Route as EcommerceConsultorIaRouteImport } from './routes/ecommerce/consultor-ia'
 import { Route as EcommerceConfiguracoesRouteImport } from './routes/ecommerce/configuracoes'
@@ -185,6 +186,11 @@ const EcommerceDashboardRoute = EcommerceDashboardRouteImport.update({
   path: '/ecommerce/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceCurvaAbcRoute = EcommerceCurvaAbcRouteImport.update({
+  id: '/ecommerce/curva-abc',
+  path: '/ecommerce/curva-abc',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EcommerceContasRoute = EcommerceContasRouteImport.update({
   id: '/ecommerce/contas',
   path: '/ecommerce/contas',
@@ -276,6 +282,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
   '/ecommerce/contas': typeof EcommerceContasRoute
+  '/ecommerce/curva-abc': typeof EcommerceCurvaAbcRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
   '/ecommerce/login': typeof EcommerceLoginRoute
@@ -317,6 +324,7 @@ export interface FileRoutesByTo {
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
   '/ecommerce/contas': typeof EcommerceContasRoute
+  '/ecommerce/curva-abc': typeof EcommerceCurvaAbcRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
   '/ecommerce/login': typeof EcommerceLoginRoute
@@ -359,6 +367,7 @@ export interface FileRoutesById {
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
   '/ecommerce/contas': typeof EcommerceContasRoute
+  '/ecommerce/curva-abc': typeof EcommerceCurvaAbcRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
   '/ecommerce/login': typeof EcommerceLoginRoute
@@ -402,6 +411,7 @@ export interface FileRouteTypes {
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
     | '/ecommerce/contas'
+    | '/ecommerce/curva-abc'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
     | '/ecommerce/login'
@@ -443,6 +453,7 @@ export interface FileRouteTypes {
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
     | '/ecommerce/contas'
+    | '/ecommerce/curva-abc'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
     | '/ecommerce/login'
@@ -484,6 +495,7 @@ export interface FileRouteTypes {
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
     | '/ecommerce/contas'
+    | '/ecommerce/curva-abc'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
     | '/ecommerce/login'
@@ -526,6 +538,7 @@ export interface RootRouteChildren {
   EcommerceConfiguracoesRoute: typeof EcommerceConfiguracoesRoute
   EcommerceConsultorIaRoute: typeof EcommerceConsultorIaRoute
   EcommerceContasRoute: typeof EcommerceContasRoute
+  EcommerceCurvaAbcRoute: typeof EcommerceCurvaAbcRoute
   EcommerceDashboardRoute: typeof EcommerceDashboardRoute
   EcommerceEstoqueRoute: typeof EcommerceEstoqueRoute
   EcommerceLoginRoute: typeof EcommerceLoginRoute
@@ -729,6 +742,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommerceDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/curva-abc': {
+      id: '/ecommerce/curva-abc'
+      path: '/ecommerce/curva-abc'
+      fullPath: '/ecommerce/curva-abc'
+      preLoaderRoute: typeof EcommerceCurvaAbcRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ecommerce/contas': {
       id: '/ecommerce/contas'
       path: '/ecommerce/contas'
@@ -846,6 +866,7 @@ const rootRouteChildren: RootRouteChildren = {
   EcommerceConfiguracoesRoute: EcommerceConfiguracoesRoute,
   EcommerceConsultorIaRoute: EcommerceConsultorIaRoute,
   EcommerceContasRoute: EcommerceContasRoute,
+  EcommerceCurvaAbcRoute: EcommerceCurvaAbcRoute,
   EcommerceDashboardRoute: EcommerceDashboardRoute,
   EcommerceEstoqueRoute: EcommerceEstoqueRoute,
   EcommerceLoginRoute: EcommerceLoginRoute,

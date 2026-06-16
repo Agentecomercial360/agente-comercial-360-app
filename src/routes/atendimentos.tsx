@@ -229,6 +229,9 @@ function AtendimentosPage() {
   const [manualItems, setManualItems] = useState<CommercialAttendance[]>([]);
   const [manualLoadStatus, setManualLoadStatus] = useState<LoadStatus>("loading");
   const [manualTab, setManualTab] = useState<ManualTab>("todos");
+  const [mainTab, setMainTab] = useState<"overview" | "operacionais" | "manuais">("overview");
+
+
 
 
   const crmRole = useCrmRole();
@@ -605,8 +608,60 @@ function AtendimentosPage() {
           </div>
         </div>
 
+        {/* Navegação principal: Visão geral / Operacionais / Manuais */}
+        <div className="rounded-2xl border border-border/70 bg-card p-2 shadow-[var(--shadow-soft)]">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-wrap gap-1.5">
+              {([
+                { value: "overview",      label: "Visão geral",  Icon: Activity,    hint: "KPIs e resumo da operação" },
+                { value: "operacionais",  label: "Operacionais", Icon: Headphones,  hint: "Conversas vindas do fluxo operacional / WhatsApp", count: items.length },
+                { value: "manuais",       label: "Manuais",      Icon: PenLine,     hint: "Registros lançados via formulário Novo atendimento", count: manualItems.length },
+              ] as const).map((t) => {
+                const active = mainTab === t.value;
+                const Icon = t.Icon;
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setMainTab(t.value)}
+                    title={t.hint}
+                    className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-semibold transition ${
+                      active
+                        ? "bg-gradient-to-r from-blue-700 to-blue-900 text-white shadow-sm"
+                        : "bg-muted/60 text-muted-foreground hover:bg-muted ring-1 ring-border"
+                    }`}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    {t.label}
+                    {"count" in t && (
+                      <span
+                        className={`inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 py-0.5 text-[10px] tabular-nums ${
+                          active ? "bg-white/20 text-white" : "bg-white text-slate-600 ring-1 ring-slate-200"
+                        }`}
+                      >
+                        {t.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={() => setNovoOpen(true)}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-700 to-blue-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:from-blue-800 hover:to-blue-950 transition whitespace-nowrap"
+            >
+              <Plus className="h-4 w-4" />
+              Novo atendimento
+            </button>
+          </div>
+        </div>
+
+        {/* ============ VISÃO GERAL ============ */}
+        {mainTab === "overview" && (<>
         {/* KPI Cards */}
         {(() => {
+
           const themes = [
             { icon: "bg-blue-50 text-blue-600", accent: "bg-blue-500", ring: "group-hover:ring-blue-200" },
             { icon: "bg-amber-50 text-amber-600", accent: "bg-amber-500", ring: "group-hover:ring-amber-200" },
@@ -639,9 +694,13 @@ function AtendimentosPage() {
         </div>
           );
         })()}
+        </>)}
 
 
+        {/* ============ OPERACIONAIS ============ */}
+        {mainTab === "operacionais" && (<>
         {/* Filtros */}
+
         <div className="rounded-2xl border border-border/70 bg-card p-4 shadow-[var(--shadow-soft)]">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="relative md:w-96">
@@ -654,14 +713,11 @@ function AtendimentosPage() {
                 className="w-full rounded-xl border border-border bg-background py-3 pl-10 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition"
               />
             </div>
-            <button
-              type="button"
-              onClick={() => setNovoOpen(true)}
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-700 to-blue-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:from-blue-800 hover:to-blue-950 transition whitespace-nowrap"
-            >
-              <Plus className="h-4 w-4" />
-              Novo atendimento
-            </button>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600 ring-1 ring-slate-200">
+              <Headphones className="h-3 w-3" />
+              Fluxo operacional / WhatsApp
+            </span>
+
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
             {filtros.map((f) => (
@@ -786,12 +842,12 @@ function AtendimentosPage() {
             </div>
           </div>
         )}
+        </>)}
 
-        {/* ===========================================================
-            CENTRAL DE ATENDIMENTOS (commercial_attendances)
-            KPIs + Abas por canal/status + Tabela
-            =========================================================== */}
+        {/* ============ MANUAIS ============ */}
+        {mainTab === "manuais" && (
         <section className="space-y-4">
+
           {/* Cabeçalho da seção */}
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
@@ -1024,10 +1080,13 @@ function AtendimentosPage() {
             )}
           </div>
         </section>
+        )}
 
 
-        {/* Resumo IA + Prioridades */}
+        {/* Resumo IA + Prioridades (apenas na Visão geral) */}
+        {mainTab === "overview" && (
         <div className="grid gap-4 lg:grid-cols-2">
+
           <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-600 to-slate-900 p-6 text-white shadow-sm">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
@@ -1053,6 +1112,8 @@ function AtendimentosPage() {
             </ul>
           </div>
         </div>
+        )}
+
       </div>
 
       {/* Drawer */}

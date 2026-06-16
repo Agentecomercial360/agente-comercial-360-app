@@ -115,6 +115,32 @@ function CurvaABC() {
           </div>
         </div>
 
+        {/* Como interpretar */}
+        <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-blue-50/60 to-transparent p-5 shadow-[var(--shadow-soft)]">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-700 text-white">
+              <Info className="h-3.5 w-3.5" />
+            </div>
+            <h3 className="font-display text-sm font-bold text-foreground">
+              Como interpretar a Curva ABC
+            </h3>
+          </div>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li className="flex gap-2">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-700" />
+              <span><strong className="font-semibold text-foreground">Classe A:</strong> produtos que concentram maior faturamento ou lucro e merecem prioridade operacional.</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-sky-600" />
+              <span><strong className="font-semibold text-foreground">Classe B:</strong> produtos com desempenho intermediário e potencial para crescimento.</span>
+            </li>
+            <li className="flex gap-2">
+              <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-slate-500" />
+              <span><strong className="font-semibold text-foreground">Classe C:</strong> produtos de menor impacto, que exigem análise de giro, margem e possível liquidação.</span>
+            </li>
+          </ul>
+        </div>
+
         {/* Tabela */}
         <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4">

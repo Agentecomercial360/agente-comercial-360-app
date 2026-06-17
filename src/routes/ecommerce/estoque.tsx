@@ -13,6 +13,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { EstoqueActions } from "@/components/ecommerce/ActionButtons";
 
 export const Route = createFileRoute("/ecommerce/estoque")({
   component: EstoqueCompras,

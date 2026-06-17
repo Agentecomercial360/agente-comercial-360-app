@@ -1,844 +1,320 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Sparkles, Zap, FileSearch, ListPlus, Check, X } from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import {
+  AlertTriangle,
+  CalendarX,
+  CalendarOff,
+  CalendarClock,
+  TrendingDown,
+  MousePointerClick,
+  PackageX,
+  Image as ImageIcon,
+  Type,
+  FileText,
+  Tag,
+  Megaphone,
+  PackageOpen,
+  PauseCircle,
+  Ban,
+  Stethoscope,
+  Lightbulb,
+  Calculator,
+  Info,
+  Eye,
+  Percent,
+  Activity,
+} from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
-import { supabase } from "@/lib/supabase";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 
 export const Route = createFileRoute("/ecommerce/produtos-travados")({
-  component: ProdutosTravados,
-  validateSearch: (s: Record<string, unknown>) => ({
-    filter:
-      s.filter === "no_sales" || s.filter === "no_visits"
-        ? (s.filter as "no_sales" | "no_visits")
-        : undefined,
-  }),
+  component: ProdutosProblema,
   head: () => ({
-    meta: [{ title: "Produtos Travados | Agente Comercial 360" }],
+    meta: [{ title: "Produtos Problema | Agente Comercial 360" }],
   }),
 });
 
-type Stuck = {
-  sku?: string | null;
-  product_name?: string | null;
-  account_name?: string | null;
-  marketplace?: string | null;
-  problem_label?: string | null;
-  priority_level?: string | null;
-  visits?: number | null;
-  sales_count?: number | null;
-  total_stock?: number | null;
-  days_without_sale?: number | null;
-  ads_investment?: number | null;
-  ads_revenue?: number | null;
-  roas?: number | null;
-  task_title?: string | null;
-  insight_title?: string | null;
-  recommended_action?: string | null;
-  metric_status?: string | null;
-  stock_status?: string | null;
-  ads_status?: string | null;
-};
+const kpis = [
+  { label: "Sem venda há 30 dias", icon: CalendarClock, accent: "from-amber-600 to-orange-700" },
+  { label: "Sem venda há 60 dias", icon: CalendarOff, accent: "from-orange-700 to-rose-700" },
+  { label: "Sem venda há 90 dias", icon: CalendarX, accent: "from-rose-700 to-red-900" },
+  { label: "Queda de vendas", icon: TrendingDown, accent: "from-rose-600 to-rose-800" },
+  { label: "Baixa conversão", icon: MousePointerClick, accent: "from-violet-600 to-violet-800" },
+  { label: "Estoque parado", icon: PackageX, accent: "from-slate-600 to-slate-800" },
+];
 
-const PRIORITY_LABEL: Record<string, string> = {
-  critical: "Crítico",
-  high: "Alta",
-  medium: "Média",
-  low: "Baixa",
-};
+const cols = [
+  "SKU",
+  "Produto",
+  "Última venda",
+  "Dias sem venda",
+  "Estoque atual",
+  "Conversão",
+  "Tendência",
+  "Problema identificado",
+  "Ação sugerida",
+];
 
-const MARKETPLACE_LABEL: Record<string, string> = {
-  mercado_livre: "Mercado Livre",
-  mercadolivre: "Mercado Livre",
-  shopee: "Shopee",
-  amazon: "Amazon",
-  bling: "Bling",
-  loja_propria: "Loja própria",
-  outro: "Outro",
-};
+const tipos = [
+  { label: "Sem venda", desc: "Produto sem pedidos recentes dentro do período analisado.", dot: "bg-rose-600", ring: "border-rose-200 bg-rose-50/60", badge: "text-rose-700", icon: CalendarX },
+  { label: "Queda de desempenho", desc: "Produto que perdeu vendas em relação ao histórico anterior.", dot: "bg-orange-600", ring: "border-orange-200 bg-orange-50/60", badge: "text-orange-700", icon: TrendingDown },
+  { label: "Baixa conversão", desc: "Produto com visitas, mas pouca ou nenhuma venda.", dot: "bg-violet-600", ring: "border-violet-200 bg-violet-50/60", badge: "text-violet-700", icon: MousePointerClick },
+  { label: "Estoque parado", desc: "Produto com estoque disponível, mas baixo giro.", dot: "bg-slate-500", ring: "border-slate-200 bg-slate-50/60", badge: "text-slate-700", icon: PackageX },
+  { label: "Perda de relevância", desc: "Produto com queda de exposição, visitas ou competitividade.", dot: "bg-amber-500", ring: "border-amber-200 bg-amber-50/60", badge: "text-amber-700", icon: Eye },
+  { label: "Margem comprometida", desc: "Produto que vende, mas pode não gerar resultado suficiente.", dot: "bg-blue-600", ring: "border-blue-200 bg-blue-50/60", badge: "text-blue-700", icon: Percent },
+];
 
-const formatMarketplace = (m: string | null | undefined) => {
-  if (!m) return "—";
-  const k = m.toLowerCase().trim();
-  return MARKETPLACE_LABEL[k] ?? m;
-};
+const acoes = [
+  { label: "Melhorar foto", icon: ImageIcon, accent: "from-sky-600 to-sky-800" },
+  { label: "Melhorar título", icon: Type, accent: "from-blue-700 to-blue-900" },
+  { label: "Melhorar descrição", icon: FileText, accent: "from-indigo-600 to-indigo-800" },
+  { label: "Revisar preço", icon: Tag, accent: "from-violet-600 to-violet-800" },
+  { label: "Revisar Ads", icon: Megaphone, accent: "from-emerald-600 to-emerald-800" },
+  { label: "Liquidar estoque", icon: PackageOpen, accent: "from-amber-600 to-orange-700" },
+  { label: "Pausar compra", icon: PauseCircle, accent: "from-slate-600 to-slate-800" },
+  { label: "Descontinuar produto", icon: Ban, accent: "from-rose-700 to-red-900" },
+];
 
-const STATUS_LABEL: Record<string, string> = {
-  low_conversion: "Baixa conversão",
-  visits_no_sales: "Visitas sem venda",
-  no_visits: "Sem visitas",
-  no_sales: "Sem venda",
-  excess_stock: "Excesso de estoque",
-  stopped: "Estoque parado",
-  risk_of_stockout: "Risco de ruptura",
-  low_stock: "Estoque baixo",
-  high_tacos: "TACoS alto",
-  high_acos: "ACOS alto",
-  spending_no_sales: "Ads sem venda",
-  reduce_budget: "Reduzir orçamento",
-  scale: "Escalar",
-  growth: "Crescimento",
-  needs_review: "Precisa revisão",
-  normal: "Normal",
-  pause: "Pausar",
-  ok: "Normal",
-  healthy: "Normal",
-};
+const regras = [
+  "Vendas recentes",
+  "Histórico de vendas",
+  "Dias sem venda",
+  "Estoque atual",
+  "Visitas",
+  "Conversão",
+  "Preço",
+  "Ads",
+  "Giro",
+  "Margem",
+  "Tendência de queda",
+];
 
-const formatStatus = (s: string | null | undefined) => {
-  if (!s) return "";
-  const k = s.toLowerCase().trim();
-  if (STATUS_LABEL[k]) return STATUS_LABEL[k];
-  return s.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-};
-
-
-const fmtBRL = (v: number | null | undefined) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(Number(v ?? 0));
-const fmtInt = (v: number | null | undefined) =>
-  new Intl.NumberFormat("pt-BR").format(Number(v ?? 0));
-const fmtNum = (v: number | null | undefined, d = 2) =>
-  new Intl.NumberFormat("pt-BR", { minimumFractionDigits: d, maximumFractionDigits: d }).format(Number(v ?? 0));
-const pad2 = (n: number) => n.toString().padStart(2, "0");
-
-type Tone = "critical" | "attention" | "neutral" | "muted";
-
-function classifyTone(p: Stuck): Tone {
-  const prio = (p.priority_level ?? "").toLowerCase();
-  if (prio === "critical") return "critical";
-  if (prio === "high") return "attention";
-  if (prio === "medium") return "neutral";
-  return "muted";
-}
-
-const toneMap: Record<
-  Tone,
-  {
-    surface: string;
-    bar: string;
-    badge: string;
-    accentText: string;
-    aiSurface: string;
-    aiIcon: string;
-    aiTitle: string;
-    chip: string;
-    metricPanel: string;
-  }
-> = {
-  critical: {
-    surface: "bg-[linear-gradient(180deg,#FFFDFD_0%,#FCF6F7_100%)] border-[#EFD9DE]",
-    bar: "bg-[#C8324C]",
-    badge: "bg-white text-[#C8324C] ring-1 ring-[#EFD9DE]",
-    accentText: "text-[#C8324C]",
-    aiSurface: "bg-white border-[#EFD9DE]",
-    aiIcon: "bg-[#FBEAEE] text-[#C8324C] ring-1 ring-[#EFD9DE]",
-    aiTitle: "text-[#9F1F35]",
-    chip: "bg-white text-slate-600 ring-1 ring-[#EFD9DE]",
-    metricPanel: "border-slate-200/70 bg-white",
-  },
-  attention: {
-    surface: "bg-[linear-gradient(180deg,#FEFDFB_0%,#FBF7F0_100%)] border-[#EADDC2]",
-    bar: "bg-[#B45309]",
-    badge: "bg-white text-[#92400E] ring-1 ring-[#EADDC2]",
-    accentText: "text-[#92400E]",
-    aiSurface: "bg-white border-[#EADDC2]",
-    aiIcon: "bg-[#F7ECD4] text-[#92400E] ring-1 ring-[#EADDC2]",
-    aiTitle: "text-[#7C2D12]",
-    chip: "bg-white text-slate-600 ring-1 ring-[#EADDC2]",
-    metricPanel: "border-slate-200/70 bg-white",
-  },
-  neutral: {
-    surface: "bg-[linear-gradient(180deg,#FCFDFE_0%,#F6F8FC_100%)] border-[#DCE3ED]",
-    bar: "bg-[#2563EB]",
-    badge: "bg-white text-[#1D4ED8] ring-1 ring-[#DCE3ED]",
-    accentText: "text-[#1D4ED8]",
-    aiSurface: "bg-white border-[#DCE3ED]",
-    aiIcon: "bg-[#E7EEFA] text-[#1D4ED8] ring-1 ring-[#DCE3ED]",
-    aiTitle: "text-[#1E3A8A]",
-    chip: "bg-white text-slate-600 ring-1 ring-[#DCE3ED]",
-    metricPanel: "border-slate-200/70 bg-white",
-  },
-  muted: {
-    surface: "bg-[linear-gradient(180deg,#FCFCFD_0%,#F4F5F8_100%)] border-slate-200",
-    bar: "bg-slate-400",
-    badge: "bg-white text-slate-600 ring-1 ring-slate-200",
-    accentText: "text-slate-700",
-    aiSurface: "bg-white border-slate-200",
-    aiIcon: "bg-slate-100 text-slate-600 ring-1 ring-slate-200",
-    aiTitle: "text-slate-700",
-    chip: "bg-white text-slate-600 ring-1 ring-slate-200",
-    metricPanel: "border-slate-200/70 bg-white/80",
-  },
-};
-
-function ProdutosTravados() {
-  const navigate = useNavigate();
-  const { filter } = Route.useSearch();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [items, setItems] = useState<Stuck[]>([]);
-  const [selected, setSelected] = useState<Stuck | null>(null);
-  const [taskTarget, setTaskTarget] = useState<Stuck | null>(null);
-  const [taskNote, setTaskNote] = useState("");
-  const [taskSaved, setTaskSaved] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const { data: ctx, error: ctxErr } = await supabase
-          .from("vw_user_access_context")
-          .select("company_id, has_ecommerce_access")
-          .maybeSingle();
-
-        if (ctxErr) throw ctxErr;
-        if (!ctx) {
-          navigate({ to: "/ecommerce/login" });
-          return;
-        }
-        if (!ctx.has_ecommerce_access) {
-          await supabase.auth.signOut();
-          navigate({ to: "/ecommerce/login" });
-          return;
-        }
-
-        const { data, error: sErr } = await supabase
-          .from("vw_ecommerce_products_stuck")
-          .select("*")
-          .eq("company_id", ctx.company_id);
-
-        if (sErr) throw sErr;
-        if (cancelled) return;
-        setItems((data as Stuck[]) ?? []);
-      } catch (e: any) {
-        if (cancelled) return;
-        setError(e?.message ?? "Erro ao carregar produtos travados.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [navigate]);
-
-  const buckets = useMemo(() => {
-    const has = (s: string | null | undefined, kw: string) =>
-      (s ?? "").toLowerCase().includes(kw);
-    let critical = 0;
-    let high = 0;
-    let noVisits = 0;
-    let visitsNoSales = 0;
-    let lowConversion = 0;
-    let stockStuck = 0;
-    for (const p of items) {
-      const prio = (p.priority_level ?? "").toLowerCase();
-      if (prio === "critical") critical++;
-      if (prio === "high") high++;
-      const v = Number(p.visits ?? 0);
-      const s = Number(p.sales_count ?? 0);
-      if (v === 0) noVisits++;
-      else if (s === 0) visitsNoSales++;
-      if (
-        has(p.problem_label, "conversão") ||
-        has(p.problem_label, "conversao") ||
-        has(p.problem_label, "conversion")
-      )
-        lowConversion++;
-      if (
-        has(p.problem_label, "estoque") ||
-        has(p.problem_label, "stock") ||
-        Number(p.days_without_sale ?? 0) >= 30
-      )
-        stockStuck++;
-    }
-    return { critical, high, noVisits, visitsNoSales, lowConversion, stockStuck };
-  }, [items]);
-
-  const filteredItems = useMemo(() => {
-    if (filter === "no_sales") {
-      return items.filter(
-        (p) => Number(p.visits ?? 0) > 0 && Number(p.sales_count ?? 0) === 0,
-      );
-    }
-    if (filter === "no_visits") {
-      return items.filter((p) => Number(p.visits ?? 0) === 0);
-    }
-    return items;
-  }, [items, filter]);
-
-  const filterLabel =
-    filter === "no_sales"
-      ? "Produtos sem venda"
-      : filter === "no_visits"
-        ? "Produtos sem visita"
-        : null;
-
+function ProdutosProblema() {
   return (
     <EcommerceLayout>
-      <div className="mx-auto max-w-7xl space-y-8">
-        {/* Header + Resumo da IA */}
-        <header className="flex flex-col items-start justify-between gap-6 lg:flex-row">
-          <div className="space-y-2">
-            <span className="block text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600">
-              Diagnóstico de Produtos
-            </span>
-            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">
-              Produtos Travados
-            </h1>
-            <p className="max-w-xl text-base text-slate-500">
-              Diagnóstico dos produtos com baixa tração, baixo giro ou perda de conversão.
-            </p>
+      <div className="space-y-6">
+        {/* Header */}
+        <header className="space-y-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+            <Activity className="h-3.5 w-3.5" />
+            Diagnóstico de Performance
           </div>
-
-          {!loading && !error && items.length > 0 && (
-            <div className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-br from-[#0B1220] via-[#0F1B33] to-[#13294B] p-6 text-white shadow-[0_8px_24px_-12px_rgba(15,23,42,0.35)] ring-1 ring-white/5 lg:w-[460px]">
-              <div className="relative z-10">
-                <div className="mb-5 flex items-center justify-between">
-                  <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-300/80">
-                    Resumo da IA
-                  </h3>
-                  <span className="rounded-full bg-white/5 px-2 py-0.5 text-[9px] font-medium uppercase tracking-widest text-slate-300 ring-1 ring-white/10">
-                    Tempo real
-                  </span>
-                </div>
-                <div className="grid grid-cols-4 divide-x divide-white/10">
-                  <div className="pr-3">
-                    <p className="text-[26px] font-semibold leading-none tabular-nums text-rose-300">{pad2(buckets.critical)}</p>
-                    <p className="mt-2 text-[10px] uppercase tracking-wider text-slate-400">Críticos</p>
-                  </div>
-                  <div className="px-3">
-                    <p className="text-[26px] font-semibold leading-none tabular-nums text-amber-300">{pad2(buckets.high)}</p>
-                    <p className="mt-2 text-[10px] uppercase tracking-wider text-slate-400">Alta</p>
-                  </div>
-                  <div className="px-3">
-                    <p className="text-[26px] font-semibold leading-none tabular-nums text-sky-300">{pad2(buckets.noVisits)}</p>
-                    <p className="mt-2 text-[10px] uppercase tracking-wider text-slate-400">Sem visita</p>
-                  </div>
-                  <div className="pl-3">
-                    <p className="text-[26px] font-semibold leading-none tabular-nums text-violet-300">{pad2(buckets.visitsNoSales)}</p>
-                    <p className="mt-2 text-[10px] uppercase tracking-wider text-slate-400">Sem venda</p>
-                </div>
-                <p className="mt-5 border-t border-white/10 pt-4 text-[12.5px] leading-relaxed text-slate-300">
-                  {(() => {
-                    const parts: string[] = [];
-                    const word = (n: number, s: string, p: string) => `${n} ${n === 1 ? s : p}`;
-                    if (buckets.critical) parts.push(word(buckets.critical, "produto crítico", "produtos críticos"));
-                    if (buckets.high) parts.push(word(buckets.high, "de alta prioridade", "de alta prioridade"));
-                    if (buckets.noVisits) parts.push(word(buckets.noVisits, "sem visita", "sem visitas"));
-                    if (buckets.visitsNoSales) parts.push(word(buckets.visitsNoSales, "com visitas sem venda", "com visitas sem venda"));
-                    if (!parts.length) return "Nenhum sinal crítico detectado no momento.";
-                    const text = parts.length === 1 ? parts[0] : parts.slice(0, -1).join(", ") + " e " + parts.slice(-1);
-                    return text.charAt(0).toUpperCase() + text.slice(1) + ".";
-                  })()}
-                </p>
-              </div>
-              </div>
-              <div className="pointer-events-none absolute -bottom-6 -right-6 opacity-[0.07]">
-                <Sparkles className="h-36 w-36" strokeWidth={1.25} />
-              </div>
-            </div>
-          )}
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+            Produtos Problema
+          </h1>
+          <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
+            Identifique produtos sem venda, com queda de desempenho, baixa
+            conversão ou risco de estoque parado.
+          </p>
         </header>
 
-        {loading && (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
-            Carregando produtos travados...
-          </div>
-        )}
-
-        {!loading && error && (
-          <div className="rounded-xl border border-rose-200 bg-rose-50/40 p-6 text-sm text-rose-700">
-            Não foi possível carregar os produtos travados agora. Tente novamente em instantes.
-          </div>
-        )}
-
-        {!loading && !error && items.length === 0 && (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
-            Nenhum produto travado encontrado para esta empresa.
-          </div>
-        )}
-
-        {!loading && !error && items.length > 0 && (
-          <>
-            {/* Cards de resumo */}
-            <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-              <SummaryCard label="Críticos" value={buckets.critical} accent="#C8324C" />
-              <SummaryCard label="Alta prioridade" value={buckets.high} accent="#B45309" />
-              <SummaryCard label="Sem visitas" value={buckets.noVisits} accent="#1D4ED8" />
-              <SummaryCard label="Visitas sem venda" value={buckets.visitsNoSales} accent="#7C3AED" />
-              <SummaryCard label="Baixa conversão" value={buckets.lowConversion} accent="#0F766E" />
-              <SummaryCard label="Estoque parado" value={buckets.stockStuck} accent="#475569" />
-            </section>
-
-            {/* Lista */}
-            <section className="space-y-4">
-              {filterLabel && (
-                <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 text-xs text-slate-600">
-                  <span>
-                    Filtro aplicado:{" "}
-                    <strong className="font-semibold text-slate-900">{filterLabel}</strong>
-                    <span className="ml-2 text-slate-400">
-                      ({filteredItems.length} de {items.length})
-                    </span>
-                  </span>
-                  <button
-                    onClick={() => navigate({ to: "/ecommerce/produtos-travados", search: {} })}
-                    className="font-medium text-slate-500 underline-offset-2 hover:text-slate-900 hover:underline"
-                  >
-                    Limpar filtro
-                  </button>
-                </div>
-              )}
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold tracking-tight text-slate-900">
-                  Diagnóstico Detalhado
-                </h3>
-                <span className="text-xs text-slate-500">
-                  {filteredItems.length} {filteredItems.length === 1 ? "produto" : "produtos"}
-                </span>
-              </div>
-
-              <div className="space-y-4">
-                {filteredItems.map((p, i) => (
-                  <StuckCard
-                    key={i}
-                    p={p}
-                    onOpenDiagnostic={() => setSelected(p)}
-                    onCreateTask={() => {
-                      setTaskTarget(p);
-                      setTaskNote(p.recommended_action ?? p.task_title ?? "");
-                      setTaskSaved(false);
-                    }}
-                  />
-                ))}
-                {filteredItems.length === 0 && (
-                  <div className="rounded-xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
-                    Nenhum produto corresponde ao filtro selecionado.
+        {/* KPIs */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {kpis.map((k) => {
+            const Icon = k.icon;
+            return (
+              <div
+                key={k.label}
+                className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]"
+              >
+                <div
+                  className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${k.accent} opacity-10`}
+                />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1.5">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {k.label}
+                    </div>
+                    <div className="font-display text-3xl font-bold text-foreground/40">
+                      —
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Será calculado após sincronização dos produtos, pedidos,
+                      estoque e métricas de desempenho.
+                    </div>
                   </div>
-                )}
+                  <div
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${k.accent} text-white shadow-md`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
+                </div>
               </div>
-            </section>
-          </>
-        )}
-      </div>
+            );
+          })}
+        </section>
 
-      <DiagnosticSheet
-        product={selected}
-        onClose={() => setSelected(null)}
-      />
-      <CreateTaskDialog
-        product={taskTarget}
-        note={taskNote}
-        setNote={setTaskNote}
-        saved={taskSaved}
-        onConfirm={() => setTaskSaved(true)}
-        onClose={() => {
-          setTaskTarget(null);
-          setTaskSaved(false);
-        }}
-      />
+        {/* Diagnóstico */}
+        <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-700 text-white">
+                <Stethoscope className="h-3.5 w-3.5" />
+              </div>
+              <div>
+                <h2 className="font-display text-lg font-bold text-foreground">
+                  Diagnóstico por produto
+                </h2>
+                <p className="text-xs text-muted-foreground max-w-2xl">
+                  Lista dos produtos com sinais de problema, motivo identificado
+                  e ação recomendada.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
+                  {cols.map((c) => (
+                    <th
+                      key={c}
+                      className="px-5 py-3 text-left font-semibold whitespace-nowrap"
+                    >
+                      {c}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colSpan={cols.length} className="px-5 py-16 text-center">
+                    <div className="mx-auto max-w-md space-y-3">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+                        <AlertTriangle className="h-6 w-6" />
+                      </div>
+                      <div className="font-display text-base font-semibold text-foreground">
+                        Nenhum produto problema identificado ainda
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        A análise será gerada após a leitura dos dados reais da
+                        operação.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Tipos de problema */}
+        <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div className="mb-4">
+            <h2 className="font-display text-lg font-bold text-foreground">
+              Tipos de problema
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Categorias usadas pelo sistema para classificar produtos com
+              baixo desempenho.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+            {tipos.map((t) => {
+              const Icon = t.icon;
+              return (
+                <div key={t.label} className={`rounded-xl border p-4 ${t.ring}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`h-2 w-2 rounded-full ${t.dot}`} />
+                    <span
+                      className={`text-xs font-bold uppercase tracking-wider ${t.badge}`}
+                    >
+                      {t.label}
+                    </span>
+                    <Icon className={`ml-auto h-3.5 w-3.5 ${t.badge}`} />
+                  </div>
+                  <p className="text-sm text-foreground/80 leading-snug">
+                    {t.desc}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Ações recomendadas */}
+        <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div className="mb-4">
+            <h2 className="font-display text-lg font-bold text-foreground">
+              Ações recomendadas
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Categorias de ação que o sistema poderá sugerir para recuperar
+              ou descontinuar produtos.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
+            {acoes.map((a) => {
+              const Icon = a.icon;
+              return (
+                <div
+                  key={a.label}
+                  className="rounded-xl border border-border/60 bg-muted/20 p-4 transition-colors hover:bg-muted/30"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${a.accent} text-white shadow-sm`}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="text-sm font-bold text-foreground">
+                      {a.label}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Regras + Como ajuda */}
+        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 text-white">
+                <Calculator className="h-3.5 w-3.5" />
+              </div>
+              <h3 className="font-display text-sm font-bold text-foreground">
+                Regras de análise
+              </h3>
+            </div>
+            <p className="text-xs text-muted-foreground mb-3">
+              A identificação de produtos problema considerará, quando os
+              dados estiverem sincronizados:
+            </p>
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-sm text-foreground/80">
+              {regras.map((r) => (
+                <li key={r} className="flex gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-700" />
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-blue-50/60 to-transparent p-5 shadow-[var(--shadow-soft)]">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-700 text-white">
+                <Lightbulb className="h-3.5 w-3.5" />
+              </div>
+              <h3 className="font-display text-sm font-bold text-foreground">
+                Como essa tela ajuda a operação
+              </h3>
+            </div>
+            <p className="text-sm text-foreground/80 leading-relaxed">
+              Essa tela ajuda a equipe a agir antes que produtos ruins consumam
+              estoque, verba de Ads ou atenção operacional. O sistema
+              identifica sinais de queda e sugere ações para recuperar
+              desempenho, liquidar estoque ou evitar novas compras equivocadas.
+            </p>
+            <div className="mt-4 flex items-start gap-2 rounded-lg border border-blue-100 bg-white/60 p-3 text-xs text-muted-foreground">
+              <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-blue-700" />
+              <span>
+                Tela preparada. Nenhum produto fictício é exibido até a
+                primeira sincronização e análise dos dados reais.
+              </span>
+            </div>
+          </div>
+        </section>
+      </div>
     </EcommerceLayout>
   );
 }
-
-function SummaryCard({ label, value, accent }: { label: string; value: number; accent: string }) {
-  return (
-    <div className="relative overflow-hidden rounded-xl border border-slate-200 bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <span
-        className="absolute left-0 top-0 h-full w-[2px]"
-        style={{ backgroundColor: accent }}
-      />
-      <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-        {label}
-      </p>
-      <p
-        className="mt-2 text-2xl font-semibold leading-none tabular-nums"
-        style={{ color: accent }}
-      >
-        {pad2(value)}
-      </p>
-    </div>
-  );
-}
-
-function deriveProblemBadges(p: Stuck): string[] {
-  const out: string[] = [];
-  const v = Number(p.visits ?? 0);
-  const s = Number(p.sales_count ?? 0);
-  const stock = Number(p.total_stock ?? 0);
-  const inv = Number(p.ads_investment ?? 0);
-  const rev = Number(p.ads_revenue ?? 0);
-  const days = Number(p.days_without_sale ?? 0);
-
-  if (v === 0) out.push("Sem visitas");
-  else if (s === 0) out.push("Visitas sem venda");
-  if (v > 30 && s > 0 && s / v < 0.02) out.push("Baixa conversão");
-  if (days >= 30) out.push("Estoque parado");
-  if (stock > 200) out.push("Excesso de estoque");
-  if (inv > 0 && rev === 0) out.push("Ads gastando sem venda");
-
-  return Array.from(new Set(out));
-}
-
-function diagnoseSignal(p: Stuck): string {
-  const v = Number(p.visits ?? 0);
-  const s = Number(p.sales_count ?? 0);
-  const days = Number(p.days_without_sale ?? 0);
-  const inv = Number(p.ads_investment ?? 0);
-  const rev = Number(p.ads_revenue ?? 0);
-  if (inv > 0 && rev === 0) return "Investimento em Ads sem retorno de vendas.";
-  if (v === 0) return "Produto sem visitas no período analisado.";
-  if (v > 0 && s === 0) return "Produto recebendo visitas, mas sem conversão em vendas.";
-  if (v > 30 && s > 0 && s / v < 0.02) return "Tráfego presente, porém com conversão abaixo do esperado.";
-  if (days >= 30) return `Estoque parado há ${days} dias sem nova venda.`;
-  return formatStatus(p.problem_label) || "Sinal de baixa performance detectado.";
-}
-
-function StuckCard({
-  p,
-  onOpenDiagnostic,
-  onCreateTask,
-}: {
-  p: Stuck;
-  onOpenDiagnostic: () => void;
-  onCreateTask: () => void;
-}) {
-  const prio = (p.priority_level ?? "low").toLowerCase();
-  const tone = classifyTone(p);
-  const t = toneMap[tone];
-  const badges = deriveProblemBadges(p);
-  const statusBadges = [p.metric_status, p.stock_status, p.ads_status]
-    .filter(Boolean)
-    .map((s) => formatStatus(s));
-
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={onOpenDiagnostic}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          onOpenDiagnostic();
-        }
-      }}
-      className={`group flex cursor-pointer overflow-hidden rounded-xl border ${t.surface} shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_22px_-18px_rgba(15,23,42,0.16)] transition-all duration-200 hover:-translate-y-[1px] hover:shadow-[0_2px_4px_rgba(15,23,42,0.06),0_18px_36px_-20px_rgba(15,23,42,0.22)] hover:border-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-300`}
-    >
-      <div className={`w-[3px] shrink-0 ${t.bar}`} />
-      <div className="flex-1 px-5 py-4">
-        {/* Header */}
-        <div className="mb-3 min-w-0 space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <h4 className="text-[15px] font-semibold tracking-tight text-slate-900">
-              {p.product_name ?? "Produto sem nome"}
-            </h4>
-            <span
-              className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-semibold uppercase tracking-[0.08em] ${t.badge}`}
-            >
-              {PRIORITY_LABEL[prio] ?? prio}
-            </span>
-          </div>
-          <p className="flex flex-wrap items-center gap-x-1.5 text-[12px] text-slate-500">
-            {p.sku && <span className="tabular-nums">SKU {p.sku}</span>}
-            {p.sku && (p.account_name || p.marketplace) && <span className="text-slate-300">·</span>}
-            {p.account_name && <span className="text-slate-600">{p.account_name}</span>}
-            {p.marketplace && <span className="text-slate-400">· {formatMarketplace(p.marketplace)}</span>}
-          </p>
-          {(p.problem_label || badges.length > 0 || statusBadges.length > 0) && (
-            <div className="flex flex-wrap items-center gap-1 pt-0.5">
-              {p.problem_label && (
-                <span className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-semibold uppercase tracking-[0.08em] ${t.badge}`}>
-                  {formatStatus(p.problem_label)}
-                </span>
-              )}
-              {badges.map((b) => (
-                <span key={b} className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-medium uppercase tracking-[0.06em] ${t.chip}`}>
-                  {b}
-                </span>
-              ))}
-              {statusBadges.map((b) => (
-                <span key={`s-${b}`} className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-medium uppercase tracking-[0.06em] ${t.chip}`}>
-                  {b}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Metrics */}
-        <div className={`mb-3 grid grid-cols-2 gap-x-5 gap-y-2.5 rounded-lg border px-4 py-2.5 sm:grid-cols-4 lg:grid-cols-8 ${t.metricPanel}`}>
-          <Metric label="Visitas" value={fmtInt(p.visits)} />
-          <Metric label="Vendas" value={fmtInt(p.sales_count)} />
-          <Metric label="Estoque" value={fmtInt(p.total_stock)} />
-          <Metric label="Dias s/ venda" value={fmtInt(p.days_without_sale)} />
-          <Metric label="Inv. Ads" value={fmtBRL(p.ads_investment)} />
-          <Metric label="Rec. Ads" value={fmtBRL(p.ads_revenue)} />
-          <Metric label="ROAS" value={fmtNum(p.roas, 2)} className={t.accentText} />
-          <Metric label="Marketplace" value={formatMarketplace(p.marketplace)} />
-        </div>
-
-        {/* Diagnóstico + Próxima ação */}
-        <div className="grid gap-2.5 md:grid-cols-5">
-          <div className={`md:col-span-2 rounded-lg border ${t.aiSurface} px-3.5 py-2.5`}>
-            <p className={`text-[9.5px] font-semibold uppercase tracking-[0.14em] ${t.aiTitle}`}>
-              Sinal detectado
-            </p>
-            <p className="mt-1 text-[12.5px] leading-snug text-slate-700">
-              {diagnoseSignal(p)}
-            </p>
-          </div>
-
-          {(p.recommended_action || p.task_title || p.insight_title) && (
-            <div className={`md:col-span-3 flex items-start gap-2.5 rounded-lg border ${t.aiSurface} px-3.5 py-2.5`}>
-              <div className={`mt-0.5 shrink-0 rounded p-1 ${t.aiIcon}`}>
-                <Zap className="h-3 w-3" strokeWidth={2.25} />
-              </div>
-              <div className="min-w-0 space-y-0.5">
-                <p className={`text-[9.5px] font-semibold uppercase tracking-[0.14em] ${t.aiTitle}`}>
-                  Próxima ação sugerida
-                </p>
-                <p className="text-[12.5px] font-medium leading-snug text-slate-800">
-                  {p.task_title ?? p.recommended_action ?? p.insight_title}
-                </p>
-                {p.recommended_action && p.task_title && p.recommended_action !== p.task_title && (
-                  <p className="text-[11.5px] leading-snug text-slate-500">{p.recommended_action}</p>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Ações */}
-        <div className="mt-3 flex flex-wrap items-center justify-end gap-1.5 border-t border-slate-200/70 pt-2.5">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onCreateTask();
-            }}
-            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11.5px] font-medium text-slate-600 transition-colors hover:bg-white hover:text-slate-900 hover:ring-1 hover:ring-slate-200"
-          >
-            <ListPlus className="h-3.5 w-3.5" strokeWidth={2} />
-            Criar tarefa
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenDiagnostic();
-            }}
-            className="inline-flex items-center gap-1.5 rounded-md bg-slate-900 px-2.5 py-1 text-[11.5px] font-medium text-white transition-colors hover:bg-slate-800"
-          >
-            <FileSearch className="h-3.5 w-3.5" strokeWidth={2} />
-            Ver diagnóstico
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Metric({ label, value, className }: { label: string; value: string; className?: string }) {
-  return (
-    <div className="min-w-0 space-y-0.5">
-      <p className="text-[9px] font-semibold uppercase tracking-widest text-slate-400">{label}</p>
-      <p className={`truncate text-[13px] font-semibold tabular-nums text-slate-800 ${className ?? ""}`}>{value}</p>
-    </div>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 py-1.5 last:border-b-0">
-      <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{label}</span>
-      <span className="text-right text-[12.5px] font-medium tabular-nums text-slate-800">{value}</span>
-    </div>
-  );
-}
-
-function DiagnosticSheet({ product, onClose }: { product: Stuck | null; onClose: () => void }) {
-  const open = !!product;
-  const p = product;
-  const tone = p ? classifyTone(p) : "muted";
-  const t = toneMap[tone];
-  return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent className="w-full overflow-y-auto p-0 sm:max-w-md">
-        {p && (
-          <div className="flex h-full flex-col">
-            <div className={`border-b border-slate-200 px-6 pb-5 pt-6 ${t.surface}`}>
-              <SheetHeader className="space-y-2 text-left">
-                <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500">
-                  Diagnóstico do produto
-                </span>
-                <SheetTitle className="text-lg font-semibold tracking-tight text-slate-900">
-                  {p.product_name ?? "Produto sem nome"}
-                </SheetTitle>
-                <SheetDescription className="text-[12.5px] text-slate-600">
-                  {[p.sku && `SKU ${p.sku}`, p.account_name, formatMarketplace(p.marketplace)]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </SheetDescription>
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-semibold uppercase tracking-[0.08em] ${t.badge}`}>
-                    {PRIORITY_LABEL[(p.priority_level ?? "low").toLowerCase()] ?? p.priority_level}
-                  </span>
-                  {p.problem_label && (
-                    <span className={`inline-flex items-center rounded px-1.5 py-[2px] text-[9.5px] font-semibold uppercase tracking-[0.08em] ${t.chip}`}>
-                      {formatStatus(p.problem_label)}
-                    </span>
-                  )}
-                </div>
-              </SheetHeader>
-            </div>
-
-            <div className="flex-1 space-y-6 px-6 py-5">
-              <section>
-                <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                  Identificação
-                </h4>
-                <div className="rounded-lg border border-slate-200 bg-white px-3 py-1">
-                  <DetailRow label="Produto" value={p.product_name ?? "—"} />
-                  <DetailRow label="SKU" value={p.sku ?? "—"} />
-                  <DetailRow label="Conta" value={p.account_name ?? "—"} />
-                  <DetailRow label="Marketplace" value={formatMarketplace(p.marketplace)} />
-                  <DetailRow label="Problema" value={formatStatus(p.problem_label) || "—"} />
-                </div>
-              </section>
-
-              <section>
-                <h4 className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                  Métricas
-                </h4>
-                <div className="rounded-lg border border-slate-200 bg-white px-3 py-1">
-                  <DetailRow label="Visitas" value={fmtInt(p.visits)} />
-                  <DetailRow label="Vendas" value={fmtInt(p.sales_count)} />
-                  <DetailRow label="Conversão" value={
-                    Number(p.visits ?? 0) > 0
-                      ? `${fmtNum((Number(p.sales_count ?? 0) / Number(p.visits)) * 100, 2)}%`
-                      : "—"
-                  } />
-                  <DetailRow label="Estoque" value={fmtInt(p.total_stock)} />
-                  <DetailRow label="Dias s/ venda" value={fmtInt(p.days_without_sale)} />
-                  <DetailRow label="Inv. Ads" value={fmtBRL(p.ads_investment)} />
-                  <DetailRow label="Rec. Ads" value={fmtBRL(p.ads_revenue)} />
-                  <DetailRow label="ROAS" value={fmtNum(p.roas, 2)} />
-                </div>
-              </section>
-
-              <section className={`rounded-lg border px-4 py-3 ${t.aiSurface}`}>
-                <p className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${t.aiTitle}`}>
-                  Sinal detectado
-                </p>
-                <p className="mt-1 text-[13px] leading-relaxed text-slate-700">{diagnoseSignal(p)}</p>
-              </section>
-
-              {(p.task_title || p.recommended_action || p.insight_title) && (
-                <section className={`rounded-lg border px-4 py-3 ${t.aiSurface}`}>
-                  <div className="flex items-start gap-2.5">
-                    <div className={`mt-0.5 shrink-0 rounded p-1 ${t.aiIcon}`}>
-                      <Zap className="h-3.5 w-3.5" strokeWidth={2.25} />
-                    </div>
-                    <div className="min-w-0 space-y-1.5">
-                      <p className={`text-[10px] font-semibold uppercase tracking-[0.14em] ${t.aiTitle}`}>
-                        Ação recomendada
-                      </p>
-                      {p.task_title && (
-                        <p className="text-[13px] font-semibold leading-snug text-slate-900">{p.task_title}</p>
-                      )}
-                      {p.recommended_action && (
-                        <p className="text-[12.5px] leading-relaxed text-slate-700">{p.recommended_action}</p>
-                      )}
-                      {p.insight_title && (
-                        <p className="border-t border-slate-200 pt-2 text-[12px] italic leading-relaxed text-slate-500">
-                          {p.insight_title}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </section>
-              )}
-            </div>
-          </div>
-        )}
-      </SheetContent>
-    </Sheet>
-  );
-}
-
-function CreateTaskDialog({
-  product,
-  note,
-  setNote,
-  saved,
-  onConfirm,
-  onClose,
-}: {
-  product: Stuck | null;
-  note: string;
-  setNote: (v: string) => void;
-  saved: boolean;
-  onConfirm: () => void;
-  onClose: () => void;
-}) {
-  const open = !!product;
-  return (
-    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-base font-semibold tracking-tight">Criar tarefa</DialogTitle>
-          <DialogDescription className="text-[12.5px] text-slate-500">
-            Pré-preenchida com a ação recomendada pela IA. (visualização)
-          </DialogDescription>
-        </DialogHeader>
-        {product && (
-          <div className="space-y-3">
-            <div className="rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Produto</p>
-              <p className="mt-0.5 text-[13px] font-medium text-slate-900">{product.product_name ?? "—"}</p>
-              <p className="text-[11.5px] text-slate-500">
-                {[product.sku && `SKU ${product.sku}`, formatMarketplace(product.marketplace)].filter(Boolean).join(" · ")}
-              </p>
-            </div>
-            <div>
-              <label className="mb-1 block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
-                Descrição da tarefa
-              </label>
-              <Textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                rows={4}
-                disabled={saved}
-                className="text-[13px]"
-              />
-            </div>
-            {saved && (
-              <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-[12.5px] text-emerald-700">
-                <Check className="h-4 w-4" />
-                Tarefa preparada. Em breve será integrada ao módulo de Tarefas.
-              </div>
-            )}
-          </div>
-        )}
-        <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>
-            <X className="h-4 w-4" />
-            Fechar
-          </Button>
-          <Button onClick={onConfirm} disabled={saved || !note.trim()}>
-            <Check className="h-4 w-4" />
-            Confirmar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-

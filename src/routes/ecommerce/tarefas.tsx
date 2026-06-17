@@ -108,6 +108,8 @@ function TarefasOperadores() {
             prioridade, prazo e origem da recomendação.
           </p>
         </header>
+        <TarefasActions />
+
 
         {/* KPIs */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">

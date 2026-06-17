@@ -20,6 +20,7 @@ import {
   BrainCircuit,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { PrioridadesActions } from "@/components/ecommerce/ActionButtons";
 
 export const Route = createFileRoute("/ecommerce/prioridades")({
   component: CentralAcoes,
@@ -97,6 +98,8 @@ function CentralAcoes() {
             em prioridades claras para a equipe executar.
           </p>
         </header>
+        <PrioridadesActions />
+
 
         {/* KPIs */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">

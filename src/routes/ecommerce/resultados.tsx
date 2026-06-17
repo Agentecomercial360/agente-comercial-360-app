@@ -17,6 +17,7 @@ import {
   Eye,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { ResultadosActions } from "@/components/ecommerce/ActionButtons";
 
 export const Route = createFileRoute("/ecommerce/resultados")({
   component: ResultadosAcoes,
@@ -120,6 +121,8 @@ function ResultadosAcoes() {
             estoque, anúncios e desempenho dos produtos.
           </p>
         </header>
+        <ResultadosActions />
+
 
         {/* KPIs */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">

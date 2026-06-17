@@ -1,350 +1,313 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute } from "@tanstack/react-router";
 import {
   ListTodo,
-  CheckCircle2,
   Clock,
-  MoreVertical,
-  Calendar,
-  User,
   Activity,
+  CheckCircle2,
   AlertTriangle,
+  Flame,
+  UserPlus,
+  Search,
+  PlayCircle,
+  PauseCircle,
+  Eye,
+  Workflow,
+  Lightbulb,
+  Info,
+  Users,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
-import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/tarefas")({
-  component: TarefasEcommerce,
-  validateSearch: (s: Record<string, unknown>) => ({
-    status: s.status === "pending" ? ("pending" as const) : undefined,
-  }),
+  component: TarefasOperadores,
   head: () => ({
-    meta: [{ title: "Tarefas Operacionais | Agente Comercial 360" }],
+    meta: [{ title: "Tarefas dos Operadores | Agente Comercial 360" }],
   }),
 });
 
-type TaskRow = {
-  task_title?: string | null;
-  task_description?: string | null;
-  task_type?: string | null;
-  priority?: string | null;
-  status?: string | null;
-  status_label?: string | null;
-  responsible_name?: string | null;
-  responsible_email?: string | null;
-  due_date?: string | null;
-  expected_impact?: string | null;
-  result_summary?: string | null;
-  completed_at?: string | null;
-  product_name?: string | null;
-  sku?: string | null;
-  marketplace?: string | null;
-  account_name?: string | null;
-  recommended_action?: string | null;
-  is_overdue?: boolean | null;
-  priority_order?: number | null;
-};
+const kpis = [
+  { label: "Tarefas pendentes", icon: Clock, accent: "from-slate-600 to-slate-800" },
+  { label: "Em execução", icon: Activity, accent: "from-blue-700 to-blue-900" },
+  { label: "Concluídas", icon: CheckCircle2, accent: "from-emerald-600 to-emerald-800" },
+  { label: "Atrasadas", icon: AlertTriangle, accent: "from-rose-600 to-rose-800" },
+  { label: "Alta prioridade", icon: Flame, accent: "from-red-700 to-red-900" },
+  { label: "Aguardando responsável", icon: UserPlus, accent: "from-amber-600 to-orange-700" },
+];
 
-const PRIORITY_LABEL: Record<string, string> = {
-  critical: "Crítica",
-  high: "Alta",
-  medium: "Média",
-  low: "Baixa",
-};
+const cols = [
+  "Prioridade",
+  "Tarefa",
+  "Origem",
+  "Produto / SKU",
+  "Responsável",
+  "Prazo",
+  "Status",
+  "Resultado esperado",
+];
 
-const STATUS_LABEL: Record<string, string> = {
-  pending: "Pendente",
-  in_progress: "Em andamento",
-  completed: "Concluída",
-  cancelled: "Cancelada",
-  blocked: "Bloqueada",
-};
+const filtros = [
+  "Todas",
+  "Alta prioridade",
+  "Pendentes",
+  "Em execução",
+  "Concluídas",
+  "Atrasadas",
+];
 
-function priorityStyle(p?: string | null) {
-  switch ((p ?? "").toLowerCase()) {
-    case "critical":
-      return "text-rose-700 font-bold";
-    case "high":
-      return "text-rose-600 font-bold";
-    case "medium":
-      return "text-amber-600 font-bold";
-    case "low":
-      return "text-blue-600 font-bold";
-    default:
-      return "text-slate-600";
-  }
-}
+const fluxo = [
+  {
+    step: "1",
+    title: "Sistema identifica uma prioridade",
+    desc: "A leitura automática dos dados aponta um risco, oportunidade ou ação necessária.",
+    icon: Search,
+  },
+  {
+    step: "2",
+    title: "A prioridade vira uma tarefa",
+    desc: "A recomendação é transformada em uma tarefa clara, com motivo e impacto esperado.",
+    icon: ListTodo,
+  },
+  {
+    step: "3",
+    title: "Um operador executa a ação",
+    desc: "A tarefa é atribuída a um responsável, com prazo e prioridade definidos.",
+    icon: PlayCircle,
+  },
+  {
+    step: "4",
+    title: "O resultado é acompanhado",
+    desc: "O sistema registra a conclusão e mede o impacto da ação na operação.",
+    icon: Eye,
+  },
+];
 
-function statusStyle(s?: string | null) {
-  switch ((s ?? "").toLowerCase()) {
-    case "pending":
-      return "bg-slate-100 text-slate-600";
-    case "in_progress":
-      return "bg-blue-100 text-blue-700";
-    case "completed":
-      return "bg-emerald-100 text-emerald-700";
-    case "cancelled":
-      return "bg-slate-100 text-slate-500";
-    case "blocked":
-      return "bg-rose-100 text-rose-700";
-    default:
-      return "bg-slate-100 text-slate-600";
-  }
-}
+const statusList = [
+  { label: "Pendente", desc: "Ainda não iniciada.", dot: "bg-slate-500", ring: "border-slate-200 bg-slate-50/60", badge: "text-slate-700", icon: Clock },
+  { label: "Em execução", desc: "Operador trabalhando na ação.", dot: "bg-blue-600", ring: "border-blue-200 bg-blue-50/60", badge: "text-blue-700", icon: Activity },
+  { label: "Concluída", desc: "Ação finalizada pela equipe.", dot: "bg-emerald-600", ring: "border-emerald-200 bg-emerald-50/60", badge: "text-emerald-700", icon: CheckCircle2 },
+  { label: "Atrasada", desc: "Prazo vencido sem conclusão.", dot: "bg-rose-600", ring: "border-rose-200 bg-rose-50/60", badge: "text-rose-700", icon: AlertTriangle },
+  { label: "Em análise", desc: "Aguardando resultado ou validação.", dot: "bg-amber-500", ring: "border-amber-200 bg-amber-50/60", badge: "text-amber-700", icon: PauseCircle },
+];
 
-function fmtDate(d?: string | null) {
-  if (!d) return "—";
-  try {
-    return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" }).format(new Date(d));
-  } catch {
-    return String(d);
-  }
-}
-
-function TarefasEcommerce() {
-  const navigate = useNavigate();
-  const { status: statusFilter } = Route.useSearch();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [tasks, setTasks] = useState<TaskRow[]>([]);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const { data: ctx, error: ctxErr } = await supabase
-          .from("vw_user_access_context")
-          .select("company_id, has_ecommerce_access")
-          .maybeSingle();
-
-        if (ctxErr) throw ctxErr;
-        if (!ctx) {
-          navigate({ to: "/ecommerce/login" });
-          return;
-        }
-        if (!ctx.has_ecommerce_access) {
-          await supabase.auth.signOut();
-          navigate({ to: "/ecommerce/login" });
-          return;
-        }
-
-        const { data, error: tErr } = await supabase
-          .from("vw_ecommerce_tasks_priority")
-          .select("*")
-          .eq("company_id", ctx.company_id)
-          .order("priority_order", { ascending: true })
-          .order("due_date", { ascending: true });
-
-        if (tErr) throw tErr;
-        if (cancelled) return;
-        setTasks((data as TaskRow[]) ?? []);
-      } catch (e: any) {
-        if (cancelled) return;
-        setError(e?.message ?? "Erro ao carregar tarefas.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [navigate]);
-
-  const counts = useMemo(() => {
-    let pending = 0;
-    let inProgress = 0;
-    let completed = 0;
-    for (const t of tasks) {
-      const s = (t.status ?? "").toLowerCase();
-      if (s === "pending") pending++;
-      else if (s === "in_progress") inProgress++;
-      else if (s === "completed") completed++;
-    }
-    return { pending, inProgress, completed };
-  }, [tasks]);
-
-  const filteredTasks = useMemo(() => {
-    if (statusFilter === "pending") {
-      return tasks.filter((t) => (t.status ?? "").toLowerCase() === "pending");
-    }
-    return tasks;
-  }, [tasks, statusFilter]);
-
+function TarefasOperadores() {
   return (
     <EcommerceLayout>
-      <div className="mx-auto max-w-7xl space-y-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Tarefas Operacionais</h1>
-            <p className="text-slate-500">Gestão de atividades geradas pela inteligência e pela equipe.</p>
+      <div className="space-y-6">
+        {/* Header */}
+        <header className="space-y-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+            <Users className="h-3.5 w-3.5" />
+            Execução da Operação
           </div>
-          <button className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-slate-800 transition-all">
-            <ListTodo className="h-4 w-4" />
-            Nova tarefa
-          </button>
-        </div>
+          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+            Tarefas dos Operadores
+          </h1>
+          <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
+            Acompanhe as ações que precisam ser executadas pela equipe, com
+            prioridade, prazo e origem da recomendação.
+          </p>
+        </header>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-4 shadow-sm">
-            <div className="rounded-xl bg-slate-100 p-2.5">
-              <Clock className="h-5 w-5 text-slate-600" />
-            </div>
+        {/* KPIs */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          {kpis.map((k) => {
+            const Icon = k.icon;
+            return (
+              <div
+                key={k.label}
+                className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]"
+              >
+                <div
+                  className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${k.accent} opacity-10`}
+                />
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1.5">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      {k.label}
+                    </div>
+                    <div className="font-display text-3xl font-bold text-foreground/40">
+                      —
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      Será calculado após a geração automática das tarefas.
+                    </div>
+                  </div>
+                  <div
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${k.accent} text-white shadow-md`}
+                  >
+                    <Icon className="h-5 w-5" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </section>
+
+        {/* Fila de tarefas */}
+        <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Pendentes</p>
-              <p className="text-xl font-bold text-slate-900">{counts.pending}</p>
+              <h2 className="font-display text-lg font-bold text-foreground">
+                Fila de tarefas
+              </h2>
+              <p className="text-xs text-muted-foreground max-w-2xl">
+                Lista operacional das ações em aberto, organizadas por
+                prioridade e prazo.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {filtros.map((f, i) => (
+                <button
+                  key={f}
+                  type="button"
+                  className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wider transition-colors ${
+                    i === 0
+                      ? "border-blue-200 bg-blue-50 text-blue-700"
+                      : "border-border bg-muted/40 text-muted-foreground hover:bg-muted/60"
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
             </div>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-4 shadow-sm">
-            <div className="rounded-xl bg-blue-50 p-2.5 text-blue-600">
-              <Activity className="h-5 w-5" />
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
+                  {cols.map((c) => (
+                    <th
+                      key={c}
+                      className="px-5 py-3 text-left font-semibold whitespace-nowrap"
+                    >
+                      {c}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td colSpan={cols.length} className="px-5 py-16 text-center">
+                    <div className="mx-auto max-w-md space-y-3">
+                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+                        <ListTodo className="h-6 w-6" />
+                      </div>
+                      <div className="font-display text-base font-semibold text-foreground">
+                        Nenhuma tarefa criada ainda
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        As tarefas serão geradas a partir da Central de Ações
+                        após a leitura dos dados reais da operação.
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Fluxo de execução */}
+        <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div className="mb-4 flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 text-white">
+              <Workflow className="h-3.5 w-3.5" />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-blue-500">Em curso</p>
-              <p className="text-xl font-bold text-slate-900">{counts.inProgress}</p>
+              <h2 className="font-display text-lg font-bold text-foreground">
+                Fluxo de execução
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Da identificação do problema até o resultado entregue pela equipe.
+              </p>
             </div>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 flex items-center gap-4 shadow-sm">
-            <div className="rounded-xl bg-emerald-50 p-2.5 text-emerald-600">
-              <CheckCircle2 className="h-5 w-5" />
-            </div>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-500">Concluídas</p>
-              <p className="text-xl font-bold text-slate-900">{counts.completed}</p>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            {fluxo.map((f) => {
+              const Icon = f.icon;
+              return (
+                <div
+                  key={f.step}
+                  className="relative rounded-xl border border-border/60 bg-muted/20 p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-700 to-blue-900 text-white shadow-sm">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
+                        Etapa {f.step}
+                      </div>
+                      <div className="text-sm font-bold text-foreground">
+                        {f.title}
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-snug">
+                        {f.desc}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
-        {statusFilter === "pending" && (
-          <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/60 px-4 py-2.5 text-xs text-slate-600">
+        </section>
+
+        {/* Status das tarefas */}
+        <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div className="mb-4">
+            <h2 className="font-display text-lg font-bold text-foreground">
+              Status das tarefas
+            </h2>
+            <p className="text-xs text-muted-foreground">
+              Significado de cada estado que uma tarefa pode assumir na operação.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-3">
+            {statusList.map((s) => {
+              const Icon = s.icon;
+              return (
+                <div key={s.label} className={`rounded-xl border p-4 ${s.ring}`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={`h-2 w-2 rounded-full ${s.dot}`} />
+                    <span
+                      className={`text-xs font-bold uppercase tracking-wider ${s.badge}`}
+                    >
+                      {s.label}
+                    </span>
+                    <Icon className={`ml-auto h-3.5 w-3.5 ${s.badge}`} />
+                  </div>
+                  <p className="text-sm text-foreground/80 leading-snug">
+                    {s.desc}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Como ajuda */}
+        <section className="rounded-2xl border border-border/60 bg-gradient-to-br from-blue-50/60 to-transparent p-5 shadow-[var(--shadow-soft)]">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-700 text-white">
+              <Lightbulb className="h-3.5 w-3.5" />
+            </div>
+            <h3 className="font-display text-sm font-bold text-foreground">
+              Como essa tela ajuda a equipe
+            </h3>
+          </div>
+          <p className="text-sm text-foreground/80 leading-relaxed max-w-3xl">
+            Essa tela organiza a rotina dos operadores. Em vez de cada pessoa
+            decidir o que fazer, o sistema mostra as tarefas prioritárias, o
+            motivo da ação e o impacto esperado na operação.
+          </p>
+          <div className="mt-4 flex items-start gap-2 rounded-lg border border-blue-100 bg-white/60 p-3 text-xs text-muted-foreground">
+            <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-blue-700" />
             <span>
-              Filtro aplicado:{" "}
-              <strong className="font-semibold text-slate-900">Tarefas pendentes</strong>
-              <span className="ml-2 text-slate-400">
-                ({filteredTasks.length} de {tasks.length})
-              </span>
+              Tela preparada. Nenhuma tarefa fictícia é exibida até a primeira
+              sincronização e geração automática a partir da Central de Ações.
             </span>
-            <button
-              onClick={() => navigate({ to: "/ecommerce/tarefas", search: {} })}
-              className="font-medium text-slate-500 underline-offset-2 hover:text-slate-900 hover:underline"
-            >
-              Limpar filtro
-            </button>
           </div>
-        )}
-
-
-        {loading && (
-          <div className="rounded-2xl border border-slate-200 bg-card p-6 text-sm text-slate-500">
-            Carregando tarefas...
-          </div>
-        )}
-
-        {!loading && error && (
-          <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50/40 p-6 text-sm text-rose-700">
-            <AlertTriangle className="mt-0.5 h-4 w-4" />
-            Não foi possível carregar as tarefas agora. Tente novamente em instantes.
-          </div>
-        )}
-
-        {!loading && !error && tasks.length === 0 && (
-          <div className="rounded-2xl border border-slate-200 bg-card p-6 text-sm text-slate-500">
-            Nenhuma tarefa encontrada para esta empresa.
-          </div>
-        )}
-
-        {!loading && !error && tasks.length > 0 && (
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-slate-50/50 border-b border-slate-200">
-                  <tr>
-                    <th className="px-6 py-4 font-semibold text-slate-900">Tarefa</th>
-                    <th className="px-6 py-4 font-semibold text-slate-900">Contexto</th>
-                    <th className="px-6 py-4 font-semibold text-slate-900">Prioridade</th>
-                    <th className="px-6 py-4 font-semibold text-slate-900">Responsável</th>
-                    <th className="px-6 py-4 font-semibold text-slate-900">Prazo</th>
-                    <th className="px-6 py-4 font-semibold text-slate-900">Status</th>
-                    <th className="px-6 py-4 font-semibold text-slate-900">Resultado Esperado</th>
-                    <th className="px-6 py-4 font-semibold text-slate-900 text-right">Ações</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {filteredTasks.map((t, i) => {
-                    const prioKey = (t.priority ?? "").toLowerCase();
-                    const statusKey = (t.status ?? "").toLowerCase();
-                    const prioLabel = PRIORITY_LABEL[prioKey] ?? t.priority ?? "—";
-                    const statusLabel = t.status_label ?? STATUS_LABEL[statusKey] ?? t.status ?? "—";
-                    return (
-                      <tr key={i} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col">
-                            <span className="font-bold text-slate-900">{t.task_title ?? "Sem título"}</span>
-                            {t.recommended_action && (
-                              <span className="mt-0.5 text-[11px] text-slate-500">{t.recommended_action}</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex flex-col">
-                            <span className="text-xs font-medium text-slate-700">{t.product_name ?? "—"}</span>
-                            <span className="text-[10px] uppercase tracking-wider text-slate-500">
-                              {t.account_name ?? "—"}
-                              {t.marketplace ? ` • ${t.marketplace}` : ""}
-                            </span>
-                            {t.sku && (
-                              <span className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-slate-400">
-                                {t.sku}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={`text-xs ${priorityStyle(t.priority)}`}>{prioLabel}</span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <div className="h-6 w-6 rounded-full bg-slate-100 flex items-center justify-center">
-                              <User className="h-3 w-3 text-slate-500" />
-                            </div>
-                            <span className="text-xs font-medium text-slate-700">{t.responsible_name ?? "—"}</span>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className={`flex items-center gap-1.5 ${t.is_overdue ? "text-rose-600" : "text-slate-500"}`}>
-                            <Calendar className="h-3.5 w-3.5" />
-                            <span className="text-xs font-medium">{fmtDate(t.due_date)}</span>
-                            {t.is_overdue && (
-                              <span className="ml-1 rounded-full bg-rose-500/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-rose-600">
-                                Atrasada
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${statusStyle(t.status)}`}
-                          >
-                            {statusLabel}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className="text-xs font-bold text-emerald-600">{t.expected_impact ?? "—"}</span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <button className="rounded-lg border border-slate-200 p-1.5 hover:bg-slate-50 transition-colors">
-                            <MoreVertical className="h-4 w-4 text-slate-400" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+        </section>
       </div>
     </EcommerceLayout>
   );

@@ -20,6 +20,7 @@ import {
   BrainCircuit,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { PrioridadesActions } from "@/components/ecommerce/ActionButtons";
 
 export const Route = createFileRoute("/ecommerce/prioridades")({
   component: CentralAcoes,

@@ -17,6 +17,7 @@ import {
   Eye,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { ResultadosActions } from "@/components/ecommerce/ActionButtons";
 
 export const Route = createFileRoute("/ecommerce/resultados")({
   component: ResultadosAcoes,

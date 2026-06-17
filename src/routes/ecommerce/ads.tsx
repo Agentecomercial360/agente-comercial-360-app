@@ -15,6 +15,7 @@ import {
   Megaphone,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { AdsActions } from "@/components/ecommerce/ActionButtons";
 
 export const Route = createFileRoute("/ecommerce/ads")({
   component: AnunciosAds,

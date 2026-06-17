@@ -16,6 +16,8 @@ import {
   Calculator,
   Info,
   Target,
+  Sparkles,
+  BrainCircuit,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 
@@ -27,11 +29,11 @@ export const Route = createFileRoute("/ecommerce/prioridades")({
 });
 
 const kpis = [
-  { label: "Ações de alta prioridade", icon: Flame, accent: "from-rose-600 to-rose-800" },
-  { label: "Ações de média prioridade", icon: CircleDot, accent: "from-amber-600 to-orange-700" },
-  { label: "Ações de baixa prioridade", icon: ListChecks, accent: "from-slate-600 to-slate-800" },
-  { label: "Ações vencidas", icon: AlertTriangle, accent: "from-red-700 to-red-900" },
-  { label: "Ações concluídas na semana", icon: CheckCircle2, accent: "from-emerald-600 to-emerald-800" },
+  { label: "Resolver agora", icon: Flame, accent: "from-rose-600 to-rose-800" },
+  { label: "Acompanhar hoje", icon: CircleDot, accent: "from-amber-600 to-orange-700" },
+  { label: "Melhorias planejadas", icon: ListChecks, accent: "from-slate-600 to-slate-800" },
+  { label: "Atrasadas", icon: AlertTriangle, accent: "from-red-700 to-red-900" },
+  { label: "Concluídas na semana", icon: CheckCircle2, accent: "from-emerald-600 to-emerald-800" },
   { label: "Impacto estimado", icon: TrendingUp, accent: "from-blue-700 to-blue-900" },
 ];
 
@@ -49,18 +51,18 @@ const cols = [
 const origens = ["Estoque", "Curva ABC", "Ads", "Produto Problema", "Oportunidade"];
 
 const tipos = [
-  { label: "Comprar", desc: "Sugerir reposição quando houver risco de ruptura.", icon: ShoppingCart, accent: "from-blue-700 to-blue-900" },
-  { label: "Corrigir anúncio", desc: "Indicar melhorias em título, foto, descrição ou campos obrigatórios.", icon: PenSquare, accent: "from-sky-600 to-sky-800" },
-  { label: "Revisar preço", desc: "Apontar produtos fora da faixa ideal de margem ou competitividade.", icon: Tag, accent: "from-violet-600 to-violet-800" },
-  { label: "Escalar Ads", desc: "Identificar campanhas com bom retorno e potencial de aumento de orçamento.", icon: Rocket, accent: "from-emerald-600 to-emerald-800" },
+  { label: "Comprar antes de romper", desc: "Sugerir reposição quando houver risco de falta de estoque.", icon: ShoppingCart, accent: "from-blue-700 to-blue-900" },
+  { label: "Corrigir anúncio", desc: "Indicar melhorias em título, fotos, descrição ou campos obrigatórios.", icon: PenSquare, accent: "from-sky-600 to-sky-800" },
+  { label: "Revisar preço", desc: "Apontar produtos fora da margem ideal ou com baixa competitividade.", icon: Tag, accent: "from-violet-600 to-violet-800" },
+  { label: "Escalar Ads", desc: "Identificar campanhas com bom retorno e potencial de crescimento.", icon: Rocket, accent: "from-emerald-600 to-emerald-800" },
   { label: "Reduzir Ads", desc: "Apontar campanhas com baixo retorno ou custo elevado.", icon: ArrowDownRight, accent: "from-rose-600 to-rose-800" },
   { label: "Liquidar estoque", desc: "Identificar produtos parados ou com baixo giro.", icon: Tag, accent: "from-amber-600 to-orange-700" },
 ];
 
 const priorizacao = [
-  { label: "Alta prioridade", desc: "Impacta venda, ruptura, margem ou campanha crítica.", dot: "bg-rose-600", ring: "border-rose-200 bg-rose-50/60", badge: "text-rose-700" },
-  { label: "Média prioridade", desc: "Melhorias importantes, mas sem risco imediato.", dot: "bg-amber-500", ring: "border-amber-200 bg-amber-50/60", badge: "text-amber-700" },
-  { label: "Baixa prioridade", desc: "Ajustes operacionais e melhorias de cadastro.", dot: "bg-slate-500", ring: "border-slate-200 bg-slate-50/60", badge: "text-slate-700" },
+  { label: "Alta prioridade", desc: "Ações que impactam venda, ruptura, margem ou campanhas críticas.", dot: "bg-rose-600", ring: "border-rose-200 bg-rose-50/60", badge: "text-rose-700" },
+  { label: "Média prioridade", desc: "Ações importantes para melhorar desempenho, mas sem risco imediato.", dot: "bg-amber-500", ring: "border-amber-200 bg-amber-50/60", badge: "text-amber-700" },
+  { label: "Baixa prioridade", desc: "Ajustes operacionais, cadastro e melhorias preventivas.", dot: "bg-slate-500", ring: "border-slate-200 bg-slate-50/60", badge: "text-slate-700" },
 ];
 
 const regras = [
@@ -91,8 +93,8 @@ function CentralAcoes() {
             Central de Ações
           </h1>
           <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
-            Priorize o que precisa ser feito na operação com base em dados de
-            vendas, estoque, anúncios e desempenho dos produtos.
+            O sistema transforma dados de vendas, estoque, anúncios e produtos
+            em prioridades claras para a equipe executar.
           </p>
         </header>
 
@@ -117,8 +119,7 @@ function CentralAcoes() {
                       —
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Será calculado após a sincronização dos dados e geração
-                      automática das prioridades.
+                      Será calculado após a leitura dos dados reais da operação.
                     </div>
                   </div>
                   <div
@@ -132,16 +133,44 @@ function CentralAcoes() {
           })}
         </section>
 
-        {/* Fila de prioridades */}
+        {/* Resumo da IA Operacional */}
+        <section className="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/80 via-white to-white p-5 shadow-[var(--shadow-soft)]">
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-blue-500/10 blur-2xl" />
+          <div className="relative flex items-start gap-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-700 to-blue-900 text-white shadow-md">
+              <BrainCircuit className="h-5 w-5" />
+            </div>
+            <div className="flex-1 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="font-display text-lg font-bold text-foreground">
+                  Resumo da IA Operacional
+                </h2>
+                <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-white/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700">
+                  <Sparkles className="h-3 w-3" />
+                  Inteligência
+                </span>
+              </div>
+              <p className="text-sm text-foreground/80 leading-relaxed max-w-3xl">
+                Após a sincronização dos dados, esta área apresentará uma
+                leitura objetiva da semana: quais produtos exigem atenção,
+                quais ações devem ser feitas primeiro e quais oportunidades
+                podem gerar impacto em vendas, margem ou estoque.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Fila de execução */}
         <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
             <div>
               <h2 className="font-display text-lg font-bold text-foreground">
-                Fila de prioridades
+                Fila de execução da semana
               </h2>
-              <p className="text-xs text-muted-foreground">
-                Tarefas geradas automaticamente a partir das análises do
-                sistema.
+              <p className="text-xs text-muted-foreground max-w-2xl">
+                A lista será gerada automaticamente para orientar os
+                operadores sobre o que fazer, por que fazer e qual prioridade
+                seguir.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
@@ -177,10 +206,10 @@ function CentralAcoes() {
                         <ListChecks className="h-6 w-6" />
                       </div>
                       <div className="font-display text-base font-semibold text-foreground">
-                        Nenhuma prioridade gerada
+                        Nenhuma ação gerada ainda
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        As prioridades serão geradas automaticamente após a
+                        As prioridades serão criadas automaticamente após a
                         leitura dos dados reais da operação.
                       </p>
                     </div>
@@ -195,10 +224,11 @@ function CentralAcoes() {
         <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
           <div className="mb-4">
             <h2 className="font-display text-lg font-bold text-foreground">
-              Tipos de ações que o sistema poderá gerar
+              Ações que o sistema poderá recomendar
             </h2>
             <p className="text-xs text-muted-foreground">
-              Categorias de tarefas que serão sugeridas automaticamente.
+              Categorias de tarefas que serão sugeridas automaticamente para
+              a equipe executar.
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -207,7 +237,7 @@ function CentralAcoes() {
               return (
                 <div
                   key={t.label}
-                  className="rounded-xl border border-border/60 bg-muted/20 p-4"
+                  className="rounded-xl border border-border/60 bg-muted/20 p-4 transition-colors hover:bg-muted/30"
                 >
                   <div className="flex items-start gap-3">
                     <div
@@ -292,10 +322,9 @@ function CentralAcoes() {
               </h3>
             </div>
             <p className="text-sm text-foreground/80 leading-relaxed">
-              O objetivo da Central de Ações é transformar análises em tarefas
-              claras para os operadores. Em vez de cada pessoa decidir pelo
-              achismo, o sistema indica o que fazer, por que fazer e qual
-              prioridade seguir.
+              A Central de Ações evita decisões baseadas em achismo. O sistema
+              organiza os dados, identifica o que precisa de atenção e
+              transforma isso em tarefas claras para a equipe executar.
             </p>
             <div className="mt-4 flex items-start gap-2 rounded-lg border border-blue-100 bg-white/60 p-3 text-xs text-muted-foreground">
               <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-blue-700" />

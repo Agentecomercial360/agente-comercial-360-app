@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PieChart, TrendingUp, Layers, Target, Info } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { CurvaABCActions } from "@/components/ecommerce/ActionButtons";
 
 export const Route = createFileRoute("/ecommerce/curva-abc")({
   component: CurvaABC,

@@ -17,6 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { TarefasActions } from "@/components/ecommerce/ActionButtons";
 
 export const Route = createFileRoute("/ecommerce/tarefas")({
   component: TarefasOperadores,

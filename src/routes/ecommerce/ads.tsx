@@ -108,6 +108,8 @@ function AnunciosAds() {
             nas campanhas.
           </p>
         </header>
+        <AdsActions />
+
 
         {/* KPIs */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">

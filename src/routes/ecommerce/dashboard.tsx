@@ -39,7 +39,7 @@ const kpis = [
   { label: "Ticket médio", icon: Receipt, accent: "from-indigo-600 to-indigo-800" },
   { label: "Margem estimada", icon: Percent, accent: "from-violet-600 to-violet-800" },
   { label: "Crescimento mensal", icon: TrendingUp, accent: "from-sky-600 to-sky-800" },
-  { label: "Produtos em atenção", icon: AlertTriangle, accent: "from-amber-600 to-orange-700" },
+  { label: "Produtos em alerta", icon: AlertTriangle, accent: "from-amber-600 to-orange-700" },
   { label: "Risco de ruptura", icon: ShieldAlert, accent: "from-rose-700 to-red-900" },
   { label: "Ações prioritárias", icon: Flame, accent: "from-red-700 to-red-900" },
 ];

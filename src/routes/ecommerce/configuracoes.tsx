@@ -295,7 +295,12 @@ function useAccounts() {
           .eq("company_id", ctx.company_id)
           .order("created_at", { ascending: true });
         if (err) throw err;
-        if (!cancelled) setRows((data as AccountRow[]) ?? []);
+        // Filtro visual: apresentação focada em Mercado Livre (Shopee oculto temporariamente)
+        const filtered = ((data as AccountRow[]) ?? []).filter((r) => {
+          const key = (r.marketplace ?? "").toLowerCase().replace(/[\s-]/g, "_");
+          return key === "mercado_livre" || key === "mercadolivre" || key === "ml";
+        });
+        if (!cancelled) setRows(filtered);
       } catch (e: any) {
         if (!cancelled) setError(e?.message ?? "Erro ao carregar contas.");
       } finally {

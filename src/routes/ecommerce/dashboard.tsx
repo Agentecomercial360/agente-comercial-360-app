@@ -144,8 +144,7 @@ function VisaoGeral() {
                       —
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Será calculado após sincronização dos dados reais da
-                      operação.
+                      Será monitorado após a sincronização dos dados reais.
                     </div>
                   </div>
                   <div

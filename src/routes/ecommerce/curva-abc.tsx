@@ -6,7 +6,7 @@ import { CurvaABCActions } from "@/components/ecommerce/ActionButtons";
 export const Route = createFileRoute("/ecommerce/curva-abc")({
   component: CurvaABC,
   head: () => ({
-    meta: [{ title: "Curva ABC e Pareto | Agente Comercial 360" }],
+    meta: [{ title: "Classificação ABC de Produtos | Agente Comercial 360" }],
   }),
 });
 

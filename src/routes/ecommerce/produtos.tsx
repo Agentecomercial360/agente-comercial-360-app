@@ -10,6 +10,7 @@ import {
   Loader2,
   Store,
   Info,
+  RefreshCw,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";

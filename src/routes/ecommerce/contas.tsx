@@ -59,18 +59,30 @@ function isMercadoLivre(value: string | null | undefined): boolean {
   return k === "mercado_livre" || k === "mercadolivre" || k === "ml";
 }
 
+const CONNECTED_VALUES = new Set([
+  "connected",
+  "conectada",
+  "conectado",
+  "active",
+  "ativa",
+  "ativo",
+  "authorized",
+  "autorizada",
+  "autorizado",
+]);
+
 function isConnected(account: AccountRow, integration?: IntegrationRow): boolean {
   const a = (account.auth_status ?? "").toLowerCase();
   const i = (integration?.integration_status ?? "").toLowerCase();
-  return (
-    a === "connected" ||
-    a === "conectada" ||
-    a === "ativa" ||
-    a === "active" ||
-    i === "connected" ||
-    i === "active" ||
-    i === "ativa"
-  );
+  if (CONNECTED_VALUES.has(a) || CONNECTED_VALUES.has(i)) return true;
+  // Fallback: linked integration with a successful sync record
+  if (integration && (integration.last_sync_at || integration.external_user_id)) {
+    return true;
+  }
+  if (account.is_active && (account.ml_user_id || account.last_sync_at)) {
+    return true;
+  }
+  return false;
 }
 
 function formatDateTime(iso: string | null): string {

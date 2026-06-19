@@ -151,11 +151,28 @@ function ContasML() {
 
   const integrationByAccount = useMemo(() => {
     const m = new Map<string, IntegrationRow>();
-    for (const i of integrations) {
-      if (i.account_id && !m.has(i.account_id)) m.set(i.account_id, i);
+    for (const a of accounts) {
+      const direct = integrations.find((i) => i.account_id === a.id);
+      const byUser =
+        direct ??
+        integrations.find(
+          (i) =>
+            a.ml_user_id &&
+            i.external_user_id &&
+            String(i.external_user_id) === String(a.ml_user_id),
+        );
+      const byNick =
+        byUser ??
+        integrations.find(
+          (i) =>
+            a.nickname &&
+            i.external_nickname &&
+            i.external_nickname.toLowerCase() === a.nickname.toLowerCase(),
+        );
+      if (byNick) m.set(a.id, byNick);
     }
     return m;
-  }, [integrations]);
+  }, [accounts, integrations]);
 
   const summary = useMemo(() => {
     let connected = 0;

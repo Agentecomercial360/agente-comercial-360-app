@@ -375,7 +375,7 @@ function ContasML() {
                           ) : (
                             <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
                               <Link2 className="h-3.5 w-3.5" />
-                              Aguardando autorização
+                              Conectar Mercado Livre
                             </span>
                           )}
                         </td>

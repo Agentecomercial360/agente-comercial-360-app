@@ -59,18 +59,30 @@ function isMercadoLivre(value: string | null | undefined): boolean {
   return k === "mercado_livre" || k === "mercadolivre" || k === "ml";
 }
 
+const CONNECTED_VALUES = new Set([
+  "connected",
+  "conectada",
+  "conectado",
+  "active",
+  "ativa",
+  "ativo",
+  "authorized",
+  "autorizada",
+  "autorizado",
+]);
+
 function isConnected(account: AccountRow, integration?: IntegrationRow): boolean {
   const a = (account.auth_status ?? "").toLowerCase();
   const i = (integration?.integration_status ?? "").toLowerCase();
-  return (
-    a === "connected" ||
-    a === "conectada" ||
-    a === "ativa" ||
-    a === "active" ||
-    i === "connected" ||
-    i === "active" ||
-    i === "ativa"
-  );
+  if (CONNECTED_VALUES.has(a) || CONNECTED_VALUES.has(i)) return true;
+  // Fallback: linked integration with a successful sync record
+  if (integration && (integration.last_sync_at || integration.external_user_id)) {
+    return true;
+  }
+  if (account.is_active && (account.ml_user_id || account.last_sync_at)) {
+    return true;
+  }
+  return false;
 }
 
 function formatDateTime(iso: string | null): string {
@@ -139,11 +151,28 @@ function ContasML() {
 
   const integrationByAccount = useMemo(() => {
     const m = new Map<string, IntegrationRow>();
-    for (const i of integrations) {
-      if (i.account_id && !m.has(i.account_id)) m.set(i.account_id, i);
+    for (const a of accounts) {
+      const direct = integrations.find((i) => i.account_id === a.id);
+      const byUser =
+        direct ??
+        integrations.find(
+          (i) =>
+            a.ml_user_id &&
+            i.external_user_id &&
+            String(i.external_user_id) === String(a.ml_user_id),
+        );
+      const byNick =
+        byUser ??
+        integrations.find(
+          (i) =>
+            a.nickname &&
+            i.external_nickname &&
+            i.external_nickname.toLowerCase() === a.nickname.toLowerCase(),
+        );
+      if (byNick) m.set(a.id, byNick);
     }
     return m;
-  }, [integrations]);
+  }, [accounts, integrations]);
 
   const summary = useMemo(() => {
     let connected = 0;
@@ -346,7 +375,7 @@ function ContasML() {
                           ) : (
                             <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
                               <Link2 className="h-3.5 w-3.5" />
-                              Aguardando autorização
+                              Conectar Mercado Livre
                             </span>
                           )}
                         </td>

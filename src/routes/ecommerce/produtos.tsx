@@ -98,41 +98,63 @@ function InteligenciaProdutos() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+
+  async function loadData() {
+    setLoading(true);
+    setError(null);
+    try {
+      const [{ data: prod, error: ep }, { data: list, error: el }] = await Promise.all([
+        supabase
+          .from("ecommerce_products")
+          .select("id,sku,product_name,category,sale_price,status,is_active,updated_at")
+          .eq("company_id", COMPANY_ID)
+          .order("updated_at", { ascending: false }),
+        supabase
+          .from("ecommerce_listings")
+          .select("id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at")
+          .eq("company_id", COMPANY_ID)
+          .eq("account_id", ACCOUNT_ID)
+          .order("updated_at", { ascending: false }),
+      ]);
+      if (ep) throw ep;
+      if (el) throw el;
+      setProducts((prod || []) as Product[]);
+      setListings((list || []) as Listing[]);
+    } catch (e: any) {
+      setError(e?.message || "Erro ao carregar dados.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [{ data: prod, error: ep }, { data: list, error: el }] = await Promise.all([
-          supabase
-            .from("ecommerce_products")
-            .select("id,sku,product_name,category,sale_price,status,is_active,updated_at")
-            .eq("company_id", COMPANY_ID)
-            .order("updated_at", { ascending: false }),
-          supabase
-            .from("ecommerce_listings")
-            .select("id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at")
-            .eq("company_id", COMPANY_ID)
-            .eq("account_id", ACCOUNT_ID)
-            .order("updated_at", { ascending: false }),
-        ]);
-        if (ep) throw ep;
-        if (el) throw el;
-        if (cancelled) return;
-        setProducts((prod || []) as Product[]);
-        setListings((list || []) as Listing[]);
-      } catch (e: any) {
-        if (!cancelled) setError(e?.message || "Erro ao carregar dados.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    loadData();
   }, []);
+
+  async function handleSync() {
+    if (syncing) return;
+    setSyncing(true);
+    setSyncMessage(null);
+    try {
+      const res = await fetch(
+        "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products-test",
+        { method: "POST" }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await loadData();
+      setSyncMessage({ kind: "success", text: "Produtos e anúncios sincronizados com sucesso." });
+    } catch {
+      setSyncMessage({
+        kind: "error",
+        text: "Não foi possível sincronizar agora. Tente novamente em instantes.",
+      });
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMessage(null), 6000);
+    }
+  }
 
   const totals = useMemo(() => {
     const pActive = products.filter((p) => isActiveLike(p.status, p.is_active)).length;

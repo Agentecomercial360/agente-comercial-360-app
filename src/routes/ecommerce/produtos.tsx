@@ -138,7 +138,9 @@ function InteligenciaProdutos() {
     setSyncing(true);
     setSyncMessage(null);
     try {
-      const res = await fetch("https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products-test");
+      const res = await fetch(
+        "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products-test"
+      );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       console.log("Resposta sincronização Mercado Livre:", data);

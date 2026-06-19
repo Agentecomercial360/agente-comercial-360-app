@@ -140,11 +140,20 @@ function InteligenciaProdutos() {
     try {
       const res = await fetch(
         "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products-test",
-        { method: "POST" }
+        { method: "GET", headers: { Accept: "application/json" } }
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const payload = await res.json().catch(() => null as any);
+      if (!payload || payload.status !== "success") {
+        throw new Error("invalid response");
+      }
       await loadData();
-      setSyncMessage({ kind: "success", text: "Produtos e anúncios sincronizados com sucesso." });
+      const p = payload.products_upserted ?? 0;
+      const l = payload.listings_upserted ?? 0;
+      setSyncMessage({
+        kind: "success",
+        text: `Dados atualizados com sucesso. ${p} produtos e ${l} anúncios sincronizados.`,
+      });
     } catch {
       setSyncMessage({
         kind: "error",

@@ -1,148 +1,241 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import {
-  Sparkles,
-  TrendingUp,
-  Rocket,
-  Flame,
-  MousePointerClick,
+  Package,
   Megaphone,
-  PackagePlus,
-  Star,
-  ShoppingCart,
-  Boxes,
-  Eye,
-  ShieldCheck,
-  Percent,
-  Tag,
-  ListChecks,
-  Lightbulb,
-  Calculator,
+  CheckCircle2,
+  PauseCircle,
+  Search,
+  ExternalLink,
+  Loader2,
+  Store,
   Info,
-  Target,
-  Award,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/produtos")({
   component: InteligenciaProdutos,
   head: () => ({
-    meta: [{ title: "Inteligência de Produtos | Agente Comercial 360" }],
+    meta: [{ title: "Produtos e Anúncios | Agente Comercial 360" }],
   }),
 });
 
-const kpis = [
-  { label: "Produtos com alto potencial", icon: Sparkles, accent: "from-blue-700 to-blue-900" },
-  { label: "Produtos em crescimento", icon: TrendingUp, accent: "from-emerald-600 to-emerald-800" },
-  { label: "Novos sucessos", icon: Rocket, accent: "from-violet-600 to-violet-800" },
-  { label: "Alta conversão", icon: MousePointerClick, accent: "from-sky-600 to-sky-800" },
-  { label: "Potencial para Ads", icon: Megaphone, accent: "from-amber-600 to-orange-700" },
-  { label: "Oportunidade de reposição", icon: PackagePlus, accent: "from-indigo-600 to-indigo-800" },
-];
+const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
+const ACCOUNT_ID = "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4";
 
-const cols = [
-  "SKU",
-  "Produto",
-  "Vendas recentes",
-  "Crescimento",
-  "Conversão",
-  "Estoque atual",
-  "Potencial identificado",
-  "Ação sugerida",
-  "Prioridade",
-];
+type Product = {
+  id: string;
+  sku: string | null;
+  product_name: string | null;
+  category: string | null;
+  sale_price: number | null;
+  status: string | null;
+  is_active: boolean | null;
+  updated_at: string | null;
+};
 
-const tipos = [
-  { label: "Produto em crescimento", desc: "Produto com vendas acima da média recente.", dot: "bg-emerald-600", ring: "border-emerald-200 bg-emerald-50/60", badge: "text-emerald-700", icon: TrendingUp },
-  { label: "Novo sucesso", desc: "Produto recém-lançado que vendeu rapidamente.", dot: "bg-violet-600", ring: "border-violet-200 bg-violet-50/60", badge: "text-violet-700", icon: Rocket },
-  { label: "Alta conversão", desc: "Produto que transforma visitas em vendas com boa eficiência.", dot: "bg-sky-600", ring: "border-sky-200 bg-sky-50/60", badge: "text-sky-700", icon: MousePointerClick },
-  { label: "Potencial para Ads", desc: "Produto com bom desempenho orgânico e espaço para escala paga.", dot: "bg-amber-500", ring: "border-amber-200 bg-amber-50/60", badge: "text-amber-700", icon: Megaphone },
-  { label: "Reposição estratégica", desc: "Produto com boa saída e necessidade de compra antecipada.", dot: "bg-indigo-600", ring: "border-indigo-200 bg-indigo-50/60", badge: "text-indigo-700", icon: PackagePlus },
-  { label: "Produto Classe A", desc: "Produto que concentra faturamento, lucro ou prioridade operacional.", dot: "bg-blue-700", ring: "border-blue-200 bg-blue-50/60", badge: "text-blue-700", icon: Award },
-];
+type Listing = {
+  id: string;
+  product_id: string | null;
+  ml_item_id: string | null;
+  title: string | null;
+  price: number | null;
+  status: string | null;
+  is_active: boolean | null;
+  listing_url: string | null;
+  external_url: string | null;
+  updated_at: string | null;
+};
 
-const colsNovos = [
-  "SKU",
-  "Produto",
-  "Estoque inicial",
-  "Vendas no período",
-  "Dias até vender",
-  "Classificação",
-  "Sugestão",
-];
+type StatusFilter = "all" | "active" | "paused";
 
-const acoes = [
-  { label: "Aumentar compra", icon: ShoppingCart, accent: "from-blue-700 to-blue-900" },
-  { label: "Escalar Ads", icon: Rocket, accent: "from-emerald-600 to-emerald-800" },
-  { label: "Repor estoque", icon: Boxes, accent: "from-indigo-600 to-indigo-800" },
-  { label: "Destacar produto", icon: Star, accent: "from-amber-600 to-orange-700" },
-  { label: "Proteger estoque", icon: ShieldCheck, accent: "from-sky-600 to-sky-800" },
-  { label: "Monitorar margem", icon: Percent, accent: "from-violet-600 to-violet-800" },
-  { label: "Revisar preço para escala", icon: Tag, accent: "from-rose-600 to-rose-800" },
-  { label: "Criar prioridade para operador", icon: ListChecks, accent: "from-slate-700 to-slate-900" },
-];
+function fmtPrice(v: number | null) {
+  if (v == null) return "—";
+  return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+function fmtDate(v: string | null) {
+  if (!v) return "—";
+  try {
+    return new Date(v).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+  } catch {
+    return "—";
+  }
+}
+function isActiveLike(status: string | null, is_active: boolean | null) {
+  if (is_active === true) return true;
+  if (is_active === false) return false;
+  const s = (status || "").toLowerCase();
+  return s === "active" || s === "ativo";
+}
+function isPausedLike(status: string | null, is_active: boolean | null) {
+  if (is_active === false) return true;
+  const s = (status || "").toLowerCase();
+  return s === "paused" || s === "pausado";
+}
 
-const regras = [
-  "Vendas recentes",
-  "Histórico de vendas",
-  "Crescimento percentual",
-  "Conversão",
-  "Estoque atual",
-  "Giro",
-  "Margem",
-  "Curva ABC",
-  "Performance orgânica",
-  "Performance em Ads",
-  "Velocidade de venda após lançamento",
-];
+function StatusBadge({ status, is_active }: { status: string | null; is_active: boolean | null }) {
+  const active = isActiveLike(status, is_active);
+  const paused = isPausedLike(status, is_active);
+  const label = active ? "Ativo" : paused ? "Pausado" : (status || "—");
+  const cls = active
+    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+    : paused
+    ? "bg-amber-50 text-amber-700 border-amber-200"
+    : "bg-slate-50 text-slate-600 border-slate-200";
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${cls}`}>
+      {label}
+    </span>
+  );
+}
 
 function InteligenciaProdutos() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [{ data: prod, error: ep }, { data: list, error: el }] = await Promise.all([
+          supabase
+            .from("ecommerce_products")
+            .select("id,sku,product_name,category,sale_price,status,is_active,updated_at")
+            .eq("company_id", COMPANY_ID)
+            .order("updated_at", { ascending: false }),
+          supabase
+            .from("ecommerce_listings")
+            .select("id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at")
+            .eq("company_id", COMPANY_ID)
+            .eq("account_id", ACCOUNT_ID)
+            .order("updated_at", { ascending: false }),
+        ]);
+        if (ep) throw ep;
+        if (el) throw el;
+        if (cancelled) return;
+        setProducts((prod || []) as Product[]);
+        setListings((list || []) as Listing[]);
+      } catch (e: any) {
+        if (!cancelled) setError(e?.message || "Erro ao carregar dados.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const totals = useMemo(() => {
+    const pActive = products.filter((p) => isActiveLike(p.status, p.is_active)).length;
+    const pPaused = products.filter((p) => isPausedLike(p.status, p.is_active)).length;
+    const lActive = listings.filter((l) => isActiveLike(l.status, l.is_active)).length;
+    const lPaused = listings.filter((l) => isPausedLike(l.status, l.is_active)).length;
+    return {
+      products: products.length,
+      pActive,
+      pPaused,
+      listings: listings.length,
+      lActive,
+      lPaused,
+    };
+  }, [products, listings]);
+
+  const matchStatus = (s: string | null, a: boolean | null) => {
+    if (statusFilter === "all") return true;
+    if (statusFilter === "active") return isActiveLike(s, a);
+    return isPausedLike(s, a);
+  };
+
+  const q = search.trim().toLowerCase();
+  const filteredProducts = useMemo(
+    () =>
+      products.filter((p) => {
+        if (!matchStatus(p.status, p.is_active)) return false;
+        if (!q) return true;
+        return (
+          (p.product_name || "").toLowerCase().includes(q) ||
+          (p.sku || "").toLowerCase().includes(q)
+        );
+      }),
+    [products, statusFilter, q]
+  );
+  const filteredListings = useMemo(
+    () =>
+      listings.filter((l) => {
+        if (!matchStatus(l.status, l.is_active)) return false;
+        if (!q) return true;
+        return (
+          (l.title || "").toLowerCase().includes(q) ||
+          (l.ml_item_id || "").toLowerCase().includes(q)
+        );
+      }),
+    [listings, statusFilter, q]
+  );
+
+  const kpis = [
+    { label: "Total de produtos", value: totals.products, icon: Package, accent: "from-blue-700 to-blue-900" },
+    { label: "Produtos ativos", value: totals.pActive, icon: CheckCircle2, accent: "from-emerald-600 to-emerald-800" },
+    { label: "Produtos pausados", value: totals.pPaused, icon: PauseCircle, accent: "from-amber-600 to-orange-700" },
+    { label: "Total de anúncios", value: totals.listings, icon: Megaphone, accent: "from-indigo-600 to-indigo-800" },
+    { label: "Anúncios ativos", value: totals.lActive, icon: CheckCircle2, accent: "from-emerald-600 to-emerald-800" },
+    { label: "Anúncios pausados", value: totals.lPaused, icon: PauseCircle, accent: "from-amber-600 to-orange-700" },
+  ];
+
   return (
     <EcommerceLayout>
       <div className="space-y-6">
         {/* Header */}
         <header className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-            <Target className="h-3.5 w-3.5" />
-            Diagnóstico de Oportunidades
+            <Store className="h-3.5 w-3.5" />
+            Conta NIGHT LED · Mercado Livre
           </div>
           <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-            Inteligência de Produtos
+            Produtos e Anúncios
           </h1>
           <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
-            Identifique produtos com maior potencial de crescimento, escala,
-            reposição e ganho de performance.
+            Produtos e anúncios sincronizados da conta NIGHT LED no Mercado Livre.
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Dados reais importados via integração oficial com Mercado Livre.
           </p>
         </header>
 
+        {error && (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {error}
+          </div>
+        )}
+
         {/* KPIs */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
           {kpis.map((k) => {
             const Icon = k.icon;
             return (
               <div
                 key={k.label}
-                className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]"
+                className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-4 shadow-[var(--shadow-soft)]"
               >
-                <div
-                  className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${k.accent} opacity-10`}
-                />
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1.5">
-                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <div className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${k.accent} opacity-10`} />
+                <div className="flex items-start justify-between gap-2">
+                  <div className="space-y-1">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                       {k.label}
                     </div>
-                    <div className="font-display text-3xl font-bold text-foreground/40">
-                      —
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Será calculado após sincronização dos produtos, pedidos,
-                      estoque e métricas de desempenho.
+                    <div className="font-display text-2xl font-bold text-foreground">
+                      {loading ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> : k.value}
                     </div>
                   </div>
-                  <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${k.accent} text-white shadow-md`}
-                  >
-                    <Icon className="h-5 w-5" />
+                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${k.accent} text-white shadow-md`}>
+                    <Icon className="h-4 w-4" />
                   </div>
                 </div>
               </div>
@@ -150,20 +243,51 @@ function InteligenciaProdutos() {
           })}
         </section>
 
-        {/* Oportunidades por produto */}
+        {/* Filters */}
+        <section className="rounded-2xl border border-border/60 bg-card p-4 shadow-[var(--shadow-soft)] flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por nome, SKU, título ou ML Item ID"
+              className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm outline-none focus:border-blue-500"
+            />
+          </div>
+          <div className="inline-flex rounded-lg border border-border bg-muted/30 p-1">
+            {([
+              { k: "all", label: "Todos" },
+              { k: "active", label: "Ativos" },
+              { k: "paused", label: "Pausados" },
+            ] as { k: StatusFilter; label: string }[]).map((opt) => (
+              <button
+                key={opt.k}
+                type="button"
+                onClick={() => setStatusFilter(opt.k)}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+                  statusFilter === opt.k
+                    ? "bg-blue-700 text-white shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Products table */}
         <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
+          <div className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
             <div className="flex items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-700 text-white">
-                <Sparkles className="h-3.5 w-3.5" />
+                <Package className="h-3.5 w-3.5" />
               </div>
               <div>
-                <h2 className="font-display text-lg font-bold text-foreground">
-                  Oportunidades por produto
-                </h2>
-                <p className="text-xs text-muted-foreground max-w-2xl">
-                  Produtos com sinais positivos, potencial identificado e ação
-                  recomendada para escala.
+                <h2 className="font-display text-lg font-bold text-foreground">Produtos</h2>
+                <p className="text-xs text-muted-foreground">
+                  {filteredProducts.length} de {products.length} produto(s)
                 </p>
               </div>
             </div>
@@ -172,220 +296,160 @@ function InteligenciaProdutos() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  {cols.map((c) => (
-                    <th
-                      key={c}
-                      className="px-5 py-3 text-left font-semibold whitespace-nowrap"
-                    >
+                  {["SKU", "Produto", "Categoria", "Preço", "Status", "Ativo", "Atualizado em"].map((c) => (
+                    <th key={c} className="px-5 py-3 text-left font-semibold whitespace-nowrap">
                       {c}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td colSpan={cols.length} className="px-5 py-16 text-center">
-                    <div className="mx-auto max-w-md space-y-3">
-                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-                        <Sparkles className="h-6 w-6" />
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-12 text-center text-sm text-muted-foreground">
+                      <Loader2 className="mx-auto h-5 w-5 animate-spin" />
+                    </td>
+                  </tr>
+                ) : filteredProducts.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-5 py-16 text-center">
+                      <div className="mx-auto max-w-md space-y-2">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+                          <Package className="h-6 w-6" />
+                        </div>
+                        <div className="font-display text-base font-semibold text-foreground">
+                          {products.length === 0
+                            ? "Produtos ainda não sincronizados"
+                            : "Nenhum produto corresponde aos filtros"}
+                        </div>
+                        {products.length === 0 && (
+                          <p className="text-sm text-muted-foreground">
+                            Aguarde a próxima sincronização ou execute a integração manualmente.
+                          </p>
+                        )}
                       </div>
-                      <div className="font-display text-base font-semibold text-foreground">
-                        Nenhuma oportunidade identificada ainda
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        A análise será gerada após a leitura dos dados reais da
-                        operação.
-                      </p>
-                    </div>
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredProducts.map((p) => (
+                    <tr key={p.id} className="border-t border-border/60 hover:bg-muted/20">
+                      <td className="px-5 py-3 font-mono text-xs">{p.sku || "—"}</td>
+                      <td className="px-5 py-3">{p.product_name || "—"}</td>
+                      <td className="px-5 py-3 text-muted-foreground">{p.category || "—"}</td>
+                      <td className="px-5 py-3 font-semibold">{fmtPrice(p.sale_price)}</td>
+                      <td className="px-5 py-3">
+                        <StatusBadge status={p.status} is_active={p.is_active} />
+                      </td>
+                      <td className="px-5 py-3 text-muted-foreground">
+                        {p.is_active === true ? "Sim" : p.is_active === false ? "Não" : "—"}
+                      </td>
+                      <td className="px-5 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                        {fmtDate(p.updated_at)}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
         </section>
 
-        {/* Tipos de oportunidade */}
-        <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
-          <div className="mb-4">
-            <h2 className="font-display text-lg font-bold text-foreground">
-              Tipos de oportunidade
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Categorias usadas pelo sistema para classificar produtos com
-              potencial de crescimento.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {tipos.map((t) => {
-              const Icon = t.icon;
-              return (
-                <div key={t.label} className={`rounded-xl border p-4 ${t.ring}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`h-2 w-2 rounded-full ${t.dot}`} />
-                    <span
-                      className={`text-xs font-bold uppercase tracking-wider ${t.badge}`}
-                    >
-                      {t.label}
-                    </span>
-                    <Icon className={`ml-auto h-3.5 w-3.5 ${t.badge}`} />
-                  </div>
-                  <p className="text-sm text-foreground/80 leading-snug">
-                    {t.desc}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Detecção de novos sucessos */}
+        {/* Listings table */}
         <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
-          <div className="border-b border-border/60 px-5 py-4">
-            <div className="flex items-center gap-2 mb-1">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-violet-800 text-white">
-                <Flame className="h-3.5 w-3.5" />
+          <div className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-700 text-white">
+                <Megaphone className="h-3.5 w-3.5" />
               </div>
-              <h2 className="font-display text-lg font-bold text-foreground">
-                Detecção de novos sucessos
-              </h2>
+              <div>
+                <h2 className="font-display text-lg font-bold text-foreground">Anúncios</h2>
+                <p className="text-xs text-muted-foreground">
+                  {filteredListings.length} de {listings.length} anúncio(s)
+                </p>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground max-w-3xl">
-              O sistema poderá identificar produtos que venderam rápido logo
-              após o lançamento e classificá-los como oportunidades de compra
-              ampliada.
-            </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  {colsNovos.map((c) => (
-                    <th
-                      key={c}
-                      className="px-5 py-3 text-left font-semibold whitespace-nowrap"
-                    >
+                  {["Título", "ML Item ID", "Preço", "Status", "Atualizado em", "Link"].map((c) => (
+                    <th key={c} className="px-5 py-3 text-left font-semibold whitespace-nowrap">
                       {c}
                     </th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td
-                    colSpan={colsNovos.length}
-                    className="px-5 py-16 text-center"
-                  >
-                    <div className="mx-auto max-w-md space-y-3">
-                      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-violet-50 text-violet-700">
-                        <Rocket className="h-6 w-6" />
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-12 text-center text-sm text-muted-foreground">
+                      <Loader2 className="mx-auto h-5 w-5 animate-spin" />
+                    </td>
+                  </tr>
+                ) : filteredListings.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-5 py-16 text-center">
+                      <div className="mx-auto max-w-md space-y-2">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-700">
+                          <Megaphone className="h-6 w-6" />
+                        </div>
+                        <div className="font-display text-base font-semibold text-foreground">
+                          {listings.length === 0
+                            ? "Anúncios ainda não sincronizados"
+                            : "Nenhum anúncio corresponde aos filtros"}
+                        </div>
                       </div>
-                      <div className="font-display text-base font-semibold text-foreground">
-                        Nenhum novo sucesso detectado ainda
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        A detecção será realizada após a sincronização dos
-                        lançamentos e vendas recentes.
-                      </p>
-                    </div>
-                  </td>
-                </tr>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredListings.map((l) => {
+                    const url = l.listing_url || l.external_url;
+                    return (
+                      <tr key={l.id} className="border-t border-border/60 hover:bg-muted/20">
+                        <td className="px-5 py-3 max-w-[420px]">
+                          <div className="truncate" title={l.title || ""}>
+                            {l.title || "—"}
+                          </div>
+                        </td>
+                        <td className="px-5 py-3 font-mono text-xs">{l.ml_item_id || "—"}</td>
+                        <td className="px-5 py-3 font-semibold">{fmtPrice(l.price)}</td>
+                        <td className="px-5 py-3">
+                          <StatusBadge status={l.status} is_active={l.is_active} />
+                        </td>
+                        <td className="px-5 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                          {fmtDate(l.updated_at)}
+                        </td>
+                        <td className="px-5 py-3">
+                          {url ? (
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                            >
+                              Abrir anúncio
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
         </section>
 
-        {/* Ações recomendadas */}
-        <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
-          <div className="mb-4">
-            <h2 className="font-display text-lg font-bold text-foreground">
-              Ações recomendadas
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Categorias de ação que o sistema poderá sugerir para escalar
-              produtos com potencial.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
-            {acoes.map((a) => {
-              const Icon = a.icon;
-              return (
-                <div
-                  key={a.label}
-                  className="rounded-xl border border-border/60 bg-muted/20 p-4 transition-colors hover:bg-muted/30"
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${a.accent} text-white shadow-sm`}
-                    >
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div className="text-sm font-bold text-foreground">
-                      {a.label}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Regras + Como ajuda */}
-        <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 text-white">
-                <Calculator className="h-3.5 w-3.5" />
-              </div>
-              <h3 className="font-display text-sm font-bold text-foreground">
-                Regras de análise
-              </h3>
-            </div>
-            <p className="text-xs text-muted-foreground mb-3">
-              A identificação de oportunidades considerará, quando os dados
-              estiverem sincronizados:
-            </p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-sm text-foreground/80">
-              {regras.map((r) => (
-                <li key={r} className="flex gap-2">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-700" />
-                  <span>{r}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-blue-50/60 to-transparent p-5 shadow-[var(--shadow-soft)]">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-700 text-white">
-                <Lightbulb className="h-3.5 w-3.5" />
-              </div>
-              <h3 className="font-display text-sm font-bold text-foreground">
-                Como essa tela ajuda a operação
-              </h3>
-            </div>
-            <p className="text-sm text-foreground/80 leading-relaxed">
-              Essa tela ajuda a equipe a enxergar onde estão as melhores
-              oportunidades da operação. Em vez de olhar apenas produtos com
-              problema, o sistema identifica produtos com potencial para
-              crescer, escalar vendas, receber investimento em Ads ou
-              antecipar compras.
-            </p>
-            <div className="mt-4 flex items-start gap-2 rounded-lg border border-blue-100 bg-white/60 p-3 text-xs text-muted-foreground">
-              <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-blue-700" />
-              <span>
-                Tela preparada. Nenhuma oportunidade fictícia é exibida até a
-                primeira sincronização e análise dos dados reais.
-              </span>
-            </div>
-            <div className="mt-3 flex items-start gap-2 rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-              <Eye className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-              <span>
-                Foco em crescimento: o sistema também observa produtos novos
-                com alta velocidade de venda.
-              </span>
-            </div>
-          </div>
-        </section>
+        <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
+          <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-blue-700" />
+          <span>
+            Métricas de vendas, visitas, faturamento e Curva ABC serão exibidas nas próximas etapas, após a sincronização desses indicadores.
+          </span>
+        </div>
       </div>
     </EcommerceLayout>
   );

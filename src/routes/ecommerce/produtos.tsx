@@ -139,20 +139,20 @@ function InteligenciaProdutos() {
     setSyncMessage(null);
     try {
       const res = await fetch(
-        "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products-test",
-        { method: "GET", headers: { Accept: "application/json" } }
+        "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products-test"
       );
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const payload = await res.json().catch(() => null as any);
-      if (!payload || payload.status !== "success") {
-        throw new Error("invalid response");
+      const data = await res.json();
+      console.log("Resposta sincronização Mercado Livre:", data);
+      if (data?.status !== "success") {
+        throw new Error("Resposta inválida da API de sincronização.");
       }
+      const productsUpserted = data.result?.products_upserted ?? 0;
+      const listingsUpserted = data.result?.listings_upserted ?? 0;
       await loadData();
-      const p = payload.products_upserted ?? 0;
-      const l = payload.listings_upserted ?? 0;
       setSyncMessage({
         kind: "success",
-        text: `Dados atualizados com sucesso. ${p} produtos e ${l} anúncios sincronizados.`,
+        text: `Sincronização concluída: ${productsUpserted} produtos e ${listingsUpserted} anúncios atualizados.`,
       });
     } catch {
       setSyncMessage({

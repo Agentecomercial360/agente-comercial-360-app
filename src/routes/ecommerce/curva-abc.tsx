@@ -65,11 +65,11 @@ function CurvaABC() {
             Inteligência Estratégica
           </div>
           <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-            Curva ABC e Pareto
+            Classificação ABC de Produtos
           </h1>
           <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
-            Identifique os produtos que concentram faturamento, lucro e
-            prioridade operacional.
+            Entenda quais produtos merecem mais atenção com base em faturamento,
+            giro, lucro e impacto na operação.
           </p>
         </header>
         <CurvaABCActions />

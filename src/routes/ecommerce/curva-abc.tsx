@@ -38,7 +38,7 @@ const cards: CardDef[] = [
   },
   {
     label: "Itens que representam 80% do faturamento",
-    hint: "Princípio de Pareto",
+    hint: "Produtos que mais impactam o resultado",
     icon: Target,
     accent: "from-amber-600 to-orange-700",
   },

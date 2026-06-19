@@ -125,7 +125,7 @@ function CurvaABC() {
               <Info className="h-3.5 w-3.5" />
             </div>
             <h3 className="font-display text-sm font-bold text-foreground">
-              Como interpretar a Curva ABC
+              Como interpretar a Classificação ABC
             </h3>
           </div>
           <ul className="space-y-2 text-sm text-muted-foreground">

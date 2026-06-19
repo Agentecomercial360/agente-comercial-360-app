@@ -10,6 +10,7 @@ import {
   Loader2,
   Store,
   Info,
+  RefreshCw,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
@@ -97,41 +98,63 @@ function InteligenciaProdutos() {
   const [listings, setListings] = useState<Listing[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [search, setSearch] = useState("");
+  const [syncing, setSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
+
+  async function loadData() {
+    setLoading(true);
+    setError(null);
+    try {
+      const [{ data: prod, error: ep }, { data: list, error: el }] = await Promise.all([
+        supabase
+          .from("ecommerce_products")
+          .select("id,sku,product_name,category,sale_price,status,is_active,updated_at")
+          .eq("company_id", COMPANY_ID)
+          .order("updated_at", { ascending: false }),
+        supabase
+          .from("ecommerce_listings")
+          .select("id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at")
+          .eq("company_id", COMPANY_ID)
+          .eq("account_id", ACCOUNT_ID)
+          .order("updated_at", { ascending: false }),
+      ]);
+      if (ep) throw ep;
+      if (el) throw el;
+      setProducts((prod || []) as Product[]);
+      setListings((list || []) as Listing[]);
+    } catch (e: any) {
+      setError(e?.message || "Erro ao carregar dados.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const [{ data: prod, error: ep }, { data: list, error: el }] = await Promise.all([
-          supabase
-            .from("ecommerce_products")
-            .select("id,sku,product_name,category,sale_price,status,is_active,updated_at")
-            .eq("company_id", COMPANY_ID)
-            .order("updated_at", { ascending: false }),
-          supabase
-            .from("ecommerce_listings")
-            .select("id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at")
-            .eq("company_id", COMPANY_ID)
-            .eq("account_id", ACCOUNT_ID)
-            .order("updated_at", { ascending: false }),
-        ]);
-        if (ep) throw ep;
-        if (el) throw el;
-        if (cancelled) return;
-        setProducts((prod || []) as Product[]);
-        setListings((list || []) as Listing[]);
-      } catch (e: any) {
-        if (!cancelled) setError(e?.message || "Erro ao carregar dados.");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    loadData();
   }, []);
+
+  async function handleSync() {
+    if (syncing) return;
+    setSyncing(true);
+    setSyncMessage(null);
+    try {
+      const res = await fetch(
+        "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products-test",
+        { method: "POST" }
+      );
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      await loadData();
+      setSyncMessage({ kind: "success", text: "Produtos e anúncios sincronizados com sucesso." });
+    } catch {
+      setSyncMessage({
+        kind: "error",
+        text: "Não foi possível sincronizar agora. Tente novamente em instantes.",
+      });
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMessage(null), 6000);
+    }
+  }
 
   const totals = useMemo(() => {
     const pActive = products.filter((p) => isActiveLike(p.status, p.is_active)).length;
@@ -194,20 +217,54 @@ function InteligenciaProdutos() {
       <div className="space-y-6">
         {/* Header */}
         <header className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-            <Store className="h-3.5 w-3.5" />
-            Conta NIGHT LED · Mercado Livre
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                <Store className="h-3.5 w-3.5" />
+                Conta NIGHT LED · Mercado Livre
+              </div>
+              <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                Produtos e Anúncios
+              </h1>
+              <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
+                Produtos e anúncios sincronizados da conta NIGHT LED no Mercado Livre.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Dados reais importados via integração oficial com Mercado Livre.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleSync}
+              disabled={syncing}
+              className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-700 to-blue-900 px-4 py-2 text-sm font-semibold text-white shadow-[var(--shadow-soft)] transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {syncing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sincronizando...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="h-4 w-4" />
+                  Sincronizar
+                </>
+              )}
+            </button>
           </div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-            Produtos e Anúncios
-          </h1>
-          <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
-            Produtos e anúncios sincronizados da conta NIGHT LED no Mercado Livre.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Dados reais importados via integração oficial com Mercado Livre.
-          </p>
         </header>
+
+        {syncMessage && (
+          <div
+            className={`rounded-xl border px-4 py-2.5 text-sm ${
+              syncMessage.kind === "success"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                : "border-rose-200 bg-rose-50 text-rose-700"
+            }`}
+          >
+            {syncMessage.text}
+          </div>
+        )}
 
         {error && (
           <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">

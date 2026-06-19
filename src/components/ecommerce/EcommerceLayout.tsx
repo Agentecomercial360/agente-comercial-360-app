@@ -201,15 +201,34 @@ export function EcommerceLayout({ children }: { children: ReactNode }) {
     return () => clearTimeout(t);
   }, [lastUpdate]);
 
-  const handleRefresh = useCallback(() => {
+  const handleRefresh = useCallback(async () => {
     if (isUpdating) return;
     setIsUpdating(true);
-    const delay = 800 + Math.random() * 400;
-    setTimeout(() => {
+    try {
+      const response = await fetch(
+        "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products-test"
+      );
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("Resposta sincronização Mercado Livre:", data);
+      if (data?.status !== "success") {
+        throw new Error("Resposta inválida da API de sincronização.");
+      }
+      const result = data.result ?? data;
+      const productsUpserted = result.products_upserted ?? 0;
+      const listingsUpserted = result.listings_upserted ?? 0;
       setIsUpdating(false);
       setLastUpdate(new Date().toISOString());
-      toast.success("Dados atualizados com sucesso.");
-    }, delay);
+      window.dispatchEvent(new CustomEvent("mercadolivre-products-synced"));
+      toast.success(
+        `Sincronização concluída: ${productsUpserted} produtos e ${listingsUpserted} anúncios atualizados.`
+      );
+    } catch {
+      setIsUpdating(false);
+      toast.error("Não foi possível sincronizar agora. Tente novamente em instantes.");
+    }
   }, [isUpdating]);
 
   return (

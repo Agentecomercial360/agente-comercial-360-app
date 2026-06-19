@@ -131,6 +131,9 @@ function InteligenciaProdutos() {
 
   useEffect(() => {
     loadData();
+    const onProductsSynced = () => loadData();
+    window.addEventListener("mercadolivre-products-synced", onProductsSynced);
+    return () => window.removeEventListener("mercadolivre-products-synced", onProductsSynced);
   }, []);
 
   async function handleSync() {

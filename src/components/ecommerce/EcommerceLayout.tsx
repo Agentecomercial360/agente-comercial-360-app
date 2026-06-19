@@ -36,7 +36,7 @@ const navGroups = [
     title: "INTELIGÊNCIA",
     items: [
       { label: "Inteligência de Produtos", to: "/ecommerce/produtos", icon: ShoppingCart },
-      { label: "Curva ABC", to: "/ecommerce/curva-abc", icon: PieChart },
+      { label: "Produtos Estratégicos", to: "/ecommerce/curva-abc", icon: PieChart },
       { label: "Produtos Problema", to: "/ecommerce/produtos-travados", icon: ShieldAlert },
     ],
   },

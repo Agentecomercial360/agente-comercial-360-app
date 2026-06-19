@@ -6,7 +6,7 @@ import { CurvaABCActions } from "@/components/ecommerce/ActionButtons";
 export const Route = createFileRoute("/ecommerce/curva-abc")({
   component: CurvaABC,
   head: () => ({
-    meta: [{ title: "Curva ABC e Pareto | Agente Comercial 360" }],
+    meta: [{ title: "Classificação ABC de Produtos | Agente Comercial 360" }],
   }),
 });
 
@@ -38,7 +38,7 @@ const cards: CardDef[] = [
   },
   {
     label: "Itens que representam 80% do faturamento",
-    hint: "Princípio de Pareto",
+    hint: "Produtos que mais impactam o resultado",
     icon: Target,
     accent: "from-amber-600 to-orange-700",
   },
@@ -65,11 +65,11 @@ function CurvaABC() {
             Inteligência Estratégica
           </div>
           <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-            Curva ABC e Pareto
+            Classificação ABC de Produtos
           </h1>
           <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
-            Identifique os produtos que concentram faturamento, lucro e
-            prioridade operacional.
+            Entenda quais produtos merecem mais atenção com base em faturamento,
+            giro, lucro e impacto na operação.
           </p>
         </header>
         <CurvaABCActions />
@@ -125,7 +125,7 @@ function CurvaABC() {
               <Info className="h-3.5 w-3.5" />
             </div>
             <h3 className="font-display text-sm font-bold text-foreground">
-              Como interpretar a Curva ABC
+              Como interpretar a Classificação ABC
             </h3>
           </div>
           <ul className="space-y-2 text-sm text-muted-foreground">
@@ -152,7 +152,7 @@ function CurvaABC() {
                 Classificação por produto
               </h2>
               <p className="text-xs text-muted-foreground">
-                Ranking calculado por faturamento acumulado (Pareto 80/20).
+                Ranking calculado pelo faturamento acumulado dos produtos.
               </p>
             </div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-[11px] font-medium text-muted-foreground">

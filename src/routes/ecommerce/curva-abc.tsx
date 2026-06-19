@@ -152,7 +152,7 @@ function CurvaABC() {
                 Classificação por produto
               </h2>
               <p className="text-xs text-muted-foreground">
-                Ranking calculado por faturamento acumulado (Pareto 80/20).
+                Ranking calculado pelo faturamento acumulado dos produtos.
               </p>
             </div>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 text-[11px] font-medium text-muted-foreground">

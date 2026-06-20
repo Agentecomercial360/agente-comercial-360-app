@@ -602,7 +602,7 @@ function InteligenciaProdutosInner() {
             Métricas de vendas, visitas, faturamento e Curva ABC serão exibidas nas próximas etapas, após a sincronização desses indicadores.
           </span>
         </div>
-      </div>
-    </EcommerceLayout>
+    </div>
   );
+
 }

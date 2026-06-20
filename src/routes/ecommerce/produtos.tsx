@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 
 export const Route = createFileRoute("/ecommerce/produtos")({
   component: InteligenciaProdutos,
@@ -123,9 +124,21 @@ function StatusBadge({ status, is_active }: { status: string | null; is_active: 
 }
 
 function InteligenciaProdutos() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-  const [loadingAccounts, setLoadingAccounts] = useState(true);
+  return (
+    <EcommerceLayout>
+      <InteligenciaProdutosInner />
+    </EcommerceLayout>
+  );
+}
+
+function InteligenciaProdutosInner() {
+  const {
+    accounts,
+    loading: loadingAccounts,
+    activeAccount: selectedAccount,
+    activeAccountId: selectedAccountId,
+    isActiveConnected: selectedConnected,
+  } = useEcommerceActiveAccount();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -135,38 +148,6 @@ function InteligenciaProdutos() {
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
 
-  const selectedAccount = useMemo(
-    () => accounts.find((a) => a.id === selectedAccountId) || null,
-    [accounts, selectedAccountId],
-  );
-  const selectedConnected = selectedAccount ? accountIsConnected(selectedAccount) : false;
-
-  async function loadAccounts() {
-    setLoadingAccounts(true);
-    try {
-      const { data, error: aerr } = await supabase
-        .from("ecommerce_accounts")
-        .select("id, account_name, nickname, marketplace, auth_status, ml_user_id, is_active, last_sync_at")
-        .eq("company_id", COMPANY_ID)
-        .eq("is_active", true)
-        .order("account_name", { ascending: true });
-      if (aerr) throw aerr;
-      const list = ((data as Account[]) ?? []).filter((a) => isMercadoLivre(a.marketplace));
-      setAccounts(list);
-      if (list.length && !selectedAccountId) {
-        const nightled = list.find((a) =>
-          (a.account_name || "").toLowerCase().includes("nightled") ||
-          (a.account_name || "").toLowerCase().includes("night led"),
-        );
-        const firstConnected = list.find(accountIsConnected);
-        setSelectedAccountId((nightled && accountIsConnected(nightled) ? nightled : firstConnected || list[0]).id);
-      }
-    } catch (e: any) {
-      setError(e?.message || "Erro ao carregar contas.");
-    } finally {
-      setLoadingAccounts(false);
-    }
-  }
 
   async function loadData(accountId: string) {
     setLoading(true);
@@ -203,8 +184,9 @@ function InteligenciaProdutos() {
   }
 
   useEffect(() => {
-    void loadAccounts();
-  }, []);
+    if (!selectedAccountId) setLoading(false);
+  }, [selectedAccountId]);
+
 
   useEffect(() => {
     if (selectedAccountId) void loadData(selectedAccountId);
@@ -302,8 +284,8 @@ function InteligenciaProdutos() {
   const emptyAccount = !loading && selectedAccount && listings.length === 0;
 
   return (
-    <EcommerceLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
+
         {/* Header */}
         <header className="space-y-2">
           <div className="space-y-2">
@@ -320,31 +302,23 @@ function InteligenciaProdutos() {
           </div>
         </header>
 
-        {/* Account selector */}
+        {/* Active account summary + sync */}
         <section className="rounded-2xl border border-border/60 bg-card p-4 shadow-[var(--shadow-soft)] flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 text-white">
               <Store className="h-4 w-4" />
             </div>
-            <label htmlFor="account-select" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Conta Mercado Livre
-            </label>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Conta ativa
+              </span>
+              <span className="text-sm font-bold text-foreground">
+                {loadingAccounts
+                  ? "Carregando…"
+                  : selectedAccount?.account_name || selectedAccount?.nickname || "Nenhuma conta selecionada"}
+              </span>
+            </div>
           </div>
-          <select
-            id="account-select"
-            value={selectedAccountId ?? ""}
-            onChange={(e) => setSelectedAccountId(e.target.value || null)}
-            disabled={loadingAccounts || accounts.length === 0}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium outline-none focus:border-blue-500 min-w-[260px]"
-          >
-            {loadingAccounts && <option>Carregando contas…</option>}
-            {!loadingAccounts && accounts.length === 0 && <option>Nenhuma conta encontrada</option>}
-            {accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.account_name || a.nickname || a.id}
-              </option>
-            ))}
-          </select>
 
           {selectedAccount && (
             selectedConnected ? (
@@ -360,6 +334,10 @@ function InteligenciaProdutos() {
             )
           )}
 
+          <span className="hidden md:inline text-[11px] text-muted-foreground">
+            Use o seletor no topo para trocar a conta ativa do módulo.
+          </span>
+
           <div className="ml-auto">
             {selectedAccount && selectedConnected && (
               <button
@@ -374,6 +352,7 @@ function InteligenciaProdutos() {
             )}
           </div>
         </section>
+
 
         {syncMessage && (
           <div
@@ -623,7 +602,7 @@ function InteligenciaProdutos() {
             Métricas de vendas, visitas, faturamento e Curva ABC serão exibidas nas próximas etapas, após a sincronização desses indicadores.
           </span>
         </div>
-      </div>
-    </EcommerceLayout>
+    </div>
   );
+
 }

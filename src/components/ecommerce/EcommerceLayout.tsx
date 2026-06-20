@@ -301,7 +301,8 @@ export function EcommerceLayout({ children }: { children: ReactNode }) {
                   Mercado Livre
                 </div>
               </div>
-              <div className="hidden sm:flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 border border-blue-200">
+              <ActiveAccountSelector />
+              <div className="hidden xl:flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 border border-blue-200">
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
                   <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>

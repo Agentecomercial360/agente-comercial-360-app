@@ -175,13 +175,16 @@ function TarefasOperadores() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const loadTasks = useCallback(async () => {
     if (!activeAccountId) {
       setTasks([]);
+      setLastError(null);
       return;
     }
     setLoading(true);
+    setLastError(null);
     try {
       // eslint-disable-next-line no-console
       console.debug("[tarefas] querying ecommerce_tasks", {
@@ -199,6 +202,7 @@ function TarefasOperadores() {
       if (error) {
         // eslint-disable-next-line no-console
         console.error("[tarefas] supabase error", error);
+        setLastError(error.message || String(error));
         throw error;
       }
       // eslint-disable-next-line no-console
@@ -207,12 +211,13 @@ function TarefasOperadores() {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("[tarefas] load failed", err);
+      if (!lastError) setLastError(err instanceof Error ? err.message : String(err));
       toast.error("Não foi possível carregar as tarefas.");
       setTasks([]);
     } finally {
       setLoading(false);
     }
-  }, [activeAccountId]);
+  }, [activeAccountId, lastError]);
 
   useEffect(() => {
     void loadTasks();
@@ -329,6 +334,25 @@ function TarefasOperadores() {
             </div>
           )}
         </header>
+
+        {/* Diagnóstico temporário */}
+        <section className="rounded-xl border border-dashed border-blue-300 bg-blue-50/40 p-3 text-[11px] text-blue-900">
+          <div className="font-semibold uppercase tracking-wider text-blue-700 mb-1">
+            Diagnóstico (temporário)
+          </div>
+          <div className="grid gap-1 md:grid-cols-2">
+            <div><span className="font-medium">activeAccountId:</span> <code>{activeAccountId ?? "null"}</code></div>
+            <div><span className="font-medium">company_id:</span> <code>{ECOMMERCE_COMPANY_ID}</code></div>
+            <div><span className="font-medium">tarefas retornadas:</span> <code>{tasks.length}</code></div>
+            <div><span className="font-medium">loading:</span> <code>{String(loading || accLoading)}</code></div>
+            {lastError && (
+              <div className="md:col-span-2 text-red-700">
+                <span className="font-medium">erro supabase:</span> <code>{lastError}</code>
+              </div>
+            )}
+          </div>
+        </section>
+
 
         {/* Pending account state */}
         {showPending ? (

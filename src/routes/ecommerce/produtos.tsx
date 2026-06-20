@@ -284,8 +284,8 @@ function InteligenciaProdutosInner() {
   const emptyAccount = !loading && selectedAccount && listings.length === 0;
 
   return (
-    <EcommerceLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
+
         {/* Header */}
         <header className="space-y-2">
           <div className="space-y-2">

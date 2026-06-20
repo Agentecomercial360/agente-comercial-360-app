@@ -402,3 +402,11 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
     </div>
   );
 }
+
+export function EcommerceLayout({ children }: { children: ReactNode }) {
+  return (
+    <EcommerceActiveAccountProvider>
+      <EcommerceLayoutInner>{children}</EcommerceLayoutInner>
+    </EcommerceActiveAccountProvider>
+  );
+}

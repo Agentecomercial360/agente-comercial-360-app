@@ -11,6 +11,7 @@ import {
   Store,
   Info,
   RefreshCw,
+  Link2,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
@@ -23,7 +24,8 @@ export const Route = createFileRoute("/ecommerce/produtos")({
 });
 
 const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
-const ACCOUNT_ID = "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4";
+const SYNC_ENDPOINT =
+  "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products";
 
 type Product = {
   id: string;
@@ -49,7 +51,36 @@ type Listing = {
   updated_at: string | null;
 };
 
+type Account = {
+  id: string;
+  account_name: string | null;
+  nickname: string | null;
+  marketplace: string | null;
+  auth_status: string | null;
+  ml_user_id: string | null;
+  is_active: boolean | null;
+  last_sync_at: string | null;
+};
+
 type StatusFilter = "all" | "active" | "paused";
+
+const CONNECTED_VALUES = new Set([
+  "connected", "conectada", "conectado",
+  "active", "ativa", "ativo",
+  "authorized", "autorizada", "autorizado",
+]);
+
+function isMercadoLivre(value: string | null | undefined): boolean {
+  const k = (value ?? "").toLowerCase().replace(/[\s-]/g, "_");
+  return k === "mercado_livre" || k === "mercadolivre" || k === "ml";
+}
+
+function accountIsConnected(a: Account): boolean {
+  const s = (a.auth_status ?? "").toLowerCase();
+  if (CONNECTED_VALUES.has(s)) return true;
+  if (a.is_active && (a.ml_user_id || a.last_sync_at)) return true;
+  return false;
+}
 
 function fmtPrice(v: number | null) {
   if (v == null) return "—";
@@ -92,6 +123,9 @@ function StatusBadge({ status, is_active }: { status: string | null; is_active: 
 }
 
 function InteligenciaProdutos() {
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -101,27 +135,66 @@ function InteligenciaProdutos() {
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
 
-  async function loadData() {
+  const selectedAccount = useMemo(
+    () => accounts.find((a) => a.id === selectedAccountId) || null,
+    [accounts, selectedAccountId],
+  );
+  const selectedConnected = selectedAccount ? accountIsConnected(selectedAccount) : false;
+
+  async function loadAccounts() {
+    setLoadingAccounts(true);
+    try {
+      const { data, error: aerr } = await supabase
+        .from("ecommerce_accounts")
+        .select("id, account_name, nickname, marketplace, auth_status, ml_user_id, is_active, last_sync_at")
+        .eq("company_id", COMPANY_ID)
+        .eq("is_active", true)
+        .order("account_name", { ascending: true });
+      if (aerr) throw aerr;
+      const list = ((data as Account[]) ?? []).filter((a) => isMercadoLivre(a.marketplace));
+      setAccounts(list);
+      if (list.length && !selectedAccountId) {
+        const nightled = list.find((a) =>
+          (a.account_name || "").toLowerCase().includes("nightled") ||
+          (a.account_name || "").toLowerCase().includes("night led"),
+        );
+        const firstConnected = list.find(accountIsConnected);
+        setSelectedAccountId((nightled && accountIsConnected(nightled) ? nightled : firstConnected || list[0]).id);
+      }
+    } catch (e: any) {
+      setError(e?.message || "Erro ao carregar contas.");
+    } finally {
+      setLoadingAccounts(false);
+    }
+  }
+
+  async function loadData(accountId: string) {
     setLoading(true);
     setError(null);
     try {
-      const [{ data: prod, error: ep }, { data: list, error: el }] = await Promise.all([
-        supabase
+      const { data: list, error: el } = await supabase
+        .from("ecommerce_listings")
+        .select("id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at")
+        .eq("company_id", COMPANY_ID)
+        .eq("account_id", accountId)
+        .order("updated_at", { ascending: false });
+      if (el) throw el;
+      const ls = (list || []) as Listing[];
+      setListings(ls);
+
+      const productIds = Array.from(new Set(ls.map((l) => l.product_id).filter(Boolean))) as string[];
+      if (productIds.length === 0) {
+        setProducts([]);
+      } else {
+        const { data: prod, error: ep } = await supabase
           .from("ecommerce_products")
           .select("id,sku,product_name,category,sale_price,status,is_active,updated_at")
           .eq("company_id", COMPANY_ID)
-          .order("updated_at", { ascending: false }),
-        supabase
-          .from("ecommerce_listings")
-          .select("id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at")
-          .eq("company_id", COMPANY_ID)
-          .eq("account_id", ACCOUNT_ID)
-          .order("updated_at", { ascending: false }),
-      ]);
-      if (ep) throw ep;
-      if (el) throw el;
-      setProducts((prod || []) as Product[]);
-      setListings((list || []) as Listing[]);
+          .in("id", productIds)
+          .order("updated_at", { ascending: false });
+        if (ep) throw ep;
+        setProducts((prod || []) as Product[]);
+      }
     } catch (e: any) {
       setError(e?.message || "Erro ao carregar dados.");
     } finally {
@@ -130,20 +203,28 @@ function InteligenciaProdutos() {
   }
 
   useEffect(() => {
-    loadData();
-    const onProductsSynced = () => loadData();
-    window.addEventListener("mercadolivre-products-synced", onProductsSynced);
-    return () => window.removeEventListener("mercadolivre-products-synced", onProductsSynced);
+    void loadAccounts();
   }, []);
 
+  useEffect(() => {
+    if (selectedAccountId) void loadData(selectedAccountId);
+    const onProductsSynced = () => {
+      if (selectedAccountId) void loadData(selectedAccountId);
+    };
+    window.addEventListener("mercadolivre-products-synced", onProductsSynced);
+    return () => window.removeEventListener("mercadolivre-products-synced", onProductsSynced);
+  }, [selectedAccountId]);
+
   async function handleSync() {
-    if (syncing) return;
+    if (syncing || !selectedAccountId) return;
     setSyncing(true);
     setSyncMessage(null);
     try {
-      const res = await fetch(
-        "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products-test"
-      );
+      const res = await fetch(SYNC_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ company_id: COMPANY_ID, account_id: selectedAccountId }),
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       console.log("Resposta sincronização Mercado Livre:", data);
@@ -152,7 +233,7 @@ function InteligenciaProdutos() {
       }
       const productsUpserted = data.result?.products_upserted ?? 0;
       const listingsUpserted = data.result?.listings_upserted ?? 0;
-      await loadData();
+      await loadData(selectedAccountId);
       setSyncMessage({
         kind: "success",
         text: `Sincronização concluída: ${productsUpserted} produtos e ${listingsUpserted} anúncios atualizados.`,
@@ -169,19 +250,15 @@ function InteligenciaProdutos() {
   }
 
   const totals = useMemo(() => {
-    const pActive = products.filter((p) => isActiveLike(p.status, p.is_active)).length;
-    const pPaused = products.filter((p) => isPausedLike(p.status, p.is_active)).length;
     const lActive = listings.filter((l) => isActiveLike(l.status, l.is_active)).length;
     const lPaused = listings.filter((l) => isPausedLike(l.status, l.is_active)).length;
     return {
-      products: products.length,
-      pActive,
-      pPaused,
       listings: listings.length,
       lActive,
       lPaused,
+      products: products.length,
     };
-  }, [products, listings]);
+  }, [listings, products]);
 
   const matchStatus = (s: string | null, a: boolean | null) => {
     if (statusFilter === "all") return true;
@@ -200,7 +277,7 @@ function InteligenciaProdutos() {
           (p.sku || "").toLowerCase().includes(q)
         );
       }),
-    [products, statusFilter, q]
+    [products, statusFilter, q],
   );
   const filteredListings = useMemo(
     () =>
@@ -212,17 +289,17 @@ function InteligenciaProdutos() {
           (l.ml_item_id || "").toLowerCase().includes(q)
         );
       }),
-    [listings, statusFilter, q]
+    [listings, statusFilter, q],
   );
 
   const kpis = [
-    { label: "Total de produtos", value: totals.products, icon: Package, accent: "from-blue-700 to-blue-900" },
-    { label: "Produtos ativos", value: totals.pActive, icon: CheckCircle2, accent: "from-emerald-600 to-emerald-800" },
-    { label: "Produtos pausados", value: totals.pPaused, icon: PauseCircle, accent: "from-amber-600 to-orange-700" },
     { label: "Total de anúncios", value: totals.listings, icon: Megaphone, accent: "from-indigo-600 to-indigo-800" },
     { label: "Anúncios ativos", value: totals.lActive, icon: CheckCircle2, accent: "from-emerald-600 to-emerald-800" },
     { label: "Anúncios pausados", value: totals.lPaused, icon: PauseCircle, accent: "from-amber-600 to-orange-700" },
+    { label: "Produtos vinculados", value: totals.products, icon: Package, accent: "from-blue-700 to-blue-900" },
   ];
+
+  const emptyAccount = !loading && selectedAccount && listings.length === 0;
 
   return (
     <EcommerceLayout>
@@ -232,19 +309,71 @@ function InteligenciaProdutos() {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
               <Store className="h-3.5 w-3.5" />
-              Conta NIGHT LED · Mercado Livre
+              Contas Mercado Livre · ROBOMIX
             </div>
             <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
               Produtos e Anúncios
             </h1>
             <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
-              Produtos e anúncios sincronizados da conta NIGHT LED no Mercado Livre.
-            </p>
-            <p className="text-xs text-muted-foreground">
-              Dados reais importados via integração oficial com Mercado Livre.
+              Visualize produtos e anúncios sincronizados por conta Mercado Livre da ROBOMIX.
             </p>
           </div>
         </header>
+
+        {/* Account selector */}
+        <section className="rounded-2xl border border-border/60 bg-card p-4 shadow-[var(--shadow-soft)] flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 text-white">
+              <Store className="h-4 w-4" />
+            </div>
+            <label htmlFor="account-select" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Conta Mercado Livre
+            </label>
+          </div>
+          <select
+            id="account-select"
+            value={selectedAccountId ?? ""}
+            onChange={(e) => setSelectedAccountId(e.target.value || null)}
+            disabled={loadingAccounts || accounts.length === 0}
+            className="rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium outline-none focus:border-blue-500 min-w-[260px]"
+          >
+            {loadingAccounts && <option>Carregando contas…</option>}
+            {!loadingAccounts && accounts.length === 0 && <option>Nenhuma conta encontrada</option>}
+            {accounts.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.account_name || a.nickname || a.id}
+              </option>
+            ))}
+          </select>
+
+          {selectedAccount && (
+            selectedConnected ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Conectada
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+                <Link2 className="h-3.5 w-3.5" />
+                Aguardando conexão
+              </span>
+            )
+          )}
+
+          <div className="ml-auto">
+            {selectedAccount && selectedConnected && (
+              <button
+                type="button"
+                onClick={handleSync}
+                disabled={syncing}
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-blue-800 disabled:opacity-60"
+              >
+                {syncing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
+                {syncing ? "Sincronizando…" : "Sincronizar produtos desta conta"}
+              </button>
+            )}
+          </div>
+        </section>
 
         {syncMessage && (
           <div
@@ -265,7 +394,7 @@ function InteligenciaProdutos() {
         )}
 
         {/* KPIs */}
-        <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {kpis.map((k) => {
             const Icon = k.icon;
             return (
@@ -292,206 +421,201 @@ function InteligenciaProdutos() {
           })}
         </section>
 
-        {/* Filters */}
-        <section className="rounded-2xl border border-border/60 bg-card p-4 shadow-[var(--shadow-soft)] flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[240px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por nome, SKU, título ou ML Item ID"
-              className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm outline-none focus:border-blue-500"
-            />
-          </div>
-          <div className="inline-flex rounded-lg border border-border bg-muted/30 p-1">
-            {([
-              { k: "all", label: "Todos" },
-              { k: "active", label: "Ativos" },
-              { k: "paused", label: "Pausados" },
-            ] as { k: StatusFilter; label: string }[]).map((opt) => (
-              <button
-                key={opt.k}
-                type="button"
-                onClick={() => setStatusFilter(opt.k)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-                  statusFilter === opt.k
-                    ? "bg-blue-700 text-white shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Products table */}
-        <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-700 text-white">
-                <Package className="h-3.5 w-3.5" />
-              </div>
-              <div>
-                <h2 className="font-display text-lg font-bold text-foreground">Produtos</h2>
-                <p className="text-xs text-muted-foreground">
-                  {filteredProducts.length} de {products.length} produto(s)
-                </p>
-              </div>
+        {emptyAccount ? (
+          <section className="rounded-2xl border border-dashed border-border bg-card p-10 text-center shadow-[var(--shadow-soft)]">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700 mb-3">
+              <Megaphone className="h-6 w-6" />
             </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  {["SKU", "Produto", "Categoria", "Preço", "Status", "Ativo", "Atualizado em"].map((c) => (
-                    <th key={c} className="px-5 py-3 text-left font-semibold whitespace-nowrap">
-                      {c}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={7} className="px-5 py-12 text-center text-sm text-muted-foreground">
-                      <Loader2 className="mx-auto h-5 w-5 animate-spin" />
-                    </td>
-                  </tr>
-                ) : filteredProducts.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-5 py-16 text-center">
-                      <div className="mx-auto max-w-md space-y-2">
-                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-                          <Package className="h-6 w-6" />
-                        </div>
-                        <div className="font-display text-base font-semibold text-foreground">
-                          {products.length === 0
-                            ? "Produtos ainda não sincronizados"
-                            : "Nenhum produto corresponde aos filtros"}
-                        </div>
-                        {products.length === 0 && (
-                          <p className="text-sm text-muted-foreground">
-                            Aguarde a próxima sincronização ou execute a integração manualmente.
-                          </p>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredProducts.map((p) => (
-                    <tr key={p.id} className="border-t border-border/60 hover:bg-muted/20">
-                      <td className="px-5 py-3 font-mono text-xs">{p.sku || "—"}</td>
-                      <td className="px-5 py-3">{p.product_name || "—"}</td>
-                      <td className="px-5 py-3 text-muted-foreground">{p.category || "—"}</td>
-                      <td className="px-5 py-3 font-semibold">{fmtPrice(p.sale_price)}</td>
-                      <td className="px-5 py-3">
-                        <StatusBadge status={p.status} is_active={p.is_active} />
-                      </td>
-                      <td className="px-5 py-3 text-muted-foreground">
-                        {p.is_active === true ? "Sim" : p.is_active === false ? "Não" : "—"}
-                      </td>
-                      <td className="px-5 py-3 text-xs text-muted-foreground whitespace-nowrap">
-                        {fmtDate(p.updated_at)}
-                      </td>
+            <h3 className="font-display text-lg font-bold text-foreground">
+              Esta conta ainda não possui produtos sincronizados.
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
+              {selectedConnected
+                ? "Realize a primeira sincronização para visualizar os anúncios desta conta."
+                : "Conecte a conta Mercado Livre e realize a primeira sincronização para visualizar os anúncios."}
+            </p>
+          </section>
+        ) : (
+          <>
+            {/* Filters */}
+            <section className="rounded-2xl border border-border/60 bg-card p-4 shadow-[var(--shadow-soft)] flex flex-wrap items-center gap-3">
+              <div className="relative flex-1 min-w-[240px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Buscar por nome, SKU, título ou ML Item ID"
+                  className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm outline-none focus:border-blue-500"
+                />
+              </div>
+              <div className="inline-flex rounded-lg border border-border bg-muted/30 p-1">
+                {([
+                  { k: "all", label: "Todos" },
+                  { k: "active", label: "Ativos" },
+                  { k: "paused", label: "Pausados" },
+                ] as { k: StatusFilter; label: string }[]).map((opt) => (
+                  <button
+                    key={opt.k}
+                    type="button"
+                    onClick={() => setStatusFilter(opt.k)}
+                    className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+                      statusFilter === opt.k
+                        ? "bg-blue-700 text-white shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            {/* Products table */}
+            <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
+              <div className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-700 text-white">
+                    <Package className="h-3.5 w-3.5" />
+                  </div>
+                  <div>
+                    <h2 className="font-display text-lg font-bold text-foreground">Produtos vinculados</h2>
+                    <p className="text-xs text-muted-foreground">
+                      {filteredProducts.length} de {products.length} produto(s)
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
+                      {["SKU", "Produto", "Categoria", "Preço", "Status", "Ativo", "Atualizado em"].map((c) => (
+                        <th key={c} className="px-5 py-3 text-left font-semibold whitespace-nowrap">
+                          {c}
+                        </th>
+                      ))}
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        {/* Listings table */}
-        <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
-          <div className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-700 text-white">
-                <Megaphone className="h-3.5 w-3.5" />
-              </div>
-              <div>
-                <h2 className="font-display text-lg font-bold text-foreground">Anúncios</h2>
-                <p className="text-xs text-muted-foreground">
-                  {filteredListings.length} de {listings.length} anúncio(s)
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  {["Título", "ML Item ID", "Preço", "Status", "Atualizado em", "Link"].map((c) => (
-                    <th key={c} className="px-5 py-3 text-left font-semibold whitespace-nowrap">
-                      {c}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={6} className="px-5 py-12 text-center text-sm text-muted-foreground">
-                      <Loader2 className="mx-auto h-5 w-5 animate-spin" />
-                    </td>
-                  </tr>
-                ) : filteredListings.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-5 py-16 text-center">
-                      <div className="mx-auto max-w-md space-y-2">
-                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-700">
-                          <Megaphone className="h-6 w-6" />
-                        </div>
-                        <div className="font-display text-base font-semibold text-foreground">
-                          {listings.length === 0
-                            ? "Anúncios ainda não sincronizados"
-                            : "Nenhum anúncio corresponde aos filtros"}
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredListings.map((l) => {
-                    const url = l.listing_url || l.external_url;
-                    return (
-                      <tr key={l.id} className="border-t border-border/60 hover:bg-muted/20">
-                        <td className="px-5 py-3 max-w-[420px]">
-                          <div className="truncate" title={l.title || ""}>
-                            {l.title || "—"}
-                          </div>
-                        </td>
-                        <td className="px-5 py-3 font-mono text-xs">{l.ml_item_id || "—"}</td>
-                        <td className="px-5 py-3 font-semibold">{fmtPrice(l.price)}</td>
-                        <td className="px-5 py-3">
-                          <StatusBadge status={l.status} is_active={l.is_active} />
-                        </td>
-                        <td className="px-5 py-3 text-xs text-muted-foreground whitespace-nowrap">
-                          {fmtDate(l.updated_at)}
-                        </td>
-                        <td className="px-5 py-3">
-                          {url ? (
-                            <a
-                              href={url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100"
-                            >
-                              Abrir anúncio
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          )}
+                  </thead>
+                  <tbody>
+                    {loading ? (
+                      <tr>
+                        <td colSpan={7} className="px-5 py-12 text-center text-sm text-muted-foreground">
+                          <Loader2 className="mx-auto h-5 w-5 animate-spin" />
                         </td>
                       </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-        </section>
+                    ) : filteredProducts.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="px-5 py-12 text-center text-sm text-muted-foreground">
+                          Nenhum produto corresponde aos filtros.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredProducts.map((p) => (
+                        <tr key={p.id} className="border-t border-border/60 hover:bg-muted/20">
+                          <td className="px-5 py-3 font-mono text-xs">{p.sku || "—"}</td>
+                          <td className="px-5 py-3">{p.product_name || "—"}</td>
+                          <td className="px-5 py-3 text-muted-foreground">{p.category || "—"}</td>
+                          <td className="px-5 py-3 font-semibold">{fmtPrice(p.sale_price)}</td>
+                          <td className="px-5 py-3">
+                            <StatusBadge status={p.status} is_active={p.is_active} />
+                          </td>
+                          <td className="px-5 py-3 text-muted-foreground">
+                            {p.is_active === true ? "Sim" : p.is_active === false ? "Não" : "—"}
+                          </td>
+                          <td className="px-5 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                            {fmtDate(p.updated_at)}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            {/* Listings table */}
+            <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
+              <div className="flex items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
+                <div className="flex items-center gap-2">
+                  <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-700 text-white">
+                    <Megaphone className="h-3.5 w-3.5" />
+                  </div>
+                  <div>
+                    <h2 className="font-display text-lg font-bold text-foreground">Anúncios</h2>
+                    <p className="text-xs text-muted-foreground">
+                      {filteredListings.length} de {listings.length} anúncio(s)
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
+                      {["Título", "ML Item ID", "Preço", "Status", "Atualizado em", "Link"].map((c) => (
+                        <th key={c} className="px-5 py-3 text-left font-semibold whitespace-nowrap">
+                          {c}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loading ? (
+                      <tr>
+                        <td colSpan={6} className="px-5 py-12 text-center text-sm text-muted-foreground">
+                          <Loader2 className="mx-auto h-5 w-5 animate-spin" />
+                        </td>
+                      </tr>
+                    ) : filteredListings.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-5 py-12 text-center text-sm text-muted-foreground">
+                          Nenhum anúncio corresponde aos filtros.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredListings.map((l) => {
+                        const url = l.listing_url || l.external_url;
+                        return (
+                          <tr key={l.id} className="border-t border-border/60 hover:bg-muted/20">
+                            <td className="px-5 py-3 max-w-[420px]">
+                              <div className="truncate" title={l.title || ""}>
+                                {l.title || "—"}
+                              </div>
+                            </td>
+                            <td className="px-5 py-3 font-mono text-xs">{l.ml_item_id || "—"}</td>
+                            <td className="px-5 py-3 font-semibold">{fmtPrice(l.price)}</td>
+                            <td className="px-5 py-3">
+                              <StatusBadge status={l.status} is_active={l.is_active} />
+                            </td>
+                            <td className="px-5 py-3 text-xs text-muted-foreground whitespace-nowrap">
+                              {fmtDate(l.updated_at)}
+                            </td>
+                            <td className="px-5 py-3">
+                              {url ? (
+                                <a
+                                  href={url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+                                >
+                                  Abrir anúncio
+                                  <ExternalLink className="h-3 w-3" />
+                                </a>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </>
+        )}
 
         <div className="flex items-start gap-2 rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
           <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-blue-700" />

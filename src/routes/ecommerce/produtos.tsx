@@ -302,31 +302,23 @@ function InteligenciaProdutosInner() {
           </div>
         </header>
 
-        {/* Account selector */}
+        {/* Active account summary + sync */}
         <section className="rounded-2xl border border-border/60 bg-card p-4 shadow-[var(--shadow-soft)] flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 text-white">
               <Store className="h-4 w-4" />
             </div>
-            <label htmlFor="account-select" className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Conta Mercado Livre
-            </label>
+            <div className="flex flex-col leading-tight">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Conta ativa
+              </span>
+              <span className="text-sm font-bold text-foreground">
+                {loadingAccounts
+                  ? "Carregando…"
+                  : selectedAccount?.account_name || selectedAccount?.nickname || "Nenhuma conta selecionada"}
+              </span>
+            </div>
           </div>
-          <select
-            id="account-select"
-            value={selectedAccountId ?? ""}
-            onChange={(e) => setSelectedAccountId(e.target.value || null)}
-            disabled={loadingAccounts || accounts.length === 0}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium outline-none focus:border-blue-500 min-w-[260px]"
-          >
-            {loadingAccounts && <option>Carregando contas…</option>}
-            {!loadingAccounts && accounts.length === 0 && <option>Nenhuma conta encontrada</option>}
-            {accounts.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.account_name || a.nickname || a.id}
-              </option>
-            ))}
-          </select>
 
           {selectedAccount && (
             selectedConnected ? (
@@ -342,6 +334,10 @@ function InteligenciaProdutosInner() {
             )
           )}
 
+          <span className="hidden md:inline text-[11px] text-muted-foreground">
+            Use o seletor no topo para trocar a conta ativa do módulo.
+          </span>
+
           <div className="ml-auto">
             {selectedAccount && selectedConnected && (
               <button
@@ -356,6 +352,7 @@ function InteligenciaProdutosInner() {
             )}
           </div>
         </section>
+
 
         {syncMessage && (
           <div

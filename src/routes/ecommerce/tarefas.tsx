@@ -180,9 +180,11 @@ function TarefasOperadores() {
   const loadTasks = useCallback(async () => {
     if (!activeAccountId) {
       setTasks([]);
+      setLastError(null);
       return;
     }
     setLoading(true);
+    setLastError(null);
     try {
       // eslint-disable-next-line no-console
       console.debug("[tarefas] querying ecommerce_tasks", {
@@ -200,6 +202,7 @@ function TarefasOperadores() {
       if (error) {
         // eslint-disable-next-line no-console
         console.error("[tarefas] supabase error", error);
+        setLastError(error.message || String(error));
         throw error;
       }
       // eslint-disable-next-line no-console
@@ -208,12 +211,13 @@ function TarefasOperadores() {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("[tarefas] load failed", err);
+      if (!lastError) setLastError(err instanceof Error ? err.message : String(err));
       toast.error("Não foi possível carregar as tarefas.");
       setTasks([]);
     } finally {
       setLoading(false);
     }
-  }, [activeAccountId]);
+  }, [activeAccountId, lastError]);
 
   useEffect(() => {
     void loadTasks();

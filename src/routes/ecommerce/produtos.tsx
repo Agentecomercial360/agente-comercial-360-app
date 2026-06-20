@@ -124,9 +124,21 @@ function StatusBadge({ status, is_active }: { status: string | null; is_active: 
 }
 
 function InteligenciaProdutos() {
-  const [accounts, setAccounts] = useState<Account[]>([]);
-  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
-  const [loadingAccounts, setLoadingAccounts] = useState(true);
+  return (
+    <EcommerceLayout>
+      <InteligenciaProdutosInner />
+    </EcommerceLayout>
+  );
+}
+
+function InteligenciaProdutosInner() {
+  const {
+    accounts,
+    loading: loadingAccounts,
+    activeAccount: selectedAccount,
+    activeAccountId: selectedAccountId,
+    isActiveConnected: selectedConnected,
+  } = useEcommerceActiveAccount();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -136,38 +148,6 @@ function InteligenciaProdutos() {
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<{ kind: "success" | "error"; text: string } | null>(null);
 
-  const selectedAccount = useMemo(
-    () => accounts.find((a) => a.id === selectedAccountId) || null,
-    [accounts, selectedAccountId],
-  );
-  const selectedConnected = selectedAccount ? accountIsConnected(selectedAccount) : false;
-
-  async function loadAccounts() {
-    setLoadingAccounts(true);
-    try {
-      const { data, error: aerr } = await supabase
-        .from("ecommerce_accounts")
-        .select("id, account_name, nickname, marketplace, auth_status, ml_user_id, is_active, last_sync_at")
-        .eq("company_id", COMPANY_ID)
-        .eq("is_active", true)
-        .order("account_name", { ascending: true });
-      if (aerr) throw aerr;
-      const list = ((data as Account[]) ?? []).filter((a) => isMercadoLivre(a.marketplace));
-      setAccounts(list);
-      if (list.length && !selectedAccountId) {
-        const nightled = list.find((a) =>
-          (a.account_name || "").toLowerCase().includes("nightled") ||
-          (a.account_name || "").toLowerCase().includes("night led"),
-        );
-        const firstConnected = list.find(accountIsConnected);
-        setSelectedAccountId((nightled && accountIsConnected(nightled) ? nightled : firstConnected || list[0]).id);
-      }
-    } catch (e: any) {
-      setError(e?.message || "Erro ao carregar contas.");
-    } finally {
-      setLoadingAccounts(false);
-    }
-  }
 
   async function loadData(accountId: string) {
     setLoading(true);

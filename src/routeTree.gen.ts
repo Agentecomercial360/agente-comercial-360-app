@@ -30,6 +30,7 @@ import { Route as EcommerceIndexRouteImport } from './routes/ecommerce/index'
 import { Route as EcommerceTarefasRouteImport } from './routes/ecommerce/tarefas'
 import { Route as EcommerceResultadosRouteImport } from './routes/ecommerce/resultados'
 import { Route as EcommerceProdutosTravadosRouteImport } from './routes/ecommerce/produtos-travados'
+import { Route as EcommerceProdutosEstrategicosRouteImport } from './routes/ecommerce/produtos-estrategicos'
 import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produtos'
 import { Route as EcommercePrioridadesRouteImport } from './routes/ecommerce/prioridades'
 import { Route as EcommerceMapaVendasRouteImport } from './routes/ecommerce/mapa-vendas'
@@ -154,6 +155,12 @@ const EcommerceProdutosTravadosRoute =
   EcommerceProdutosTravadosRouteImport.update({
     id: '/ecommerce/produtos-travados',
     path: '/ecommerce/produtos-travados',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const EcommerceProdutosEstrategicosRoute =
+  EcommerceProdutosEstrategicosRouteImport.update({
+    id: '/ecommerce/produtos-estrategicos',
+    path: '/ecommerce/produtos-estrategicos',
     getParentRoute: () => rootRouteImport,
   } as any)
 const EcommerceProdutosRoute = EcommerceProdutosRouteImport.update({
@@ -289,6 +296,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce/mapa-vendas': typeof EcommerceMapaVendasRoute
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
+  '/ecommerce/produtos-estrategicos': typeof EcommerceProdutosEstrategicosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
   '/ecommerce/resultados': typeof EcommerceResultadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
@@ -331,6 +339,7 @@ export interface FileRoutesByTo {
   '/ecommerce/mapa-vendas': typeof EcommerceMapaVendasRoute
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
+  '/ecommerce/produtos-estrategicos': typeof EcommerceProdutosEstrategicosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
   '/ecommerce/resultados': typeof EcommerceResultadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
@@ -374,6 +383,7 @@ export interface FileRoutesById {
   '/ecommerce/mapa-vendas': typeof EcommerceMapaVendasRoute
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
+  '/ecommerce/produtos-estrategicos': typeof EcommerceProdutosEstrategicosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
   '/ecommerce/resultados': typeof EcommerceResultadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
@@ -418,6 +428,7 @@ export interface FileRouteTypes {
     | '/ecommerce/mapa-vendas'
     | '/ecommerce/prioridades'
     | '/ecommerce/produtos'
+    | '/ecommerce/produtos-estrategicos'
     | '/ecommerce/produtos-travados'
     | '/ecommerce/resultados'
     | '/ecommerce/tarefas'
@@ -460,6 +471,7 @@ export interface FileRouteTypes {
     | '/ecommerce/mapa-vendas'
     | '/ecommerce/prioridades'
     | '/ecommerce/produtos'
+    | '/ecommerce/produtos-estrategicos'
     | '/ecommerce/produtos-travados'
     | '/ecommerce/resultados'
     | '/ecommerce/tarefas'
@@ -502,6 +514,7 @@ export interface FileRouteTypes {
     | '/ecommerce/mapa-vendas'
     | '/ecommerce/prioridades'
     | '/ecommerce/produtos'
+    | '/ecommerce/produtos-estrategicos'
     | '/ecommerce/produtos-travados'
     | '/ecommerce/resultados'
     | '/ecommerce/tarefas'
@@ -545,6 +558,7 @@ export interface RootRouteChildren {
   EcommerceMapaVendasRoute: typeof EcommerceMapaVendasRoute
   EcommercePrioridadesRoute: typeof EcommercePrioridadesRoute
   EcommerceProdutosRoute: typeof EcommerceProdutosRoute
+  EcommerceProdutosEstrategicosRoute: typeof EcommerceProdutosEstrategicosRoute
   EcommerceProdutosTravadosRoute: typeof EcommerceProdutosTravadosRoute
   EcommerceResultadosRoute: typeof EcommerceResultadosRoute
   EcommerceTarefasRoute: typeof EcommerceTarefasRoute
@@ -698,6 +712,13 @@ declare module '@tanstack/react-router' {
       path: '/ecommerce/produtos-travados'
       fullPath: '/ecommerce/produtos-travados'
       preLoaderRoute: typeof EcommerceProdutosTravadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/produtos-estrategicos': {
+      id: '/ecommerce/produtos-estrategicos'
+      path: '/ecommerce/produtos-estrategicos'
+      fullPath: '/ecommerce/produtos-estrategicos'
+      preLoaderRoute: typeof EcommerceProdutosEstrategicosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ecommerce/produtos': {
@@ -873,6 +894,7 @@ const rootRouteChildren: RootRouteChildren = {
   EcommerceMapaVendasRoute: EcommerceMapaVendasRoute,
   EcommercePrioridadesRoute: EcommercePrioridadesRoute,
   EcommerceProdutosRoute: EcommerceProdutosRoute,
+  EcommerceProdutosEstrategicosRoute: EcommerceProdutosEstrategicosRoute,
   EcommerceProdutosTravadosRoute: EcommerceProdutosTravadosRoute,
   EcommerceResultadosRoute: EcommerceResultadosRoute,
   EcommerceTarefasRoute: EcommerceTarefasRoute,

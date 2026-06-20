@@ -184,8 +184,9 @@ function InteligenciaProdutosInner() {
   }
 
   useEffect(() => {
-    void loadAccounts();
-  }, []);
+    if (!selectedAccountId) setLoading(false);
+  }, [selectedAccountId]);
+
 
   useEffect(() => {
     if (selectedAccountId) void loadData(selectedAccountId);

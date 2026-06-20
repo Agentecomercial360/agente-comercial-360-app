@@ -175,6 +175,7 @@ function TarefasOperadores() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const loadTasks = useCallback(async () => {
     if (!activeAccountId) {

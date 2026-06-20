@@ -335,6 +335,25 @@ function TarefasOperadores() {
           )}
         </header>
 
+        {/* Diagnóstico temporário */}
+        <section className="rounded-xl border border-dashed border-blue-300 bg-blue-50/40 p-3 text-[11px] text-blue-900">
+          <div className="font-semibold uppercase tracking-wider text-blue-700 mb-1">
+            Diagnóstico (temporário)
+          </div>
+          <div className="grid gap-1 md:grid-cols-2">
+            <div><span className="font-medium">activeAccountId:</span> <code>{activeAccountId ?? "null"}</code></div>
+            <div><span className="font-medium">company_id:</span> <code>{ECOMMERCE_COMPANY_ID}</code></div>
+            <div><span className="font-medium">tarefas retornadas:</span> <code>{tasks.length}</code></div>
+            <div><span className="font-medium">loading:</span> <code>{String(loading || accLoading)}</code></div>
+            {lastError && (
+              <div className="md:col-span-2 text-red-700">
+                <span className="font-medium">erro supabase:</span> <code>{lastError}</code>
+              </div>
+            )}
+          </div>
+        </section>
+
+
         {/* Pending account state */}
         {showPending ? (
           <section className="rounded-2xl border border-amber-200 bg-amber-50/50 p-8 text-center shadow-[var(--shadow-soft)]">

@@ -183,16 +183,30 @@ function TarefasOperadores() {
     }
     setLoading(true);
     try {
+      // eslint-disable-next-line no-console
+      console.debug("[tarefas] querying ecommerce_tasks", {
+        company_id: ECOMMERCE_COMPANY_ID,
+        account_id: activeAccountId,
+      });
       const { data, error } = await supabase
         .from("ecommerce_tasks")
         .select(
           "id, company_id, account_id, product_id, listing_id, insight_id, task_title, task_description, task_type, priority, status, responsible_name, responsible_email, due_date, expected_impact, result_summary, created_by, completed_at, created_at, updated_at",
         )
         .eq("company_id", ECOMMERCE_COMPANY_ID)
-        .eq("account_id", activeAccountId);
-      if (error) throw error;
+        .eq("account_id", activeAccountId)
+        .order("created_at", { ascending: false });
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.error("[tarefas] supabase error", error);
+        throw error;
+      }
+      // eslint-disable-next-line no-console
+      console.debug("[tarefas] rows returned:", data?.length ?? 0);
       setTasks((data as EcommerceTask[]) ?? []);
-    } catch {
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[tarefas] load failed", err);
       toast.error("Não foi possível carregar as tarefas.");
       setTasks([]);
     } finally {

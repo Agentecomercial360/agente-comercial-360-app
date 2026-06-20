@@ -164,7 +164,63 @@ function SidebarNav({ path, signingOut, onSignOut, onNavigate }: SidebarNavProps
   );
 }
 
-export function EcommerceLayout({ children }: { children: ReactNode }) {
+function ActiveAccountSelector() {
+  const { accounts, loading, activeAccountId, activeAccount, isActiveConnected, setActiveAccountId } =
+    useEcommerceActiveAccount();
+
+  if (loading && accounts.length === 0) {
+    return (
+      <div className="hidden md:flex items-center gap-2 rounded-xl border border-border/60 bg-card px-3 py-1.5 text-xs text-muted-foreground">
+        <Store className="h-3.5 w-3.5" />
+        Carregando contas…
+      </div>
+    );
+  }
+  if (accounts.length === 0) return null;
+
+  return (
+    <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-card px-2.5 py-1.5 shadow-[var(--shadow-soft)]">
+      <div className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-700 text-white shrink-0">
+        <Store className="h-3.5 w-3.5" />
+      </div>
+      <div className="hidden md:flex flex-col leading-tight pr-1">
+        <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Conta ativa
+        </span>
+      </div>
+      <div className="relative">
+        <select
+          aria-label="Conta Mercado Livre ativa"
+          value={activeAccountId ?? ""}
+          onChange={(e) => setActiveAccountId(e.target.value || null)}
+          className="appearance-none rounded-lg bg-transparent pl-2 pr-7 py-1 text-xs font-semibold text-foreground outline-none cursor-pointer hover:bg-muted/60 focus:bg-muted/60 max-w-[200px]"
+        >
+          {accounts.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.account_name || a.nickname || a.id}
+            </option>
+          ))}
+        </select>
+        <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+      </div>
+      {activeAccount && (
+        isActiveConnected ? (
+          <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+            <CheckCircle2 className="h-3 w-3" />
+            Conectada
+          </span>
+        ) : (
+          <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+            <Link2 className="h-3 w-3" />
+            Aguardando conexão
+          </span>
+        )
+      )}
+    </div>
+  );
+}
+
+function EcommerceLayoutInner({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [signingOut, setSigningOut] = useState(false);

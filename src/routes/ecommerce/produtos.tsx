@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 
 export const Route = createFileRoute("/ecommerce/produtos")({
   component: InteligenciaProdutos,

@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
   ECOMMERCE_COMPANY_ID,
+  isAccountConnected,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
@@ -166,9 +167,25 @@ function formatDate(iso: string | null): string {
   }
 }
 
+const ROBOMIX_NIGHTLED_ACCOUNT_ID = "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4";
+
 function TarefasOperadores() {
-  const { activeAccount, activeAccountId, isActiveConnected, loading: accLoading } =
-    useEcommerceActiveAccount();
+  return (
+    <EcommerceLayout>
+      <TarefasOperadoresContent />
+    </EcommerceLayout>
+  );
+}
+
+function TarefasOperadoresContent() {
+  const {
+    accounts,
+    activeAccount,
+    activeAccountId,
+    isActiveConnected,
+    loading: accLoading,
+    setActiveAccountId,
+  } = useEcommerceActiveAccount();
 
   const [tasks, setTasks] = useState<EcommerceTask[]>([]);
   const [loading, setLoading] = useState(false);
@@ -177,8 +194,38 @@ function TarefasOperadores() {
   const [search, setSearch] = useState("");
   const [lastError, setLastError] = useState<string | null>(null);
 
+  const resolvedActiveAccountId = useMemo(() => {
+    if (activeAccount?.id) return activeAccount.id;
+    if (activeAccountId) return activeAccountId;
+
+    const connectedNightled = accounts.find(
+      (account) =>
+        isAccountConnected(account) &&
+        (account.account_name || account.nickname || "")
+          .toLowerCase()
+          .includes("nightled"),
+    );
+    if (connectedNightled?.id) return connectedNightled.id;
+
+    const firstConnected = accounts.find(isAccountConnected);
+    if (firstConnected?.id) return firstConnected.id;
+
+    if (!accLoading && ECOMMERCE_COMPANY_ID === "ac7d24b9-5227-46ac-9ced-b66473422a17") {
+      return ROBOMIX_NIGHTLED_ACCOUNT_ID;
+    }
+
+    return null;
+  }, [accLoading, accounts, activeAccount, activeAccountId]);
+
+  useEffect(() => {
+    if (!activeAccountId && resolvedActiveAccountId) {
+      setActiveAccountId(resolvedActiveAccountId);
+    }
+  }, [activeAccountId, resolvedActiveAccountId, setActiveAccountId]);
+
   const loadTasks = useCallback(async () => {
-    if (!activeAccountId) {
+    if (accLoading) return;
+    if (!resolvedActiveAccountId) {
       setTasks([]);
       setLastError(null);
       return;
@@ -189,7 +236,7 @@ function TarefasOperadores() {
       // eslint-disable-next-line no-console
       console.debug("[tarefas] querying ecommerce_tasks", {
         company_id: ECOMMERCE_COMPANY_ID,
-        account_id: activeAccountId,
+        account_id: resolvedActiveAccountId,
       });
       const { data, error } = await supabase
         .from("ecommerce_tasks")
@@ -197,7 +244,7 @@ function TarefasOperadores() {
           "id, company_id, account_id, product_id, listing_id, insight_id, task_title, task_description, task_type, priority, status, responsible_name, responsible_email, due_date, expected_impact, result_summary, created_by, completed_at, created_at, updated_at",
         )
         .eq("company_id", ECOMMERCE_COMPANY_ID)
-        .eq("account_id", activeAccountId)
+        .eq("account_id", resolvedActiveAccountId)
         .order("created_at", { ascending: false });
       if (error) {
         // eslint-disable-next-line no-console
@@ -211,13 +258,13 @@ function TarefasOperadores() {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("[tarefas] load failed", err);
-      if (!lastError) setLastError(err instanceof Error ? err.message : String(err));
+      setLastError(err instanceof Error ? err.message : String(err));
       toast.error("Não foi possível carregar as tarefas.");
       setTasks([]);
     } finally {
       setLoading(false);
     }
-  }, [activeAccountId, lastError]);
+  }, [accLoading, resolvedActiveAccountId]);
 
   useEffect(() => {
     void loadTasks();
@@ -313,7 +360,6 @@ function TarefasOperadores() {
   const showPending = !!activeAccount && !isActiveConnected;
 
   return (
-    <EcommerceLayout>
       <div className="space-y-6">
         {/* Header */}
         <header className="space-y-2">
@@ -614,6 +660,5 @@ function TarefasOperadores() {
           </>
         )}
       </div>
-    </EcommerceLayout>
   );
 }

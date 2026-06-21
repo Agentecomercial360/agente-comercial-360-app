@@ -329,6 +329,11 @@ function TarefasOperadoresContent() {
         setOperators([]);
         return;
       }
+      // eslint-disable-next-line no-console
+      console.debug("[tarefas] querying ecommerce_operators", {
+        company_id: ECOMMERCE_COMPANY_ID,
+        account_id: resolvedActiveAccountId,
+      });
       const { data, error } = await supabase
         .from("ecommerce_operators")
         .select("id, operator_name, operator_email, role_name, is_active")
@@ -343,6 +348,8 @@ function TarefasOperadoresContent() {
         setOperators([]);
         return;
       }
+      // eslint-disable-next-line no-console
+      console.debug("[tarefas] operators returned:", data?.length ?? 0, data);
       setOperators((data as EcommerceOperator[]) ?? []);
     }
     void loadOperators();

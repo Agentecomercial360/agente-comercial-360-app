@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
   ECOMMERCE_COMPANY_ID,
+  isAccountConnected,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
@@ -359,7 +360,6 @@ function TarefasOperadoresContent() {
   const showPending = !!activeAccount && !isActiveConnected;
 
   return (
-    <EcommerceLayout>
       <div className="space-y-6">
         {/* Header */}
         <header className="space-y-2">
@@ -660,6 +660,5 @@ function TarefasOperadoresContent() {
           </>
         )}
       </div>
-    </EcommerceLayout>
   );
 }

@@ -223,6 +223,12 @@ function TarefasOperadoresContent() {
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
   const [lastError, setLastError] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [draftStatus, setDraftStatus] = useState<TaskStatus>("pending");
+  const [draftResponsible, setDraftResponsible] = useState<string>("");
+  const [draftResult, setDraftResult] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
 
   const resolvedActiveAccountId = useMemo(() => {
     if (activeAccount?.id) return activeAccount.id;

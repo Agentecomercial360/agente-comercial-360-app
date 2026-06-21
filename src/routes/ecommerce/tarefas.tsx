@@ -258,13 +258,13 @@ function TarefasOperadoresContent() {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error("[tarefas] load failed", err);
-      if (!lastError) setLastError(err instanceof Error ? err.message : String(err));
+      setLastError(err instanceof Error ? err.message : String(err));
       toast.error("Não foi possível carregar as tarefas.");
       setTasks([]);
     } finally {
       setLoading(false);
     }
-  }, [accLoading, resolvedActiveAccountId, lastError]);
+  }, [accLoading, resolvedActiveAccountId]);
 
   useEffect(() => {
     void loadTasks();

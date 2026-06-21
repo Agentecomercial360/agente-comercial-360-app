@@ -75,6 +75,16 @@ type EcommerceTask = {
   updated_at: string | null;
 };
 
+type EcommerceOperator = {
+  id: string;
+  operator_name: string;
+  operator_email: string | null;
+  role_name: string | null;
+  is_active: boolean | null;
+};
+
+const NO_OPERATOR_VALUE = "__none__";
+
 const PRIORITY_LABEL: Record<string, string> = {
   critical: "Crítica",
   high: "Alta",

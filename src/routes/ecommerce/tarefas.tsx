@@ -306,40 +306,50 @@ function TarefasOperadoresContent() {
     void loadTasks();
   }, [loadTasks]);
 
-  const handleChangeStatus = useCallback(
-    async (task: EcommerceTask, next: TaskStatus) => {
-      if (next === task.status) return;
-      setSavingId(task.id);
-      const now = new Date().toISOString();
-      const patch: Partial<EcommerceTask> = {
-        status: next,
-        updated_at: now,
-        completed_at: next === "completed" ? now : null,
-      };
-      // Optimistic
-      setTasks((prev) =>
-        prev.map((t) => (t.id === task.id ? { ...t, ...patch } : t)),
-      );
-      try {
-        const { error } = await supabase
-          .from("ecommerce_tasks")
-          .update(patch)
-          .eq("id", task.id)
-          .eq("company_id", ECOMMERCE_COMPANY_ID);
-        if (error) throw error;
-        toast.success("Status da tarefa atualizado.");
-      } catch {
-        toast.error("Não foi possível atualizar o status. Tente novamente.");
-        // Revert
-        setTasks((prev) =>
-          prev.map((t) => (t.id === task.id ? task : t)),
-        );
-      } finally {
-        setSavingId(null);
-      }
-    },
-    [],
+  const currentDetail = useMemo(
+    () => tasks.find((t) => t.id === detailId) ?? null,
+    [tasks, detailId],
   );
+
+  const openDetails = useCallback((task: EcommerceTask) => {
+    setDetailId(task.id);
+    setDraftStatus(((task.status ?? "pending") as TaskStatus));
+    setDraftResponsible(task.responsible_name ?? "");
+    setDraftResult(task.result_summary ?? "");
+  }, []);
+
+  const closeDetails = useCallback(() => {
+    setDetailId(null);
+  }, []);
+
+  const handleSaveDetails = useCallback(async () => {
+    if (!currentDetail) return;
+    setSaving(true);
+    const now = new Date().toISOString();
+    const patch: Partial<EcommerceTask> = {
+      status: draftStatus,
+      responsible_name: draftResponsible.trim() || null,
+      result_summary: draftResult.trim() || null,
+      updated_at: now,
+      completed_at: draftStatus === "completed" ? now : null,
+    };
+    try {
+      const { error } = await supabase
+        .from("ecommerce_tasks")
+        .update(patch)
+        .eq("id", currentDetail.id)
+        .eq("company_id", ECOMMERCE_COMPANY_ID);
+      if (error) throw error;
+      toast.success("Tarefa atualizada.");
+      setDetailId(null);
+      await loadTasks();
+    } catch {
+      toast.error("Não foi possível salvar. Tente novamente.");
+    } finally {
+      setSaving(false);
+    }
+  }, [currentDetail, draftStatus, draftResponsible, draftResult, loadTasks]);
+
 
   const sorted = useMemo(() => {
     return [...tasks].sort((a, b) => {

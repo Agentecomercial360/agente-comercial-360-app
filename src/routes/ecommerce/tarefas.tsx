@@ -235,9 +235,10 @@ function TarefasOperadoresContent() {
   const [lastError, setLastError] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [draftStatus, setDraftStatus] = useState<TaskStatus>("pending");
-  const [draftResponsible, setDraftResponsible] = useState<string>("");
+  const [draftResponsible, setDraftResponsible] = useState<string>(NO_OPERATOR_VALUE);
   const [draftResult, setDraftResult] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [operators, setOperators] = useState<EcommerceOperator[]>([]);
 
 
   const resolvedActiveAccountId = useMemo(() => {

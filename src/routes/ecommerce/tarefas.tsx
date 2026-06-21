@@ -661,25 +661,17 @@ function TarefasOperadoresContent() {
                               </span>
                             </td>
                             <td className="px-4 py-3 align-top">
-                              <select
-                                aria-label="Alterar status da tarefa"
-                                value={status}
-                                disabled={savingId === t.id}
-                                onChange={(e) =>
-                                  handleChangeStatus(
-                                    t,
-                                    e.target.value as TaskStatus,
-                                  )
-                                }
-                                className="rounded-lg border border-border/60 bg-background px-2 py-1 text-xs font-semibold text-foreground outline-none hover:bg-muted/60 focus:border-blue-300 disabled:opacity-50"
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 gap-1.5 text-xs"
+                                onClick={() => openDetails(t)}
                               >
-                                {STATUS_OPTIONS.map((s) => (
-                                  <option key={s} value={s}>
-                                    {STATUS_LABEL[s]}
-                                  </option>
-                                ))}
-                              </select>
+                                <Eye className="h-3.5 w-3.5" />
+                                Ver detalhes
+                              </Button>
                             </td>
+
                           </tr>
                         );
                       })

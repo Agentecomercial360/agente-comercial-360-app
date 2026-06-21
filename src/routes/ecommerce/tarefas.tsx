@@ -371,35 +371,60 @@ function TarefasOperadoresContent() {
 
   const handleSaveDetails = useCallback(async () => {
     if (!currentDetail) return;
+    const VALID_STATUSES: TaskStatus[] = [
+      "pending",
+      "in_progress",
+      "completed",
+      "cancelled",
+      "blocked",
+    ];
+    if (!VALID_STATUSES.includes(draftStatus)) {
+      // eslint-disable-next-line no-console
+      console.error("[tarefas] invalid status value", draftStatus);
+      toast.error("Status inválido.");
+      return;
+    }
     setSaving(true);
     const now = new Date().toISOString();
-    const selectedOperator =
-      draftResponsible && draftResponsible !== NO_OPERATOR_VALUE
-        ? operators.find((op) => op.operator_name === draftResponsible) ?? null
-        : null;
-    const responsibleName =
-      draftResponsible && draftResponsible !== NO_OPERATOR_VALUE
-        ? draftResponsible
-        : null;
-    const patch: Partial<EcommerceTask> = {
+    const hasOperator =
+      draftResponsible && draftResponsible !== NO_OPERATOR_VALUE;
+    const selectedOperator = hasOperator
+      ? operators.find((op) => op.operator_name === draftResponsible) ?? null
+      : null;
+    const responsibleName = hasOperator
+      ? selectedOperator?.operator_name ?? draftResponsible
+      : null;
+    const responsibleEmail = hasOperator
+      ? selectedOperator?.operator_email ?? null
+      : null;
+    const patch = {
       status: draftStatus,
       responsible_name: responsibleName,
-      responsible_email: selectedOperator?.operator_email ?? null,
+      responsible_email: responsibleEmail,
       result_summary: draftResult.trim() || null,
       updated_at: now,
       completed_at: draftStatus === "completed" ? now : null,
     };
+    // eslint-disable-next-line no-console
+    console.debug("[tarefas] saving task", { id: currentDetail.id, patch });
     try {
       const { error } = await supabase
         .from("ecommerce_tasks")
         .update(patch)
         .eq("id", currentDetail.id)
         .eq("company_id", ECOMMERCE_COMPANY_ID);
-      if (error) throw error;
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.error("[tarefas] save error", error);
+        toast.error("Não foi possível salvar. Tente novamente.");
+        return;
+      }
       toast.success("Tarefa atualizada.");
       setDetailId(null);
       await loadTasks();
-    } catch {
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[tarefas] save exception", err);
       toast.error("Não foi possível salvar. Tente novamente.");
     } finally {
       setSaving(false);

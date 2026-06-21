@@ -322,10 +322,39 @@ function TarefasOperadoresContent() {
     [tasks, detailId],
   );
 
+  useEffect(() => {
+    let cancelled = false;
+    async function loadOperators() {
+      if (accLoading || !resolvedActiveAccountId) {
+        setOperators([]);
+        return;
+      }
+      const { data, error } = await supabase
+        .from("ecommerce_operators")
+        .select("id, operator_name, operator_email, role_name, is_active")
+        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("account_id", resolvedActiveAccountId)
+        .eq("is_active", true)
+        .order("operator_name", { ascending: true });
+      if (cancelled) return;
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.error("[tarefas] operators error", error);
+        setOperators([]);
+        return;
+      }
+      setOperators((data as EcommerceOperator[]) ?? []);
+    }
+    void loadOperators();
+    return () => {
+      cancelled = true;
+    };
+  }, [accLoading, resolvedActiveAccountId]);
+
   const openDetails = useCallback((task: EcommerceTask) => {
     setDetailId(task.id);
     setDraftStatus(((task.status ?? "pending") as TaskStatus));
-    setDraftResponsible(task.responsible_name ?? "");
+    setDraftResponsible(task.responsible_name ?? NO_OPERATOR_VALUE);
     setDraftResult(task.result_summary ?? "");
   }, []);
 
@@ -337,9 +366,18 @@ function TarefasOperadoresContent() {
     if (!currentDetail) return;
     setSaving(true);
     const now = new Date().toISOString();
+    const selectedOperator =
+      draftResponsible && draftResponsible !== NO_OPERATOR_VALUE
+        ? operators.find((op) => op.operator_name === draftResponsible) ?? null
+        : null;
+    const responsibleName =
+      draftResponsible && draftResponsible !== NO_OPERATOR_VALUE
+        ? draftResponsible
+        : null;
     const patch: Partial<EcommerceTask> = {
       status: draftStatus,
-      responsible_name: draftResponsible.trim() || null,
+      responsible_name: responsibleName,
+      responsible_email: selectedOperator?.operator_email ?? null,
       result_summary: draftResult.trim() || null,
       updated_at: now,
       completed_at: draftStatus === "completed" ? now : null,
@@ -359,7 +397,7 @@ function TarefasOperadoresContent() {
     } finally {
       setSaving(false);
     }
-  }, [currentDetail, draftStatus, draftResponsible, draftResult, loadTasks]);
+  }, [currentDetail, draftStatus, draftResponsible, draftResult, loadTasks, operators]);
 
 
   const sorted = useMemo(() => {

@@ -628,20 +628,16 @@ function TarefasOperadoresContent() {
                               {TYPE_LABEL[type] ?? type}
                             </td>
                             <td className="px-4 py-3 align-top">
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                                    STATUS_STYLE[status] ??
-                                    "border-slate-200 bg-slate-50 text-slate-700"
-                                  }`}
-                                >
-                                  {STATUS_LABEL[status] ?? status}
-                                </span>
-                                {savingId === t.id && (
-                                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                                )}
-                              </div>
+                              <span
+                                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                                  STATUS_STYLE[status] ??
+                                  "border-slate-200 bg-slate-50 text-slate-700"
+                                }`}
+                              >
+                                {STATUS_LABEL[status] ?? status}
+                              </span>
                             </td>
+
                             <td className="px-4 py-3 align-top whitespace-nowrap text-xs text-foreground/80">
                               {t.responsible_name || "—"}
                             </td>

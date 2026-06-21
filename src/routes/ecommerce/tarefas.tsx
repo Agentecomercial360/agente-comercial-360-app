@@ -219,7 +219,7 @@ function TarefasOperadoresContent() {
 
   const [tasks, setTasks] = useState<EcommerceTask[]>([]);
   const [loading, setLoading] = useState(false);
-  const [savingId, setSavingId] = useState<string | null>(null);
+  
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
   const [lastError, setLastError] = useState<string | null>(null);

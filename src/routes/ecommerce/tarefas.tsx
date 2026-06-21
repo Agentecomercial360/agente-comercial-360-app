@@ -678,6 +678,172 @@ function TarefasOperadoresContent() {
             </section>
           </>
         )}
+
+        {/* Drawer de detalhes */}
+        <Sheet
+          open={!!detailId}
+          onOpenChange={(open) => {
+            if (!open) closeDetails();
+          }}
+        >
+          <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+            {currentDetail && (
+              <>
+                <SheetHeader>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                        PRIORITY_STYLE[currentDetail.priority ?? "low"] ??
+                        "border-slate-200 bg-slate-50 text-slate-700"
+                      }`}
+                    >
+                      {PRIORITY_LABEL[currentDetail.priority ?? "low"] ??
+                        currentDetail.priority}
+                    </span>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                        STATUS_STYLE[currentDetail.status ?? "pending"] ??
+                        "border-slate-200 bg-slate-50 text-slate-700"
+                      }`}
+                    >
+                      {STATUS_LABEL[currentDetail.status ?? "pending"] ??
+                        currentDetail.status}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      <ExternalLink className="h-3 w-3" />
+                      {ORIGIN_LABEL[currentDetail.created_by ?? "manual"] ??
+                        currentDetail.created_by}
+                    </span>
+                  </div>
+                  <SheetTitle className="font-display text-xl">
+                    {currentDetail.task_title || "Tarefa sem título"}
+                  </SheetTitle>
+                  <SheetDescription>
+                    {TYPE_LABEL[currentDetail.task_type ?? "other"] ??
+                      currentDetail.task_type}
+                  </SheetDescription>
+                </SheetHeader>
+
+                <div className="space-y-5 py-5">
+                  {currentDetail.task_description && (
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Descrição
+                      </div>
+                      <p className="text-sm text-foreground/90 whitespace-pre-line">
+                        {currentDetail.task_description}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Prazo
+                      </div>
+                      <div className="text-foreground/90">
+                        {formatDate(currentDetail.due_date)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Criada em
+                      </div>
+                      <div className="text-foreground/90">
+                        {formatDateTime(currentDetail.created_at)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Concluída em
+                      </div>
+                      <div className="text-foreground/90">
+                        {formatDateTime(currentDetail.completed_at)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Atualizada em
+                      </div>
+                      <div className="text-foreground/90">
+                        {formatDateTime(currentDetail.updated_at)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {currentDetail.expected_impact && (
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Impacto esperado
+                      </div>
+                      <p className="text-sm text-foreground/90">
+                        {currentDetail.expected_impact}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="task-status">Status</Label>
+                    <select
+                      id="task-status"
+                      value={draftStatus}
+                      onChange={(e) =>
+                        setDraftStatus(e.target.value as TaskStatus)
+                      }
+                      className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    >
+                      {STATUS_OPTIONS.map((s) => (
+                        <option key={s} value={s}>
+                          {STATUS_LABEL[s]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="task-responsible">Responsável</Label>
+                    <Input
+                      id="task-responsible"
+                      value={draftResponsible}
+                      onChange={(e) => setDraftResponsible(e.target.value)}
+                      placeholder="Nome do responsável"
+                      maxLength={120}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="task-result">Resultado registrado</Label>
+                    <Textarea
+                      id="task-result"
+                      value={draftResult}
+                      onChange={(e) => setDraftResult(e.target.value)}
+                      placeholder="Ex.: Anúncio revisado e liberado para reativação."
+                      rows={4}
+                      maxLength={1000}
+                    />
+                  </div>
+                </div>
+
+                <SheetFooter className="gap-2 sm:gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={closeDetails}
+                    disabled={saving}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleSaveDetails} disabled={saving}>
+                    {saving && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Salvar alterações
+                  </Button>
+                </SheetFooter>
+              </>
+            )}
+          </SheetContent>
+        </Sheet>
       </div>
+
   );
 }

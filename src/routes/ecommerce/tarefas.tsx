@@ -11,6 +11,7 @@ import {
   Users,
   Calendar,
   ExternalLink,
+  Eye,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -21,6 +22,18 @@ import {
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/ecommerce/tarefas")({
   component: TarefasOperadores,
@@ -28,6 +41,7 @@ export const Route = createFileRoute("/ecommerce/tarefas")({
     meta: [{ title: "Tarefas dos Operadores | Agente Comercial 360" }],
   }),
 });
+
 
 type TaskStatus =
   | "pending"

@@ -11,6 +11,7 @@ import {
   Users,
   Calendar,
   ExternalLink,
+  Eye,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -21,6 +22,18 @@ import {
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/ecommerce/tarefas")({
   component: TarefasOperadores,
@@ -28,6 +41,7 @@ export const Route = createFileRoute("/ecommerce/tarefas")({
     meta: [{ title: "Tarefas dos Operadores | Agente Comercial 360" }],
   }),
 });
+
 
 type TaskStatus =
   | "pending"
@@ -167,6 +181,22 @@ function formatDate(iso: string | null): string {
   }
 }
 
+function formatDateTime(iso: string | null): string {
+  if (!iso) return "—";
+  try {
+    return new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(iso));
+  } catch {
+    return "—";
+  }
+}
+
+
 const ROBOMIX_NIGHTLED_ACCOUNT_ID = "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4";
 
 function TarefasOperadores() {
@@ -189,10 +219,16 @@ function TarefasOperadoresContent() {
 
   const [tasks, setTasks] = useState<EcommerceTask[]>([]);
   const [loading, setLoading] = useState(false);
-  const [savingId, setSavingId] = useState<string | null>(null);
+  
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
   const [lastError, setLastError] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [draftStatus, setDraftStatus] = useState<TaskStatus>("pending");
+  const [draftResponsible, setDraftResponsible] = useState<string>("");
+  const [draftResult, setDraftResult] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
 
   const resolvedActiveAccountId = useMemo(() => {
     if (activeAccount?.id) return activeAccount.id;
@@ -270,40 +306,50 @@ function TarefasOperadoresContent() {
     void loadTasks();
   }, [loadTasks]);
 
-  const handleChangeStatus = useCallback(
-    async (task: EcommerceTask, next: TaskStatus) => {
-      if (next === task.status) return;
-      setSavingId(task.id);
-      const now = new Date().toISOString();
-      const patch: Partial<EcommerceTask> = {
-        status: next,
-        updated_at: now,
-        completed_at: next === "completed" ? now : null,
-      };
-      // Optimistic
-      setTasks((prev) =>
-        prev.map((t) => (t.id === task.id ? { ...t, ...patch } : t)),
-      );
-      try {
-        const { error } = await supabase
-          .from("ecommerce_tasks")
-          .update(patch)
-          .eq("id", task.id)
-          .eq("company_id", ECOMMERCE_COMPANY_ID);
-        if (error) throw error;
-        toast.success("Status da tarefa atualizado.");
-      } catch {
-        toast.error("Não foi possível atualizar o status. Tente novamente.");
-        // Revert
-        setTasks((prev) =>
-          prev.map((t) => (t.id === task.id ? task : t)),
-        );
-      } finally {
-        setSavingId(null);
-      }
-    },
-    [],
+  const currentDetail = useMemo(
+    () => tasks.find((t) => t.id === detailId) ?? null,
+    [tasks, detailId],
   );
+
+  const openDetails = useCallback((task: EcommerceTask) => {
+    setDetailId(task.id);
+    setDraftStatus(((task.status ?? "pending") as TaskStatus));
+    setDraftResponsible(task.responsible_name ?? "");
+    setDraftResult(task.result_summary ?? "");
+  }, []);
+
+  const closeDetails = useCallback(() => {
+    setDetailId(null);
+  }, []);
+
+  const handleSaveDetails = useCallback(async () => {
+    if (!currentDetail) return;
+    setSaving(true);
+    const now = new Date().toISOString();
+    const patch: Partial<EcommerceTask> = {
+      status: draftStatus,
+      responsible_name: draftResponsible.trim() || null,
+      result_summary: draftResult.trim() || null,
+      updated_at: now,
+      completed_at: draftStatus === "completed" ? now : null,
+    };
+    try {
+      const { error } = await supabase
+        .from("ecommerce_tasks")
+        .update(patch)
+        .eq("id", currentDetail.id)
+        .eq("company_id", ECOMMERCE_COMPANY_ID);
+      if (error) throw error;
+      toast.success("Tarefa atualizada.");
+      setDetailId(null);
+      await loadTasks();
+    } catch {
+      toast.error("Não foi possível salvar. Tente novamente.");
+    } finally {
+      setSaving(false);
+    }
+  }, [currentDetail, draftStatus, draftResponsible, draftResult, loadTasks]);
+
 
   const sorted = useMemo(() => {
     return [...tasks].sort((a, b) => {
@@ -381,23 +427,8 @@ function TarefasOperadoresContent() {
           )}
         </header>
 
-        {/* Diagnóstico temporário */}
-        <section className="rounded-xl border border-dashed border-blue-300 bg-blue-50/40 p-3 text-[11px] text-blue-900">
-          <div className="font-semibold uppercase tracking-wider text-blue-700 mb-1">
-            Diagnóstico (temporário)
-          </div>
-          <div className="grid gap-1 md:grid-cols-2">
-            <div><span className="font-medium">activeAccountId:</span> <code>{activeAccountId ?? "null"}</code></div>
-            <div><span className="font-medium">company_id:</span> <code>{ECOMMERCE_COMPANY_ID}</code></div>
-            <div><span className="font-medium">tarefas retornadas:</span> <code>{tasks.length}</code></div>
-            <div><span className="font-medium">loading:</span> <code>{String(loading || accLoading)}</code></div>
-            {lastError && (
-              <div className="md:col-span-2 text-red-700">
-                <span className="font-medium">erro supabase:</span> <code>{lastError}</code>
-              </div>
-            )}
-          </div>
-        </section>
+
+
 
 
         {/* Pending account state */}
@@ -597,20 +628,16 @@ function TarefasOperadoresContent() {
                               {TYPE_LABEL[type] ?? type}
                             </td>
                             <td className="px-4 py-3 align-top">
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                                    STATUS_STYLE[status] ??
-                                    "border-slate-200 bg-slate-50 text-slate-700"
-                                  }`}
-                                >
-                                  {STATUS_LABEL[status] ?? status}
-                                </span>
-                                {savingId === t.id && (
-                                  <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
-                                )}
-                              </div>
+                              <span
+                                className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                                  STATUS_STYLE[status] ??
+                                  "border-slate-200 bg-slate-50 text-slate-700"
+                                }`}
+                              >
+                                {STATUS_LABEL[status] ?? status}
+                              </span>
                             </td>
+
                             <td className="px-4 py-3 align-top whitespace-nowrap text-xs text-foreground/80">
                               {t.responsible_name || "—"}
                             </td>
@@ -630,25 +657,17 @@ function TarefasOperadoresContent() {
                               </span>
                             </td>
                             <td className="px-4 py-3 align-top">
-                              <select
-                                aria-label="Alterar status da tarefa"
-                                value={status}
-                                disabled={savingId === t.id}
-                                onChange={(e) =>
-                                  handleChangeStatus(
-                                    t,
-                                    e.target.value as TaskStatus,
-                                  )
-                                }
-                                className="rounded-lg border border-border/60 bg-background px-2 py-1 text-xs font-semibold text-foreground outline-none hover:bg-muted/60 focus:border-blue-300 disabled:opacity-50"
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 gap-1.5 text-xs"
+                                onClick={() => openDetails(t)}
                               >
-                                {STATUS_OPTIONS.map((s) => (
-                                  <option key={s} value={s}>
-                                    {STATUS_LABEL[s]}
-                                  </option>
-                                ))}
-                              </select>
+                                <Eye className="h-3.5 w-3.5" />
+                                Ver detalhes
+                              </Button>
                             </td>
+
                           </tr>
                         );
                       })
@@ -659,6 +678,172 @@ function TarefasOperadoresContent() {
             </section>
           </>
         )}
+
+        {/* Drawer de detalhes */}
+        <Sheet
+          open={!!detailId}
+          onOpenChange={(open) => {
+            if (!open) closeDetails();
+          }}
+        >
+          <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+            {currentDetail && (
+              <>
+                <SheetHeader>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                        PRIORITY_STYLE[currentDetail.priority ?? "low"] ??
+                        "border-slate-200 bg-slate-50 text-slate-700"
+                      }`}
+                    >
+                      {PRIORITY_LABEL[currentDetail.priority ?? "low"] ??
+                        currentDetail.priority}
+                    </span>
+                    <span
+                      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                        STATUS_STYLE[currentDetail.status ?? "pending"] ??
+                        "border-slate-200 bg-slate-50 text-slate-700"
+                      }`}
+                    >
+                      {STATUS_LABEL[currentDetail.status ?? "pending"] ??
+                        currentDetail.status}
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      <ExternalLink className="h-3 w-3" />
+                      {ORIGIN_LABEL[currentDetail.created_by ?? "manual"] ??
+                        currentDetail.created_by}
+                    </span>
+                  </div>
+                  <SheetTitle className="font-display text-xl">
+                    {currentDetail.task_title || "Tarefa sem título"}
+                  </SheetTitle>
+                  <SheetDescription>
+                    {TYPE_LABEL[currentDetail.task_type ?? "other"] ??
+                      currentDetail.task_type}
+                  </SheetDescription>
+                </SheetHeader>
+
+                <div className="space-y-5 py-5">
+                  {currentDetail.task_description && (
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Descrição
+                      </div>
+                      <p className="text-sm text-foreground/90 whitespace-pre-line">
+                        {currentDetail.task_description}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Prazo
+                      </div>
+                      <div className="text-foreground/90">
+                        {formatDate(currentDetail.due_date)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Criada em
+                      </div>
+                      <div className="text-foreground/90">
+                        {formatDateTime(currentDetail.created_at)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Concluída em
+                      </div>
+                      <div className="text-foreground/90">
+                        {formatDateTime(currentDetail.completed_at)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Atualizada em
+                      </div>
+                      <div className="text-foreground/90">
+                        {formatDateTime(currentDetail.updated_at)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {currentDetail.expected_impact && (
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                        Impacto esperado
+                      </div>
+                      <p className="text-sm text-foreground/90">
+                        {currentDetail.expected_impact}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="task-status">Status</Label>
+                    <select
+                      id="task-status"
+                      value={draftStatus}
+                      onChange={(e) =>
+                        setDraftStatus(e.target.value as TaskStatus)
+                      }
+                      className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    >
+                      {STATUS_OPTIONS.map((s) => (
+                        <option key={s} value={s}>
+                          {STATUS_LABEL[s]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="task-responsible">Responsável</Label>
+                    <Input
+                      id="task-responsible"
+                      value={draftResponsible}
+                      onChange={(e) => setDraftResponsible(e.target.value)}
+                      placeholder="Nome do responsável"
+                      maxLength={120}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="task-result">Resultado registrado</Label>
+                    <Textarea
+                      id="task-result"
+                      value={draftResult}
+                      onChange={(e) => setDraftResult(e.target.value)}
+                      placeholder="Ex.: Anúncio revisado e liberado para reativação."
+                      rows={4}
+                      maxLength={1000}
+                    />
+                  </div>
+                </div>
+
+                <SheetFooter className="gap-2 sm:gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={closeDetails}
+                    disabled={saving}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleSaveDetails} disabled={saving}>
+                    {saving && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Salvar alterações
+                  </Button>
+                </SheetFooter>
+              </>
+            )}
+          </SheetContent>
+        </Sheet>
       </div>
+
   );
 }

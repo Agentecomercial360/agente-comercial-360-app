@@ -31,7 +31,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
@@ -74,6 +74,16 @@ type EcommerceTask = {
   created_at: string | null;
   updated_at: string | null;
 };
+
+type EcommerceOperator = {
+  id: string;
+  operator_name: string;
+  operator_email: string | null;
+  role_name: string | null;
+  is_active: boolean | null;
+};
+
+const NO_OPERATOR_VALUE = "__none__";
 
 const PRIORITY_LABEL: Record<string, string> = {
   critical: "Crítica",
@@ -225,9 +235,10 @@ function TarefasOperadoresContent() {
   const [lastError, setLastError] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [draftStatus, setDraftStatus] = useState<TaskStatus>("pending");
-  const [draftResponsible, setDraftResponsible] = useState<string>("");
+  const [draftResponsible, setDraftResponsible] = useState<string>(NO_OPERATOR_VALUE);
   const [draftResult, setDraftResult] = useState<string>("");
   const [saving, setSaving] = useState(false);
+  const [operators, setOperators] = useState<EcommerceOperator[]>([]);
 
 
   const resolvedActiveAccountId = useMemo(() => {
@@ -311,10 +322,39 @@ function TarefasOperadoresContent() {
     [tasks, detailId],
   );
 
+  useEffect(() => {
+    let cancelled = false;
+    async function loadOperators() {
+      if (accLoading || !resolvedActiveAccountId) {
+        setOperators([]);
+        return;
+      }
+      const { data, error } = await supabase
+        .from("ecommerce_operators")
+        .select("id, operator_name, operator_email, role_name, is_active")
+        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("account_id", resolvedActiveAccountId)
+        .eq("is_active", true)
+        .order("operator_name", { ascending: true });
+      if (cancelled) return;
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.error("[tarefas] operators error", error);
+        setOperators([]);
+        return;
+      }
+      setOperators((data as EcommerceOperator[]) ?? []);
+    }
+    void loadOperators();
+    return () => {
+      cancelled = true;
+    };
+  }, [accLoading, resolvedActiveAccountId]);
+
   const openDetails = useCallback((task: EcommerceTask) => {
     setDetailId(task.id);
     setDraftStatus(((task.status ?? "pending") as TaskStatus));
-    setDraftResponsible(task.responsible_name ?? "");
+    setDraftResponsible(task.responsible_name ?? NO_OPERATOR_VALUE);
     setDraftResult(task.result_summary ?? "");
   }, []);
 
@@ -326,9 +366,18 @@ function TarefasOperadoresContent() {
     if (!currentDetail) return;
     setSaving(true);
     const now = new Date().toISOString();
+    const selectedOperator =
+      draftResponsible && draftResponsible !== NO_OPERATOR_VALUE
+        ? operators.find((op) => op.operator_name === draftResponsible) ?? null
+        : null;
+    const responsibleName =
+      draftResponsible && draftResponsible !== NO_OPERATOR_VALUE
+        ? draftResponsible
+        : null;
     const patch: Partial<EcommerceTask> = {
       status: draftStatus,
-      responsible_name: draftResponsible.trim() || null,
+      responsible_name: responsibleName,
+      responsible_email: selectedOperator?.operator_email ?? null,
       result_summary: draftResult.trim() || null,
       updated_at: now,
       completed_at: draftStatus === "completed" ? now : null,
@@ -348,7 +397,7 @@ function TarefasOperadoresContent() {
     } finally {
       setSaving(false);
     }
-  }, [currentDetail, draftStatus, draftResponsible, draftResult, loadTasks]);
+  }, [currentDetail, draftStatus, draftResponsible, draftResult, loadTasks, operators]);
 
 
   const sorted = useMemo(() => {
@@ -638,8 +687,12 @@ function TarefasOperadoresContent() {
                               </span>
                             </td>
 
-                            <td className="px-4 py-3 align-top whitespace-nowrap text-xs text-foreground/80">
-                              {t.responsible_name || "—"}
+                            <td className="px-4 py-3 align-top whitespace-nowrap text-xs">
+                              {t.responsible_name ? (
+                                <span className="text-foreground/80">{t.responsible_name}</span>
+                              ) : (
+                                <span className="italic text-muted-foreground">Sem responsável</span>
+                              )}
                             </td>
                             <td className="px-4 py-3 align-top whitespace-nowrap text-xs text-foreground/80">
                               <span className="inline-flex items-center gap-1">
@@ -802,13 +855,29 @@ function TarefasOperadoresContent() {
 
                   <div className="space-y-2">
                     <Label htmlFor="task-responsible">Responsável</Label>
-                    <Input
+                    <select
                       id="task-responsible"
                       value={draftResponsible}
                       onChange={(e) => setDraftResponsible(e.target.value)}
-                      placeholder="Nome do responsável"
-                      maxLength={120}
-                    />
+                      className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    >
+                      <option value={NO_OPERATOR_VALUE}>Sem responsável definido</option>
+                      {operators.map((op) => (
+                        <option key={op.id} value={op.operator_name}>
+                          {op.operator_name}
+                          {op.role_name ? ` · ${op.role_name}` : ""}
+                        </option>
+                      ))}
+                      {draftResponsible !== NO_OPERATOR_VALUE &&
+                        !operators.some((op) => op.operator_name === draftResponsible) && (
+                          <option value={draftResponsible}>{draftResponsible} (anterior)</option>
+                        )}
+                    </select>
+                    {operators.length === 0 && (
+                      <p className="text-[11px] text-muted-foreground">
+                        Nenhum operador ativo cadastrado para esta conta.
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">

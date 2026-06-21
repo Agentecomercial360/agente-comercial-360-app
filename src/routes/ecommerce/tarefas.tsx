@@ -855,13 +855,29 @@ function TarefasOperadoresContent() {
 
                   <div className="space-y-2">
                     <Label htmlFor="task-responsible">Responsável</Label>
-                    <Input
+                    <select
                       id="task-responsible"
                       value={draftResponsible}
                       onChange={(e) => setDraftResponsible(e.target.value)}
-                      placeholder="Nome do responsável"
-                      maxLength={120}
-                    />
+                      className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-sm outline-none focus:border-blue-300"
+                    >
+                      <option value={NO_OPERATOR_VALUE}>Sem responsável definido</option>
+                      {operators.map((op) => (
+                        <option key={op.id} value={op.operator_name}>
+                          {op.operator_name}
+                          {op.role_name ? ` · ${op.role_name}` : ""}
+                        </option>
+                      ))}
+                      {draftResponsible !== NO_OPERATOR_VALUE &&
+                        !operators.some((op) => op.operator_name === draftResponsible) && (
+                          <option value={draftResponsible}>{draftResponsible} (anterior)</option>
+                        )}
+                    </select>
+                    {operators.length === 0 && (
+                      <p className="text-[11px] text-muted-foreground">
+                        Nenhum operador ativo cadastrado para esta conta.
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-2">

@@ -687,8 +687,12 @@ function TarefasOperadoresContent() {
                               </span>
                             </td>
 
-                            <td className="px-4 py-3 align-top whitespace-nowrap text-xs text-foreground/80">
-                              {t.responsible_name || "—"}
+                            <td className="px-4 py-3 align-top whitespace-nowrap text-xs">
+                              {t.responsible_name ? (
+                                <span className="text-foreground/80">{t.responsible_name}</span>
+                              ) : (
+                                <span className="italic text-muted-foreground">Sem responsável</span>
+                              )}
                             </td>
                             <td className="px-4 py-3 align-top whitespace-nowrap text-xs text-foreground/80">
                               <span className="inline-flex items-center gap-1">

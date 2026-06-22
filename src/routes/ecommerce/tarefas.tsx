@@ -925,11 +925,13 @@ function TarefasOperadoresContent() {
                           <option value={draftResponsible}>{draftResponsible} (anterior)</option>
                         )}
                     </select>
-                    {selectedOperator?.role_name && (
-                      <p className="text-[11px] text-muted-foreground">
-                        {selectedOperator.role_name}
-                      </p>
-                    )}
+                    {(() => {
+                      const sel = operators.find((op) => op.operator_name === draftResponsible);
+                      return sel?.role_name ? (
+                        <p className="text-[11px] text-muted-foreground">{sel.role_name}</p>
+                      ) : null;
+                    })()}
+
                     {operators.length === 0 && (
                       <p className="text-[11px] text-muted-foreground">
                         Nenhum operador ativo cadastrado para esta conta.

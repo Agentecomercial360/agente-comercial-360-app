@@ -424,10 +424,16 @@ function TarefasOperadoresContent() {
         .eq("company_id", ECOMMERCE_COMPANY_ID);
       if (error) {
         // eslint-disable-next-line no-console
-        console.error("[tarefas] save error", error);
+        console.error("[tarefas] save error", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
         toast.error("Não foi possível salvar. Tente novamente.");
         return;
       }
+
       toast.success("Tarefa atualizada.");
       setDetailId(null);
       await loadTasks();

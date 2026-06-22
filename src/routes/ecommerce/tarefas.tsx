@@ -950,6 +950,11 @@ function TarefasOperadoresContent() {
                       rows={4}
                       maxLength={1000}
                     />
+                    {draftStatus === "completed" && !draftResult.trim() && (
+                      <p className="text-[11px] text-amber-700">
+                        Recomendado: registre brevemente o resultado antes de concluir a tarefa.
+                      </p>
+                    )}
                   </div>
                 </div>
 

@@ -716,12 +716,12 @@ function TarefasOperadoresContent() {
                                 {PRIORITY_LABEL[prio] ?? prio}
                               </span>
                             </td>
-                            <td className="px-4 py-3 align-top max-w-[320px]">
-                              <div className="font-semibold text-foreground text-sm">
+                            <td className="px-4 py-3 align-top min-w-[320px] max-w-[480px]">
+                              <div className="font-semibold text-foreground text-sm leading-snug">
                                 {t.task_title || "Tarefa sem título"}
                               </div>
                               {t.task_description && (
-                                <div className="text-xs text-muted-foreground line-clamp-2">
+                                <div className="mt-0.5 text-xs text-muted-foreground line-clamp-2">
                                   {t.task_description}
                                 </div>
                               )}
@@ -950,6 +950,11 @@ function TarefasOperadoresContent() {
                       rows={4}
                       maxLength={1000}
                     />
+                    {draftStatus === "completed" && !draftResult.trim() && (
+                      <p className="text-[11px] text-amber-700">
+                        Recomendado: registre brevemente o resultado antes de concluir a tarefa.
+                      </p>
+                    )}
                   </div>
                 </div>
 

@@ -239,6 +239,7 @@ function TarefasOperadoresContent() {
   const [draftResult, setDraftResult] = useState<string>("");
   const [saving, setSaving] = useState(false);
   const [operators, setOperators] = useState<EcommerceOperator[]>([]);
+  const [operatorsError, setOperatorsError] = useState<string | null>(null);
 
 
   const resolvedActiveAccountId = useMemo(() => {
@@ -322,25 +323,28 @@ function TarefasOperadoresContent() {
     [tasks, detailId],
   );
 
-  const operatorAccountId =
-    resolvedActiveAccountId || currentDetail?.account_id || null;
+  const operatorAccountId = currentDetail
+    ? activeAccountId || currentDetail?.account_id || ROBOMIX_NIGHTLED_ACCOUNT_ID
+    : null;
+  const operatorCompanyId = currentDetail?.company_id || ECOMMERCE_COMPANY_ID;
 
   useEffect(() => {
     let cancelled = false;
     async function loadOperators() {
       if (!operatorAccountId) {
         setOperators([]);
+        setOperatorsError(null);
         return;
       }
       // eslint-disable-next-line no-console
       console.debug("[tarefas] querying ecommerce_operators", {
-        company_id: ECOMMERCE_COMPANY_ID,
+        company_id: operatorCompanyId,
         account_id: operatorAccountId,
       });
       const { data, error } = await supabase
         .from("ecommerce_operators")
         .select("id, operator_name, operator_email, role_name, is_active")
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", operatorCompanyId)
         .eq("account_id", operatorAccountId)
         .eq("is_active", true)
         .order("operator_name", { ascending: true });
@@ -354,17 +358,19 @@ function TarefasOperadoresContent() {
           code: error.code,
         });
         setOperators([]);
+        setOperatorsError(error.message || String(error));
         return;
       }
       // eslint-disable-next-line no-console
       console.debug("[tarefas] operators returned:", data?.length ?? 0, data);
+      setOperatorsError(null);
       setOperators((data as EcommerceOperator[]) ?? []);
     }
     void loadOperators();
     return () => {
       cancelled = true;
     };
-  }, [operatorAccountId]);
+  }, [operatorAccountId, operatorCompanyId]);
 
 
   const openDetails = useCallback((task: EcommerceTask) => {
@@ -902,6 +908,13 @@ function TarefasOperadoresContent() {
 
                   <div className="space-y-2">
                     <Label htmlFor="task-responsible">Responsável</Label>
+                    <div className="rounded-lg border border-dashed border-border/70 bg-muted/30 p-3 text-[11px] text-muted-foreground">
+                      <div>currentDetail.account_id: {currentDetail.account_id || "null"}</div>
+                      <div>activeAccountId: {activeAccountId || "null"}</div>
+                      <div>operatorAccountId usado: {operatorAccountId || "null"}</div>
+                      <div>operadores retornados: {operators.length}</div>
+                      <div>erro Supabase: {operatorsError || "null"}</div>
+                    </div>
                     <select
                       id="task-responsible"
                       value={draftResponsible}

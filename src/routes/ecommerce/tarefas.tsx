@@ -908,6 +908,13 @@ function TarefasOperadoresContent() {
 
                   <div className="space-y-2">
                     <Label htmlFor="task-responsible">Responsável</Label>
+                    <div className="rounded-lg border border-dashed border-border/70 bg-muted/30 p-3 text-[11px] text-muted-foreground">
+                      <div>currentDetail.account_id: {currentDetail.account_id || "null"}</div>
+                      <div>activeAccountId: {activeAccountId || "null"}</div>
+                      <div>operatorAccountId usado: {operatorAccountId || "null"}</div>
+                      <div>operadores retornados: {operators.length}</div>
+                      <div>erro Supabase: {operatorsError || "null"}</div>
+                    </div>
                     <select
                       id="task-responsible"
                       value={draftResponsible}

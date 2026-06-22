@@ -207,6 +207,7 @@ function formatDateTime(iso: string | null): string {
 }
 
 
+const ROBOMIX_COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
 const ROBOMIX_NIGHTLED_ACCOUNT_ID = "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4";
 
 function TarefasOperadores() {
@@ -323,19 +324,18 @@ function TarefasOperadoresContent() {
     [tasks, detailId],
   );
 
-  const operatorAccountId = currentDetail
-    ? activeAccountId || currentDetail?.account_id || ROBOMIX_NIGHTLED_ACCOUNT_ID
-    : null;
-  const operatorCompanyId = currentDetail?.company_id || ECOMMERCE_COMPANY_ID;
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadOperators() {
-      if (!operatorAccountId) {
+  const loadOperatorsForTask = useCallback(
+    async (task: EcommerceTask | null) => {
+      if (!task) {
         setOperators([]);
         setOperatorsError(null);
         return;
       }
+
+      const operatorAccountId =
+        activeAccountId || task.account_id || ROBOMIX_NIGHTLED_ACCOUNT_ID;
+      const operatorCompanyId = task.company_id || ROBOMIX_COMPANY_ID;
+
       // eslint-disable-next-line no-console
       console.debug("[tarefas] querying ecommerce_operators", {
         company_id: operatorCompanyId,
@@ -348,7 +348,6 @@ function TarefasOperadoresContent() {
         .eq("account_id", operatorAccountId)
         .eq("is_active", true)
         .order("operator_name", { ascending: true });
-      if (cancelled) return;
       if (error) {
         // eslint-disable-next-line no-console
         console.error("[tarefas] operators error", {
@@ -365,12 +364,13 @@ function TarefasOperadoresContent() {
       console.debug("[tarefas] operators returned:", data?.length ?? 0, data);
       setOperatorsError(null);
       setOperators((data as EcommerceOperator[]) ?? []);
-    }
-    void loadOperators();
-    return () => {
-      cancelled = true;
-    };
-  }, [operatorAccountId, operatorCompanyId]);
+    },
+    [activeAccountId],
+  );
+
+  useEffect(() => {
+    void loadOperatorsForTask(currentDetail);
+  }, [currentDetail, loadOperatorsForTask]);
 
 
   const openDetails = useCallback((task: EcommerceTask) => {

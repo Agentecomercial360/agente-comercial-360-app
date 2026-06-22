@@ -908,13 +908,6 @@ function TarefasOperadoresContent() {
 
                   <div className="space-y-2">
                     <Label htmlFor="task-responsible">Responsável</Label>
-                    <div className="rounded-lg border border-dashed border-border/70 bg-muted/30 p-3 text-[11px] text-muted-foreground">
-                      <div>currentDetail.account_id: {currentDetail.account_id || "null"}</div>
-                      <div>activeAccountId: {activeAccountId || "null"}</div>
-                      <div>operatorAccountId usado: {operatorAccountId || "null"}</div>
-                      <div>operadores retornados: {operators.length}</div>
-                      <div>erro Supabase: {operatorsError || "null"}</div>
-                    </div>
                     <select
                       id="task-responsible"
                       value={draftResponsible}
@@ -925,7 +918,6 @@ function TarefasOperadoresContent() {
                       {operators.map((op) => (
                         <option key={op.id} value={op.operator_name}>
                           {op.operator_name}
-                          {op.role_name ? ` · ${op.role_name}` : ""}
                         </option>
                       ))}
                       {draftResponsible !== NO_OPERATOR_VALUE &&
@@ -933,12 +925,18 @@ function TarefasOperadoresContent() {
                           <option value={draftResponsible}>{draftResponsible} (anterior)</option>
                         )}
                     </select>
+                    {selectedOperator?.role_name && (
+                      <p className="text-[11px] text-muted-foreground">
+                        {selectedOperator.role_name}
+                      </p>
+                    )}
                     {operators.length === 0 && (
                       <p className="text-[11px] text-muted-foreground">
                         Nenhum operador ativo cadastrado para esta conta.
                       </p>
                     )}
                   </div>
+
 
                   <div className="space-y-2">
                     <Label htmlFor="task-result">Resultado registrado</Label>

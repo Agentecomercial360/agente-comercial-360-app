@@ -322,29 +322,37 @@ function TarefasOperadoresContent() {
     [tasks, detailId],
   );
 
+  const operatorAccountId =
+    resolvedActiveAccountId || currentDetail?.account_id || null;
+
   useEffect(() => {
     let cancelled = false;
     async function loadOperators() {
-      if (accLoading || !resolvedActiveAccountId) {
+      if (!operatorAccountId) {
         setOperators([]);
         return;
       }
       // eslint-disable-next-line no-console
       console.debug("[tarefas] querying ecommerce_operators", {
         company_id: ECOMMERCE_COMPANY_ID,
-        account_id: resolvedActiveAccountId,
+        account_id: operatorAccountId,
       });
       const { data, error } = await supabase
         .from("ecommerce_operators")
         .select("id, operator_name, operator_email, role_name, is_active")
         .eq("company_id", ECOMMERCE_COMPANY_ID)
-        .eq("account_id", resolvedActiveAccountId)
+        .eq("account_id", operatorAccountId)
         .eq("is_active", true)
         .order("operator_name", { ascending: true });
       if (cancelled) return;
       if (error) {
         // eslint-disable-next-line no-console
-        console.error("[tarefas] operators error", error);
+        console.error("[tarefas] operators error", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
         setOperators([]);
         return;
       }
@@ -356,7 +364,8 @@ function TarefasOperadoresContent() {
     return () => {
       cancelled = true;
     };
-  }, [accLoading, resolvedActiveAccountId]);
+  }, [operatorAccountId]);
+
 
   const openDetails = useCallback((task: EcommerceTask) => {
     setDetailId(task.id);
@@ -415,10 +424,16 @@ function TarefasOperadoresContent() {
         .eq("company_id", ECOMMERCE_COMPANY_ID);
       if (error) {
         // eslint-disable-next-line no-console
-        console.error("[tarefas] save error", error);
+        console.error("[tarefas] save error", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
         toast.error("Não foi possível salvar. Tente novamente.");
         return;
       }
+
       toast.success("Tarefa atualizada.");
       setDetailId(null);
       await loadTasks();

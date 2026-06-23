@@ -727,20 +727,27 @@ function InsightCard({
           <Button
             size="sm"
             variant="outline"
-            disabled={creating || alreadyTask}
-            onClick={onCreateTask}
+            disabled={alreadyTask ? opening : creating}
+            onClick={alreadyTask ? onOpenTask : onCreateTask}
           >
-            {creating ? (
+            {alreadyTask ? (
+              opening ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <ExternalLink className="mr-1.5 h-4 w-4" />
+              )
+            ) : creating ? (
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
             ) : (
               <ListPlus className="mr-1.5 h-4 w-4" />
             )}
-            {alreadyTask ? "Tarefa criada" : "Criar tarefa"}
+            {alreadyTask ? "Ver tarefa" : "Criar tarefa"}
           </Button>
           <Button size="sm" variant="outline" disabled>
             <Wand2 className="mr-1.5 h-4 w-4" />
             Em breve
           </Button>
+
         </div>
       </div>
     </div>

@@ -11,6 +11,8 @@ import {
   ListPlus,
   Wand2,
   ExternalLink,
+  ClipboardList,
+  CheckSquare,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
@@ -130,6 +132,51 @@ const TYPE_LABEL: Record<string, string> = {
   kit_opportunity: "Oportunidade de kit",
 };
 
+const CHECKLIST_DEFAULT = [
+  "Revisar cadastro",
+  "Revisar preço",
+  "Revisar imagem",
+  "Acompanhar resultado",
+];
+
+const CHECKLIST_BY_TYPE: Record<string, string[]> = {
+  low_conversion: [
+    "Revisar imagem principal",
+    "Melhorar título",
+    "Reforçar benefícios na descrição",
+    "Revisar campanha ou tráfego",
+  ],
+  stock_stopped: [
+    "Verificar estoque",
+    "Revisar preço",
+    "Testar kit/promocional",
+    "Melhorar apresentação do anúncio",
+  ],
+  ads_scale_opportunity: [
+    "Conferir estoque antes de escalar",
+    "Aumentar orçamento gradualmente",
+    "Monitorar margem",
+    "Acompanhar resultado por 7 dias",
+  ],
+  kit_opportunity: [
+    "Selecionar produto complementar",
+    "Criar kit",
+    "Testar preço do combo",
+    "Medir conversão",
+  ],
+  no_visits: [
+    "Revisar título",
+    "Revisar categoria",
+    "Melhorar imagem principal",
+    "Testar campanha curta",
+  ],
+};
+
+function checklistFor(type: string | null): string[] {
+  if (!type) return CHECKLIST_DEFAULT;
+  return CHECKLIST_BY_TYPE[type] ?? CHECKLIST_DEFAULT;
+}
+
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
   try {
@@ -158,6 +205,12 @@ function RadarIAContent() {
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Insight | null>(null);
+  const [plan, setPlan] = useState<Insight | null>(null);
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
+
+  const toggleCheck = useCallback((key: string) => {
+    setChecked((p) => ({ ...p, [key]: !p[key] }));
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -411,6 +464,10 @@ function RadarIAContent() {
               onOpen={() => setSelected(insight)}
               onCreateTask={() => createTaskFromInsight(insight)}
               onOpenTask={() => openTaskForInsight(insight)}
+              onPlan={() => {
+                setPlan(insight);
+                setChecked({});
+              }}
               creating={creatingId === insight.id}
               opening={openingId === insight.id}
             />
@@ -577,9 +634,168 @@ function RadarIAContent() {
                     : "Criar tarefa"}
                 </Button>
 
-                <Button variant="outline" size="sm" disabled>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => {
+                    setPlan(selected);
+                    setChecked({});
+                  }}
+                >
                   <Wand2 className="mr-1.5 h-4 w-4" />
-                  Otimizar com IA · Em breve
+                  Ver ação recomendada
+                </Button>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Plano de ação IA */}
+      <Sheet open={plan !== null} onOpenChange={(o) => !o && setPlan(null)}>
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+          {plan && (
+            <>
+              <SheetHeader>
+                <div className="flex items-center gap-2">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm">
+                    <Wand2 className="h-4 w-4" />
+                  </div>
+                  <SheetTitle className="text-left">Plano de ação IA</SheetTitle>
+                </div>
+                <SheetDescription className="text-left">
+                  {plan.title ?? "Insight"}
+                </SheetDescription>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <Pill
+                    className={
+                      PRIORITY_STYLE[plan.priority ?? ""] ??
+                      "border-slate-200 bg-slate-50 text-slate-700"
+                    }
+                  >
+                    {PRIORITY_LABEL[plan.priority ?? ""] ?? plan.priority ?? "—"}
+                  </Pill>
+                  {plan.insight_type && (
+                    <Pill className="border-border bg-muted text-foreground">
+                      {TYPE_LABEL[plan.insight_type] ?? plan.insight_type}
+                    </Pill>
+                  )}
+                  {plan.confidence_score != null && (
+                    <Pill className="border-indigo-200 bg-indigo-50 text-indigo-700">
+                      Confiança {Math.round(
+                        Number(plan.confidence_score) *
+                          (Number(plan.confidence_score) <= 1 ? 100 : 1),
+                      )}%
+                    </Pill>
+                  )}
+                </div>
+              </SheetHeader>
+
+              <div className="mt-5 space-y-5 text-sm">
+                <Block label="Diagnóstico" text={plan.diagnosis} />
+                <Block label="Causa provável" text={plan.probable_cause} />
+                <Block label="Ação recomendada" text={plan.recommended_action} />
+
+                {(plan.suggested_title ||
+                  plan.suggested_description ||
+                  plan.suggested_image_idea ||
+                  plan.suggested_ads_action ||
+                  plan.suggested_price_action ||
+                  plan.suggested_kit_action) && (
+                  <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-4 space-y-4">
+                    <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-indigo-700">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Sugestões da IA
+                    </div>
+                    {plan.suggested_title && (
+                      <Block label="Título sugerido" text={plan.suggested_title} />
+                    )}
+                    {plan.suggested_description && (
+                      <Block label="Descrição sugerida" text={plan.suggested_description} />
+                    )}
+                    {plan.suggested_image_idea && (
+                      <Block label="Ideia de imagem" text={plan.suggested_image_idea} />
+                    )}
+                    {plan.suggested_ads_action && (
+                      <Block label="Ação em Ads" text={plan.suggested_ads_action} />
+                    )}
+                    {plan.suggested_price_action && (
+                      <Block label="Ação de preço" text={plan.suggested_price_action} />
+                    )}
+                    {plan.suggested_kit_action && (
+                      <Block label="Sugestão de kit" text={plan.suggested_kit_action} />
+                    )}
+                  </div>
+                )}
+
+                <div className="rounded-xl border border-border/60 bg-card p-4">
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <ClipboardList className="h-3.5 w-3.5" />
+                    Checklist de execução
+                  </div>
+                  <ul className="mt-3 space-y-2">
+                    {checklistFor(plan.insight_type).map((item, idx) => {
+                      const key = `${plan.id}:${idx}`;
+                      const done = !!checked[key];
+                      return (
+                        <li key={key}>
+                          <button
+                            type="button"
+                            onClick={() => toggleCheck(key)}
+                            className="flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition hover:bg-muted/60"
+                          >
+                            <CheckSquare
+                              className={`mt-0.5 h-4 w-4 shrink-0 ${
+                                done ? "text-emerald-600" : "text-muted-foreground"
+                              }`}
+                            />
+                            <span
+                              className={
+                                done
+                                  ? "text-muted-foreground line-through"
+                                  : "text-foreground"
+                              }
+                            >
+                              {item}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center justify-end gap-2 border-t border-border/60 pt-4">
+                <Button variant="ghost" size="sm" onClick={() => setPlan(null)}>
+                  Fechar
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  disabled={
+                    plan.status === "converted_to_task"
+                      ? openingId === plan.id
+                      : creatingId === plan.id
+                  }
+                  onClick={() =>
+                    plan.status === "converted_to_task"
+                      ? openTaskForInsight(plan)
+                      : createTaskFromInsight(plan)
+                  }
+                >
+                  {plan.status === "converted_to_task" ? (
+                    openingId === plan.id ? (
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    ) : (
+                      <ExternalLink className="mr-1.5 h-4 w-4" />
+                    )
+                  ) : creatingId === plan.id ? (
+                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ListPlus className="mr-1.5 h-4 w-4" />
+                  )}
+                  {plan.status === "converted_to_task" ? "Ver tarefa" : "Criar tarefa"}
                 </Button>
               </div>
             </>
@@ -650,6 +866,7 @@ function InsightCard({
   onOpen,
   onCreateTask,
   onOpenTask,
+  onPlan,
   creating,
   opening,
 }: {
@@ -657,6 +874,7 @@ function InsightCard({
   onOpen: () => void;
   onCreateTask: () => void;
   onOpenTask: () => void;
+  onPlan: () => void;
   creating: boolean;
   opening: boolean;
 }) {
@@ -743,9 +961,9 @@ function InsightCard({
             )}
             {alreadyTask ? "Ver tarefa" : "Criar tarefa"}
           </Button>
-          <Button size="sm" variant="outline" disabled>
+          <Button size="sm" variant="outline" onClick={onPlan}>
             <Wand2 className="mr-1.5 h-4 w-4" />
-            Em breve
+            Ver ação recomendada
           </Button>
 
         </div>

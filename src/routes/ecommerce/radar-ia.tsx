@@ -13,6 +13,7 @@ import {
   ExternalLink,
   ClipboardList,
   CheckSquare,
+  Play,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
@@ -240,7 +241,41 @@ function RadarIAContent() {
 
   const [creatingId, setCreatingId] = useState<string | null>(null);
   const [openingId, setOpeningId] = useState<string | null>(null);
+  const [running, setRunning] = useState(false);
   const navigate = useNavigate();
+
+  const runAnalysis = useCallback(async () => {
+    setRunning(true);
+    try {
+      const { data, error } = await supabase.rpc(
+        "generate_ecommerce_insights_v1",
+        {
+          p_company_id: ECOMMERCE_COMPANY_ID,
+          p_account_id: accountId,
+        },
+      );
+      if (error) {
+        console.error("Erro ao rodar Motor de Insights v1:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
+        toast.error("Não foi possível rodar a análise agora.");
+        return;
+      }
+      const result = Array.isArray(data) ? data[0] : data;
+      const inserted = Number(result?.inserted_count ?? 0);
+      if (inserted > 0) {
+        toast.success(`Análise concluída. Novos insights gerados: ${inserted}`);
+      } else {
+        toast.success("Análise concluída. Nenhum novo insight encontrado.");
+      }
+      await load();
+    } finally {
+      setRunning(false);
+    }
+  }, [accountId, load]);
 
   const openTaskForInsight = useCallback(
     async (insight: Insight) => {
@@ -477,6 +512,23 @@ function RadarIAContent() {
             Sinais de oportunidade, alertas e recomendações inteligentes da conta ativa.
           </p>
         </div>
+        <Button
+          onClick={runAnalysis}
+          disabled={running}
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+        >
+          {running ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Analisando...
+            </>
+          ) : (
+            <>
+              <Play className="mr-2 h-4 w-4" />
+              Rodar análise agora
+            </>
+          )}
+        </Button>
       </div>
 
 

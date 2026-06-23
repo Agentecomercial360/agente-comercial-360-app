@@ -11,6 +11,8 @@ import {
   ListPlus,
   Wand2,
   ExternalLink,
+  ClipboardList,
+  CheckSquare,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {

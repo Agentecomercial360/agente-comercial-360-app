@@ -132,6 +132,51 @@ const TYPE_LABEL: Record<string, string> = {
   kit_opportunity: "Oportunidade de kit",
 };
 
+const CHECKLIST_DEFAULT = [
+  "Revisar cadastro",
+  "Revisar preço",
+  "Revisar imagem",
+  "Acompanhar resultado",
+];
+
+const CHECKLIST_BY_TYPE: Record<string, string[]> = {
+  low_conversion: [
+    "Revisar imagem principal",
+    "Melhorar título",
+    "Reforçar benefícios na descrição",
+    "Revisar campanha ou tráfego",
+  ],
+  stock_stopped: [
+    "Verificar estoque",
+    "Revisar preço",
+    "Testar kit/promocional",
+    "Melhorar apresentação do anúncio",
+  ],
+  ads_scale_opportunity: [
+    "Conferir estoque antes de escalar",
+    "Aumentar orçamento gradualmente",
+    "Monitorar margem",
+    "Acompanhar resultado por 7 dias",
+  ],
+  kit_opportunity: [
+    "Selecionar produto complementar",
+    "Criar kit",
+    "Testar preço do combo",
+    "Medir conversão",
+  ],
+  no_visits: [
+    "Revisar título",
+    "Revisar categoria",
+    "Melhorar imagem principal",
+    "Testar campanha curta",
+  ],
+};
+
+function checklistFor(type: string | null): string[] {
+  if (!type) return CHECKLIST_DEFAULT;
+  return CHECKLIST_BY_TYPE[type] ?? CHECKLIST_DEFAULT;
+}
+
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
   try {

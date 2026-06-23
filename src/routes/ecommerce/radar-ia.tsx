@@ -52,6 +52,12 @@ type Insight = {
   confidence_score: number | null;
   created_at: string | null;
   updated_at: string | null;
+  suggested_title: string | null;
+  suggested_description: string | null;
+  suggested_image_idea: string | null;
+  suggested_ads_action: string | null;
+  suggested_price_action: string | null;
+  suggested_kit_action: string | null;
 };
 
 const PRIORITY_LABEL: Record<string, string> = {
@@ -126,7 +132,7 @@ function RadarIAContent() {
       const { data, error } = await supabase
         .from("ecommerce_ai_insights")
         .select(
-          "id, company_id, account_id, product_id, listing_id, insight_type, priority, title, diagnosis, probable_cause, recommended_action, status, generated_by, confidence_score, created_at, updated_at",
+          "id, company_id, account_id, product_id, listing_id, insight_type, priority, title, diagnosis, probable_cause, recommended_action, status, generated_by, confidence_score, created_at, updated_at, suggested_title, suggested_description, suggested_image_idea, suggested_ads_action, suggested_price_action, suggested_kit_action",
         )
         .eq("company_id", ECOMMERCE_COMPANY_ID)
         .eq("account_id", accountId)
@@ -278,9 +284,84 @@ function RadarIAContent() {
                 <Block label="Diagnóstico" text={selected.diagnosis} />
                 <Block label="Causa provável" text={selected.probable_cause} />
                 <Block label="Ação recomendada" text={selected.recommended_action} />
+
+                {(selected.suggested_title ||
+                  selected.suggested_description ||
+                  selected.suggested_image_idea ||
+                  selected.suggested_ads_action ||
+                  selected.suggested_price_action ||
+                  selected.suggested_kit_action) && (
+                  <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-4 space-y-4">
+                    <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-indigo-700">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Sugestões da IA
+                    </div>
+                    {selected.suggested_title && (
+                      <Block label="Título sugerido" text={selected.suggested_title} />
+                    )}
+                    {selected.suggested_description && (
+                      <Block label="Descrição sugerida" text={selected.suggested_description} />
+                    )}
+                    {selected.suggested_image_idea && (
+                      <Block label="Ideia de imagem" text={selected.suggested_image_idea} />
+                    )}
+                    {selected.suggested_ads_action && (
+                      <Block label="Ação em Ads" text={selected.suggested_ads_action} />
+                    )}
+                    {selected.suggested_price_action && (
+                      <Block label="Ação de preço" text={selected.suggested_price_action} />
+                    )}
+                    {selected.suggested_kit_action && (
+                      <Block label="Sugestão de kit" text={selected.suggested_kit_action} />
+                    )}
+                  </div>
+                )}
+
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Dados técnicos
+                  </div>
+                  <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                    <dt className="text-muted-foreground">Confiança</dt>
+                    <dd className="text-foreground">
+                      {selected.confidence_score != null
+                        ? `${Math.round(
+                            Number(selected.confidence_score) *
+                              (Number(selected.confidence_score) <= 1 ? 100 : 1),
+                          )}%`
+                        : "—"}
+                    </dd>
+                    <dt className="text-muted-foreground">Gerado por</dt>
+                    <dd className="text-foreground">{selected.generated_by ?? "—"}</dd>
+                    <dt className="text-muted-foreground">Criado em</dt>
+                    <dd className="text-foreground">{formatDate(selected.created_at)}</dd>
+                    <dt className="text-muted-foreground">Atualizado em</dt>
+                    <dd className="text-foreground">{formatDate(selected.updated_at)}</dd>
+                  </dl>
+                </div>
+
+                {(selected.product_id || selected.listing_id) && (
+                  <div className="text-[11px] text-muted-foreground space-y-0.5">
+                    {selected.product_id && (
+                      <div>
+                        <span className="font-medium">product_id:</span>{" "}
+                        <span className="font-mono">{selected.product_id}</span>
+                      </div>
+                    )}
+                    {selected.listing_id && (
+                      <div>
+                        <span className="font-medium">listing_id:</span>{" "}
+                        <span className="font-mono">{selected.listing_id}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              <div className="mt-6 flex flex-wrap gap-2">
+              <div className="mt-6 flex flex-wrap items-center justify-end gap-2 border-t border-border/60 pt-4">
+                <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
+                  Fechar
+                </Button>
                 <Button variant="outline" size="sm">
                   <ListPlus className="mr-1.5 h-4 w-4" />
                   Criar tarefa

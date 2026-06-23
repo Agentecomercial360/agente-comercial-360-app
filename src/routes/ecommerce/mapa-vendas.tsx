@@ -43,7 +43,6 @@ type ListingRow = {
   id: string;
   account_id: string | null;
   status: string | null;
-  is_active: boolean | null;
   updated_at: string | null;
 };
 
@@ -124,7 +123,7 @@ function MapaVendas() {
       const listRes = mercadoLivreAccountIds.length
         ? await supabase
             .from("ecommerce_listings")
-            .select("id, account_id, status, is_active, updated_at")
+            .select("id, account_id, status, updated_at")
             .eq("company_id", COMPANY_ID)
             .in("account_id", mercadoLivreAccountIds)
         : { data: [], error: null };
@@ -172,7 +171,6 @@ function MapaVendas() {
       const total = ls.length;
       const active = ls.filter(
         (l) =>
-          l.is_active === true ||
           (l.status ?? "").toLowerCase() === "active" ||
           (l.status ?? "").toLowerCase() === "ativo",
       ).length;

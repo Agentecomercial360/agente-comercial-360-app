@@ -649,12 +649,16 @@ function InsightCard({
   insight,
   onOpen,
   onCreateTask,
+  onOpenTask,
   creating,
+  opening,
 }: {
   insight: Insight;
   onOpen: () => void;
   onCreateTask: () => void;
+  onOpenTask: () => void;
   creating: boolean;
+  opening: boolean;
 }) {
   const alreadyTask = insight.status === "converted_to_task";
   const confidencePct =

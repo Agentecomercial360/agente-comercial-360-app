@@ -1,17 +1,19 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Map as MapIcon,
-  MapPin,
-  Building2,
-  DollarSign,
-  XCircle,
-  BrainCircuit,
+  Store,
+  CheckCircle2,
   Package,
+  MapPinned,
   Info,
-  TrendingUp,
+  Clock,
+  AlertCircle,
+  CircleDashed,
+  ArrowRight,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { supabase } from "@/lib/supabase";
 import brStatesData from "@/data/br-states.json";
 
 export const Route = createFileRoute("/ecommerce/mapa-vendas")({
@@ -21,28 +23,259 @@ export const Route = createFileRoute("/ecommerce/mapa-vendas")({
   }),
 });
 
+const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
+
 type BrState = { uf: string; name: string; d: string; cx: number; cy: number };
 const STATES = brStatesData as BrState[];
 
-const VIEW_TABS = [
-  { id: "receita", label: "Receita" },
-  { id: "pedidos", label: "Pedidos" },
-  { id: "cancelamentos", label: "Cancelamentos" },
-  { id: "ticket", label: "Ticket médio" },
-] as const;
+type AccountRow = {
+  id: string;
+  account_name: string | null;
+  marketplace: string | null;
+  nickname: string | null;
+  auth_status: string | null;
+  ml_user_id: string | null;
+  is_active: boolean | null;
+  last_sync_at: string | null;
+};
+
+type IntegrationRow = {
+  id: string;
+  account_id: string | null;
+  provider: string | null;
+  marketplace: string | null;
+  integration_status: string | null;
+  external_nickname: string | null;
+  external_user_id: string | null;
+  last_sync_at: string | null;
+};
+
+type ListingRow = {
+  id: string;
+  account_id: string | null;
+  status: string | null;
+  is_active: boolean | null;
+  updated_at: string | null;
+};
+
+function normMarketplace(value: string | null | undefined): string {
+  return (value ?? "").toLowerCase().replace(/[\s-]/g, "_");
+}
+function isMercadoLivre(value: string | null | undefined): boolean {
+  const k = normMarketplace(value);
+  return k === "mercado_livre" || k === "mercadolivre" || k === "ml";
+}
+function isShopee(value: string | null | undefined): boolean {
+  return normMarketplace(value) === "shopee";
+}
+
+const CONNECTED_VALUES = new Set([
+  "connected",
+  "conectada",
+  "conectado",
+  "active",
+  "ativa",
+  "ativo",
+  "authorized",
+  "autorizada",
+  "autorizado",
+]);
+
+function isConnected(a: AccountRow, integ?: IntegrationRow): boolean {
+  const av = (a.auth_status ?? "").toLowerCase();
+  const iv = (integ?.integration_status ?? "").toLowerCase();
+  if (CONNECTED_VALUES.has(av) || CONNECTED_VALUES.has(iv)) return true;
+  if (integ && (integ.last_sync_at || integ.external_user_id)) return true;
+  if (a.is_active && (a.ml_user_id || a.last_sync_at)) return true;
+  return false;
+}
+
+function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso;
+  }
+}
+
+type AccountView = {
+  account: AccountRow;
+  integration?: IntegrationRow;
+  connected: boolean;
+  total: number;
+  active: number;
+  paused: number;
+  lastSync: string | null;
+  visualStatus:
+    | "ready"
+    | "awaiting_sync"
+    | "awaiting_connection"
+    | "future_marketplace";
+};
 
 function MapaVendas() {
-  const [view, setView] = useState<(typeof VIEW_TABS)[number]["id"]>("receita");
-  const [hover, setHover] = useState<BrState | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [accounts, setAccounts] = useState<AccountRow[]>([]);
+  const [integrations, setIntegrations] = useState<IntegrationRow[]>([]);
+  const [listings, setListings] = useState<ListingRow[]>([]);
 
-  const tooltipPos = useMemo(() => {
-    if (!hover) return null;
-    // svg viewBox is 800x800
-    const left = (hover.cx / 800) * 100;
-    const top = (hover.cy / 800) * 100;
-    return { left: `${left}%`, top: `${top}%` };
-  }, [hover]);
+  useEffect(() => {
+    void loadData();
+  }, []);
+
+  async function loadData() {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const [accRes, intRes, listRes] = await Promise.all([
+        supabase
+          .from("ecommerce_accounts")
+          .select(
+            "id, account_name, marketplace, nickname, auth_status, ml_user_id, is_active, last_sync_at",
+          )
+          .eq("company_id", COMPANY_ID)
+          .order("account_name", { ascending: true }),
+        supabase
+          .from("ecommerce_integrations")
+          .select(
+            "id, account_id, provider, marketplace, integration_status, external_nickname, external_user_id, last_sync_at",
+          )
+          .eq("company_id", COMPANY_ID),
+        supabase
+          .from("ecommerce_listings")
+          .select("id, account_id, status, is_active, updated_at")
+          .eq("company_id", COMPANY_ID),
+      ]);
+
+      if (accRes.error) throw accRes.error;
+      if (intRes.error) throw intRes.error;
+      if (listRes.error) throw listRes.error;
+
+      setAccounts((accRes.data as AccountRow[]) ?? []);
+      setIntegrations((intRes.data as IntegrationRow[]) ?? []);
+      setListings((listRes.data as ListingRow[]) ?? []);
+    } catch (e: any) {
+      setError(e?.message ?? "Erro ao carregar dados.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // ML accounts + Shopee (future) rows
+  const mlAccounts = useMemo(
+    () => accounts.filter((a) => isMercadoLivre(a.marketplace)),
+    [accounts],
+  );
+  const shopeeAccounts = useMemo(
+    () => accounts.filter((a) => isShopee(a.marketplace)),
+    [accounts],
+  );
+
+  const integrationByAccount = useMemo(() => {
+    const m = new Map<string, IntegrationRow>();
+    for (const a of accounts) {
+      const direct = integrations.find((i) => i.account_id === a.id);
+      const byUser =
+        direct ??
+        integrations.find(
+          (i) =>
+            a.ml_user_id &&
+            i.external_user_id &&
+            String(i.external_user_id) === String(a.ml_user_id),
+        );
+      const byNick =
+        byUser ??
+        integrations.find(
+          (i) =>
+            a.nickname &&
+            i.external_nickname &&
+            i.external_nickname.toLowerCase() === a.nickname.toLowerCase(),
+        );
+      if (byNick) m.set(a.id, byNick);
+    }
+    return m;
+  }, [accounts, integrations]);
+
+  const listingsByAccount = useMemo(() => {
+    const m = new Map<string, ListingRow[]>();
+    for (const l of listings) {
+      if (!l.account_id) continue;
+      const arr = m.get(l.account_id) ?? [];
+      arr.push(l);
+      m.set(l.account_id, arr);
+    }
+    return m;
+  }, [listings]);
+
+  const rows: AccountView[] = useMemo(() => {
+    const build = (
+      a: AccountRow,
+      future: boolean,
+    ): AccountView => {
+      const integ = integrationByAccount.get(a.id);
+      const connected = !future && isConnected(a, integ);
+      const ls = listingsByAccount.get(a.id) ?? [];
+      const total = ls.length;
+      const active = ls.filter(
+        (l) =>
+          l.is_active === true ||
+          (l.status ?? "").toLowerCase() === "active" ||
+          (l.status ?? "").toLowerCase() === "ativo",
+      ).length;
+      const paused = ls.filter(
+        (l) =>
+          (l.status ?? "").toLowerCase() === "paused" ||
+          (l.status ?? "").toLowerCase() === "pausado",
+      ).length;
+      const lastSync = [a.last_sync_at, integ?.last_sync_at]
+        .filter((x): x is string => !!x)
+        .sort((x, y) => +new Date(y) - +new Date(x))[0] ?? null;
+
+      let visualStatus: AccountView["visualStatus"];
+      if (future) visualStatus = "future_marketplace";
+      else if (connected && total > 0) visualStatus = "ready";
+      else if (connected && total === 0) visualStatus = "awaiting_sync";
+      else visualStatus = "awaiting_connection";
+
+      return {
+        account: a,
+        integration: integ,
+        connected,
+        total,
+        active,
+        paused,
+        lastSync,
+        visualStatus,
+      };
+    };
+    return [
+      ...mlAccounts.map((a) => build(a, false)),
+      ...shopeeAccounts.map((a) => build(a, true)),
+    ];
+  }, [mlAccounts, shopeeAccounts, integrationByAccount, listingsByAccount]);
+
+  const summary = useMemo(() => {
+    const totalMl = mlAccounts.length;
+    const connectedMl = rows.filter(
+      (r) => r.visualStatus !== "future_marketplace" && r.connected,
+    ).length;
+    const totalListings = listings.filter((l) => {
+      // Only count listings tied to ML accounts
+      const acc = accounts.find((a) => a.id === l.account_id);
+      return acc ? isMercadoLivre(acc.marketplace) : true;
+    }).length;
+    const readyForMap = rows.filter((r) => r.visualStatus === "ready").length;
+    return { totalMl, connectedMl, totalListings, readyForMap };
+  }, [rows, mlAccounts, listings, accounts]);
 
   return (
     <EcommerceLayout>
@@ -61,12 +294,8 @@ function MapaVendas() {
                 Mapa de Vendas
               </h1>
               <p className="text-sm text-muted-foreground max-w-2xl">
-                Visualize onde a operação concentra receita, pedidos,
-                cancelamentos e oportunidades regionais.
-              </p>
-              <p className="text-xs text-muted-foreground/90 max-w-2xl">
-                Este módulo será conectado aos pedidos reais para identificar
-                estados e cidades com maior impacto comercial.
+                Visualize a preparação das contas Mercado Livre para análise
+                futura de vendas por estado, cidade e região.
               </p>
             </div>
           </div>
@@ -81,41 +310,96 @@ function MapaVendas() {
           </div>
         </header>
 
+        {error && (
+          <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
         {/* Top summary */}
         <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <SummaryCard
-            icon={<MapPin className="h-4 w-4" />}
-            label="Estados com vendas"
-            placeholder="Aguardando integração"
-            hint="Disponível após sincronização de pedidos com localidade."
+            icon={<Store className="h-4 w-4" />}
+            label="Contas Mercado Livre"
+            value={loading ? "…" : String(summary.totalMl)}
+            hint="Total de contas Mercado Livre cadastradas."
             accent="primary"
           />
           <SummaryCard
-            icon={<Building2 className="h-4 w-4" />}
-            label="Cidade líder"
-            placeholder="Em preparação"
-            hint="Identifica a cidade com maior volume de pedidos."
-            accent="info"
-          />
-          <SummaryCard
-            icon={<DollarSign className="h-4 w-4" />}
-            label="Receita geográfica"
-            placeholder="Após sincronização"
-            hint="Soma de faturamento agrupado por UF."
+            icon={<CheckCircle2 className="h-4 w-4" />}
+            label="Contas conectadas"
+            value={loading ? "…" : String(summary.connectedMl)}
+            hint="Contas com autorização ativa no Mercado Livre."
             accent="success"
           />
           <SummaryCard
-            icon={<XCircle className="h-4 w-4" />}
-            label="Taxa de cancelamento"
-            placeholder="Aguardando dados"
-            hint="Percentual de pedidos cancelados por região."
+            icon={<Package className="h-4 w-4" />}
+            label="Anúncios sincronizados"
+            value={loading ? "…" : summary.totalListings.toLocaleString("pt-BR")}
+            hint="Total de anúncios já trazidos para a base."
+            accent="info"
+          />
+          <SummaryCard
+            icon={<MapPinned className="h-4 w-4" />}
+            label="Prontas para mapa"
+            value={loading ? "…" : String(summary.readyForMap)}
+            hint="Contas conectadas com ao menos 1 anúncio sincronizado."
             accent="warning"
           />
         </section>
 
-        {/* Map + Side */}
+        {/* Status das contas */}
+        <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
+            <div>
+              <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                Preparação multi-conta
+              </div>
+              <div className="font-display text-base font-semibold text-foreground">
+                Status das contas para análise regional
+              </div>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {rows.length} {rows.length === 1 ? "conta" : "contas"}
+            </span>
+          </div>
+
+          {loading ? (
+            <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+              Carregando contas…
+            </div>
+          ) : rows.length === 0 ? (
+            <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+              Nenhuma conta Mercado Livre cadastrada para esta empresa.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[920px] text-sm">
+                <thead>
+                  <tr className="bg-slate-50/70 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <th className="px-6 py-3 font-medium">Conta</th>
+                    <th className="px-4 py-3 font-medium">Status conexão</th>
+                    <th className="px-4 py-3 font-medium text-right">Anúncios</th>
+                    <th className="px-4 py-3 font-medium text-right">Ativos</th>
+                    <th className="px-4 py-3 font-medium text-right">Pausados</th>
+                    <th className="px-4 py-3 font-medium">Última sync</th>
+                    <th className="px-6 py-3 font-medium">Status mapa</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200/70">
+                  {rows.map((r) => (
+                    <AccountTableRow key={r.account.id} row={r} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
+        {/* Map + Next steps */}
         <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-          {/* Map */}
+          {/* Empty Brazil map */}
           <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
               <div>
@@ -126,21 +410,10 @@ function MapaVendas() {
                   Mapa do Brasil
                 </div>
               </div>
-              <div className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-100/70 p-1">
-                {VIEW_TABS.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => setView(t.id)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
-                      view === t.id
-                        ? "bg-white text-foreground shadow-sm ring-1 ring-slate-200"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </div>
+              <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-700">
+                <Clock className="h-3.5 w-3.5" />
+                Em preparação
+              </span>
             </div>
 
             <div
@@ -150,7 +423,6 @@ function MapaVendas() {
                   "linear-gradient(180deg, #F4F8FD 0%, #EAF1F9 100%)",
               }}
             >
-              {/* Soft radial glow behind the map */}
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0"
@@ -159,280 +431,195 @@ function MapaVendas() {
                     "radial-gradient(60% 50% at 50% 38%, rgba(59,130,246,0.16) 0%, rgba(59,130,246,0) 70%)",
                 }}
               />
-              <div className="relative mx-auto w-full max-w-[680px]">
-                <div className="relative">
-                  <svg
-                    viewBox="0 0 800 800"
-                    className="block h-auto w-full drop-shadow-[0_14px_30px_rgba(30,58,138,0.12)]"
-                    role="img"
-                    aria-label="Mapa do Brasil"
-                  >
-                    <defs>
-                      <linearGradient id="stateNeutral" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#CFDBEC" />
-                        <stop offset="100%" stopColor="#B8C7DD" />
-                      </linearGradient>
-                      <linearGradient id="stateHover" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#3B82F6" />
-                        <stop offset="100%" stopColor="#2563EB" />
-                      </linearGradient>
-                      <linearGradient id="stateSelected" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#1D4ED8" />
-                        <stop offset="100%" stopColor="#1E3A8A" />
-                      </linearGradient>
-                    </defs>
-                    <g>
-                      {STATES.map((s) => {
-                        const isHover = hover?.uf === s.uf;
-                        const isSelected = selected === s.uf;
-                        const fill = isSelected
-                          ? "url(#stateSelected)"
-                          : isHover
-                            ? "url(#stateHover)"
-                            : "url(#stateNeutral)";
-                        const stroke = isSelected
-                          ? "#0B1E59"
-                          : isHover
-                            ? "#1E3A8A"
-                            : "#F8FAFC";
-                        return (
-                          <path
-                            key={s.uf}
-                            d={s.d}
-                            fill={fill}
-                            stroke={stroke}
-                            strokeWidth={isSelected || isHover ? 1.6 : 1.2}
-                            strokeLinejoin="round"
-                            style={{
-                              cursor: "pointer",
-                              transition:
-                                "fill 220ms ease, stroke 220ms ease, filter 220ms ease",
-                              filter:
-                                isSelected
-                                  ? "drop-shadow(0 4px 10px rgba(29,78,216,0.45))"
-                                  : isHover
-                                    ? "drop-shadow(0 3px 8px rgba(59,130,246,0.40))"
-                                    : "none",
-                            }}
-                            onMouseEnter={() => setHover(s)}
-                            onMouseLeave={() => setHover(null)}
-                            onClick={() =>
-                              setSelected((cur) => (cur === s.uf ? null : s.uf))
-                            }
-                          />
-                        );
-                      })}
-                    </g>
-                    <g style={{ pointerEvents: "none" }}>
-                      {STATES.map((s) => {
-                        const isActive =
-                          hover?.uf === s.uf || selected === s.uf;
-                        return (
-                          <text
-                            key={s.uf}
-                            x={s.cx}
-                            y={s.cy + 3}
-                            textAnchor="middle"
-                            fontSize={10}
-                            fontWeight={700}
-                            fill={isActive ? "#FFFFFF" : "#1E293B"}
-                            style={{ userSelect: "none", letterSpacing: 0.3 }}
-                          >
-                            {s.uf}
-                          </text>
-                        );
-                      })}
-                    </g>
-                  </svg>
+              <div className="relative mx-auto w-full max-w-[560px]">
+                <svg
+                  viewBox="0 0 800 800"
+                  className="block h-auto w-full opacity-70 drop-shadow-[0_14px_30px_rgba(30,58,138,0.10)]"
+                  role="img"
+                  aria-label="Mapa do Brasil (em preparação)"
+                >
+                  <defs>
+                    <linearGradient id="stateNeutral" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#CFDBEC" />
+                      <stop offset="100%" stopColor="#B8C7DD" />
+                    </linearGradient>
+                  </defs>
+                  <g>
+                    {STATES.map((s) => (
+                      <path
+                        key={s.uf}
+                        d={s.d}
+                        fill="url(#stateNeutral)"
+                        stroke="#F8FAFC"
+                        strokeWidth={1.2}
+                        strokeLinejoin="round"
+                      />
+                    ))}
+                  </g>
+                  <g style={{ pointerEvents: "none" }}>
+                    {STATES.map((s) => (
+                      <text
+                        key={s.uf}
+                        x={s.cx}
+                        y={s.cy + 3}
+                        textAnchor="middle"
+                        fontSize={10}
+                        fontWeight={700}
+                        fill="#1E293B"
+                        style={{ userSelect: "none", letterSpacing: 0.3 }}
+                      >
+                        {s.uf}
+                      </text>
+                    ))}
+                  </g>
+                </svg>
 
-                  {hover && tooltipPos && (
-                    <div
-                      className="pointer-events-none absolute z-10 w-64 -translate-x-1/2 -translate-y-[112%] rounded-xl border border-slate-700/40 bg-slate-900/95 p-3 text-white shadow-[0_12px_30px_-8px_rgba(15,23,42,0.45)] backdrop-blur-sm"
-                      style={tooltipPos}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-[10px] uppercase tracking-widest text-blue-300/80">
-                            {hover.uf}
-                          </div>
-                          <div className="font-display text-sm font-semibold">
-                            {hover.name}
-                          </div>
-                        </div>
-                        <span className="inline-flex items-center gap-1 rounded-md bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-blue-300">
-                          <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-                          Em integração
-                        </span>
-                      </div>
-                      <div className="mt-2 space-y-1 border-t border-white/10 pt-2 text-[11px]">
-                        <TipRow k="Receita" />
-                        <TipRow k="Pedidos" />
-                        <TipRow k="Cancelamentos" />
-                      </div>
-                      <p className="mt-2 text-[10.5px] leading-snug text-white/60">
-                        Dados serão exibidos após sincronização de pedidos e
-                        localidades.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Legend */}
-                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white/80 px-4 py-2.5 text-[11.5px] text-muted-foreground backdrop-blur">
-                  <div className="flex flex-wrap items-center gap-4">
-                    <LegendDot color="#B8C7DD" label="Aguardando dados" />
-                    <LegendDot color="#2563EB" label="Estado em foco" />
-                    <LegendDot color="#1E3A8A" label="Estado selecionado" />
+                <div className="mx-auto mt-6 max-w-md rounded-xl border border-dashed border-slate-300 bg-white/80 px-5 py-4 text-center backdrop-blur">
+                  <div className="font-display text-sm font-semibold text-foreground">
+                    Dados geográficos em preparação
                   </div>
-                  <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <Info className="h-3.5 w-3.5" />
-                    <span>Leitura ativada após integração</span>
-                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Os dados por estado e cidade serão exibidos após a
+                    sincronização de pedidos reais do Mercado Livre.
+                  </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Side panel */}
+          {/* Next steps */}
           <aside className="space-y-4">
             <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-card shadow-[0_4px_18px_-10px_rgba(15,23,42,0.15)]">
-              <div className="flex items-start justify-between gap-3 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 px-5 py-4">
-                <div>
-                  <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                    Estado selecionado
-                  </div>
-                  <div className="font-display text-base font-semibold text-foreground">
-                    {selected
-                      ? STATES.find((s) => s.uf === selected)?.name
-                      : "Nenhum estado"}
-                  </div>
-                </div>
-                {selected && (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
-                    {selected}
-                  </span>
-                )}
-              </div>
-              <div className="space-y-3 px-5 py-4 text-xs">
-                <KV k="Receita" v="Aguardando integração" />
-                <KV k="Pedidos" v="Aguardando integração" />
-                <KV k="Ticket médio" v="Aguardando integração" />
-                <KV k="Cancelamentos" v="Aguardando integração" />
-                <div className="rounded-md border border-dashed border-slate-200 bg-slate-50/70 px-3 py-2 text-[11px] leading-snug text-muted-foreground">
-                  {selected
-                    ? "Os indicadores deste estado serão exibidos após a integração de pedidos e localidades."
-                    : "Clique em um estado no mapa para visualizar o detalhamento."}
+              <div className="flex items-center gap-2 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 px-5 py-3">
+                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+                  <ArrowRight className="h-4 w-4" />
+                </span>
+                <div className="text-xs font-semibold text-foreground">
+                  Próxima etapa
                 </div>
               </div>
+              <ol className="space-y-3 px-5 py-4 text-sm">
+                {[
+                  "Sincronizar pedidos reais",
+                  "Capturar estado e cidade do comprador/envio",
+                  "Agrupar receita, pedidos, ticket médio e cancelamentos por região",
+                  "Alimentar o mapa com dados reais",
+                ].map((step, i) => (
+                  <li key={i} className="flex gap-3">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-[11px] font-semibold text-blue-700">
+                      {i + 1}
+                    </span>
+                    <span className="text-foreground/90 leading-snug">
+                      {step}
+                    </span>
+                  </li>
+                ))}
+              </ol>
             </div>
 
-            <RankingCard
-              title="Top estados por faturamento"
-              icon={<TrendingUp className="h-4 w-4" />}
-            />
-            <RankingCard
-              title="Top cidades por pedidos"
-              icon={<Building2 className="h-4 w-4" />}
-            />
-            <RankingCard
-              title="Estados com mais cancelamentos"
-              icon={<XCircle className="h-4 w-4" />}
-            />
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
+              <div className="inline-flex items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-700">
+                <Info className="h-3.5 w-3.5" />
+                <span>Como funciona</span>
+              </div>
+              <p className="mt-3 text-xs leading-relaxed text-foreground/90">
+                Cada conta Mercado Livre conectada passa a alimentar o mapa
+                quando seus pedidos forem sincronizados. Contas com anúncios já
+                trazidos estão prontas para a próxima etapa de geolocalização.
+              </p>
+            </div>
           </aside>
         </section>
-
-        {/* Bottom blocks */}
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <InfoBlock
-            icon={<Package className="h-4 w-4" />}
-            title="Produtos por região"
-            text="Identifique quais produtos performam melhor em cada estado."
-          />
-          <InfoBlock
-            icon={<XCircle className="h-4 w-4" />}
-            title="Cancelamentos"
-            text="Acompanhe estados e cidades com maior taxa de cancelamento."
-            tone="warning"
-          />
-          <InfoBlock
-            icon={<BrainCircuit className="h-4 w-4" />}
-            title="Leitura da IA"
-            text="A IA poderá destacar regiões com oportunidade de escala, queda de vendas ou risco operacional."
-            tone="info"
-          />
-        </section>
-
-        <p className="text-center text-xs text-muted-foreground">
-          Os dados do Mapa de Vendas serão preenchidos após a integração de
-          pedidos, clientes e localidades.
-        </p>
       </div>
     </EcommerceLayout>
   );
 }
 
-function LegendDot({
-  color,
-  label,
-  future = false,
-}: {
-  color: string;
-  label: string;
-  future?: boolean;
-}) {
+function AccountTableRow({ row }: { row: AccountView }) {
+  const { account, integration, total, active, paused, lastSync, visualStatus } =
+    row;
+
+  const statusLabel = (account.auth_status ?? "—").toLowerCase();
+  const integLabel = (integration?.integration_status ?? "—").toLowerCase();
+
   return (
-    <div className="flex items-center gap-1.5">
-      <span
-        className="inline-block h-2.5 w-2.5 rounded-full border border-white shadow-sm"
-        style={{
-          backgroundColor: color,
-          opacity: future ? 0.55 : 1,
-        }}
-      />
-      <span className={future ? "italic text-muted-foreground/80" : ""}>
-        {label}
-      </span>
-    </div>
+    <tr className="hover:bg-slate-50/60">
+      <td className="px-6 py-4">
+        <div className="font-medium text-foreground">
+          {account.account_name ?? "Conta sem nome"}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          {account.nickname ?? integration?.external_nickname ?? "—"}
+        </div>
+      </td>
+      <td className="px-4 py-4">
+        <div className="flex flex-col gap-0.5 text-xs">
+          <span className="text-foreground/90">auth: {statusLabel}</span>
+          <span className="text-muted-foreground">integ: {integLabel}</span>
+        </div>
+      </td>
+      <td className="px-4 py-4 text-right text-sm font-medium text-foreground">
+        {total.toLocaleString("pt-BR")}
+      </td>
+      <td className="px-4 py-4 text-right text-sm text-emerald-600">
+        {active.toLocaleString("pt-BR")}
+      </td>
+      <td className="px-4 py-4 text-right text-sm text-amber-600">
+        {paused.toLocaleString("pt-BR")}
+      </td>
+      <td className="px-4 py-4 text-xs text-muted-foreground">
+        {formatDateTime(lastSync)}
+      </td>
+      <td className="px-6 py-4">
+        <StatusBadge status={visualStatus} />
+      </td>
+    </tr>
   );
 }
 
-function TipRow({ k }: { k: string }) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-white/60">{k}</span>
-      <span className="text-white/80">Aguardando integração</span>
-    </div>
-  );
-}
-
-function KV({ k, v }: { k: string; v: string }) {
-  const pending = v === "Aguardando integração";
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-muted-foreground">{k}</span>
-      <span
-        className={
-          pending
-            ? "text-[11px] italic text-muted-foreground/80"
-            : "font-medium text-foreground"
-        }
-      >
-        {v}
+function StatusBadge({ status }: { status: AccountView["visualStatus"] }) {
+  if (status === "ready") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700">
+        <CheckCircle2 className="h-3.5 w-3.5" />
+        Pronta
       </span>
-    </div>
+    );
+  }
+  if (status === "awaiting_sync") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700">
+        <Clock className="h-3.5 w-3.5" />
+        Aguardando sincronização
+      </span>
+    );
+  }
+  if (status === "awaiting_connection") {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700">
+        <Clock className="h-3.5 w-3.5" />
+        Aguardando conexão
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600">
+      <CircleDashed className="h-3.5 w-3.5" />
+      Marketplace futuro
+    </span>
   );
 }
 
 function SummaryCard({
   icon,
   label,
-  placeholder,
+  value,
   hint,
   accent,
 }: {
   icon: React.ReactNode;
   label: string;
-  placeholder: string;
+  value: string;
   hint: string;
   accent: "primary" | "info" | "success" | "warning";
 }) {
@@ -450,82 +637,10 @@ function SummaryCard({
         {icon}
         <span className="text-[11px] uppercase tracking-widest">{label}</span>
       </div>
-      <div className="mt-3 font-display text-lg font-semibold text-foreground">
-        {placeholder}
+      <div className="mt-3 font-display text-2xl font-bold text-foreground">
+        {value}
       </div>
       <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
-    </div>
-  );
-}
-
-function RankingCard({
-  title,
-  icon,
-}: {
-  title: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-card shadow-[0_4px_18px_-10px_rgba(15,23,42,0.15)]">
-      <div className="flex items-center gap-2 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/50 px-5 py-3">
-        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-50 text-blue-600">
-          {icon}
-        </span>
-        <div className="text-xs font-semibold text-foreground">{title}</div>
-      </div>
-      <div className="space-y-2 px-5 py-4">
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="flex items-center justify-between rounded-lg border border-dashed border-slate-200 bg-slate-50/60 px-3 py-2"
-          >
-            <div className="flex items-center gap-2">
-              <span className="flex h-5 w-5 items-center justify-center rounded-md border border-slate-200 bg-white text-[10px] font-semibold text-slate-400">
-                {i + 1}
-              </span>
-              <span className="h-2 w-20 rounded-full bg-slate-200/80" />
-            </div>
-            <span className="h-2 w-10 rounded-full bg-slate-200/80" />
-          </div>
-        ))}
-        <p className="pt-1 text-[11px] leading-snug text-muted-foreground">
-          Dados regionais serão exibidos após a integração de pedidos e
-          localidades.
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function InfoBlock({
-  icon,
-  title,
-  text,
-  tone = "neutral",
-}: {
-  icon: React.ReactNode;
-  title: string;
-  text: string;
-  tone?: "neutral" | "warning" | "info";
-}) {
-  const toneClass =
-    tone === "warning"
-      ? "text-amber-600 bg-amber-50 border-amber-100"
-      : tone === "info"
-        ? "text-blue-700 bg-blue-50 border-blue-100"
-        : "text-muted-foreground bg-muted/40 border-border";
-  return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-      <div
-        className={`inline-flex items-center gap-2 rounded-md border px-2 py-1 text-[11px] font-semibold ${toneClass}`}
-      >
-        {icon}
-        <span>{title}</span>
-      </div>
-      <p className="mt-3 text-sm text-foreground/90">{text}</p>
-      <p className="mt-2 text-[11px] text-muted-foreground">
-        Bloco preparado para dados futuros.
-      </p>
     </div>
   );
 }

@@ -394,6 +394,72 @@ function RadarIAContent() {
     return { total, high, critical, converted };
   }, [insights]);
 
+  type FilterKey =
+    | "all"
+    | "critical"
+    | "high"
+    | "converted"
+    | "ads_scale_opportunity"
+    | "low_conversion"
+    | "stock_stopped"
+    | "kit_opportunity";
+
+  const [filter, setFilter] = useState<FilterKey>("all");
+
+  const matchesFilter = useCallback((i: Insight, f: FilterKey): boolean => {
+    switch (f) {
+      case "all":
+        return true;
+      case "critical":
+        return i.priority === "critical";
+      case "high":
+        return i.priority === "high";
+      case "converted":
+        return i.status === "converted_to_task";
+      default:
+        return i.insight_type === f;
+    }
+  }, []);
+
+  const filterDefs: { key: FilterKey; label: string }[] = [
+    { key: "all", label: "Todos" },
+    { key: "critical", label: "Críticos" },
+    { key: "high", label: "Alta prioridade" },
+    { key: "converted", label: "Convertidos em tarefa" },
+    { key: "ads_scale_opportunity", label: "Oportunidades em Ads" },
+    { key: "low_conversion", label: "Baixa conversão" },
+    { key: "stock_stopped", label: "Estoque parado" },
+    { key: "kit_opportunity", label: "Kits e combos" },
+  ];
+
+  const counts = useMemo(() => {
+    const c: Record<FilterKey, number> = {
+      all: insights.length,
+      critical: 0,
+      high: 0,
+      converted: 0,
+      ads_scale_opportunity: 0,
+      low_conversion: 0,
+      stock_stopped: 0,
+      kit_opportunity: 0,
+    };
+    for (const i of insights) {
+      if (i.priority === "critical") c.critical++;
+      if (i.priority === "high") c.high++;
+      if (i.status === "converted_to_task") c.converted++;
+      if (i.insight_type === "ads_scale_opportunity") c.ads_scale_opportunity++;
+      if (i.insight_type === "low_conversion") c.low_conversion++;
+      if (i.insight_type === "stock_stopped") c.stock_stopped++;
+      if (i.insight_type === "kit_opportunity") c.kit_opportunity++;
+    }
+    return c;
+  }, [insights]);
+
+  const filteredInsights = useMemo(
+    () => insights.filter((i) => matchesFilter(i, filter)),
+    [insights, filter, matchesFilter],
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -442,6 +508,41 @@ function RadarIAContent() {
         />
       </div>
 
+      {/* Filter bar */}
+      {!loading && insights.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {filterDefs.map((f) => {
+            const active = filter === f.key;
+            const count = counts[f.key];
+            return (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setFilter(f.key)}
+                className={
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors " +
+                  (active
+                    ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                    : "border-border bg-card text-foreground hover:bg-muted")
+                }
+              >
+                <span>{f.label}</span>
+                <span
+                  className={
+                    "rounded-full px-1.5 py-0.5 text-[10px] font-semibold " +
+                    (active
+                      ? "bg-white/20 text-white"
+                      : "bg-muted text-muted-foreground")
+                  }
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* List */}
       {loading ? (
         <div className="flex items-center justify-center rounded-2xl border border-border/60 bg-card py-16 text-sm text-muted-foreground">
@@ -455,9 +556,16 @@ function RadarIAContent() {
             Nenhum insight encontrado para esta conta. O Radar IA exibirá oportunidades assim que o motor de inteligência analisar os dados.
           </p>
         </div>
+      ) : filteredInsights.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border/60 bg-card px-6 py-16 text-center">
+          <Radar className="mx-auto h-10 w-10 text-muted-foreground/60" />
+          <p className="mt-3 text-sm text-muted-foreground max-w-md mx-auto">
+            Nenhum insight encontrado para este filtro.
+          </p>
+        </div>
       ) : (
         <div className="space-y-3">
-          {insights.map((insight) => (
+          {filteredInsights.map((insight) => (
             <InsightCard
               key={insight.id}
               insight={insight}

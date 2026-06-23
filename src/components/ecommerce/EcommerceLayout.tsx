@@ -13,6 +13,7 @@ import {
   ListTodo,
   TrendingUp,
   BrainCircuit,
+  Radar,
   BarChart3,
   LogOut,
   Menu,
@@ -66,6 +67,7 @@ const navGroups = [
   {
     title: "SISTEMA",
     items: [
+      { label: "Radar IA", to: "/ecommerce/radar-ia", icon: Radar },
       { label: "Consultor IA", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
       { label: "Configurações", to: "/ecommerce/configuracoes", icon: Settings },
     ],

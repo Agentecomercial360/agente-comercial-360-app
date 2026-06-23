@@ -394,6 +394,72 @@ function RadarIAContent() {
     return { total, high, critical, converted };
   }, [insights]);
 
+  type FilterKey =
+    | "all"
+    | "critical"
+    | "high"
+    | "converted"
+    | "ads_scale_opportunity"
+    | "low_conversion"
+    | "stock_stopped"
+    | "kit_opportunity";
+
+  const [filter, setFilter] = useState<FilterKey>("all");
+
+  const matchesFilter = useCallback((i: Insight, f: FilterKey): boolean => {
+    switch (f) {
+      case "all":
+        return true;
+      case "critical":
+        return i.priority === "critical";
+      case "high":
+        return i.priority === "high";
+      case "converted":
+        return i.status === "converted_to_task";
+      default:
+        return i.insight_type === f;
+    }
+  }, []);
+
+  const filterDefs: { key: FilterKey; label: string }[] = [
+    { key: "all", label: "Todos" },
+    { key: "critical", label: "Críticos" },
+    { key: "high", label: "Alta prioridade" },
+    { key: "converted", label: "Convertidos em tarefa" },
+    { key: "ads_scale_opportunity", label: "Oportunidades em Ads" },
+    { key: "low_conversion", label: "Baixa conversão" },
+    { key: "stock_stopped", label: "Estoque parado" },
+    { key: "kit_opportunity", label: "Kits e combos" },
+  ];
+
+  const counts = useMemo(() => {
+    const c: Record<FilterKey, number> = {
+      all: insights.length,
+      critical: 0,
+      high: 0,
+      converted: 0,
+      ads_scale_opportunity: 0,
+      low_conversion: 0,
+      stock_stopped: 0,
+      kit_opportunity: 0,
+    };
+    for (const i of insights) {
+      if (i.priority === "critical") c.critical++;
+      if (i.priority === "high") c.high++;
+      if (i.status === "converted_to_task") c.converted++;
+      if (i.insight_type === "ads_scale_opportunity") c.ads_scale_opportunity++;
+      if (i.insight_type === "low_conversion") c.low_conversion++;
+      if (i.insight_type === "stock_stopped") c.stock_stopped++;
+      if (i.insight_type === "kit_opportunity") c.kit_opportunity++;
+    }
+    return c;
+  }, [insights]);
+
+  const filteredInsights = useMemo(
+    () => insights.filter((i) => matchesFilter(i, filter)),
+    [insights, filter, matchesFilter],
+  );
+
   return (
     <div className="space-y-6">
       {/* Header */}

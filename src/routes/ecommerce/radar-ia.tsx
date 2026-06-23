@@ -25,6 +25,38 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { toast } from "sonner";
+
+const TASK_TYPE_MAP: Record<string, string> = {
+  low_conversion: "review_description",
+  stock_stopped: "review_stock",
+  ads_scale_opportunity: "increase_ads_budget",
+  visits_no_sales: "review_description",
+  no_visits: "activate_ads",
+  kit_opportunity: "create_kit",
+};
+
+function mapTaskType(insightType: string | null): string {
+  if (!insightType) return "other";
+  return TASK_TYPE_MAP[insightType] ?? "other";
+}
+
+function buildTaskDescription(insight: Insight): string {
+  const parts: string[] = [];
+  if (insight.diagnosis?.trim())
+    parts.push(`Diagnóstico: ${insight.diagnosis.trim()}`);
+  if (insight.probable_cause?.trim())
+    parts.push(`Causa provável: ${insight.probable_cause.trim()}`);
+  if (insight.recommended_action?.trim())
+    parts.push(`Ação recomendada: ${insight.recommended_action.trim()}`);
+  return parts.join("\n\n");
+}
+
+function computeDueDate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 2);
+  return d.toISOString().slice(0, 10);
+}
 
 export const Route = createFileRoute("/ecommerce/radar-ia")({
   component: RadarIAPage,
@@ -152,6 +184,109 @@ function RadarIAContent() {
     void load();
   }, [load]);
 
+  const [creatingId, setCreatingId] = useState<string | null>(null);
+
+  const createTaskFromInsight = useCallback(
+    async (insight: Insight) => {
+      setCreatingId(insight.id);
+      try {
+        // 1. Check existing
+        const { data: existing, error: existErr } = await supabase
+          .from("ecommerce_tasks")
+          .select("id")
+          .eq("company_id", insight.company_id)
+          .eq("account_id", insight.account_id)
+          .eq("insight_id", insight.id)
+          .limit(1);
+        if (existErr) {
+          console.error("Erro ao verificar tarefa existente:", {
+            message: existErr.message,
+            details: existErr.details,
+            hint: existErr.hint,
+            code: existErr.code,
+          });
+          toast.error("Não foi possível criar a tarefa.");
+          return;
+        }
+        if (existing && existing.length > 0) {
+          toast.message("Tarefa já criada para este insight.");
+          if (insight.status !== "converted_to_task") {
+            await supabase
+              .from("ecommerce_ai_insights")
+              .update({
+                status: "converted_to_task",
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", insight.id);
+            await load();
+          }
+          return;
+        }
+
+        // 2. Insert
+        const payload = {
+          company_id: insight.company_id,
+          account_id: insight.account_id,
+          product_id: insight.product_id,
+          listing_id: insight.listing_id,
+          insight_id: insight.id,
+          task_title: insight.title,
+          task_description: buildTaskDescription(insight),
+          task_type: mapTaskType(insight.insight_type),
+          priority: insight.priority || "medium",
+          status: "pending",
+          responsible_name: null,
+          responsible_email: null,
+          due_date: computeDueDate(),
+          expected_impact: insight.recommended_action,
+          created_by: "radar_ia",
+          completed_at: null,
+        };
+        const { error: insertErr } = await supabase
+          .from("ecommerce_tasks")
+          .insert(payload);
+        if (insertErr) {
+          console.error("Erro ao criar tarefa:", {
+            message: insertErr.message,
+            details: insertErr.details,
+            hint: insertErr.hint,
+            code: insertErr.code,
+          });
+          toast.error("Não foi possível criar a tarefa.");
+          return;
+        }
+
+        // 3. Update insight
+        const { error: updErr } = await supabase
+          .from("ecommerce_ai_insights")
+          .update({
+            status: "converted_to_task",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", insight.id);
+        if (updErr) {
+          console.error("Erro ao atualizar insight:", {
+            message: updErr.message,
+            details: updErr.details,
+            hint: updErr.hint,
+            code: updErr.code,
+          });
+        }
+
+        toast.success("Tarefa criada com sucesso.");
+        await load();
+        setSelected((prev) =>
+          prev && prev.id === insight.id
+            ? { ...prev, status: "converted_to_task" }
+            : prev,
+        );
+      } finally {
+        setCreatingId(null);
+      }
+    },
+    [load],
+  );
+
   const summary = useMemo(() => {
     const total = insights.length;
     const high = insights.filter((i) => i.priority === "high").length;
@@ -180,6 +315,7 @@ function RadarIAContent() {
           </p>
         </div>
       </div>
+
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -229,6 +365,8 @@ function RadarIAContent() {
               key={insight.id}
               insight={insight}
               onOpen={() => setSelected(insight)}
+              onCreateTask={() => createTaskFromInsight(insight)}
+              creating={creatingId === insight.id}
             />
           ))}
         </div>
@@ -362,9 +500,23 @@ function RadarIAContent() {
                 <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
                   Fechar
                 </Button>
-                <Button variant="outline" size="sm">
-                  <ListPlus className="mr-1.5 h-4 w-4" />
-                  Criar tarefa
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={
+                    creatingId === selected.id ||
+                    selected.status === "converted_to_task"
+                  }
+                  onClick={() => createTaskFromInsight(selected)}
+                >
+                  {creatingId === selected.id ? (
+                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ListPlus className="mr-1.5 h-4 w-4" />
+                  )}
+                  {selected.status === "converted_to_task"
+                    ? "Tarefa criada"
+                    : "Criar tarefa"}
                 </Button>
                 <Button variant="outline" size="sm" disabled>
                   <Wand2 className="mr-1.5 h-4 w-4" />
@@ -437,10 +589,15 @@ function Block({ label, text }: { label: string; text: string | null }) {
 function InsightCard({
   insight,
   onOpen,
+  onCreateTask,
+  creating,
 }: {
   insight: Insight;
   onOpen: () => void;
+  onCreateTask: () => void;
+  creating: boolean;
 }) {
+  const alreadyTask = insight.status === "converted_to_task";
   const confidencePct =
     insight.confidence_score == null
       ? null
@@ -504,9 +661,18 @@ function InsightCard({
             <Eye className="mr-1.5 h-4 w-4" />
             Ver detalhes
           </Button>
-          <Button size="sm" variant="outline">
-            <ListPlus className="mr-1.5 h-4 w-4" />
-            Criar tarefa
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={creating || alreadyTask}
+            onClick={onCreateTask}
+          >
+            {creating ? (
+              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+            ) : (
+              <ListPlus className="mr-1.5 h-4 w-4" />
+            )}
+            {alreadyTask ? "Tarefa criada" : "Criar tarefa"}
           </Button>
           <Button size="sm" variant="outline" disabled>
             <Wand2 className="mr-1.5 h-4 w-4" />

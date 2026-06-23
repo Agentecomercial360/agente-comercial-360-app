@@ -181,8 +181,9 @@ function fmtDiff(n: number | null | undefined, kind: "num" | "money" | "pct" = "
   const sign = v > 0 ? "+" : "";
   if (kind === "money") return `${sign}${fmtMoney(v)}`;
   if (kind === "pct") {
-    const pct = Math.abs(v) <= 1 ? v * 100 : v;
-    return `${sign}${pct.toFixed(2).replace(".", ",")} p.p.`;
+    // before/after já vêm em pontos percentuais (ex: 4.0580 = 4,06%),
+    // portanto a diferença também está em p.p. — não multiplicar por 100.
+    return `${sign}${v.toFixed(2).replace(".", ",")} p.p.`;
   }
   return `${sign}${fmtNum(v)}`;
 }

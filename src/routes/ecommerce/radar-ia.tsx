@@ -548,20 +548,32 @@ function RadarIAContent() {
                   variant="outline"
                   size="sm"
                   disabled={
-                    creatingId === selected.id ||
                     selected.status === "converted_to_task"
+                      ? openingId === selected.id
+                      : creatingId === selected.id
                   }
-                  onClick={() => createTaskFromInsight(selected)}
+                  onClick={() =>
+                    selected.status === "converted_to_task"
+                      ? openTaskForInsight(selected)
+                      : createTaskFromInsight(selected)
+                  }
                 >
-                  {creatingId === selected.id ? (
+                  {selected.status === "converted_to_task" ? (
+                    openingId === selected.id ? (
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    ) : (
+                      <ExternalLink className="mr-1.5 h-4 w-4" />
+                    )
+                  ) : creatingId === selected.id ? (
                     <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                   ) : (
                     <ListPlus className="mr-1.5 h-4 w-4" />
                   )}
                   {selected.status === "converted_to_task"
-                    ? "Tarefa criada"
+                    ? "Ver tarefa"
                     : "Criar tarefa"}
                 </Button>
+
                 <Button variant="outline" size="sm" disabled>
                   <Wand2 className="mr-1.5 h-4 w-4" />
                   Otimizar com IA · Em breve

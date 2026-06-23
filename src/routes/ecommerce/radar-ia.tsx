@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Radar,
@@ -10,6 +10,7 @@ import {
   Eye,
   ListPlus,
   Wand2,
+  ExternalLink,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
@@ -185,6 +186,49 @@ function RadarIAContent() {
   }, [load]);
 
   const [creatingId, setCreatingId] = useState<string | null>(null);
+  const [openingId, setOpeningId] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const openTaskForInsight = useCallback(
+    async (insight: Insight) => {
+      setOpeningId(insight.id);
+      try {
+        const { data, error } = await supabase
+          .from("ecommerce_tasks")
+          .select("id")
+          .eq("company_id", insight.company_id)
+          .eq("account_id", insight.account_id)
+          .eq("insight_id", insight.id)
+          .limit(1);
+        if (error) {
+          console.error("Erro ao buscar tarefa vinculada:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+          });
+          toast.error("Não foi possível abrir a tarefa.");
+          return;
+        }
+        const task = data?.[0];
+        if (!task) {
+          toast.error("Insight convertido, mas tarefa vinculada não encontrada.");
+          return;
+        }
+        try {
+          localStorage.setItem("ac360_selected_task_id", task.id);
+          localStorage.setItem("ac360_selected_insight_id", insight.id);
+        } catch {
+          /* ignore storage errors */
+        }
+        navigate({ to: "/ecommerce/tarefas" });
+      } finally {
+        setOpeningId(null);
+      }
+    },
+    [navigate],
+  );
+
 
   const createTaskFromInsight = useCallback(
     async (insight: Insight) => {
@@ -366,8 +410,11 @@ function RadarIAContent() {
               insight={insight}
               onOpen={() => setSelected(insight)}
               onCreateTask={() => createTaskFromInsight(insight)}
+              onOpenTask={() => openTaskForInsight(insight)}
               creating={creatingId === insight.id}
+              opening={openingId === insight.id}
             />
+
           ))}
         </div>
       )}
@@ -504,20 +551,32 @@ function RadarIAContent() {
                   variant="outline"
                   size="sm"
                   disabled={
-                    creatingId === selected.id ||
                     selected.status === "converted_to_task"
+                      ? openingId === selected.id
+                      : creatingId === selected.id
                   }
-                  onClick={() => createTaskFromInsight(selected)}
+                  onClick={() =>
+                    selected.status === "converted_to_task"
+                      ? openTaskForInsight(selected)
+                      : createTaskFromInsight(selected)
+                  }
                 >
-                  {creatingId === selected.id ? (
+                  {selected.status === "converted_to_task" ? (
+                    openingId === selected.id ? (
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    ) : (
+                      <ExternalLink className="mr-1.5 h-4 w-4" />
+                    )
+                  ) : creatingId === selected.id ? (
                     <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                   ) : (
                     <ListPlus className="mr-1.5 h-4 w-4" />
                   )}
                   {selected.status === "converted_to_task"
-                    ? "Tarefa criada"
+                    ? "Ver tarefa"
                     : "Criar tarefa"}
                 </Button>
+
                 <Button variant="outline" size="sm" disabled>
                   <Wand2 className="mr-1.5 h-4 w-4" />
                   Otimizar com IA · Em breve
@@ -590,12 +649,16 @@ function InsightCard({
   insight,
   onOpen,
   onCreateTask,
+  onOpenTask,
   creating,
+  opening,
 }: {
   insight: Insight;
   onOpen: () => void;
   onCreateTask: () => void;
+  onOpenTask: () => void;
   creating: boolean;
+  opening: boolean;
 }) {
   const alreadyTask = insight.status === "converted_to_task";
   const confidencePct =
@@ -664,20 +727,27 @@ function InsightCard({
           <Button
             size="sm"
             variant="outline"
-            disabled={creating || alreadyTask}
-            onClick={onCreateTask}
+            disabled={alreadyTask ? opening : creating}
+            onClick={alreadyTask ? onOpenTask : onCreateTask}
           >
-            {creating ? (
+            {alreadyTask ? (
+              opening ? (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+              ) : (
+                <ExternalLink className="mr-1.5 h-4 w-4" />
+              )
+            ) : creating ? (
               <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
             ) : (
               <ListPlus className="mr-1.5 h-4 w-4" />
             )}
-            {alreadyTask ? "Tarefa criada" : "Criar tarefa"}
+            {alreadyTask ? "Ver tarefa" : "Criar tarefa"}
           </Button>
           <Button size="sm" variant="outline" disabled>
             <Wand2 className="mr-1.5 h-4 w-4" />
             Em breve
           </Button>
+
         </div>
       </div>
     </div>

@@ -39,17 +39,6 @@ type AccountRow = {
   last_sync_at: string | null;
 };
 
-type IntegrationRow = {
-  id: string;
-  account_id: string | null;
-  provider: string | null;
-  marketplace: string | null;
-  integration_status: string | null;
-  external_nickname: string | null;
-  external_user_id: string | null;
-  last_sync_at: string | null;
-};
-
 type ListingRow = {
   id: string;
   account_id: string | null;
@@ -69,21 +58,8 @@ function isShopee(value: string | null | undefined): boolean {
   return normMarketplace(value) === "shopee";
 }
 
-const CONNECTED_VALUES = new Set([
-  "connected",
-  "conectada",
-  "conectado",
-  "active",
-  "ativa",
-  "ativo",
-  "authorized",
-  "autorizada",
-  "autorizado",
-]);
-
 function isConnected(a: AccountRow): boolean {
-  const av = (a.auth_status ?? "").toLowerCase();
-  return CONNECTED_VALUES.has(av);
+  return (a.auth_status ?? "").trim().toLowerCase() === "connected";
 }
 
 function formatDateTime(iso: string | null | undefined): string {
@@ -130,24 +106,32 @@ function MapaVendas() {
       setLoading(true);
       setError(null);
 
-      const [accRes, listRes] = await Promise.all([
-        supabase
-          .from("ecommerce_accounts")
-          .select(
-            "id, account_name, marketplace, nickname, auth_status, ml_user_id, is_active, last_sync_at",
-          )
-          .eq("company_id", COMPANY_ID)
-          .order("account_name", { ascending: true }),
-        supabase
-          .from("ecommerce_listings")
-          .select("id, account_id, status, is_active, updated_at")
-          .eq("company_id", COMPANY_ID),
-      ]);
+      const accRes = await supabase
+        .from("ecommerce_accounts")
+        .select(
+          "id, account_name, marketplace, nickname, auth_status, ml_user_id, is_active, last_sync_at",
+        )
+        .eq("company_id", COMPANY_ID)
+        .order("account_name", { ascending: true });
 
       if (accRes.error) throw accRes.error;
+
+      const accountRows = (accRes.data as AccountRow[]) ?? [];
+      const mercadoLivreAccountIds = accountRows
+        .filter((account) => isMercadoLivre(account.marketplace))
+        .map((account) => account.id);
+
+      const listRes = mercadoLivreAccountIds.length
+        ? await supabase
+            .from("ecommerce_listings")
+            .select("id, account_id, status, is_active, updated_at")
+            .eq("company_id", COMPANY_ID)
+            .in("account_id", mercadoLivreAccountIds)
+        : { data: [], error: null };
+
       if (listRes.error) throw listRes.error;
 
-      setAccounts((accRes.data as AccountRow[]) ?? []);
+      setAccounts(accountRows);
       setListings((listRes.data as ListingRow[]) ?? []);
     } catch (e: any) {
       setError(e?.message ?? "Erro ao carregar dados.");
@@ -227,11 +211,7 @@ function MapaVendas() {
     const connectedMl = rows.filter(
       (r) => r.visualStatus !== "future_marketplace" && r.connected,
     ).length;
-    const totalListings = listings.filter((l) => {
-      // Only count listings tied to ML accounts
-      const acc = accounts.find((a) => a.id === l.account_id);
-      return acc ? isMercadoLivre(acc.marketplace) : true;
-    }).length;
+    const totalListings = listings.length;
     const readyForMap = rows.filter((r) => r.visualStatus === "ready").length;
     return { totalMl, connectedMl, totalListings, readyForMap };
   }, [rows, mlAccounts, listings, accounts]);

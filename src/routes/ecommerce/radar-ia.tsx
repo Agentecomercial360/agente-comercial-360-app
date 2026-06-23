@@ -630,9 +630,16 @@ function RadarIAContent() {
                     : "Criar tarefa"}
                 </Button>
 
-                <Button variant="outline" size="sm" disabled>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => {
+                    setPlan(selected);
+                    setChecked({});
+                  }}
+                >
                   <Wand2 className="mr-1.5 h-4 w-4" />
-                  Otimizar com IA · Em breve
+                  Ver ação recomendada
                 </Button>
               </div>
             </>

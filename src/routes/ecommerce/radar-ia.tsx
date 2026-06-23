@@ -508,6 +508,41 @@ function RadarIAContent() {
         />
       </div>
 
+      {/* Filter bar */}
+      {!loading && insights.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {filterDefs.map((f) => {
+            const active = filter === f.key;
+            const count = counts[f.key];
+            return (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setFilter(f.key)}
+                className={
+                  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors " +
+                  (active
+                    ? "border-blue-600 bg-blue-600 text-white shadow-sm"
+                    : "border-border bg-card text-foreground hover:bg-muted")
+                }
+              >
+                <span>{f.label}</span>
+                <span
+                  className={
+                    "rounded-full px-1.5 py-0.5 text-[10px] font-semibold " +
+                    (active
+                      ? "bg-white/20 text-white"
+                      : "bg-muted text-muted-foreground")
+                  }
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* List */}
       {loading ? (
         <div className="flex items-center justify-center rounded-2xl border border-border/60 bg-card py-16 text-sm text-muted-foreground">
@@ -521,9 +556,16 @@ function RadarIAContent() {
             Nenhum insight encontrado para esta conta. O Radar IA exibirá oportunidades assim que o motor de inteligência analisar os dados.
           </p>
         </div>
+      ) : filteredInsights.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border/60 bg-card px-6 py-16 text-center">
+          <Radar className="mx-auto h-10 w-10 text-muted-foreground/60" />
+          <p className="mt-3 text-sm text-muted-foreground max-w-md mx-auto">
+            Nenhum insight encontrado para este filtro.
+          </p>
+        </div>
       ) : (
         <div className="space-y-3">
-          {insights.map((insight) => (
+          {filteredInsights.map((insight) => (
             <InsightCard
               key={insight.id}
               insight={insight}

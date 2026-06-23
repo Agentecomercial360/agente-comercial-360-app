@@ -132,7 +132,7 @@ function RadarIAContent() {
       const { data, error } = await supabase
         .from("ecommerce_ai_insights")
         .select(
-          "id, company_id, account_id, product_id, listing_id, insight_type, priority, title, diagnosis, probable_cause, recommended_action, status, generated_by, confidence_score, created_at, updated_at",
+          "id, company_id, account_id, product_id, listing_id, insight_type, priority, title, diagnosis, probable_cause, recommended_action, status, generated_by, confidence_score, created_at, updated_at, suggested_title, suggested_description, suggested_image_idea, suggested_ads_action, suggested_price_action, suggested_kit_action",
         )
         .eq("company_id", ECOMMERCE_COMPANY_ID)
         .eq("account_id", accountId)

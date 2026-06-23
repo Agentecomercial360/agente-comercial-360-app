@@ -167,31 +167,6 @@ function MapaVendas() {
     [accounts],
   );
 
-  const integrationByAccount = useMemo(() => {
-    const m = new Map<string, IntegrationRow>();
-    for (const a of accounts) {
-      const direct = integrations.find((i) => i.account_id === a.id);
-      const byUser =
-        direct ??
-        integrations.find(
-          (i) =>
-            a.ml_user_id &&
-            i.external_user_id &&
-            String(i.external_user_id) === String(a.ml_user_id),
-        );
-      const byNick =
-        byUser ??
-        integrations.find(
-          (i) =>
-            a.nickname &&
-            i.external_nickname &&
-            i.external_nickname.toLowerCase() === a.nickname.toLowerCase(),
-        );
-      if (byNick) m.set(a.id, byNick);
-    }
-    return m;
-  }, [accounts, integrations]);
-
   const listingsByAccount = useMemo(() => {
     const m = new Map<string, ListingRow[]>();
     for (const l of listings) {
@@ -208,8 +183,7 @@ function MapaVendas() {
       a: AccountRow,
       future: boolean,
     ): AccountView => {
-      const integ = integrationByAccount.get(a.id);
-      const connected = !future && isConnected(a, integ);
+      const connected = !future && isConnected(a);
       const ls = listingsByAccount.get(a.id) ?? [];
       const total = ls.length;
       const active = ls.filter(
@@ -223,9 +197,7 @@ function MapaVendas() {
           (l.status ?? "").toLowerCase() === "paused" ||
           (l.status ?? "").toLowerCase() === "pausado",
       ).length;
-      const lastSync = [a.last_sync_at, integ?.last_sync_at]
-        .filter((x): x is string => !!x)
-        .sort((x, y) => +new Date(y) - +new Date(x))[0] ?? null;
+      const lastSync = a.last_sync_at ?? null;
 
       let visualStatus: AccountView["visualStatus"];
       if (future) visualStatus = "future_marketplace";
@@ -235,7 +207,6 @@ function MapaVendas() {
 
       return {
         account: a,
-        integration: integ,
         connected,
         total,
         active,
@@ -248,7 +219,8 @@ function MapaVendas() {
       ...mlAccounts.map((a) => build(a, false)),
       ...shopeeAccounts.map((a) => build(a, true)),
     ];
-  }, [mlAccounts, shopeeAccounts, integrationByAccount, listingsByAccount]);
+  }, [mlAccounts, shopeeAccounts, listingsByAccount]);
+
 
   const summary = useMemo(() => {
     const totalMl = mlAccounts.length;

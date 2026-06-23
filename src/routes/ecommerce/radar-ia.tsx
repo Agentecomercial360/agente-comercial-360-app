@@ -181,8 +181,9 @@ function fmtDiff(n: number | null | undefined, kind: "num" | "money" | "pct" = "
   const sign = v > 0 ? "+" : "";
   if (kind === "money") return `${sign}${fmtMoney(v)}`;
   if (kind === "pct") {
-    const pct = Math.abs(v) <= 1 ? v * 100 : v;
-    return `${sign}${pct.toFixed(2).replace(".", ",")} p.p.`;
+    // before/after já vêm em pontos percentuais (ex: 4.0580 = 4,06%),
+    // portanto a diferença também está em p.p. — não multiplicar por 100.
+    return `${sign}${v.toFixed(2).replace(".", ",")} p.p.`;
   }
   return `${sign}${fmtNum(v)}`;
 }
@@ -931,32 +932,42 @@ function RadarIAContent() {
                   </div>
                 </div>
 
-                <div className="text-[11px] text-muted-foreground space-y-0.5">
-                  {selectedResult.task_id && (
-                    <div>
-                      <span className="font-medium">task_id:</span>{" "}
-                      <span className="font-mono">{selectedResult.task_id}</span>
+                {selectedResult.evaluated_at && (
+                  <div className="text-[11px] text-muted-foreground">
+                    <span className="font-medium">Avaliado em:</span>{" "}
+                    {formatDate(selectedResult.evaluated_at)}
+                  </div>
+                )}
+
+                {(selectedResult.task_id ||
+                  selectedResult.product_id ||
+                  selectedResult.listing_id) && (
+                  <details className="group rounded-lg border border-border/40 bg-muted/20 px-3 py-2">
+                    <summary className="cursor-pointer text-[11px] font-medium uppercase tracking-wider text-muted-foreground hover:text-foreground">
+                      Dados técnicos
+                    </summary>
+                    <div className="mt-2 space-y-0.5 text-[11px] text-muted-foreground">
+                      {selectedResult.task_id && (
+                        <div>
+                          <span className="font-medium">task_id:</span>{" "}
+                          <span className="font-mono">{selectedResult.task_id}</span>
+                        </div>
+                      )}
+                      {selectedResult.product_id && (
+                        <div>
+                          <span className="font-medium">product_id:</span>{" "}
+                          <span className="font-mono">{selectedResult.product_id}</span>
+                        </div>
+                      )}
+                      {selectedResult.listing_id && (
+                        <div>
+                          <span className="font-medium">listing_id:</span>{" "}
+                          <span className="font-mono">{selectedResult.listing_id}</span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {selectedResult.product_id && (
-                    <div>
-                      <span className="font-medium">product_id:</span>{" "}
-                      <span className="font-mono">{selectedResult.product_id}</span>
-                    </div>
-                  )}
-                  {selectedResult.listing_id && (
-                    <div>
-                      <span className="font-medium">listing_id:</span>{" "}
-                      <span className="font-mono">{selectedResult.listing_id}</span>
-                    </div>
-                  )}
-                  {selectedResult.evaluated_at && (
-                    <div>
-                      <span className="font-medium">avaliado em:</span>{" "}
-                      {formatDate(selectedResult.evaluated_at)}
-                    </div>
-                  )}
-                </div>
+                  </details>
+                )}
               </div>
 
               <div className="mt-6 flex flex-wrap items-center justify-end gap-2 border-t border-border/60 pt-4">

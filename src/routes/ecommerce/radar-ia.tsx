@@ -339,14 +339,14 @@ function RadarIAContent() {
   const loadActionResults = useCallback(async () => {
     setLoadingResults(true);
     try {
+      console.log("[Impacto das Ações] activeAccountId:", accountId);
       const { data, error } = await supabase
         .from("vw_ecommerce_action_results")
         .select("*")
         .eq("company_id", ECOMMERCE_COMPANY_ID)
-        .eq("account_id", accountId)
-        .order("evaluated_at", { ascending: false, nullsFirst: false });
+        .eq("account_id", accountId);
       if (error) {
-        console.error("Erro ao carregar impacto das ações:", {
+        console.error("[Impacto das Ações] Erro Supabase:", {
           message: error.message,
           details: error.details,
           hint: error.hint,
@@ -354,7 +354,14 @@ function RadarIAContent() {
         });
         setActionResults([]);
       } else {
-        setActionResults((data as ActionResult[]) ?? []);
+        const rows = (data as ActionResult[]) ?? [];
+        console.log("[Impacto das Ações] total retornado:", rows.length, rows);
+        const sorted = [...rows].sort((a, b) => {
+          const av = a.evaluated_at ?? a.created_at ?? "";
+          const bv = b.evaluated_at ?? b.created_at ?? "";
+          return bv.localeCompare(av);
+        });
+        setActionResults(sorted);
       }
     } finally {
       setLoadingResults(false);

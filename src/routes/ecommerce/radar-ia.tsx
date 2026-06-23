@@ -661,9 +661,18 @@ function InsightCard({
             <Eye className="mr-1.5 h-4 w-4" />
             Ver detalhes
           </Button>
-          <Button size="sm" variant="outline">
-            <ListPlus className="mr-1.5 h-4 w-4" />
-            Criar tarefa
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={creating || alreadyTask}
+            onClick={onCreateTask}
+          >
+            {creating ? (
+              <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+            ) : (
+              <ListPlus className="mr-1.5 h-4 w-4" />
+            )}
+            {alreadyTask ? "Tarefa criada" : "Criar tarefa"}
           </Button>
           <Button size="sm" variant="outline" disabled>
             <Wand2 className="mr-1.5 h-4 w-4" />

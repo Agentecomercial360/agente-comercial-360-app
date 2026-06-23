@@ -102,6 +102,92 @@ type Insight = {
   suggested_kit_action: string | null;
 };
 
+type ActionResult = {
+  id: string;
+  company_id: string | null;
+  account_id: string | null;
+  task_id: string | null;
+  task_title: string | null;
+  product_id: string | null;
+  product_name: string | null;
+  listing_id: string | null;
+  listing_title: string | null;
+  result_status: string | null;
+  result_status_label: string | null;
+  result_summary: string | null;
+  ai_evaluation: string | null;
+  before_visits: number | null;
+  after_visits: number | null;
+  visits_difference: number | null;
+  before_sales_count: number | null;
+  after_sales_count: number | null;
+  sales_difference: number | null;
+  before_revenue: number | null;
+  after_revenue: number | null;
+  revenue_difference: number | null;
+  before_conversion_rate: number | null;
+  after_conversion_rate: number | null;
+  conversion_difference: number | null;
+  created_at: string | null;
+  evaluated_at: string | null;
+};
+
+const RESULT_STATUS_LABEL: Record<string, string> = {
+  improved: "Melhorou",
+  declined: "Caiu",
+  no_change: "Sem mudança",
+  pending_analysis: "Pendente",
+  inconclusive: "Inconclusivo",
+};
+
+const RESULT_STATUS_STYLE: Record<string, string> = {
+  improved: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  declined: "border-red-200 bg-red-50 text-red-700",
+  no_change: "border-slate-200 bg-slate-50 text-slate-700",
+  pending_analysis: "border-amber-200 bg-amber-50 text-amber-700",
+  inconclusive: "border-slate-200 bg-slate-50 text-slate-700",
+};
+
+function fmtNum(n: number | null | undefined): string {
+  if (n == null || Number.isNaN(Number(n))) return "—";
+  return new Intl.NumberFormat("pt-BR").format(Number(n));
+}
+
+function fmtMoney(n: number | null | undefined): string {
+  if (n == null || Number.isNaN(Number(n))) return "—";
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(Number(n));
+}
+
+function fmtPct(n: number | null | undefined): string {
+  if (n == null || Number.isNaN(Number(n))) return "—";
+  const v = Number(n);
+  // values may come as 0.0405 OR 4.05
+  const pct = v <= 1 ? v * 100 : v;
+  return `${pct.toFixed(2).replace(".", ",")}%`;
+}
+
+function diffTone(n: number | null | undefined): string {
+  if (n == null || Number.isNaN(Number(n)) || Number(n) === 0)
+    return "text-muted-foreground";
+  return Number(n) > 0 ? "text-emerald-600" : "text-red-600";
+}
+
+function fmtDiff(n: number | null | undefined, kind: "num" | "money" | "pct" = "num"): string {
+  if (n == null || Number.isNaN(Number(n))) return "—";
+  const v = Number(n);
+  const sign = v > 0 ? "+" : "";
+  if (kind === "money") return `${sign}${fmtMoney(v)}`;
+  if (kind === "pct") {
+    const pct = Math.abs(v) <= 1 ? v * 100 : v;
+    return `${sign}${pct.toFixed(2).replace(".", ",")} p.p.`;
+  }
+  return `${sign}${fmtNum(v)}`;
+}
+
+
 const PRIORITY_LABEL: Record<string, string> = {
   low: "Baixa",
   medium: "Média",

@@ -81,13 +81,9 @@ const CONNECTED_VALUES = new Set([
   "autorizado",
 ]);
 
-function isConnected(a: AccountRow, integ?: IntegrationRow): boolean {
+function isConnected(a: AccountRow): boolean {
   const av = (a.auth_status ?? "").toLowerCase();
-  const iv = (integ?.integration_status ?? "").toLowerCase();
-  if (CONNECTED_VALUES.has(av) || CONNECTED_VALUES.has(iv)) return true;
-  if (integ && (integ.last_sync_at || integ.external_user_id)) return true;
-  if (a.is_active && (a.ml_user_id || a.last_sync_at)) return true;
-  return false;
+  return CONNECTED_VALUES.has(av);
 }
 
 function formatDateTime(iso: string | null | undefined): string {
@@ -107,7 +103,6 @@ function formatDateTime(iso: string | null | undefined): string {
 
 type AccountView = {
   account: AccountRow;
-  integration?: IntegrationRow;
   connected: boolean;
   total: number;
   active: number;
@@ -124,7 +119,6 @@ function MapaVendas() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
-  const [integrations, setIntegrations] = useState<IntegrationRow[]>([]);
   const [listings, setListings] = useState<ListingRow[]>([]);
 
   useEffect(() => {
@@ -136,7 +130,7 @@ function MapaVendas() {
       setLoading(true);
       setError(null);
 
-      const [accRes, intRes, listRes] = await Promise.all([
+      const [accRes, listRes] = await Promise.all([
         supabase
           .from("ecommerce_accounts")
           .select(
@@ -145,23 +139,15 @@ function MapaVendas() {
           .eq("company_id", COMPANY_ID)
           .order("account_name", { ascending: true }),
         supabase
-          .from("ecommerce_integrations")
-          .select(
-            "id, account_id, provider, marketplace, integration_status, external_nickname, external_user_id, last_sync_at",
-          )
-          .eq("company_id", COMPANY_ID),
-        supabase
           .from("ecommerce_listings")
           .select("id, account_id, status, is_active, updated_at")
           .eq("company_id", COMPANY_ID),
       ]);
 
       if (accRes.error) throw accRes.error;
-      if (intRes.error) throw intRes.error;
       if (listRes.error) throw listRes.error;
 
       setAccounts((accRes.data as AccountRow[]) ?? []);
-      setIntegrations((intRes.data as IntegrationRow[]) ?? []);
       setListings((listRes.data as ListingRow[]) ?? []);
     } catch (e: any) {
       setError(e?.message ?? "Erro ao carregar dados.");
@@ -169,6 +155,7 @@ function MapaVendas() {
       setLoading(false);
     }
   }
+
 
   // ML accounts + Shopee (future) rows
   const mlAccounts = useMemo(
@@ -179,31 +166,6 @@ function MapaVendas() {
     () => accounts.filter((a) => isShopee(a.marketplace)),
     [accounts],
   );
-
-  const integrationByAccount = useMemo(() => {
-    const m = new Map<string, IntegrationRow>();
-    for (const a of accounts) {
-      const direct = integrations.find((i) => i.account_id === a.id);
-      const byUser =
-        direct ??
-        integrations.find(
-          (i) =>
-            a.ml_user_id &&
-            i.external_user_id &&
-            String(i.external_user_id) === String(a.ml_user_id),
-        );
-      const byNick =
-        byUser ??
-        integrations.find(
-          (i) =>
-            a.nickname &&
-            i.external_nickname &&
-            i.external_nickname.toLowerCase() === a.nickname.toLowerCase(),
-        );
-      if (byNick) m.set(a.id, byNick);
-    }
-    return m;
-  }, [accounts, integrations]);
 
   const listingsByAccount = useMemo(() => {
     const m = new Map<string, ListingRow[]>();
@@ -221,8 +183,7 @@ function MapaVendas() {
       a: AccountRow,
       future: boolean,
     ): AccountView => {
-      const integ = integrationByAccount.get(a.id);
-      const connected = !future && isConnected(a, integ);
+      const connected = !future && isConnected(a);
       const ls = listingsByAccount.get(a.id) ?? [];
       const total = ls.length;
       const active = ls.filter(
@@ -236,9 +197,7 @@ function MapaVendas() {
           (l.status ?? "").toLowerCase() === "paused" ||
           (l.status ?? "").toLowerCase() === "pausado",
       ).length;
-      const lastSync = [a.last_sync_at, integ?.last_sync_at]
-        .filter((x): x is string => !!x)
-        .sort((x, y) => +new Date(y) - +new Date(x))[0] ?? null;
+      const lastSync = a.last_sync_at ?? null;
 
       let visualStatus: AccountView["visualStatus"];
       if (future) visualStatus = "future_marketplace";
@@ -248,7 +207,6 @@ function MapaVendas() {
 
       return {
         account: a,
-        integration: integ,
         connected,
         total,
         active,
@@ -261,7 +219,8 @@ function MapaVendas() {
       ...mlAccounts.map((a) => build(a, false)),
       ...shopeeAccounts.map((a) => build(a, true)),
     ];
-  }, [mlAccounts, shopeeAccounts, integrationByAccount, listingsByAccount]);
+  }, [mlAccounts, shopeeAccounts, listingsByAccount]);
+
 
   const summary = useMemo(() => {
     const totalMl = mlAccounts.length;
@@ -536,11 +495,9 @@ function MapaVendas() {
 }
 
 function AccountTableRow({ row }: { row: AccountView }) {
-  const { account, integration, total, active, paused, lastSync, visualStatus } =
-    row;
+  const { account, total, active, paused, lastSync, visualStatus } = row;
 
   const statusLabel = (account.auth_status ?? "—").toLowerCase();
-  const integLabel = (integration?.integration_status ?? "—").toLowerCase();
 
   return (
     <tr className="hover:bg-slate-50/60">
@@ -549,15 +506,15 @@ function AccountTableRow({ row }: { row: AccountView }) {
           {account.account_name ?? "Conta sem nome"}
         </div>
         <div className="text-xs text-muted-foreground">
-          {account.nickname ?? integration?.external_nickname ?? "—"}
+          {account.nickname ?? "—"}
         </div>
       </td>
       <td className="px-4 py-4">
         <div className="flex flex-col gap-0.5 text-xs">
           <span className="text-foreground/90">auth: {statusLabel}</span>
-          <span className="text-muted-foreground">integ: {integLabel}</span>
         </div>
       </td>
+
       <td className="px-4 py-4 text-right text-sm font-medium text-foreground">
         {total.toLocaleString("pt-BR")}
       </td>

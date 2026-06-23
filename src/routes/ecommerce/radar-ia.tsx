@@ -803,9 +803,9 @@ function InsightCard({
             )}
             {alreadyTask ? "Ver tarefa" : "Criar tarefa"}
           </Button>
-          <Button size="sm" variant="outline" disabled>
+          <Button size="sm" variant="outline" onClick={onPlan}>
             <Wand2 className="mr-1.5 h-4 w-4" />
-            Em breve
+            Ver ação recomendada
           </Button>
 
         </div>

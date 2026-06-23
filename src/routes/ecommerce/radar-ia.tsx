@@ -186,6 +186,49 @@ function RadarIAContent() {
   }, [load]);
 
   const [creatingId, setCreatingId] = useState<string | null>(null);
+  const [openingId, setOpeningId] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const openTaskForInsight = useCallback(
+    async (insight: Insight) => {
+      setOpeningId(insight.id);
+      try {
+        const { data, error } = await supabase
+          .from("ecommerce_tasks")
+          .select("id")
+          .eq("company_id", insight.company_id)
+          .eq("account_id", insight.account_id)
+          .eq("insight_id", insight.id)
+          .limit(1);
+        if (error) {
+          console.error("Erro ao buscar tarefa vinculada:", {
+            message: error.message,
+            details: error.details,
+            hint: error.hint,
+            code: error.code,
+          });
+          toast.error("Não foi possível abrir a tarefa.");
+          return;
+        }
+        const task = data?.[0];
+        if (!task) {
+          toast.error("Insight convertido, mas tarefa vinculada não encontrada.");
+          return;
+        }
+        try {
+          localStorage.setItem("ac360_selected_task_id", task.id);
+          localStorage.setItem("ac360_selected_insight_id", insight.id);
+        } catch {
+          /* ignore storage errors */
+        }
+        navigate({ to: "/ecommerce/tarefas" });
+      } finally {
+        setOpeningId(null);
+      }
+    },
+    [navigate],
+  );
+
 
   const createTaskFromInsight = useCallback(
     async (insight: Insight) => {

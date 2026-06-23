@@ -710,6 +710,7 @@ function InsightCard({
   onOpen,
   onCreateTask,
   onOpenTask,
+  onPlan,
   creating,
   opening,
 }: {
@@ -717,6 +718,7 @@ function InsightCard({
   onOpen: () => void;
   onCreateTask: () => void;
   onOpenTask: () => void;
+  onPlan: () => void;
   creating: boolean;
   opening: boolean;
 }) {

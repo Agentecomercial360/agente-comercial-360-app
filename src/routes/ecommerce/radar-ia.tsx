@@ -331,6 +331,49 @@ function RadarIAContent() {
     void load();
   }, [load]);
 
+  // Impacto das Ações
+  const [actionResults, setActionResults] = useState<ActionResult[]>([]);
+  const [loadingResults, setLoadingResults] = useState(true);
+  const [selectedResult, setSelectedResult] = useState<ActionResult | null>(null);
+
+  const loadActionResults = useCallback(async () => {
+    setLoadingResults(true);
+    try {
+      const { data, error } = await supabase
+        .from("vw_ecommerce_action_results")
+        .select("*")
+        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("account_id", accountId)
+        .order("evaluated_at", { ascending: false, nullsFirst: false });
+      if (error) {
+        console.error("Erro ao carregar impacto das ações:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
+        setActionResults([]);
+      } else {
+        setActionResults((data as ActionResult[]) ?? []);
+      }
+    } finally {
+      setLoadingResults(false);
+    }
+  }, [accountId]);
+
+  useEffect(() => {
+    void loadActionResults();
+  }, [loadActionResults]);
+
+  const resultsSummary = useMemo(() => {
+    const total = actionResults.length;
+    const improved = actionResults.filter((r) => r.result_status === "improved").length;
+    const noChange = actionResults.filter((r) => r.result_status === "no_change").length;
+    const declined = actionResults.filter((r) => r.result_status === "declined").length;
+    return { total, improved, noChange, declined };
+  }, [actionResults]);
+
+
   const [creatingId, setCreatingId] = useState<string | null>(null);
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [running, setRunning] = useState(false);

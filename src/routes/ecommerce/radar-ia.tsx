@@ -500,9 +500,23 @@ function RadarIAContent() {
                 <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
                   Fechar
                 </Button>
-                <Button variant="outline" size="sm">
-                  <ListPlus className="mr-1.5 h-4 w-4" />
-                  Criar tarefa
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={
+                    creatingId === selected.id ||
+                    selected.status === "converted_to_task"
+                  }
+                  onClick={() => createTaskFromInsight(selected)}
+                >
+                  {creatingId === selected.id ? (
+                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                  ) : (
+                    <ListPlus className="mr-1.5 h-4 w-4" />
+                  )}
+                  {selected.status === "converted_to_task"
+                    ? "Tarefa criada"
+                    : "Criar tarefa"}
                 </Button>
                 <Button variant="outline" size="sm" disabled>
                   <Wand2 className="mr-1.5 h-4 w-4" />

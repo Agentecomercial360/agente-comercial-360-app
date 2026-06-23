@@ -25,6 +25,38 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { toast } from "sonner";
+
+const TASK_TYPE_MAP: Record<string, string> = {
+  low_conversion: "review_description",
+  stock_stopped: "review_stock",
+  ads_scale_opportunity: "increase_ads_budget",
+  visits_no_sales: "review_description",
+  no_visits: "activate_ads",
+  kit_opportunity: "create_kit",
+};
+
+function mapTaskType(insightType: string | null): string {
+  if (!insightType) return "other";
+  return TASK_TYPE_MAP[insightType] ?? "other";
+}
+
+function buildTaskDescription(insight: Insight): string {
+  const parts: string[] = [];
+  if (insight.diagnosis?.trim())
+    parts.push(`Diagnóstico: ${insight.diagnosis.trim()}`);
+  if (insight.probable_cause?.trim())
+    parts.push(`Causa provável: ${insight.probable_cause.trim()}`);
+  if (insight.recommended_action?.trim())
+    parts.push(`Ação recomendada: ${insight.recommended_action.trim()}`);
+  return parts.join("\n\n");
+}
+
+function computeDueDate(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 2);
+  return d.toISOString().slice(0, 10);
+}
 
 export const Route = createFileRoute("/ecommerce/radar-ia")({
   component: RadarIAPage,

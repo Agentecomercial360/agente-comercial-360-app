@@ -495,11 +495,9 @@ function MapaVendas() {
 }
 
 function AccountTableRow({ row }: { row: AccountView }) {
-  const { account, integration, total, active, paused, lastSync, visualStatus } =
-    row;
+  const { account, total, active, paused, lastSync, visualStatus } = row;
 
   const statusLabel = (account.auth_status ?? "—").toLowerCase();
-  const integLabel = (integration?.integration_status ?? "—").toLowerCase();
 
   return (
     <tr className="hover:bg-slate-50/60">
@@ -508,15 +506,15 @@ function AccountTableRow({ row }: { row: AccountView }) {
           {account.account_name ?? "Conta sem nome"}
         </div>
         <div className="text-xs text-muted-foreground">
-          {account.nickname ?? integration?.external_nickname ?? "—"}
+          {account.nickname ?? "—"}
         </div>
       </td>
       <td className="px-4 py-4">
         <div className="flex flex-col gap-0.5 text-xs">
           <span className="text-foreground/90">auth: {statusLabel}</span>
-          <span className="text-muted-foreground">integ: {integLabel}</span>
         </div>
       </td>
+
       <td className="px-4 py-4 text-right text-sm font-medium text-foreground">
         {total.toLocaleString("pt-BR")}
       </td>

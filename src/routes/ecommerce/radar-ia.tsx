@@ -13,6 +13,7 @@ import {
   ExternalLink,
   ClipboardList,
   CheckSquare,
+  Play,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {

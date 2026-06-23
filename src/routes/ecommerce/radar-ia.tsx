@@ -1478,3 +1478,127 @@ function InsightCard({
     </div>
   );
 }
+
+function MetricRow({
+  label,
+  before,
+  after,
+  diff,
+  diffClass,
+}: {
+  label: string;
+  before: string;
+  after: string;
+  diff: string;
+  diffClass: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-border/40 pb-1.5 last:border-0 last:pb-0">
+      <span className="text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2 text-right">
+        <span className="text-foreground">{before}</span>
+        <span className="text-muted-foreground">→</span>
+        <span className="font-semibold text-foreground">{after}</span>
+        <span className={`ml-2 text-xs font-semibold ${diffClass}`}>{diff}</span>
+      </div>
+    </div>
+  );
+}
+
+function ActionResultCard({
+  result,
+  onOpen,
+  onOpenTask,
+}: {
+  result: ActionResult;
+  onOpen: () => void;
+  onOpenTask: () => void;
+}) {
+  const status = result.result_status ?? "";
+  const statusLabel =
+    result.result_status_label ?? RESULT_STATUS_LABEL[status] ?? status ?? "—";
+  const statusStyle =
+    RESULT_STATUS_STYLE[status] ?? "border-slate-200 bg-slate-50 text-slate-700";
+  const Icon =
+    status === "improved"
+      ? TrendingUp
+      : status === "declined"
+        ? TrendingDown
+        : status === "no_change"
+          ? Minus
+          : HelpCircle;
+
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-[var(--shadow-soft)]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <Pill className={statusStyle}>
+              <Icon className="h-3 w-3" />
+              {statusLabel}
+            </Pill>
+          </div>
+          <h3 className="mt-2 font-display text-base font-semibold leading-snug text-foreground">
+            {result.task_title ?? "Ação"}
+          </h3>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {result.product_name ?? "Produto"}
+            {result.listing_title ? ` · ${result.listing_title}` : ""}
+          </p>
+          {result.result_summary && (
+            <p className="mt-2 line-clamp-2 text-sm text-foreground">
+              {result.result_summary}
+            </p>
+          )}
+
+          <div className="mt-3 grid grid-cols-1 gap-1.5 rounded-xl border border-border/50 bg-muted/30 p-3 text-xs sm:grid-cols-2">
+            <MetricRow
+              label="Visitas"
+              before={fmtNum(result.before_visits)}
+              after={fmtNum(result.after_visits)}
+              diff={fmtDiff(result.visits_difference, "num")}
+              diffClass={diffTone(result.visits_difference)}
+            />
+            <MetricRow
+              label="Vendas"
+              before={fmtNum(result.before_sales_count)}
+              after={fmtNum(result.after_sales_count)}
+              diff={fmtDiff(result.sales_difference, "num")}
+              diffClass={diffTone(result.sales_difference)}
+            />
+            <MetricRow
+              label="Faturamento"
+              before={fmtMoney(result.before_revenue)}
+              after={fmtMoney(result.after_revenue)}
+              diff={fmtDiff(result.revenue_difference, "money")}
+              diffClass={diffTone(result.revenue_difference)}
+            />
+            <MetricRow
+              label="Conversão"
+              before={fmtPct(result.before_conversion_rate)}
+              after={fmtPct(result.after_conversion_rate)}
+              diff={fmtDiff(result.conversion_difference, "pct")}
+              diffClass={diffTone(result.conversion_difference)}
+            />
+          </div>
+
+          {result.evaluated_at && (
+            <div className="mt-2 text-[11px] text-muted-foreground">
+              Avaliado em {formatDate(result.evaluated_at)}
+            </div>
+          )}
+        </div>
+        <div className="flex shrink-0 flex-col gap-2">
+          <Button size="sm" variant="outline" onClick={onOpenTask}>
+            <ExternalLink className="mr-1.5 h-4 w-4" />
+            Ver tarefa
+          </Button>
+          <Button size="sm" variant="outline" onClick={onOpen}>
+            <Eye className="mr-1.5 h-4 w-4" />
+            Ver análise completa
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

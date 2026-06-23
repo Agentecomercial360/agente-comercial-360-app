@@ -52,6 +52,12 @@ type Insight = {
   confidence_score: number | null;
   created_at: string | null;
   updated_at: string | null;
+  suggested_title: string | null;
+  suggested_description: string | null;
+  suggested_image_idea: string | null;
+  suggested_ads_action: string | null;
+  suggested_price_action: string | null;
+  suggested_kit_action: string | null;
 };
 
 const PRIORITY_LABEL: Record<string, string> = {

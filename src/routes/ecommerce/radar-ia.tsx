@@ -205,6 +205,12 @@ function RadarIAContent() {
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Insight | null>(null);
+  const [plan, setPlan] = useState<Insight | null>(null);
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
+
+  const toggleCheck = useCallback((key: string) => {
+    setChecked((p) => ({ ...p, [key]: !p[key] }));
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);

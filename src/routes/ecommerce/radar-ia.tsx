@@ -14,6 +14,12 @@ import {
   ClipboardList,
   CheckSquare,
   Play,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  BarChart3,
+  HelpCircle,
+  Activity,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
@@ -95,6 +101,92 @@ type Insight = {
   suggested_price_action: string | null;
   suggested_kit_action: string | null;
 };
+
+type ActionResult = {
+  id: string;
+  company_id: string | null;
+  account_id: string | null;
+  task_id: string | null;
+  task_title: string | null;
+  product_id: string | null;
+  product_name: string | null;
+  listing_id: string | null;
+  listing_title: string | null;
+  result_status: string | null;
+  result_status_label: string | null;
+  result_summary: string | null;
+  ai_evaluation: string | null;
+  before_visits: number | null;
+  after_visits: number | null;
+  visits_difference: number | null;
+  before_sales_count: number | null;
+  after_sales_count: number | null;
+  sales_difference: number | null;
+  before_revenue: number | null;
+  after_revenue: number | null;
+  revenue_difference: number | null;
+  before_conversion_rate: number | null;
+  after_conversion_rate: number | null;
+  conversion_difference: number | null;
+  created_at: string | null;
+  evaluated_at: string | null;
+};
+
+const RESULT_STATUS_LABEL: Record<string, string> = {
+  improved: "Melhorou",
+  declined: "Caiu",
+  no_change: "Sem mudança",
+  pending_analysis: "Pendente",
+  inconclusive: "Inconclusivo",
+};
+
+const RESULT_STATUS_STYLE: Record<string, string> = {
+  improved: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  declined: "border-red-200 bg-red-50 text-red-700",
+  no_change: "border-slate-200 bg-slate-50 text-slate-700",
+  pending_analysis: "border-amber-200 bg-amber-50 text-amber-700",
+  inconclusive: "border-slate-200 bg-slate-50 text-slate-700",
+};
+
+function fmtNum(n: number | null | undefined): string {
+  if (n == null || Number.isNaN(Number(n))) return "—";
+  return new Intl.NumberFormat("pt-BR").format(Number(n));
+}
+
+function fmtMoney(n: number | null | undefined): string {
+  if (n == null || Number.isNaN(Number(n))) return "—";
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(Number(n));
+}
+
+function fmtPct(n: number | null | undefined): string {
+  if (n == null || Number.isNaN(Number(n))) return "—";
+  const v = Number(n);
+  // values may come as 0.0405 OR 4.05
+  const pct = v <= 1 ? v * 100 : v;
+  return `${pct.toFixed(2).replace(".", ",")}%`;
+}
+
+function diffTone(n: number | null | undefined): string {
+  if (n == null || Number.isNaN(Number(n)) || Number(n) === 0)
+    return "text-muted-foreground";
+  return Number(n) > 0 ? "text-emerald-600" : "text-red-600";
+}
+
+function fmtDiff(n: number | null | undefined, kind: "num" | "money" | "pct" = "num"): string {
+  if (n == null || Number.isNaN(Number(n))) return "—";
+  const v = Number(n);
+  const sign = v > 0 ? "+" : "";
+  if (kind === "money") return `${sign}${fmtMoney(v)}`;
+  if (kind === "pct") {
+    const pct = Math.abs(v) <= 1 ? v * 100 : v;
+    return `${sign}${pct.toFixed(2).replace(".", ",")} p.p.`;
+  }
+  return `${sign}${fmtNum(v)}`;
+}
+
 
 const PRIORITY_LABEL: Record<string, string> = {
   low: "Baixa",
@@ -238,6 +330,49 @@ function RadarIAContent() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Impacto das Ações
+  const [actionResults, setActionResults] = useState<ActionResult[]>([]);
+  const [loadingResults, setLoadingResults] = useState(true);
+  const [selectedResult, setSelectedResult] = useState<ActionResult | null>(null);
+
+  const loadActionResults = useCallback(async () => {
+    setLoadingResults(true);
+    try {
+      const { data, error } = await supabase
+        .from("vw_ecommerce_action_results")
+        .select("*")
+        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("account_id", accountId)
+        .order("evaluated_at", { ascending: false, nullsFirst: false });
+      if (error) {
+        console.error("Erro ao carregar impacto das ações:", {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
+        setActionResults([]);
+      } else {
+        setActionResults((data as ActionResult[]) ?? []);
+      }
+    } finally {
+      setLoadingResults(false);
+    }
+  }, [accountId]);
+
+  useEffect(() => {
+    void loadActionResults();
+  }, [loadActionResults]);
+
+  const resultsSummary = useMemo(() => {
+    const total = actionResults.length;
+    const improved = actionResults.filter((r) => r.result_status === "improved").length;
+    const noChange = actionResults.filter((r) => r.result_status === "no_change").length;
+    const declined = actionResults.filter((r) => r.result_status === "declined").length;
+    return { total, improved, noChange, declined };
+  }, [actionResults]);
+
 
   const [creatingId, setCreatingId] = useState<string | null>(null);
   const [openingId, setOpeningId] = useState<string | null>(null);
@@ -636,7 +771,219 @@ function RadarIAContent() {
         </div>
       )}
 
+      {/* Impacto das Ações */}
+      <div className="space-y-4 pt-2">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-600 text-white shadow-sm">
+                <Activity className="h-5 w-5" />
+              </div>
+              <h2 className="font-display text-xl font-bold text-foreground">
+                Impacto das Ações
+              </h2>
+            </div>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              Acompanhe se as ações executadas melhoraram visitas, vendas, faturamento e conversão.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <SummaryCard
+            icon={<BarChart3 className="h-4 w-4" />}
+            label="Ações avaliadas"
+            value={resultsSummary.total}
+            tone="text-blue-700 bg-blue-50 border-blue-200"
+          />
+          <SummaryCard
+            icon={<TrendingUp className="h-4 w-4" />}
+            label="Melhoraram"
+            value={resultsSummary.improved}
+            tone="text-emerald-700 bg-emerald-50 border-emerald-200"
+          />
+          <SummaryCard
+            icon={<Minus className="h-4 w-4" />}
+            label="Sem mudança"
+            value={resultsSummary.noChange}
+            tone="text-slate-700 bg-slate-50 border-slate-200"
+          />
+          <SummaryCard
+            icon={<TrendingDown className="h-4 w-4" />}
+            label="Queda/alerta"
+            value={resultsSummary.declined}
+            tone="text-red-700 bg-red-50 border-red-200"
+          />
+        </div>
+
+        {loadingResults ? (
+          <div className="flex items-center justify-center rounded-2xl border border-border/60 bg-card py-12 text-sm text-muted-foreground">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Carregando impacto das ações…
+          </div>
+        ) : actionResults.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border/60 bg-card px-6 py-12 text-center">
+            <Activity className="mx-auto h-10 w-10 text-muted-foreground/60" />
+            <p className="mt-3 text-sm text-muted-foreground max-w-md mx-auto">
+              Nenhum impacto de ação medido ainda. Assim que tarefas concluídas forem avaliadas, os resultados aparecerão aqui.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {actionResults.map((r) => (
+              <ActionResultCard
+                key={r.id}
+                result={r}
+                onOpen={() => setSelectedResult(r)}
+                onOpenTask={() => {
+                  try {
+                    if (r.task_id) {
+                      localStorage.setItem("ac360_selected_task_id", r.task_id);
+                    }
+                  } catch {
+                    /* ignore */
+                  }
+                  navigate({ to: "/ecommerce/tarefas" });
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Drawer detalhes ação (Impacto) */}
+      <Sheet
+        open={selectedResult !== null}
+        onOpenChange={(o) => !o && setSelectedResult(null)}
+      >
+        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+          {selectedResult && (
+            <>
+              <SheetHeader>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Pill
+                    className={
+                      RESULT_STATUS_STYLE[selectedResult.result_status ?? ""] ??
+                      "border-slate-200 bg-slate-50 text-slate-700"
+                    }
+                  >
+                    {selectedResult.result_status_label ??
+                      RESULT_STATUS_LABEL[selectedResult.result_status ?? ""] ??
+                      selectedResult.result_status ??
+                      "—"}
+                  </Pill>
+                </div>
+                <SheetTitle className="text-left">
+                  {selectedResult.task_title ?? "Análise de impacto"}
+                </SheetTitle>
+                <SheetDescription className="text-left">
+                  {selectedResult.product_name ?? "Produto"}
+                  {selectedResult.listing_title
+                    ? ` · ${selectedResult.listing_title}`
+                    : ""}
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="mt-5 space-y-5 text-sm">
+                <Block label="Resumo do resultado" text={selectedResult.result_summary} />
+                <Block label="Avaliação da IA" text={selectedResult.ai_evaluation} />
+
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Antes × Depois
+                  </div>
+                  <div className="mt-3 space-y-2 text-sm">
+                    <MetricRow
+                      label="Visitas"
+                      before={fmtNum(selectedResult.before_visits)}
+                      after={fmtNum(selectedResult.after_visits)}
+                      diff={fmtDiff(selectedResult.visits_difference, "num")}
+                      diffClass={diffTone(selectedResult.visits_difference)}
+                    />
+                    <MetricRow
+                      label="Vendas"
+                      before={fmtNum(selectedResult.before_sales_count)}
+                      after={fmtNum(selectedResult.after_sales_count)}
+                      diff={fmtDiff(selectedResult.sales_difference, "num")}
+                      diffClass={diffTone(selectedResult.sales_difference)}
+                    />
+                    <MetricRow
+                      label="Faturamento"
+                      before={fmtMoney(selectedResult.before_revenue)}
+                      after={fmtMoney(selectedResult.after_revenue)}
+                      diff={fmtDiff(selectedResult.revenue_difference, "money")}
+                      diffClass={diffTone(selectedResult.revenue_difference)}
+                    />
+                    <MetricRow
+                      label="Conversão"
+                      before={fmtPct(selectedResult.before_conversion_rate)}
+                      after={fmtPct(selectedResult.after_conversion_rate)}
+                      diff={fmtDiff(selectedResult.conversion_difference, "pct")}
+                      diffClass={diffTone(selectedResult.conversion_difference)}
+                    />
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-muted-foreground space-y-0.5">
+                  {selectedResult.task_id && (
+                    <div>
+                      <span className="font-medium">task_id:</span>{" "}
+                      <span className="font-mono">{selectedResult.task_id}</span>
+                    </div>
+                  )}
+                  {selectedResult.product_id && (
+                    <div>
+                      <span className="font-medium">product_id:</span>{" "}
+                      <span className="font-mono">{selectedResult.product_id}</span>
+                    </div>
+                  )}
+                  {selectedResult.listing_id && (
+                    <div>
+                      <span className="font-medium">listing_id:</span>{" "}
+                      <span className="font-mono">{selectedResult.listing_id}</span>
+                    </div>
+                  )}
+                  {selectedResult.evaluated_at && (
+                    <div>
+                      <span className="font-medium">avaliado em:</span>{" "}
+                      {formatDate(selectedResult.evaluated_at)}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-center justify-end gap-2 border-t border-border/60 pt-4">
+                <Button variant="ghost" size="sm" onClick={() => setSelectedResult(null)}>
+                  Fechar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    try {
+                      if (selectedResult.task_id) {
+                        localStorage.setItem(
+                          "ac360_selected_task_id",
+                          selectedResult.task_id,
+                        );
+                      }
+                    } catch {
+                      /* ignore */
+                    }
+                    navigate({ to: "/ecommerce/tarefas" });
+                  }}
+                >
+                  <ExternalLink className="mr-1.5 h-4 w-4" />
+                  Ver tarefa
+                </Button>
+              </div>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
+
       {/* Drawer details */}
+
       <Sheet
         open={selected !== null}
         onOpenChange={(o) => !o && setSelected(null)}
@@ -1126,6 +1473,130 @@ function InsightCard({
             Ver ação recomendada
           </Button>
 
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MetricRow({
+  label,
+  before,
+  after,
+  diff,
+  diffClass,
+}: {
+  label: string;
+  before: string;
+  after: string;
+  diff: string;
+  diffClass: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-border/40 pb-1.5 last:border-0 last:pb-0">
+      <span className="text-muted-foreground">{label}</span>
+      <div className="flex items-center gap-2 text-right">
+        <span className="text-foreground">{before}</span>
+        <span className="text-muted-foreground">→</span>
+        <span className="font-semibold text-foreground">{after}</span>
+        <span className={`ml-2 text-xs font-semibold ${diffClass}`}>{diff}</span>
+      </div>
+    </div>
+  );
+}
+
+function ActionResultCard({
+  result,
+  onOpen,
+  onOpenTask,
+}: {
+  result: ActionResult;
+  onOpen: () => void;
+  onOpenTask: () => void;
+}) {
+  const status = result.result_status ?? "";
+  const statusLabel =
+    result.result_status_label ?? RESULT_STATUS_LABEL[status] ?? status ?? "—";
+  const statusStyle =
+    RESULT_STATUS_STYLE[status] ?? "border-slate-200 bg-slate-50 text-slate-700";
+  const Icon =
+    status === "improved"
+      ? TrendingUp
+      : status === "declined"
+        ? TrendingDown
+        : status === "no_change"
+          ? Minus
+          : HelpCircle;
+
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-[var(--shadow-soft)]">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <Pill className={statusStyle}>
+              <Icon className="h-3 w-3" />
+              {statusLabel}
+            </Pill>
+          </div>
+          <h3 className="mt-2 font-display text-base font-semibold leading-snug text-foreground">
+            {result.task_title ?? "Ação"}
+          </h3>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            {result.product_name ?? "Produto"}
+            {result.listing_title ? ` · ${result.listing_title}` : ""}
+          </p>
+          {result.result_summary && (
+            <p className="mt-2 line-clamp-2 text-sm text-foreground">
+              {result.result_summary}
+            </p>
+          )}
+
+          <div className="mt-3 grid grid-cols-1 gap-1.5 rounded-xl border border-border/50 bg-muted/30 p-3 text-xs sm:grid-cols-2">
+            <MetricRow
+              label="Visitas"
+              before={fmtNum(result.before_visits)}
+              after={fmtNum(result.after_visits)}
+              diff={fmtDiff(result.visits_difference, "num")}
+              diffClass={diffTone(result.visits_difference)}
+            />
+            <MetricRow
+              label="Vendas"
+              before={fmtNum(result.before_sales_count)}
+              after={fmtNum(result.after_sales_count)}
+              diff={fmtDiff(result.sales_difference, "num")}
+              diffClass={diffTone(result.sales_difference)}
+            />
+            <MetricRow
+              label="Faturamento"
+              before={fmtMoney(result.before_revenue)}
+              after={fmtMoney(result.after_revenue)}
+              diff={fmtDiff(result.revenue_difference, "money")}
+              diffClass={diffTone(result.revenue_difference)}
+            />
+            <MetricRow
+              label="Conversão"
+              before={fmtPct(result.before_conversion_rate)}
+              after={fmtPct(result.after_conversion_rate)}
+              diff={fmtDiff(result.conversion_difference, "pct")}
+              diffClass={diffTone(result.conversion_difference)}
+            />
+          </div>
+
+          {result.evaluated_at && (
+            <div className="mt-2 text-[11px] text-muted-foreground">
+              Avaliado em {formatDate(result.evaluated_at)}
+            </div>
+          )}
+        </div>
+        <div className="flex shrink-0 flex-col gap-2">
+          <Button size="sm" variant="outline" onClick={onOpenTask}>
+            <ExternalLink className="mr-1.5 h-4 w-4" />
+            Ver tarefa
+          </Button>
+          <Button size="sm" variant="outline" onClick={onOpen}>
+            <Eye className="mr-1.5 h-4 w-4" />
+            Ver análise completa
+          </Button>
         </div>
       </div>
     </div>

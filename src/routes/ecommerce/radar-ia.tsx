@@ -410,8 +410,11 @@ function RadarIAContent() {
               insight={insight}
               onOpen={() => setSelected(insight)}
               onCreateTask={() => createTaskFromInsight(insight)}
+              onOpenTask={() => openTaskForInsight(insight)}
               creating={creatingId === insight.id}
+              opening={openingId === insight.id}
             />
+
           ))}
         </div>
       )}

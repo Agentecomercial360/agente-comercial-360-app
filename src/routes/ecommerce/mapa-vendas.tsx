@@ -103,7 +103,6 @@ function formatDateTime(iso: string | null | undefined): string {
 
 type AccountView = {
   account: AccountRow;
-  integration?: IntegrationRow;
   connected: boolean;
   total: number;
   active: number;
@@ -120,7 +119,6 @@ function MapaVendas() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
-  const [integrations, setIntegrations] = useState<IntegrationRow[]>([]);
   const [listings, setListings] = useState<ListingRow[]>([]);
 
   useEffect(() => {
@@ -132,7 +130,7 @@ function MapaVendas() {
       setLoading(true);
       setError(null);
 
-      const [accRes, intRes, listRes] = await Promise.all([
+      const [accRes, listRes] = await Promise.all([
         supabase
           .from("ecommerce_accounts")
           .select(
@@ -141,23 +139,15 @@ function MapaVendas() {
           .eq("company_id", COMPANY_ID)
           .order("account_name", { ascending: true }),
         supabase
-          .from("ecommerce_integrations")
-          .select(
-            "id, account_id, provider, marketplace, integration_status, external_nickname, external_user_id, last_sync_at",
-          )
-          .eq("company_id", COMPANY_ID),
-        supabase
           .from("ecommerce_listings")
           .select("id, account_id, status, is_active, updated_at")
           .eq("company_id", COMPANY_ID),
       ]);
 
       if (accRes.error) throw accRes.error;
-      if (intRes.error) throw intRes.error;
       if (listRes.error) throw listRes.error;
 
       setAccounts((accRes.data as AccountRow[]) ?? []);
-      setIntegrations((intRes.data as IntegrationRow[]) ?? []);
       setListings((listRes.data as ListingRow[]) ?? []);
     } catch (e: any) {
       setError(e?.message ?? "Erro ao carregar dados.");
@@ -165,6 +155,7 @@ function MapaVendas() {
       setLoading(false);
     }
   }
+
 
   // ML accounts + Shopee (future) rows
   const mlAccounts = useMemo(

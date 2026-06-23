@@ -81,13 +81,9 @@ const CONNECTED_VALUES = new Set([
   "autorizado",
 ]);
 
-function isConnected(a: AccountRow, integ?: IntegrationRow): boolean {
+function isConnected(a: AccountRow): boolean {
   const av = (a.auth_status ?? "").toLowerCase();
-  const iv = (integ?.integration_status ?? "").toLowerCase();
-  if (CONNECTED_VALUES.has(av) || CONNECTED_VALUES.has(iv)) return true;
-  if (integ && (integ.last_sync_at || integ.external_user_id)) return true;
-  if (a.is_active && (a.ml_user_id || a.last_sync_at)) return true;
-  return false;
+  return CONNECTED_VALUES.has(av);
 }
 
 function formatDateTime(iso: string | null | undefined): string {

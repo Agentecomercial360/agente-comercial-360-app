@@ -14,6 +14,12 @@ import {
   ClipboardList,
   CheckSquare,
   Play,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  BarChart3,
+  HelpCircle,
+  Activity,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {

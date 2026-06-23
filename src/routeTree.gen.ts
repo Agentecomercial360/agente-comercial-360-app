@@ -29,6 +29,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as EcommerceIndexRouteImport } from './routes/ecommerce/index'
 import { Route as EcommerceTarefasRouteImport } from './routes/ecommerce/tarefas'
 import { Route as EcommerceResultadosRouteImport } from './routes/ecommerce/resultados'
+import { Route as EcommerceRadarIaRouteImport } from './routes/ecommerce/radar-ia'
 import { Route as EcommerceProdutosTravadosRouteImport } from './routes/ecommerce/produtos-travados'
 import { Route as EcommerceProdutosEstrategicosRouteImport } from './routes/ecommerce/produtos-estrategicos'
 import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produtos'
@@ -149,6 +150,11 @@ const EcommerceTarefasRoute = EcommerceTarefasRouteImport.update({
 const EcommerceResultadosRoute = EcommerceResultadosRouteImport.update({
   id: '/ecommerce/resultados',
   path: '/ecommerce/resultados',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceRadarIaRoute = EcommerceRadarIaRouteImport.update({
+  id: '/ecommerce/radar-ia',
+  path: '/ecommerce/radar-ia',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EcommerceProdutosTravadosRoute =
@@ -298,6 +304,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-estrategicos': typeof EcommerceProdutosEstrategicosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
+  '/ecommerce/radar-ia': typeof EcommerceRadarIaRoute
   '/ecommerce/resultados': typeof EcommerceResultadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
   '/ecommerce/': typeof EcommerceIndexRoute
@@ -341,6 +348,7 @@ export interface FileRoutesByTo {
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-estrategicos': typeof EcommerceProdutosEstrategicosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
+  '/ecommerce/radar-ia': typeof EcommerceRadarIaRoute
   '/ecommerce/resultados': typeof EcommerceResultadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
   '/ecommerce': typeof EcommerceIndexRoute
@@ -385,6 +393,7 @@ export interface FileRoutesById {
   '/ecommerce/produtos': typeof EcommerceProdutosRoute
   '/ecommerce/produtos-estrategicos': typeof EcommerceProdutosEstrategicosRoute
   '/ecommerce/produtos-travados': typeof EcommerceProdutosTravadosRoute
+  '/ecommerce/radar-ia': typeof EcommerceRadarIaRoute
   '/ecommerce/resultados': typeof EcommerceResultadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
   '/ecommerce/': typeof EcommerceIndexRoute
@@ -430,6 +439,7 @@ export interface FileRouteTypes {
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-estrategicos'
     | '/ecommerce/produtos-travados'
+    | '/ecommerce/radar-ia'
     | '/ecommerce/resultados'
     | '/ecommerce/tarefas'
     | '/ecommerce/'
@@ -473,6 +483,7 @@ export interface FileRouteTypes {
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-estrategicos'
     | '/ecommerce/produtos-travados'
+    | '/ecommerce/radar-ia'
     | '/ecommerce/resultados'
     | '/ecommerce/tarefas'
     | '/ecommerce'
@@ -516,6 +527,7 @@ export interface FileRouteTypes {
     | '/ecommerce/produtos'
     | '/ecommerce/produtos-estrategicos'
     | '/ecommerce/produtos-travados'
+    | '/ecommerce/radar-ia'
     | '/ecommerce/resultados'
     | '/ecommerce/tarefas'
     | '/ecommerce/'
@@ -560,6 +572,7 @@ export interface RootRouteChildren {
   EcommerceProdutosRoute: typeof EcommerceProdutosRoute
   EcommerceProdutosEstrategicosRoute: typeof EcommerceProdutosEstrategicosRoute
   EcommerceProdutosTravadosRoute: typeof EcommerceProdutosTravadosRoute
+  EcommerceRadarIaRoute: typeof EcommerceRadarIaRoute
   EcommerceResultadosRoute: typeof EcommerceResultadosRoute
   EcommerceTarefasRoute: typeof EcommerceTarefasRoute
   EcommerceIndexRoute: typeof EcommerceIndexRoute
@@ -705,6 +718,13 @@ declare module '@tanstack/react-router' {
       path: '/ecommerce/resultados'
       fullPath: '/ecommerce/resultados'
       preLoaderRoute: typeof EcommerceResultadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/radar-ia': {
+      id: '/ecommerce/radar-ia'
+      path: '/ecommerce/radar-ia'
+      fullPath: '/ecommerce/radar-ia'
+      preLoaderRoute: typeof EcommerceRadarIaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ecommerce/produtos-travados': {
@@ -896,6 +916,7 @@ const rootRouteChildren: RootRouteChildren = {
   EcommerceProdutosRoute: EcommerceProdutosRoute,
   EcommerceProdutosEstrategicosRoute: EcommerceProdutosEstrategicosRoute,
   EcommerceProdutosTravadosRoute: EcommerceProdutosTravadosRoute,
+  EcommerceRadarIaRoute: EcommerceRadarIaRoute,
   EcommerceResultadosRoute: EcommerceResultadosRoute,
   EcommerceTarefasRoute: EcommerceTarefasRoute,
   EcommerceIndexRoute: EcommerceIndexRoute,

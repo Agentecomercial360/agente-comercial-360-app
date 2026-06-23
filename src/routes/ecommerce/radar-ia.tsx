@@ -184,6 +184,109 @@ function RadarIAContent() {
     void load();
   }, [load]);
 
+  const [creatingId, setCreatingId] = useState<string | null>(null);
+
+  const createTaskFromInsight = useCallback(
+    async (insight: Insight) => {
+      setCreatingId(insight.id);
+      try {
+        // 1. Check existing
+        const { data: existing, error: existErr } = await supabase
+          .from("ecommerce_tasks")
+          .select("id")
+          .eq("company_id", insight.company_id)
+          .eq("account_id", insight.account_id)
+          .eq("insight_id", insight.id)
+          .limit(1);
+        if (existErr) {
+          console.error("Erro ao verificar tarefa existente:", {
+            message: existErr.message,
+            details: existErr.details,
+            hint: existErr.hint,
+            code: existErr.code,
+          });
+          toast.error("Não foi possível criar a tarefa.");
+          return;
+        }
+        if (existing && existing.length > 0) {
+          toast.message("Tarefa já criada para este insight.");
+          if (insight.status !== "converted_to_task") {
+            await supabase
+              .from("ecommerce_ai_insights")
+              .update({
+                status: "converted_to_task",
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", insight.id);
+            await load();
+          }
+          return;
+        }
+
+        // 2. Insert
+        const payload = {
+          company_id: insight.company_id,
+          account_id: insight.account_id,
+          product_id: insight.product_id,
+          listing_id: insight.listing_id,
+          insight_id: insight.id,
+          task_title: insight.title,
+          task_description: buildTaskDescription(insight),
+          task_type: mapTaskType(insight.insight_type),
+          priority: insight.priority || "medium",
+          status: "pending",
+          responsible_name: null,
+          responsible_email: null,
+          due_date: computeDueDate(),
+          expected_impact: insight.recommended_action,
+          created_by: "radar_ia",
+          completed_at: null,
+        };
+        const { error: insertErr } = await supabase
+          .from("ecommerce_tasks")
+          .insert(payload);
+        if (insertErr) {
+          console.error("Erro ao criar tarefa:", {
+            message: insertErr.message,
+            details: insertErr.details,
+            hint: insertErr.hint,
+            code: insertErr.code,
+          });
+          toast.error("Não foi possível criar a tarefa.");
+          return;
+        }
+
+        // 3. Update insight
+        const { error: updErr } = await supabase
+          .from("ecommerce_ai_insights")
+          .update({
+            status: "converted_to_task",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", insight.id);
+        if (updErr) {
+          console.error("Erro ao atualizar insight:", {
+            message: updErr.message,
+            details: updErr.details,
+            hint: updErr.hint,
+            code: updErr.code,
+          });
+        }
+
+        toast.success("Tarefa criada com sucesso.");
+        await load();
+        setSelected((prev) =>
+          prev && prev.id === insight.id
+            ? { ...prev, status: "converted_to_task" }
+            : prev,
+        );
+      } finally {
+        setCreatingId(null);
+      }
+    },
+    [load],
+  );
+
   const summary = useMemo(() => {
     const total = insights.length;
     const high = insights.filter((i) => i.priority === "high").length;
@@ -212,6 +315,7 @@ function RadarIAContent() {
           </p>
         </div>
       </div>
+
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">

@@ -589,10 +589,15 @@ function Block({ label, text }: { label: string; text: string | null }) {
 function InsightCard({
   insight,
   onOpen,
+  onCreateTask,
+  creating,
 }: {
   insight: Insight;
   onOpen: () => void;
+  onCreateTask: () => void;
+  creating: boolean;
 }) {
+  const alreadyTask = insight.status === "converted_to_task";
   const confidencePct =
     insight.confidence_score == null
       ? null

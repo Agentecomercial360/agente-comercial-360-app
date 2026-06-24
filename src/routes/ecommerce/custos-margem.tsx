@@ -261,8 +261,8 @@ function CustosMargem() {
           <div className="inline-flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 max-w-3xl">
             <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
             <span>
-              Visão somente leitura. Priorize o preenchimento do custo dos produtos com
-              anúncios ativos antes de ativar a análise de margem real.
+              Atualize os custos dos produtos para liberar lucro líquido, margem real,
+              curva ABC financeira e Radar IA de rentabilidade.
             </span>
           </div>
         </header>

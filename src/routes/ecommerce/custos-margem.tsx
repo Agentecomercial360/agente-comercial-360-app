@@ -377,6 +377,7 @@ function CustosMargem() {
                     <th className="text-center px-4 py-3 font-semibold">Anúncios</th>
                     <th className="text-left px-4 py-3 font-semibold">Contas</th>
                     <th className="text-center px-4 py-3 font-semibold">Prioridade</th>
+                    <th className="text-right px-4 py-3 font-semibold">Ação</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60">

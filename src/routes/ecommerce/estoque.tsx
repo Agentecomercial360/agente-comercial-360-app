@@ -332,6 +332,13 @@ function EstoqueCompras() {
             Visão operacional do estoque da empresa: cobertura, giro, risco de ruptura,
             excesso e ações comerciais sugeridas com base em dados reais.
           </p>
+          <div className="inline-flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 max-w-3xl">
+            <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+            <span>
+              Visão consolidada da empresa: o estoque é controlado por produto, não por conta
+              Mercado Livre.
+            </span>
+          </div>
         </header>
 
         {/* KPIs */}
@@ -518,15 +525,17 @@ function EstoqueCompras() {
                               const acc = l.account_id ? accounts.get(l.account_id) : undefined;
                               const name =
                                 acc?.account_name ?? acc?.nickname ?? "Conta desconhecida";
+                              const mkt = marketplaceLabel(acc?.marketplace);
+                              const display = name.toLowerCase().includes(mkt.toLowerCase())
+                                ? name
+                                : `${mkt} - ${name}`;
                               return (
                                 <li
                                   key={l.id}
                                   className="flex items-center gap-2 text-xs text-foreground/80"
                                 >
                                   <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-                                  <span className="truncate">
-                                    {marketplaceLabel(acc?.marketplace)} — {name}
-                                  </span>
+                                  <span className="truncate">{display}</span>
                                 </li>
                               );
                             })}

@@ -529,6 +529,209 @@ function CustosMargem() {
           </div>
         </section>
       </div>
+
+      {editing && (
+        <EditCostModal
+          product={editing}
+          onClose={() => setEditing(null)}
+          onSaved={async () => {
+            setEditing(null);
+            await load();
+          }}
+        />
+      )}
     </EcommerceLayout>
+  );
+}
+
+function EditCostModal({
+  product,
+  onClose,
+  onSaved,
+}: {
+  product: ProductRow;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const currentCost = product.cost_price ?? 0;
+  const salePrice = product.sale_price ?? 0;
+  const [value, setValue] = useState<string>(
+    currentCost > 0 ? String(currentCost).replace(".", ",") : "",
+  );
+  const [notes, setNotes] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+
+  const parsed = useMemo(() => {
+    const normalized = value.trim().replace(/\./g, "").replace(",", ".");
+    if (!normalized) return null;
+    const n = Number(normalized);
+    return Number.isFinite(n) ? n : null;
+  }, [value]);
+
+  const marginBefore =
+    salePrice > 0 && currentCost > 0
+      ? ((salePrice - currentCost) / salePrice) * 100
+      : null;
+  const marginAfter =
+    salePrice > 0 && parsed != null && parsed > 0
+      ? ((salePrice - parsed) / salePrice) * 100
+      : null;
+
+  async function handleSave() {
+    if (parsed == null) {
+      toast.error("Informe um valor de custo válido.");
+      return;
+    }
+    if (parsed < 0) {
+      toast.error("O custo não pode ser negativo.");
+      return;
+    }
+    if (parsed === 0) {
+      const ok = window.confirm(
+        "Tem certeza que deseja definir o custo como R$ 0,00?",
+      );
+      if (!ok) return;
+    }
+    setSaving(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const changedBy = userData?.user?.id ?? null;
+      const { error } = await supabase.rpc("update_ecommerce_product_cost_v1", {
+        p_company_id: COMPANY_ID,
+        p_product_id: product.id,
+        p_cost_price: parsed,
+        p_changed_by: changedBy,
+        p_notes: notes.trim() ? notes.trim() : null,
+      });
+      if (error) throw error;
+      toast.success("Custo atualizado com sucesso.");
+      onSaved();
+    } catch (e: any) {
+      toast.error(e?.message || "Erro ao atualizar custo.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl bg-card shadow-2xl border border-border/60 overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-border/60 px-5 py-4">
+          <div>
+            <h3 className="font-display text-lg font-bold text-foreground">
+              Atualizar custo
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {product.product_name ?? "Produto sem nome"}
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1 text-muted-foreground hover:bg-muted"
+            aria-label="Fechar"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="px-5 py-4 space-y-4">
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                SKU
+              </div>
+              <div className="font-mono text-xs text-foreground">
+                {product.sku ?? "—"}
+              </div>
+            </div>
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                Preço de venda
+              </div>
+              <div className="tabular-nums font-semibold text-foreground">
+                {formatBRL(salePrice)}
+              </div>
+            </div>
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                Custo atual
+              </div>
+              <div className="tabular-nums font-semibold text-foreground">
+                {currentCost > 0 ? formatBRL(currentCost) : "—"}
+              </div>
+            </div>
+            <div>
+              <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                Margem antes
+              </div>
+              <div className="tabular-nums font-semibold text-foreground">
+                {marginBefore != null ? `${marginBefore.toFixed(1)}%` : "—"}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">
+              Novo custo (R$)
+            </label>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              placeholder="0,00"
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              disabled={saving}
+              autoFocus
+            />
+            <div className="text-[11px] text-muted-foreground">
+              Margem estimada depois:{" "}
+              <span className="font-semibold text-foreground">
+                {marginAfter != null ? `${marginAfter.toFixed(1)}%` : "—"}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">
+              Observação (opcional)
+            </label>
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              maxLength={500}
+              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Motivo da alteração, fornecedor, NF, etc."
+              disabled={saving}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 border-t border-border/60 px-5 py-3 bg-muted/20">
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="rounded-md border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted disabled:opacity-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={saving || parsed == null}
+            className="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-800 disabled:opacity-50"
+          >
+            {saving && <Loader2 className="h-3 w-3 animate-spin" />}
+            Salvar custo
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }

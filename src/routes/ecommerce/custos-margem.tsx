@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   DollarSign,
@@ -8,7 +8,11 @@ import {
   Package,
   Info,
   TrendingUp,
+  Pencil,
+  X,
+  Loader2,
 } from "lucide-react";
+import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
 

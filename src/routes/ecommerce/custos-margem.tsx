@@ -75,9 +75,6 @@ function isPausedStatus(s: string | null | undefined): boolean {
 function CustosMargem() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-function CustosMargem() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [listings, setListings] = useState<ListingRow[]>([]);
   const [accounts, setAccounts] = useState<Map<string, AccountRow>>(new Map());

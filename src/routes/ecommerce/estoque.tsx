@@ -525,15 +525,17 @@ function EstoqueCompras() {
                               const acc = l.account_id ? accounts.get(l.account_id) : undefined;
                               const name =
                                 acc?.account_name ?? acc?.nickname ?? "Conta desconhecida";
+                              const mkt = marketplaceLabel(acc?.marketplace);
+                              const display = name.toLowerCase().includes(mkt.toLowerCase())
+                                ? name
+                                : `${mkt} - ${name}`;
                               return (
                                 <li
                                   key={l.id}
                                   className="flex items-center gap-2 text-xs text-foreground/80"
                                 >
                                   <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
-                                  <span className="truncate">
-                                    {marketplaceLabel(acc?.marketplace)} — {name}
-                                  </span>
+                                  <span className="truncate">{display}</span>
                                 </li>
                               );
                             })}

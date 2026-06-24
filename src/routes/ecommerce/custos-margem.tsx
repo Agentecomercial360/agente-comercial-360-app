@@ -493,6 +493,15 @@ function CustosMargem() {
                             {priorityMeta.label}
                           </span>
                         </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => setEditing(p)}
+                            className="inline-flex items-center gap-1.5 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700 hover:bg-blue-100 transition"
+                          >
+                            <Pencil className="h-3 w-3" />
+                            Atualizar custo
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}

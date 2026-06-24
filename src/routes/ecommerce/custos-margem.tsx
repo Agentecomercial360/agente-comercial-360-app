@@ -75,52 +75,52 @@ function isPausedStatus(s: string | null | undefined): boolean {
 function CustosMargem() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+function CustosMargem() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [listings, setListings] = useState<ListingRow[]>([]);
   const [accounts, setAccounts] = useState<Map<string, AccountRow>>(new Map());
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [editing, setEditing] = useState<ProductRow | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [{ data: prod, error: ep }, { data: list, error: el }, { data: accs, error: ea }] =
+        await Promise.all([
+          supabase
+            .from("ecommerce_products")
+            .select("id,sku,product_name,category,sale_price,cost_price,status")
+            .eq("company_id", COMPANY_ID),
+          supabase
+            .from("ecommerce_listings")
+            .select("id,product_id,account_id,status")
+            .eq("company_id", COMPANY_ID),
+          supabase
+            .from("ecommerce_accounts")
+            .select("id,account_name,marketplace,nickname")
+            .eq("company_id", COMPANY_ID),
+        ]);
+      if (ep) throw ep;
+      if (el) throw el;
+      if (ea) throw ea;
+      setProducts((prod || []) as ProductRow[]);
+      setListings((list || []) as ListingRow[]);
+      const am = new Map<string, AccountRow>();
+      (accs || []).forEach((a: any) => am.set(a.id, a as AccountRow));
+      setAccounts(am);
+    } catch (e: any) {
+      setError(e?.message || "Erro ao carregar produtos.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let cancel = false;
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const [{ data: prod, error: ep }, { data: list, error: el }, { data: accs, error: ea }] =
-          await Promise.all([
-            supabase
-              .from("ecommerce_products")
-              .select("id,sku,product_name,category,sale_price,cost_price,status")
-              .eq("company_id", COMPANY_ID),
-            supabase
-              .from("ecommerce_listings")
-              .select("id,product_id,account_id,status")
-              .eq("company_id", COMPANY_ID),
-            supabase
-              .from("ecommerce_accounts")
-              .select("id,account_name,marketplace,nickname")
-              .eq("company_id", COMPANY_ID),
-          ]);
-        if (ep) throw ep;
-        if (el) throw el;
-        if (ea) throw ea;
-        if (cancel) return;
-        setProducts((prod || []) as ProductRow[]);
-        setListings((list || []) as ListingRow[]);
-        const am = new Map<string, AccountRow>();
-        (accs || []).forEach((a: any) => am.set(a.id, a as AccountRow));
-        setAccounts(am);
-      } catch (e: any) {
-        if (!cancel) setError(e?.message || "Erro ao carregar produtos.");
-      } finally {
-        if (!cancel) setLoading(false);
-      }
-    }
     void load();
-    return () => {
-      cancel = true;
-    };
-  }, []);
+  }, [load]);
 
   const listingsByProduct = useMemo(() => {
     const m = new Map<string, ListingRow[]>();

@@ -38,6 +38,7 @@ import { Route as EcommerceMapaVendasRouteImport } from './routes/ecommerce/mapa
 import { Route as EcommerceLoginRouteImport } from './routes/ecommerce/login'
 import { Route as EcommerceEstoqueRouteImport } from './routes/ecommerce/estoque'
 import { Route as EcommerceDashboardRouteImport } from './routes/ecommerce/dashboard'
+import { Route as EcommerceCustosMargemRouteImport } from './routes/ecommerce/custos-margem'
 import { Route as EcommerceCurvaAbcRouteImport } from './routes/ecommerce/curva-abc'
 import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
 import { Route as EcommerceConsultorIaRouteImport } from './routes/ecommerce/consultor-ia'
@@ -199,6 +200,11 @@ const EcommerceDashboardRoute = EcommerceDashboardRouteImport.update({
   path: '/ecommerce/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceCustosMargemRoute = EcommerceCustosMargemRouteImport.update({
+  id: '/ecommerce/custos-margem',
+  path: '/ecommerce/custos-margem',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EcommerceCurvaAbcRoute = EcommerceCurvaAbcRouteImport.update({
   id: '/ecommerce/curva-abc',
   path: '/ecommerce/curva-abc',
@@ -296,6 +302,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
   '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/curva-abc': typeof EcommerceCurvaAbcRoute
+  '/ecommerce/custos-margem': typeof EcommerceCustosMargemRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
   '/ecommerce/login': typeof EcommerceLoginRoute
@@ -340,6 +347,7 @@ export interface FileRoutesByTo {
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
   '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/curva-abc': typeof EcommerceCurvaAbcRoute
+  '/ecommerce/custos-margem': typeof EcommerceCustosMargemRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
   '/ecommerce/login': typeof EcommerceLoginRoute
@@ -385,6 +393,7 @@ export interface FileRoutesById {
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
   '/ecommerce/contas': typeof EcommerceContasRoute
   '/ecommerce/curva-abc': typeof EcommerceCurvaAbcRoute
+  '/ecommerce/custos-margem': typeof EcommerceCustosMargemRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
   '/ecommerce/login': typeof EcommerceLoginRoute
@@ -431,6 +440,7 @@ export interface FileRouteTypes {
     | '/ecommerce/consultor-ia'
     | '/ecommerce/contas'
     | '/ecommerce/curva-abc'
+    | '/ecommerce/custos-margem'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
     | '/ecommerce/login'
@@ -475,6 +485,7 @@ export interface FileRouteTypes {
     | '/ecommerce/consultor-ia'
     | '/ecommerce/contas'
     | '/ecommerce/curva-abc'
+    | '/ecommerce/custos-margem'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
     | '/ecommerce/login'
@@ -519,6 +530,7 @@ export interface FileRouteTypes {
     | '/ecommerce/consultor-ia'
     | '/ecommerce/contas'
     | '/ecommerce/curva-abc'
+    | '/ecommerce/custos-margem'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
     | '/ecommerce/login'
@@ -564,6 +576,7 @@ export interface RootRouteChildren {
   EcommerceConsultorIaRoute: typeof EcommerceConsultorIaRoute
   EcommerceContasRoute: typeof EcommerceContasRoute
   EcommerceCurvaAbcRoute: typeof EcommerceCurvaAbcRoute
+  EcommerceCustosMargemRoute: typeof EcommerceCustosMargemRoute
   EcommerceDashboardRoute: typeof EcommerceDashboardRoute
   EcommerceEstoqueRoute: typeof EcommerceEstoqueRoute
   EcommerceLoginRoute: typeof EcommerceLoginRoute
@@ -783,6 +796,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommerceDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/custos-margem': {
+      id: '/ecommerce/custos-margem'
+      path: '/ecommerce/custos-margem'
+      fullPath: '/ecommerce/custos-margem'
+      preLoaderRoute: typeof EcommerceCustosMargemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ecommerce/curva-abc': {
       id: '/ecommerce/curva-abc'
       path: '/ecommerce/curva-abc'
@@ -908,6 +928,7 @@ const rootRouteChildren: RootRouteChildren = {
   EcommerceConsultorIaRoute: EcommerceConsultorIaRoute,
   EcommerceContasRoute: EcommerceContasRoute,
   EcommerceCurvaAbcRoute: EcommerceCurvaAbcRoute,
+  EcommerceCustosMargemRoute: EcommerceCustosMargemRoute,
   EcommerceDashboardRoute: EcommerceDashboardRoute,
   EcommerceEstoqueRoute: EcommerceEstoqueRoute,
   EcommerceLoginRoute: EcommerceLoginRoute,

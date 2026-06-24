@@ -332,6 +332,13 @@ function EstoqueCompras() {
             Visão operacional do estoque da empresa: cobertura, giro, risco de ruptura,
             excesso e ações comerciais sugeridas com base em dados reais.
           </p>
+          <div className="inline-flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 max-w-3xl">
+            <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+            <span>
+              Visão consolidada da empresa: o estoque é controlado por produto, não por conta
+              Mercado Livre.
+            </span>
+          </div>
         </header>
 
         {/* KPIs */}

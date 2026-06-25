@@ -292,7 +292,7 @@ function PlanCard({
   );
 }
 
-/* ---------- Monitor mockup ---------- */
+/* ---------- Glassmorphism dashboard ---------- */
 function HeroMockup() {
   const revenue = [42, 55, 48, 70, 64, 88, 96, 110, 128];
   const accounts = [
@@ -304,254 +304,201 @@ function HeroMockup() {
   ];
 
   return (
-    <div className="relative mx-auto w-full max-w-[820px]">
-      {/* Ambient blue glow */}
+    <div className="relative mx-auto w-full max-w-[760px]">
+      {/* Glass panel */}
       <div
-        aria-hidden
-        className="absolute -inset-16 -z-10 rounded-[3rem] blur-3xl"
+        className="relative overflow-hidden rounded-3xl border border-white/20 p-4 sm:p-5 shadow-[0_40px_120px_-30px_rgba(8,12,25,0.85)] backdrop-blur-2xl"
         style={{
           background:
-            "radial-gradient(60% 55% at 50% 45%, oklch(0.62 0.22 255 / 0.55), transparent 70%), radial-gradient(40% 40% at 80% 70%, oklch(0.78 0.18 210 / 0.35), transparent 75%)",
+            "linear-gradient(160deg, rgba(15,23,42,0.55) 0%, rgba(8,12,22,0.35) 100%)",
         }}
-      />
-
-      {/* UltraWide monitor frame */}
-      <div className="relative">
+      >
+        {/* subtle inner highlight */}
         <div
-          className="relative rounded-[20px] p-[10px] shadow-[0_50px_120px_-30px_rgba(8,12,25,0.7)] ring-1 ring-white/10"
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-3xl"
           style={{
-            background:
-              "linear-gradient(160deg, #1b2233 0%, #0a0e17 55%, #0e1424 100%)",
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.18), inset 0 0 60px rgba(56,189,248,0.06)",
           }}
-        >
-          {/* Screen */}
-          <div className="relative overflow-hidden rounded-[12px] bg-white ring-1 ring-black/20">
-            <div className="flex">
-              {/* Sidebar */}
-              <div
-                className="hidden w-[58px] shrink-0 flex-col items-center gap-1 py-4 sm:flex"
-                style={{ background: NAVY_DEEP }}
+        />
+
+        {/* Header bar */}
+        <div className="relative flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">
+              <img src={acLogo} alt="" className="size-5" />
+            </div>
+            <div>
+              <p className="text-[12px] font-semibold text-white">
+                Central de Inteligência — Mercado Livre
+              </p>
+              <p className="text-[10px] text-white/60">
+                9 contas conectadas · 109 anúncios monitorados
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="flex size-7 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15">
+              <Bell className="size-3.5 text-white/80" />
+            </span>
+            <span className="flex size-7 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15">
+              <UserCircle2 className="size-4 text-white/80" />
+            </span>
+          </div>
+        </div>
+
+        {/* KPIs */}
+        <div className="relative mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {[
+            { label: "Faturamento", value: "R$ 90.5k", delta: "+22%", up: true },
+            { label: "Lucro Líquido", value: "R$ 18.2k", delta: "+14%", up: true },
+            { label: "Margem média", value: "20,1%", delta: "+1,8 p.p.", up: true },
+            { label: "Risco ruptura", value: "2", delta: "alertas", up: false },
+          ].map((k) => (
+            <div
+              key={k.label}
+              className="rounded-xl border border-white/10 bg-white/5 p-2.5 backdrop-blur"
+            >
+              <p className="text-[10px] font-medium text-white/60">{k.label}</p>
+              <p className="mt-0.5 text-[15px] font-bold tracking-tight text-white">
+                {k.value}
+              </p>
+              <p
+                className={`text-[10px] font-semibold ${
+                  k.up ? "text-emerald-300" : "text-amber-300"
+                }`}
               >
-                <div className="mb-2 flex size-8 items-center justify-center rounded-lg bg-white/10">
-                  <img src={acLogo} alt="" className="size-5" />
-                </div>
-                {[Home, BarChart3, Radar, DollarSign, Boxes, Brain].map((Ic, i) => (
+                {k.delta}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Mapa de vendas + Receita */}
+        <div className="relative mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[11px] font-semibold text-white/85">
+                Mapa de Vendas (multi-conta)
+              </p>
+              <span
+                className="rounded-full px-1.5 py-0.5 text-[9px] font-semibold text-white"
+                style={{ background: "rgba(56,189,248,0.18)" }}
+              >
+                9 contas
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {accounts.map((a) => (
+                <div key={a.name} className="flex items-center gap-2">
                   <div
-                    key={i}
-                    className={`flex size-9 items-center justify-center rounded-lg ${
-                      i === 0 ? "bg-white/15 text-white" : "text-white/55"
-                    }`}
-                  >
-                    <Ic className="size-4" />
-                  </div>
-                ))}
-              </div>
-
-              {/* Main */}
-              <div className="min-w-0 flex-1 p-4 sm:p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[13px] font-semibold text-slate-900">
-                      Central de Inteligência — Mercado Livre
-                    </p>
-                    <p className="text-[11px] text-slate-500">
-                      9 contas conectadas · 109 anúncios monitorados
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="flex size-7 items-center justify-center rounded-full bg-slate-100">
-                      <Bell className="size-3.5 text-slate-600" />
-                    </span>
-                    <span className="flex size-7 items-center justify-center rounded-full bg-slate-100">
-                      <UserCircle2 className="size-4 text-slate-600" />
-                    </span>
-                  </div>
+                    className="h-5 rounded-sm"
+                    style={{
+                      width: `${a.pct}%`,
+                      background: `linear-gradient(90deg, ${BLUE}, ${NEON})`,
+                    }}
+                  />
+                  <span className="whitespace-nowrap text-[10px] text-white/70">
+                    {a.name}
+                  </span>
+                  <span className="ml-auto text-[10px] font-semibold text-white">
+                    {a.value}
+                  </span>
                 </div>
-
-                {/* KPIs */}
-                <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {[
-                    { label: "Faturamento", value: "R$ 90.5k", delta: "+22%", up: true },
-                    { label: "Lucro Líquido", value: "R$ 18.2k", delta: "+14%", up: true },
-                    { label: "Margem média", value: "20,1%", delta: "+1,8 p.p.", up: true },
-                    { label: "Risco ruptura", value: "2", delta: "alertas", up: false },
-                  ].map((k) => (
-                    <div
-                      key={k.label}
-                      className="rounded-lg border border-slate-200/80 bg-white p-2.5"
-                    >
-                      <p className="text-[10px] font-medium text-slate-500">{k.label}</p>
-                      <p className="mt-0.5 text-[15px] font-bold tracking-tight text-slate-900">
-                        {k.value}
-                      </p>
-                      <p
-                        className={`text-[10px] font-semibold ${
-                          k.up ? "text-emerald-600" : "text-amber-600"
-                        }`}
-                      >
-                        {k.delta}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Mapa de vendas + Receita */}
-                <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
-                  <div className="rounded-lg border border-slate-200/80 p-3">
-                    <div className="mb-2 flex items-center justify-between">
-                      <p className="text-[11px] font-semibold text-slate-700">
-                        Mapa de Vendas (multi-conta)
-                      </p>
-                      <span className="rounded-full bg-blue-50 px-1.5 py-0.5 text-[9px] font-semibold text-blue-700">
-                        9 contas
-                      </span>
-                    </div>
-                    <div className="space-y-1.5">
-                      {accounts.map((a) => (
-                        <div key={a.name} className="flex items-center gap-2">
-                          <div
-                            className="h-5 rounded-sm"
-                            style={{
-                              width: `${a.pct}%`,
-                              background: `linear-gradient(90deg, ${BLUE}, ${NEON})`,
-                            }}
-                          />
-                          <span className="whitespace-nowrap text-[10px] text-slate-600">
-                            {a.name}
-                          </span>
-                          <span className="ml-auto text-[10px] font-semibold text-slate-800">
-                            {a.value}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-lg border border-slate-200/80 p-3">
-                    <div className="mb-1 flex items-center justify-between">
-                      <p className="text-[11px] font-semibold text-slate-700">Receita líquida</p>
-                      <span className="rounded-full bg-emerald-50 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-700">
-                        +31%
-                      </span>
-                    </div>
-                    <div className="relative h-24">
-                      <svg
-                        viewBox="0 0 280 100"
-                        preserveAspectRatio="none"
-                        className="absolute inset-0 h-full w-full"
-                      >
-                        <defs>
-                          <linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1">
-                            <stop offset="0%" stopColor={BLUE} stopOpacity="0.40" />
-                            <stop offset="100%" stopColor={BLUE} stopOpacity="0" />
-                          </linearGradient>
-                        </defs>
-                        {(() => {
-                          const max = Math.max(...revenue);
-                          const step = 280 / (revenue.length - 1);
-                          const pts = revenue.map(
-                            (v, i) => `${i * step},${100 - (v / max) * 85}`,
-                          );
-                          const line = pts.join(" ");
-                          const area = `0,100 ${line} 280,100`;
-                          return (
-                            <>
-                              <polyline points={area} fill="url(#chartFill)" />
-                              <polyline
-                                points={line}
-                                fill="none"
-                                stroke={BLUE_DEEP}
-                                strokeWidth="2"
-                              />
-                              {revenue.map((v, i) => (
-                                <circle
-                                  key={i}
-                                  cx={i * step}
-                                  cy={100 - (v / max) * 85}
-                                  r="2.5"
-                                  fill={BLUE_DEEP}
-                                />
-                              ))}
-                            </>
-                          );
-                        })()}
-                      </svg>
-                    </div>
-                    <div className="mt-1 flex justify-between text-[9px] text-slate-400">
-                      {["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"].map((d) => (
-                        <span key={d}>{d}</span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Radar IA */}
-                <div className="mt-3 rounded-lg border border-slate-200/80 p-3">
-                  <div className="mb-2 flex items-center justify-between">
-                    <p className="text-[11px] font-semibold text-slate-700">
-                      Radar IA — diagnósticos
-                    </p>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-1.5 py-0.5 text-[9px] font-semibold text-white">
-                      <Brain className="size-2.5" /> IA ativa
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 text-[10px]">
-                    <div className="rounded-md bg-amber-50 p-2 ring-1 ring-amber-200/70">
-                      <div className="flex items-center gap-1 font-semibold text-amber-700">
-                        <AlertTriangle className="size-3" /> Ruptura em 3 dias
-                      </div>
-                      <p className="mt-0.5 text-amber-900/80">Lanterna LED — Robomix</p>
-                    </div>
-                    <div className="rounded-md bg-rose-50 p-2 ring-1 ring-rose-200/70">
-                      <div className="flex items-center gap-1 font-semibold text-rose-700">
-                        <TrendingDown className="size-3" /> Margem caindo
-                      </div>
-                      <p className="mt-0.5 text-rose-900/80">Kit Farol — Nightled</p>
-                    </div>
-                    <div className="rounded-md bg-emerald-50 p-2 ring-1 ring-emerald-200/70">
-                      <div className="flex items-center gap-1 font-semibold text-emerald-700">
-                        <TrendingUp className="size-3" /> Oportunidade kit
-                      </div>
-                      <p className="mt-0.5 text-emerald-900/80">+18% conversão prevista</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* Camera notch */}
-          <div className="absolute left-1/2 top-[2px] h-[6px] w-[80px] -translate-x-1/2 rounded-b-md bg-black/70" />
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur">
+            <div className="mb-1 flex items-center justify-between">
+              <p className="text-[11px] font-semibold text-white/85">Receita líquida</p>
+              <span className="rounded-full bg-emerald-400/15 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-300">
+                +31%
+              </span>
+            </div>
+            <div className="relative h-24">
+              <svg
+                viewBox="0 0 280 100"
+                preserveAspectRatio="none"
+                className="absolute inset-0 h-full w-full"
+              >
+                <defs>
+                  <linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor={NEON} stopOpacity="0.55" />
+                    <stop offset="100%" stopColor={NEON} stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                {(() => {
+                  const max = Math.max(...revenue);
+                  const step = 280 / (revenue.length - 1);
+                  const pts = revenue.map(
+                    (v, i) => `${i * step},${100 - (v / max) * 85}`,
+                  );
+                  const line = pts.join(" ");
+                  const area = `0,100 ${line} 280,100`;
+                  return (
+                    <>
+                      <polyline points={area} fill="url(#chartFill)" />
+                      <polyline
+                        points={line}
+                        fill="none"
+                        stroke={NEON}
+                        strokeWidth="2"
+                      />
+                      {revenue.map((v, i) => (
+                        <circle
+                          key={i}
+                          cx={i * step}
+                          cy={100 - (v / max) * 85}
+                          r="2.5"
+                          fill={NEON}
+                        />
+                      ))}
+                    </>
+                  );
+                })()}
+              </svg>
+            </div>
+            <div className="mt-1 flex justify-between text-[9px] text-white/40">
+              {["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"].map((d) => (
+                <span key={d}>{d}</span>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Monitor stand */}
-        <div className="mx-auto mt-0 flex w-full flex-col items-center">
-          <div
-            className="h-3 w-full rounded-b-2xl"
-            style={{
-              background: "linear-gradient(180deg, #0a0e17 0%, #050810 100%)",
-            }}
-          />
-          <div
-            className="h-6 w-24 rounded-b-xl"
-            style={{
-              background: "linear-gradient(180deg, #1b2233 0%, #0a0e17 100%)",
-            }}
-          />
-          <div className="h-1.5 w-40 rounded-full bg-black/40 blur-sm" />
+        {/* Radar IA */}
+        <div className="relative mt-3 rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-[11px] font-semibold text-white/85">
+              Radar IA — diagnósticos
+            </p>
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-1.5 py-0.5 text-[9px] font-semibold text-white ring-1 ring-white/15">
+              <Brain className="size-2.5" /> IA ativa
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-[10px]">
+            <div className="rounded-md bg-amber-400/10 p-2 ring-1 ring-amber-300/30">
+              <div className="flex items-center gap-1 font-semibold text-amber-300">
+                <AlertTriangle className="size-3" /> Ruptura em 3 dias
+              </div>
+              <p className="mt-0.5 text-amber-200/80">Lanterna LED — Robomix</p>
+            </div>
+            <div className="rounded-md bg-rose-400/10 p-2 ring-1 ring-rose-300/30">
+              <div className="flex items-center gap-1 font-semibold text-rose-300">
+                <TrendingDown className="size-3" /> Margem caindo
+              </div>
+              <p className="mt-0.5 text-rose-200/80">Kit Farol — Nightled</p>
+            </div>
+            <div className="rounded-md bg-emerald-400/10 p-2 ring-1 ring-emerald-300/30">
+              <div className="flex items-center gap-1 font-semibold text-emerald-300">
+                <TrendingUp className="size-3" /> Oportunidade kit
+              </div>
+              <p className="mt-0.5 text-emerald-200/80">+18% conversão prevista</p>
+            </div>
+          </div>
         </div>
-
-        {/* Floor reflection */}
-        <div
-          aria-hidden
-          className="pointer-events-none mx-auto mt-2 h-24 w-[88%] -scale-y-100 opacity-[0.18] blur-[6px]"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(56,189,248,0.6) 0%, rgba(15,23,42,0.4) 35%, transparent 80%)",
-            maskImage: "linear-gradient(180deg, black 0%, transparent 75%)",
-            WebkitMaskImage: "linear-gradient(180deg, black 0%, transparent 75%)",
-          }}
-        />
       </div>
     </div>
   );

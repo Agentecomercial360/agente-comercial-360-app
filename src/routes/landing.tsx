@@ -154,16 +154,17 @@ function PillarCard({
 }) {
   return (
     <div
-      className="group relative flex flex-col rounded-2xl bg-white p-7 sm:p-8 shadow-[0_10px_40px_-12px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/60 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_25px_60px_-15px_rgba(56,189,248,0.35)] hover:ring-2"
+      className="group relative flex flex-col rounded-2xl p-7 sm:p-8 backdrop-blur-xl border border-white/60 shadow-[0_10px_40px_-12px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/50 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_25px_60px_-15px_rgba(56,189,248,0.35)] hover:border-cyan-300/70"
       style={{
-        // hover ring color via CSS var (cannot easily apply hover with style; rely on hover:ring-2 + ring-color override on wrapper below)
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.65) 100%)",
       }}
     >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         style={{
-          boxShadow: `inset 0 0 0 2px ${NEON}, 0 0 28px -6px ${NEON}`,
+          boxShadow: `inset 0 0 0 1px ${NEON}, 0 0 28px -6px ${NEON}`,
         }}
       />
       <div
@@ -171,14 +172,14 @@ function PillarCard({
         style={{
           background:
             accent === "navy"
-              ? `linear-gradient(135deg, ${BLUE_DEEP}, ${CYAN})`
-              : `linear-gradient(135deg, ${BLUE}, ${CYAN})`,
+              ? `linear-gradient(135deg, ${NAVY}, ${BLUE})`
+              : `linear-gradient(135deg, ${BLUE_DEEP}, ${NEON})`,
           boxShadow: `0 10px 25px -10px ${BLUE}`,
         }}
       >
         <Icon className="size-6 text-white" />
       </div>
-      <h3 className="mb-2 text-lg font-semibold tracking-tight text-slate-900">{title}</h3>
+      <h3 className="mb-2 text-lg font-semibold tracking-[-0.015em] text-slate-900">{title}</h3>
       <p className="text-sm leading-relaxed text-slate-600">{description}</p>
       <ul className="mt-5 space-y-2.5">
         {bullets.map((b) => (

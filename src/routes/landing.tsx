@@ -746,7 +746,7 @@ export function LandingPage() {
                 <a href="#cta-final">
                   <Button
                     size="lg"
-                    className="h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-900/25 transition-transform hover:-translate-y-0.5"
+                    className="ac-btn-glow h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-900/25 transition-all hover:-translate-y-0.5"
                     style={{ background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})` }}
                   >
                     Solicitar Demonstração Gratuita
@@ -757,11 +757,35 @@ export function LandingPage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="h-14 rounded-full border-slate-300 bg-white px-8 text-base font-semibold text-slate-800 hover:bg-slate-50"
+                    className="ac-btn-glow h-14 rounded-full border-slate-300 bg-white px-8 text-base font-semibold text-slate-800 hover:bg-slate-50"
                   >
                     Ver Funcionalidades de Inteligência
                   </Button>
                 </a>
+              </div>
+
+              {/* Social proof immediate */}
+              <p className="mt-5 text-sm font-medium text-slate-600">
+                <span style={{ color: BLUE_DEEP }} className="font-semibold">
+                  Mais de R$ 5M
+                </span>{" "}
+                em faturamento mensal monitorados pela nossa inteligência.
+              </p>
+
+              {/* Certification seal */}
+              <div className="mt-6 inline-flex items-center gap-2.5 rounded-full border border-slate-200/80 bg-white/80 px-4 py-2 shadow-sm backdrop-blur">
+                <span
+                  className="inline-flex size-6 items-center justify-center rounded-full text-white shadow"
+                  style={{
+                    background: `linear-gradient(135deg, ${BLUE}, ${CYAN})`,
+                    boxShadow: `0 0 12px -2px ${NEON}`,
+                  }}
+                >
+                  <ShieldCheck className="size-3.5" />
+                </span>
+                <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-slate-700">
+                  Plataforma Certificada · Integração Oficial via API Mercado Livre
+                </span>
               </div>
 
               <IntegrationBar />

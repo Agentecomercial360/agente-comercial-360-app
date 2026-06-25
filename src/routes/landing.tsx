@@ -34,6 +34,7 @@ import {
   ShieldCheck as ShieldIcon,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
+import heroWarehouse from "@/assets/hero-warehouse.jpg";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -644,23 +645,37 @@ export function LandingPage() {
       {/* ============== HEADER + HERO ============== */}
       <section
         id="top"
-        className="relative overflow-hidden bg-gradient-to-b from-white via-slate-50/60 to-white"
+        className="relative overflow-hidden"
+        style={{ background: NAVY_INK }}
       >
+        {/* Warehouse photo background */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-0"
+          style={{
+            backgroundImage: `url(${heroWarehouse})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "blur(2px)",
+            transform: "scale(1.05)",
+          }}
+        />
+        {/* Dark gradient overlay for legibility */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 -z-0"
           style={{
             background:
-              "radial-gradient(900px 500px at 80% 0%, oklch(0.92 0.06 255 / 0.55), transparent 60%), radial-gradient(700px 400px at 0% 100%, oklch(0.97 0.02 262), transparent 60%)",
+              "linear-gradient(90deg, rgba(8,12,22,0.94) 0%, rgba(8,12,22,0.82) 45%, rgba(8,12,22,0.55) 100%), radial-gradient(900px 500px at 80% 10%, oklch(0.45 0.18 255 / 0.35), transparent 60%)",
           }}
         />
-        {/* Warehouse / fulfillment subtle pattern */}
+        {/* Subtle tech grid */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-0 opacity-[0.05]"
+          className="pointer-events-none absolute inset-0 -z-0 opacity-[0.07]"
           style={{
             backgroundImage:
-              "repeating-linear-gradient(90deg, #0f172a 0 1px, transparent 1px 80px), repeating-linear-gradient(0deg, #0f172a 0 1px, transparent 1px 28px)",
+              "repeating-linear-gradient(90deg, #ffffff 0 1px, transparent 1px 80px), repeating-linear-gradient(0deg, #ffffff 0 1px, transparent 1px 28px)",
             maskImage:
               "radial-gradient(ellipse at 70% 30%, black 0%, transparent 70%)",
             WebkitMaskImage:
@@ -672,35 +687,35 @@ export function LandingPage() {
           {/* Header */}
           <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
             <a href="#top" className="flex items-center gap-2.5">
-              <img src={acLogo} alt="Agente Comercial 360" className="h-9 w-auto" />
+              <img src={acLogo} alt="Agente Comercial 360" className="h-9 w-auto brightness-0 invert" />
             </a>
-            <nav className="hidden items-center gap-8 text-sm font-medium text-slate-700 md:flex">
-              <a href="#problemas" className="transition-colors hover:text-slate-900">
+            <nav className="hidden items-center gap-8 text-sm font-medium text-slate-300 md:flex">
+              <a href="#problemas" className="transition-colors hover:text-white">
                 Problemas
               </a>
-              <a href="#solucoes" className="transition-colors hover:text-slate-900">
+              <a href="#solucoes" className="transition-colors hover:text-white">
                 Inteligência
               </a>
-              <a href="#como-funciona" className="transition-colors hover:text-slate-900">
+              <a href="#como-funciona" className="transition-colors hover:text-white">
                 Método
               </a>
-              <a href="#planos" className="transition-colors hover:text-slate-900">
+              <a href="#planos" className="transition-colors hover:text-white">
                 Planos
               </a>
-              <a href="#faq" className="transition-colors hover:text-slate-900">
+              <a href="#faq" className="transition-colors hover:text-white">
                 FAQ
               </a>
             </nav>
             <div className="flex items-center gap-3">
               <Link
                 to="/login"
-                className="hidden text-sm font-medium text-slate-700 transition-colors hover:text-slate-900 sm:inline-block"
+                className="hidden text-sm font-medium text-slate-300 transition-colors hover:text-white sm:inline-block"
               >
                 Entrar no painel
               </Link>
               <a href="#cta-final">
                 <Button
-                  className="h-10 rounded-full px-5 text-sm font-semibold text-white shadow-lg shadow-blue-900/15"
+                  className="h-10 rounded-full px-5 text-sm font-semibold text-white shadow-lg shadow-blue-900/40"
                   style={{ background: BLUE }}
                 >
                   Solicitar demonstração
@@ -712,21 +727,21 @@ export function LandingPage() {
           {/* Hero */}
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pt-16 pb-24 lg:grid-cols-2 lg:gap-12 lg:px-10 lg:pt-24 lg:pb-32">
             <Reveal>
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 shadow-sm">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 shadow-sm backdrop-blur">
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
                 </span>
-                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-700">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-200">
                   Inteligência para Mercado Livre
                 </span>
               </div>
 
-              <h1 className="font-display text-[42px] font-bold leading-[1.05] tracking-[-0.035em] text-slate-900 sm:text-[56px] lg:text-[64px] lg:leading-[1.03]">
+              <h1 className="font-display text-[42px] font-bold leading-[1.05] tracking-[-0.035em] text-white sm:text-[56px] lg:text-[64px] lg:leading-[1.03]">
                 A Central de Inteligência que transforma dados do{" "}
                 <span
                   style={{
-                    backgroundImage: `linear-gradient(135deg, ${BLUE}, ${CYAN})`,
+                    backgroundImage: `linear-gradient(135deg, ${CYAN}, ${NEON})`,
                     WebkitBackgroundClip: "text",
                     backgroundClip: "text",
                     color: "transparent",
@@ -737,7 +752,7 @@ export function LandingPage() {
                 em lucro real.
               </h1>
 
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600/80">
+              <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-300">
                 Gerencie múltiplas contas, controle sua margem e monitore a concorrência com a
                 plataforma de inteligência operacional feita para vendedores profissionais.
               </p>
@@ -746,7 +761,7 @@ export function LandingPage() {
                 <a href="#cta-final">
                   <Button
                     size="lg"
-                    className="ac-btn-glow h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-900/25 transition-all hover:-translate-y-0.5"
+                    className="ac-btn-glow h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-900/40 transition-all hover:-translate-y-0.5"
                     style={{ background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})` }}
                   >
                     Solicitar Demonstração Gratuita
@@ -757,7 +772,7 @@ export function LandingPage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="ac-btn-glow h-14 rounded-full border-slate-300 bg-white px-8 text-base font-semibold text-slate-800 hover:bg-slate-50"
+                    className="ac-btn-glow h-14 rounded-full border-white/25 bg-white/5 px-8 text-base font-semibold text-white backdrop-blur hover:bg-white/10 hover:text-white"
                   >
                     Ver Funcionalidades de Inteligência
                   </Button>
@@ -765,15 +780,15 @@ export function LandingPage() {
               </div>
 
               {/* Social proof immediate */}
-              <p className="mt-5 text-sm font-medium text-slate-600">
-                <span style={{ color: BLUE_DEEP }} className="font-semibold">
+              <p className="mt-5 text-sm font-medium text-slate-300">
+                <span style={{ color: CYAN }} className="font-semibold">
                   Mais de R$ 5M
                 </span>{" "}
                 em faturamento mensal monitorados pela nossa inteligência.
               </p>
 
               {/* Certification seal */}
-              <div className="mt-6 inline-flex items-center gap-2.5 rounded-full border border-slate-200/80 bg-white/80 px-4 py-2 shadow-sm backdrop-blur">
+              <div className="mt-6 inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/5 px-4 py-2 shadow-sm backdrop-blur">
                 <span
                   className="inline-flex size-6 items-center justify-center rounded-full text-white shadow"
                   style={{
@@ -783,7 +798,7 @@ export function LandingPage() {
                 >
                   <ShieldCheck className="size-3.5" />
                 </span>
-                <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-slate-700">
+                <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-slate-200">
                   Plataforma Certificada · Integração Oficial via API Mercado Livre
                 </span>
               </div>
@@ -793,7 +808,23 @@ export function LandingPage() {
 
             <Reveal delay={150}>
               <div className="relative">
+                {/* Ambient glow behind device */}
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -inset-10 -z-10"
+                  style={{
+                    background: `radial-gradient(closest-side, ${BLUE} 0%, transparent 70%)`,
+                    opacity: 0.35,
+                    filter: "blur(40px)",
+                  }}
+                />
                 <HeroMockup />
+                {/* Caption: brain of the operation */}
+                <div className="mt-5 flex items-center justify-center gap-2 text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-300">
+                  <span className="h-px w-8 bg-white/20" />
+                  O cérebro que controla sua operação
+                  <span className="h-px w-8 bg-white/20" />
+                </div>
               </div>
             </Reveal>
           </div>

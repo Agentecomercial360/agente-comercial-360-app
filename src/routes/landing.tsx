@@ -1289,7 +1289,7 @@ export function LandingPage() {
                 </span>
               </div>
               <p className="mt-5 max-w-xs text-sm leading-relaxed text-white/65">
-                A inteligência definitiva para vendedores de marketplace.
+                A central de inteligência comercial definitiva para vendedores profissionais.
               </p>
               <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
                 <ShieldIcon className="size-3.5" style={{ color: CYAN }} />
@@ -1299,51 +1299,56 @@ export function LandingPage() {
               </div>
             </div>
 
-            {/* Col 2 — Soluções */}
+            {/* Col 2 — Funcionalidades */}
             <div>
               <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
-                Soluções
+                Funcionalidades
               </h4>
               <ul className="mt-5 space-y-3 text-sm text-white/75">
                 <li><a href="#solucoes" className="transition-colors hover:text-white">Inteligência Multi-conta</a></li>
-                <li><a href="#solucoes" className="transition-colors hover:text-white">Radar IA</a></li>
+                <li><a href="#solucoes" className="transition-colors hover:text-white">Radar IA Financeiro</a></li>
                 <li><a href="#solucoes" className="transition-colors hover:text-white">Controle de Margem</a></li>
                 <li><a href="#solucoes" className="transition-colors hover:text-white">Espionagem de Mercado</a></li>
               </ul>
             </div>
 
-            {/* Col 3 — Empresa */}
+            {/* Col 3 — Suporte */}
             <div>
               <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
-                Empresa
+                Suporte
               </h4>
               <ul className="mt-5 space-y-3 text-sm text-white/75">
-                <li><a href="#top" className="transition-colors hover:text-white">Sobre nós</a></li>
-                <li><a href="#planos" className="transition-colors hover:text-white">Planos</a></li>
                 <li><a href="#faq" className="transition-colors hover:text-white">FAQ</a></li>
-                <li><a href="#cta-final" className="transition-colors hover:text-white">Suporte</a></li>
+                <li><a href="#cta-final" className="transition-colors hover:text-white">Central de Ajuda</a></li>
+                <li><a href="#cta-final" className="transition-colors hover:text-white">Solicitar Demo</a></li>
+                <li><Link to="/login" className="transition-colors hover:text-white">Área do Cliente</Link></li>
               </ul>
             </div>
 
-            {/* Col 4 — Legal */}
+            {/* Col 4 — Institucional */}
             <div>
               <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
-                Legal
+                Institucional
               </h4>
               <ul className="mt-5 space-y-3 text-sm text-white/75">
                 <li><a href="#" className="transition-colors hover:text-white">Termos de Uso</a></li>
                 <li><a href="#" className="transition-colors hover:text-white">Privacidade</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">Blog</a></li>
                 <li><a href="#" className="transition-colors hover:text-white">API Oficial</a></li>
-                <li><a href="#" className="transition-colors hover:text-white">LGPD</a></li>
               </ul>
             </div>
           </div>
 
           {/* Bottom row */}
           <div className="mt-16 flex flex-col items-center justify-between gap-5 border-t border-white/10 pt-8 sm:flex-row">
-            <p className="text-xs text-white/50">
-              © {new Date().getFullYear()} Agente Comercial 360. Todos os direitos reservados.
-            </p>
+            <div className="flex flex-col items-center gap-1 sm:items-start">
+              <p className="text-xs text-white/50">
+                © {new Date().getFullYear()} Agente Comercial 360. Todos os direitos reservados.
+              </p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em]" style={{ color: CYAN }}>
+                Feito para quem escala com inteligência.
+              </p>
+            </div>
             <div className="flex items-center gap-3">
               {[
                 { icon: Linkedin, href: "#", label: "LinkedIn" },

@@ -34,6 +34,7 @@ import {
   ShieldCheck as ShieldIcon,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
+import heroWarehouse from "@/assets/hero-warehouse.jpg";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,

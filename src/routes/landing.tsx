@@ -777,6 +777,24 @@ export function LandingPage() {
               </div>
             </Reveal>
           </div>
+
+          {/* Certification seal — hero signature */}
+          <div className="relative z-10 mx-auto flex max-w-7xl justify-center px-6 pb-8 lg:px-10">
+            <div className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.04] px-4 py-2 backdrop-blur-md">
+              <span
+                className="inline-flex size-5 items-center justify-center rounded-full text-white"
+                style={{
+                  background: `linear-gradient(135deg, ${BLUE}, ${CYAN})`,
+                  boxShadow: `0 0 10px -2px ${NEON}`,
+                }}
+              >
+                <ShieldCheck className="size-3" />
+              </span>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300/90">
+                Plataforma Certificada · Integração Oficial via API Mercado Livre
+              </span>
+            </div>
+          </div>
         </div>
       </section>
 

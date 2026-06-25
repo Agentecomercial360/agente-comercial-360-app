@@ -27,6 +27,10 @@ import {
   Bell,
   UserCircle2,
   Home,
+  Linkedin,
+  Instagram,
+  Youtube,
+  Mail,
   ShieldCheck as ShieldIcon,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";

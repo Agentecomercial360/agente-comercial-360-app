@@ -594,13 +594,11 @@ function EditCostModal({
     }
     setSaving(true);
     try {
-      const { data: userData } = await supabase.auth.getUser();
-      const changedBy = userData?.user?.id ?? null;
       const { error } = await supabase.rpc("update_ecommerce_product_cost_v1", {
         p_company_id: COMPANY_ID,
         p_product_id: product.id,
         p_cost_price: parsed,
-        p_changed_by: changedBy,
+        p_changed_by: "AC360 painel",
         p_notes: notes.trim() ? notes.trim() : null,
       });
       if (error) throw error;

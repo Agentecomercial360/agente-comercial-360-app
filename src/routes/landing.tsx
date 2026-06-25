@@ -27,6 +27,10 @@ import {
   Bell,
   UserCircle2,
   Home,
+  Linkedin,
+  Instagram,
+  Youtube,
+  Mail,
   ShieldCheck as ShieldIcon,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
@@ -150,16 +154,17 @@ function PillarCard({
 }) {
   return (
     <div
-      className="group relative flex flex-col rounded-2xl bg-white p-7 sm:p-8 shadow-[0_10px_40px_-12px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/60 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_25px_60px_-15px_rgba(56,189,248,0.35)] hover:ring-2"
+      className="group relative flex flex-col rounded-2xl p-7 sm:p-8 backdrop-blur-xl border border-white/60 shadow-[0_10px_40px_-12px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/50 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_25px_60px_-15px_rgba(56,189,248,0.35)] hover:border-cyan-300/70"
       style={{
-        // hover ring color via CSS var (cannot easily apply hover with style; rely on hover:ring-2 + ring-color override on wrapper below)
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.65) 100%)",
       }}
     >
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         style={{
-          boxShadow: `inset 0 0 0 2px ${NEON}, 0 0 28px -6px ${NEON}`,
+          boxShadow: `inset 0 0 0 1px ${NEON}, 0 0 28px -6px ${NEON}`,
         }}
       />
       <div
@@ -167,14 +172,14 @@ function PillarCard({
         style={{
           background:
             accent === "navy"
-              ? `linear-gradient(135deg, ${BLUE_DEEP}, ${CYAN})`
-              : `linear-gradient(135deg, ${BLUE}, ${CYAN})`,
+              ? `linear-gradient(135deg, ${NAVY}, ${BLUE})`
+              : `linear-gradient(135deg, ${BLUE_DEEP}, ${NEON})`,
           boxShadow: `0 10px 25px -10px ${BLUE}`,
         }}
       >
         <Icon className="size-6 text-white" />
       </div>
-      <h3 className="mb-2 text-lg font-semibold tracking-tight text-slate-900">{title}</h3>
+      <h3 className="mb-2 text-lg font-semibold tracking-[-0.015em] text-slate-900">{title}</h3>
       <p className="text-sm leading-relaxed text-slate-600">{description}</p>
       <ul className="mt-5 space-y-2.5">
         {bullets.map((b) => (
@@ -233,10 +238,10 @@ function PlanCard({
 }) {
   return (
     <div
-      className={`relative flex flex-col rounded-2xl p-8 backdrop-blur transition-all duration-300 hover:-translate-y-1 ${
+      className={`relative flex flex-col rounded-2xl p-8 backdrop-blur-2xl border transition-all duration-300 hover:-translate-y-1 ${
         highlighted
-          ? "text-white shadow-2xl ring-1 ring-white/15"
-          : "text-white shadow-xl ring-1 ring-white/10"
+          ? "text-white shadow-2xl border-white/20"
+          : "text-white shadow-xl border-white/10"
       }`}
       style={
         highlighted
@@ -244,7 +249,7 @@ function PlanCard({
               background: `linear-gradient(160deg, ${BLUE_DEEP}, ${NAVY} 55%, ${NAVY_DEEP})`,
               boxShadow: `0 25px 60px -20px ${BLUE}`,
             }
-          : { background: "rgba(255,255,255,0.04)" }
+          : { background: "rgba(255,255,255,0.06)" }
       }
     >
       {highlighted && (
@@ -534,12 +539,24 @@ function HeroMockup() {
           />
           <div className="h-1.5 w-40 rounded-full bg-black/40 blur-sm" />
         </div>
+
+        {/* Floor reflection */}
+        <div
+          aria-hidden
+          className="pointer-events-none mx-auto mt-2 h-24 w-[88%] -scale-y-100 opacity-[0.18] blur-[6px]"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(56,189,248,0.6) 0%, rgba(15,23,42,0.4) 35%, transparent 80%)",
+            maskImage: "linear-gradient(180deg, black 0%, transparent 75%)",
+            WebkitMaskImage: "linear-gradient(180deg, black 0%, transparent 75%)",
+          }}
+        />
       </div>
     </div>
   );
 }
 
-/* ---------- Integration logo bar ---------- */
+/* ---------- Integration logo bar (hero) ---------- */
 function IntegrationBar() {
   const items = ["Mercado Livre", "Mercado Pago", "Mercado Envios", "Mercado Ads"];
   return (
@@ -552,7 +569,7 @@ function IntegrationBar() {
         {items.map((label) => (
           <span
             key={label}
-            className="text-[13px] font-semibold tracking-tight text-slate-400 grayscale transition-colors duration-300 hover:text-slate-700"
+            className="text-[13px] font-semibold tracking-[-0.01em] text-slate-400 grayscale transition-colors duration-300 hover:text-slate-700"
             style={{ fontFamily: "var(--font-display)" }}
           >
             {label}
@@ -560,6 +577,62 @@ function IntegrationBar() {
         ))}
       </div>
     </div>
+  );
+}
+
+/* ---------- Ecosystem section (below hero) ---------- */
+function EcosystemSection() {
+  const partners = [
+    "Mercado Livre",
+    "Mercado Pago",
+    "Mercado Envios",
+    "Shopee",
+    "Bling",
+    "Tiny",
+  ];
+  return (
+    <section className="relative overflow-hidden border-y border-slate-200/70 bg-white py-20 sm:py-24">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(0deg, #0f172a 0 1px, transparent 1px 56px), repeating-linear-gradient(90deg, #0f172a 0 1px, transparent 1px 56px)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
+        <Reveal>
+          <div className="mx-auto max-w-2xl text-center">
+            <SectionLabel>Ecossistema Integrado</SectionLabel>
+            <h2 className="mt-3 text-2xl font-bold tracking-[-0.02em] text-slate-900 sm:text-3xl">
+              Conectado nativamente aos maiores players do mercado
+            </h2>
+            <p className="mt-3 text-sm text-slate-500">
+              Integrações oficiais e parceiros estratégicos para operar marketplace, logística,
+              pagamentos e ERP em um só lugar.
+            </p>
+          </div>
+        </Reveal>
+        <Reveal delay={120}>
+          <div className="mt-12 grid grid-cols-2 items-center gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-6">
+            {partners.map((p) => (
+              <div
+                key={p}
+                className="flex items-center justify-center"
+                title={p}
+              >
+                <span
+                  className="select-none text-base font-bold tracking-[-0.02em] text-slate-400 grayscale transition-all duration-300 hover:text-slate-800 hover:scale-[1.04]"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {p}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </div>
+    </section>
   );
 }
 
@@ -579,6 +652,19 @@ export function LandingPage() {
           style={{
             background:
               "radial-gradient(900px 500px at 80% 0%, oklch(0.92 0.06 255 / 0.55), transparent 60%), radial-gradient(700px 400px at 0% 100%, oklch(0.97 0.02 262), transparent 60%)",
+          }}
+        />
+        {/* Warehouse / fulfillment subtle pattern */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-0 opacity-[0.05]"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(90deg, #0f172a 0 1px, transparent 1px 80px), repeating-linear-gradient(0deg, #0f172a 0 1px, transparent 1px 28px)",
+            maskImage:
+              "radial-gradient(ellipse at 70% 30%, black 0%, transparent 70%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse at 70% 30%, black 0%, transparent 70%)",
           }}
         />
 
@@ -636,7 +722,7 @@ export function LandingPage() {
                 </span>
               </div>
 
-              <h1 className="font-display text-[42px] font-bold leading-[1.05] tracking-tight text-slate-900 sm:text-[56px] lg:text-[64px] lg:leading-[1.03]">
+              <h1 className="font-display text-[42px] font-bold leading-[1.05] tracking-[-0.035em] text-slate-900 sm:text-[56px] lg:text-[64px] lg:leading-[1.03]">
                 A Central de Inteligência que transforma dados do{" "}
                 <span
                   style={{
@@ -689,6 +775,11 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* ============== ECOSSISTEMA INTEGRADO ============== */}
+      <EcosystemSection />
+
+
 
       {/* ============== O PROBLEMA — DARK ============== */}
       <section
@@ -1146,26 +1237,104 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ============== FOOTER ============== */}
-      <footer className="border-t border-slate-200 bg-white py-10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 text-sm text-slate-500 sm:flex-row lg:px-10">
-          <div className="flex items-center gap-2.5">
-            <img src={acLogo} alt="Agente Comercial 360" className="h-7 w-auto" />
+      {/* ============== FOOTER — ENTERPRISE ============== */}
+      <footer
+        className="relative overflow-hidden text-white"
+        style={{ background: `linear-gradient(180deg, ${NAVY_INK} 0%, #05080f 100%)` }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(90deg, #ffffff 0 1px, transparent 1px 80px), repeating-linear-gradient(0deg, #ffffff 0 1px, transparent 1px 80px)",
+            maskImage: "radial-gradient(ellipse at 50% 0%, black, transparent 70%)",
+            WebkitMaskImage: "radial-gradient(ellipse at 50% 0%, black, transparent 70%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-7xl px-6 py-20 lg:px-10">
+          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+            {/* Col 1 — Brand */}
+            <div>
+              <div className="flex items-center gap-3">
+                <img src={acLogo} alt="Agente Comercial 360" className="h-10 w-auto" />
+                <span className="text-base font-semibold tracking-[-0.01em] text-white">
+                  AC360
+                </span>
+              </div>
+              <p className="mt-5 max-w-xs text-sm leading-relaxed text-white/65">
+                A inteligência definitiva para vendedores de marketplace.
+              </p>
+              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
+                <ShieldIcon className="size-3.5" style={{ color: CYAN }} />
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                  API Oficial Mercado Livre
+                </span>
+              </div>
+            </div>
+
+            {/* Col 2 — Soluções */}
+            <div>
+              <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
+                Soluções
+              </h4>
+              <ul className="mt-5 space-y-3 text-sm text-white/75">
+                <li><a href="#solucoes" className="transition-colors hover:text-white">Inteligência Multi-conta</a></li>
+                <li><a href="#solucoes" className="transition-colors hover:text-white">Radar IA</a></li>
+                <li><a href="#solucoes" className="transition-colors hover:text-white">Controle de Margem</a></li>
+                <li><a href="#solucoes" className="transition-colors hover:text-white">Espionagem de Mercado</a></li>
+              </ul>
+            </div>
+
+            {/* Col 3 — Empresa */}
+            <div>
+              <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
+                Empresa
+              </h4>
+              <ul className="mt-5 space-y-3 text-sm text-white/75">
+                <li><a href="#top" className="transition-colors hover:text-white">Sobre nós</a></li>
+                <li><a href="#planos" className="transition-colors hover:text-white">Planos</a></li>
+                <li><a href="#faq" className="transition-colors hover:text-white">FAQ</a></li>
+                <li><a href="#cta-final" className="transition-colors hover:text-white">Suporte</a></li>
+              </ul>
+            </div>
+
+            {/* Col 4 — Legal */}
+            <div>
+              <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
+                Legal
+              </h4>
+              <ul className="mt-5 space-y-3 text-sm text-white/75">
+                <li><a href="#" className="transition-colors hover:text-white">Termos de Uso</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">Privacidade</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">API Oficial</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">LGPD</a></li>
+              </ul>
+            </div>
           </div>
-          <p>© {new Date().getFullYear()} Agente Comercial 360. Todos os direitos reservados.</p>
-          <div className="flex items-center gap-6">
-            <a href="#solucoes" className="hover:text-slate-900">
-              Inteligência
-            </a>
-            <a href="#planos" className="hover:text-slate-900">
-              Planos
-            </a>
-            <a href="#faq" className="hover:text-slate-900">
-              FAQ
-            </a>
-            <Link to="/login" className="hover:text-slate-900">
-              Entrar
-            </Link>
+
+          {/* Bottom row */}
+          <div className="mt-16 flex flex-col items-center justify-between gap-5 border-t border-white/10 pt-8 sm:flex-row">
+            <p className="text-xs text-white/50">
+              © {new Date().getFullYear()} Agente Comercial 360. Todos os direitos reservados.
+            </p>
+            <div className="flex items-center gap-3">
+              {[
+                { icon: Linkedin, href: "#", label: "LinkedIn" },
+                { icon: Instagram, href: "#", label: "Instagram" },
+                { icon: Youtube, href: "#", label: "YouTube" },
+                { icon: Mail, href: "mailto:contato@agentecomercial360.com.br", label: "E-mail" },
+              ].map(({ icon: Icon, href, label }) => (
+                <a
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/70 transition-all duration-300 hover:border-white/30 hover:text-white hover:-translate-y-0.5"
+                >
+                  <Icon className="size-4" />
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </footer>

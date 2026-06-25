@@ -238,10 +238,10 @@ function PlanCard({
 }) {
   return (
     <div
-      className={`relative flex flex-col rounded-2xl p-8 backdrop-blur transition-all duration-300 hover:-translate-y-1 ${
+      className={`relative flex flex-col rounded-2xl p-8 backdrop-blur-2xl border transition-all duration-300 hover:-translate-y-1 ${
         highlighted
-          ? "text-white shadow-2xl ring-1 ring-white/15"
-          : "text-white shadow-xl ring-1 ring-white/10"
+          ? "text-white shadow-2xl border-white/20"
+          : "text-white shadow-xl border-white/10"
       }`}
       style={
         highlighted
@@ -249,7 +249,7 @@ function PlanCard({
               background: `linear-gradient(160deg, ${BLUE_DEEP}, ${NAVY} 55%, ${NAVY_DEEP})`,
               boxShadow: `0 25px 60px -20px ${BLUE}`,
             }
-          : { background: "rgba(255,255,255,0.04)" }
+          : { background: "rgba(255,255,255,0.06)" }
       }
     >
       {highlighted && (

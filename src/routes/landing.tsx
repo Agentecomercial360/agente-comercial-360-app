@@ -539,6 +539,18 @@ function HeroMockup() {
           />
           <div className="h-1.5 w-40 rounded-full bg-black/40 blur-sm" />
         </div>
+
+        {/* Floor reflection */}
+        <div
+          aria-hidden
+          className="pointer-events-none mx-auto mt-2 h-24 w-[88%] -scale-y-100 opacity-[0.18] blur-[6px]"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(56,189,248,0.6) 0%, rgba(15,23,42,0.4) 35%, transparent 80%)",
+            maskImage: "linear-gradient(180deg, black 0%, transparent 75%)",
+            WebkitMaskImage: "linear-gradient(180deg, black 0%, transparent 75%)",
+          }}
+        />
       </div>
     </div>
   );

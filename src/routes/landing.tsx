@@ -672,7 +672,7 @@ export function LandingPage() {
           </header>
 
           {/* Hero */}
-          <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pt-16 pb-24 lg:grid-cols-2 lg:gap-12 lg:px-10 lg:pt-24 lg:pb-32">
+          <div className="mx-auto grid max-w-5xl items-center gap-12 px-6 pt-16 pb-24 lg:px-10 lg:pt-24 lg:pb-32">
             <Reveal>
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 shadow-sm backdrop-blur">
                 <span className="relative flex h-2 w-2">
@@ -755,27 +755,8 @@ export function LandingPage() {
             </Reveal>
 
 
-            <Reveal delay={150}>
-              <div className="relative">
-                {/* Ambient glow behind device */}
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -inset-10 -z-10"
-                  style={{
-                    background: `radial-gradient(closest-side, ${BLUE} 0%, transparent 70%)`,
-                    opacity: 0.35,
-                    filter: "blur(40px)",
-                  }}
-                />
-                <HeroMockup />
-                {/* Caption: brain of the operation */}
-                <div className="mt-5 flex items-center justify-center gap-2 text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-300">
-                  <span className="h-px w-8 bg-white/20" />
-                  O cérebro que controla sua operação
-                  <span className="h-px w-8 bg-white/20" />
-                </div>
-              </div>
-            </Reveal>
+
+
           </div>
 
           {/* Certification seal — hero signature */}

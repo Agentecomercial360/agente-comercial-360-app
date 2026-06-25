@@ -747,7 +747,7 @@ export function LandingPage() {
             </nav>
             <div className="flex items-center gap-3">
               <Link
-                to="/login"
+                to="/ecommerce/login"
                 className="hidden text-sm font-medium text-slate-300 transition-colors hover:text-white sm:inline-block"
               >
                 Entrar no painel
@@ -1318,7 +1318,7 @@ export function LandingPage() {
                       <ArrowRight className="ml-1 size-4" />
                     </Button>
                   </a>
-                  <Link to="/login">
+                  <Link to="/ecommerce/login">
                     <Button
                       size="lg"
                       variant="outline"

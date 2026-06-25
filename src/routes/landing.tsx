@@ -776,6 +776,11 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* ============== ECOSSISTEMA INTEGRADO ============== */}
+      <EcosystemSection />
+
+
+
       {/* ============== O PROBLEMA — DARK ============== */}
       <section
         id="problemas"

@@ -726,32 +726,34 @@ export function LandingPage() {
                 </a>
               </div>
 
-              {/* Social proof immediate */}
-              <p className="mt-5 text-sm font-medium text-slate-300">
-                <span style={{ color: CYAN }} className="font-semibold">
+              {/* Metric chips */}
+              <div className="mt-7 flex flex-wrap items-center gap-2.5">
+                {[
+                  { icon: Plug, label: "API oficial" },
+                  { icon: Layers, label: "Multi-conta" },
+                  { icon: Radar, label: "Radar IA" },
+                ].map(({ icon: Ic, label }) => (
+                  <span
+                    key={label}
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3.5 py-1.5 backdrop-blur"
+                  >
+                    <Ic className="size-3.5" style={{ color: NEON }} />
+                    <span className="text-[11.5px] font-medium tracking-[-0.005em] text-slate-200">
+                      {label}
+                    </span>
+                  </span>
+                ))}
+              </div>
+
+              {/* Social proof */}
+              <p className="mt-5 text-[13.5px] font-light leading-relaxed text-slate-300/90">
+                <span style={{ color: CYAN }} className="font-medium">
                   Mais de R$ 5M
                 </span>{" "}
                 em faturamento mensal monitorados pela nossa inteligência.
               </p>
-
-              {/* Certification seal */}
-              <div className="mt-6 inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/5 px-4 py-2 shadow-sm backdrop-blur">
-                <span
-                  className="inline-flex size-6 items-center justify-center rounded-full text-white shadow"
-                  style={{
-                    background: `linear-gradient(135deg, ${BLUE}, ${CYAN})`,
-                    boxShadow: `0 0 12px -2px ${NEON}`,
-                  }}
-                >
-                  <ShieldCheck className="size-3.5" />
-                </span>
-                <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-slate-200">
-                  Plataforma Certificada · Integração Oficial via API Mercado Livre
-                </span>
-              </div>
-
-              <IntegrationBar />
             </Reveal>
+
 
             <Reveal delay={150}>
               <div className="relative">

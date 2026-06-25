@@ -755,27 +755,8 @@ export function LandingPage() {
             </Reveal>
 
 
-            <Reveal delay={150}>
-              <div className="relative">
-                {/* Ambient glow behind device */}
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -inset-10 -z-10"
-                  style={{
-                    background: `radial-gradient(closest-side, ${BLUE} 0%, transparent 70%)`,
-                    opacity: 0.35,
-                    filter: "blur(40px)",
-                  }}
-                />
-                <HeroMockup />
-                {/* Caption: brain of the operation */}
-                <div className="mt-5 flex items-center justify-center gap-2 text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-300">
-                  <span className="h-px w-8 bg-white/20" />
-                  O cérebro que controla sua operação
-                  <span className="h-px w-8 bg-white/20" />
-                </div>
-              </div>
-            </Reveal>
+
+
           </div>
 
           {/* Certification seal — hero signature */}

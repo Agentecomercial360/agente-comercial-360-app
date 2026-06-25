@@ -824,11 +824,13 @@ export function LandingPage() {
             <div className="mx-auto max-w-2xl text-center">
               <SectionLabel tone="dark">O problema do vendedor profissional</SectionLabel>
               <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Você está vendendo no escuro?
+                Pare de queimar margem com anúncios cegos e falta de controle operacional.
               </h2>
               <p className="mt-4 text-base text-white/70">
                 A maioria dos vendedores profissionais opera no improviso — sem visão de margem,
-                sem controle de estoque e sem inteligência sobre a concorrência.
+                sem controle de estoque e sem inteligência sobre a concorrência. O{" "}
+                <span className="font-semibold text-white">Motor de Insights AC360®</span> existe
+                para encerrar esse ciclo.
               </p>
             </div>
           </Reveal>

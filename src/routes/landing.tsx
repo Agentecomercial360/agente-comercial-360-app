@@ -654,6 +654,19 @@ export function LandingPage() {
               "radial-gradient(900px 500px at 80% 0%, oklch(0.92 0.06 255 / 0.55), transparent 60%), radial-gradient(700px 400px at 0% 100%, oklch(0.97 0.02 262), transparent 60%)",
           }}
         />
+        {/* Warehouse / fulfillment subtle pattern */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-0 opacity-[0.05]"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(90deg, #0f172a 0 1px, transparent 1px 80px), repeating-linear-gradient(0deg, #0f172a 0 1px, transparent 1px 28px)",
+            maskImage:
+              "radial-gradient(ellipse at 70% 30%, black 0%, transparent 70%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse at 70% 30%, black 0%, transparent 70%)",
+          }}
+        />
 
         <div className="relative z-10">
           {/* Header */}

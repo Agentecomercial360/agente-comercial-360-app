@@ -556,7 +556,7 @@ function HeroMockup() {
   );
 }
 
-/* ---------- Integration logo bar ---------- */
+/* ---------- Integration logo bar (hero) ---------- */
 function IntegrationBar() {
   const items = ["Mercado Livre", "Mercado Pago", "Mercado Envios", "Mercado Ads"];
   return (
@@ -569,7 +569,7 @@ function IntegrationBar() {
         {items.map((label) => (
           <span
             key={label}
-            className="text-[13px] font-semibold tracking-tight text-slate-400 grayscale transition-colors duration-300 hover:text-slate-700"
+            className="text-[13px] font-semibold tracking-[-0.01em] text-slate-400 grayscale transition-colors duration-300 hover:text-slate-700"
             style={{ fontFamily: "var(--font-display)" }}
           >
             {label}
@@ -577,6 +577,62 @@ function IntegrationBar() {
         ))}
       </div>
     </div>
+  );
+}
+
+/* ---------- Ecosystem section (below hero) ---------- */
+function EcosystemSection() {
+  const partners = [
+    "Mercado Livre",
+    "Mercado Pago",
+    "Mercado Envios",
+    "Shopee",
+    "Bling",
+    "Tiny",
+  ];
+  return (
+    <section className="relative overflow-hidden border-y border-slate-200/70 bg-white py-20 sm:py-24">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage:
+            "repeating-linear-gradient(0deg, #0f172a 0 1px, transparent 1px 56px), repeating-linear-gradient(90deg, #0f172a 0 1px, transparent 1px 56px)",
+        }}
+      />
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
+        <Reveal>
+          <div className="mx-auto max-w-2xl text-center">
+            <SectionLabel>Ecossistema Integrado</SectionLabel>
+            <h2 className="mt-3 text-2xl font-bold tracking-[-0.02em] text-slate-900 sm:text-3xl">
+              Conectado nativamente aos maiores players do mercado
+            </h2>
+            <p className="mt-3 text-sm text-slate-500">
+              Integrações oficiais e parceiros estratégicos para operar marketplace, logística,
+              pagamentos e ERP em um só lugar.
+            </p>
+          </div>
+        </Reveal>
+        <Reveal delay={120}>
+          <div className="mt-12 grid grid-cols-2 items-center gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-6">
+            {partners.map((p) => (
+              <div
+                key={p}
+                className="flex items-center justify-center"
+                title={p}
+              >
+                <span
+                  className="select-none text-base font-bold tracking-[-0.02em] text-slate-400 grayscale transition-all duration-300 hover:text-slate-800 hover:scale-[1.04]"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  {p}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Reveal>
+      </div>
+    </section>
   );
 }
 

@@ -913,9 +913,9 @@ export function LandingPage() {
               },
               {
                 icon: Radar,
-                title: "Radar IA de Performance",
+                title: "Radar IA Financeiro",
                 description:
-                  "Diagnósticos automáticos que identificam riscos de ruptura, baixa conversão e oportunidades de kits.",
+                  "Diagnósticos automáticos do Motor de Insights AC360® que identificam riscos de ruptura, queda de margem e oportunidades de kit.",
                 bullets: [
                   "Alertas de ruptura antes que aconteça",
                   "Detecção de queda de conversão",

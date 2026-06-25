@@ -23,6 +23,7 @@ import {
   Workflow,
   Rocket,
   Store,
+  ShoppingBag,
   AlertTriangle,
   Bell,
   UserCircle2,

@@ -1237,26 +1237,104 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* ============== FOOTER ============== */}
-      <footer className="border-t border-slate-200 bg-white py-10">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 text-sm text-slate-500 sm:flex-row lg:px-10">
-          <div className="flex items-center gap-2.5">
-            <img src={acLogo} alt="Agente Comercial 360" className="h-7 w-auto" />
+      {/* ============== FOOTER — ENTERPRISE ============== */}
+      <footer
+        className="relative overflow-hidden text-white"
+        style={{ background: `linear-gradient(180deg, ${NAVY_INK} 0%, #05080f 100%)` }}
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.06]"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(90deg, #ffffff 0 1px, transparent 1px 80px), repeating-linear-gradient(0deg, #ffffff 0 1px, transparent 1px 80px)",
+            maskImage: "radial-gradient(ellipse at 50% 0%, black, transparent 70%)",
+            WebkitMaskImage: "radial-gradient(ellipse at 50% 0%, black, transparent 70%)",
+          }}
+        />
+        <div className="relative mx-auto max-w-7xl px-6 py-20 lg:px-10">
+          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
+            {/* Col 1 — Brand */}
+            <div>
+              <div className="flex items-center gap-3">
+                <img src={acLogo} alt="Agente Comercial 360" className="h-10 w-auto" />
+                <span className="text-base font-semibold tracking-[-0.01em] text-white">
+                  AC360
+                </span>
+              </div>
+              <p className="mt-5 max-w-xs text-sm leading-relaxed text-white/65">
+                A inteligência definitiva para vendedores de marketplace.
+              </p>
+              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
+                <ShieldIcon className="size-3.5" style={{ color: CYAN }} />
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
+                  API Oficial Mercado Livre
+                </span>
+              </div>
+            </div>
+
+            {/* Col 2 — Soluções */}
+            <div>
+              <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
+                Soluções
+              </h4>
+              <ul className="mt-5 space-y-3 text-sm text-white/75">
+                <li><a href="#solucoes" className="transition-colors hover:text-white">Inteligência Multi-conta</a></li>
+                <li><a href="#solucoes" className="transition-colors hover:text-white">Radar IA</a></li>
+                <li><a href="#solucoes" className="transition-colors hover:text-white">Controle de Margem</a></li>
+                <li><a href="#solucoes" className="transition-colors hover:text-white">Espionagem de Mercado</a></li>
+              </ul>
+            </div>
+
+            {/* Col 3 — Empresa */}
+            <div>
+              <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
+                Empresa
+              </h4>
+              <ul className="mt-5 space-y-3 text-sm text-white/75">
+                <li><a href="#top" className="transition-colors hover:text-white">Sobre nós</a></li>
+                <li><a href="#planos" className="transition-colors hover:text-white">Planos</a></li>
+                <li><a href="#faq" className="transition-colors hover:text-white">FAQ</a></li>
+                <li><a href="#cta-final" className="transition-colors hover:text-white">Suporte</a></li>
+              </ul>
+            </div>
+
+            {/* Col 4 — Legal */}
+            <div>
+              <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
+                Legal
+              </h4>
+              <ul className="mt-5 space-y-3 text-sm text-white/75">
+                <li><a href="#" className="transition-colors hover:text-white">Termos de Uso</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">Privacidade</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">API Oficial</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">LGPD</a></li>
+              </ul>
+            </div>
           </div>
-          <p>© {new Date().getFullYear()} Agente Comercial 360. Todos os direitos reservados.</p>
-          <div className="flex items-center gap-6">
-            <a href="#solucoes" className="hover:text-slate-900">
-              Inteligência
-            </a>
-            <a href="#planos" className="hover:text-slate-900">
-              Planos
-            </a>
-            <a href="#faq" className="hover:text-slate-900">
-              FAQ
-            </a>
-            <Link to="/login" className="hover:text-slate-900">
-              Entrar
-            </Link>
+
+          {/* Bottom row */}
+          <div className="mt-16 flex flex-col items-center justify-between gap-5 border-t border-white/10 pt-8 sm:flex-row">
+            <p className="text-xs text-white/50">
+              © {new Date().getFullYear()} Agente Comercial 360. Todos os direitos reservados.
+            </p>
+            <div className="flex items-center gap-3">
+              {[
+                { icon: Linkedin, href: "#", label: "LinkedIn" },
+                { icon: Instagram, href: "#", label: "Instagram" },
+                { icon: Youtube, href: "#", label: "YouTube" },
+                { icon: Mail, href: "mailto:contato@agentecomercial360.com.br", label: "E-mail" },
+              ].map(({ icon: Icon, href, label }) => (
+                <a
+                  key={label}
+                  href={href}
+                  aria-label={label}
+                  className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/70 transition-all duration-300 hover:border-white/30 hover:text-white hover:-translate-y-0.5"
+                >
+                  <Icon className="size-4" />
+                </a>
+              ))}
+            </div>
           </div>
         </div>
       </footer>

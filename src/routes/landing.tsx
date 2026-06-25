@@ -672,7 +672,7 @@ export function LandingPage() {
           </header>
 
           {/* Hero */}
-          <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 pt-16 pb-24 lg:grid-cols-2 lg:gap-12 lg:px-10 lg:pt-24 lg:pb-32">
+          <div className="mx-auto grid max-w-5xl items-center gap-12 px-6 pt-16 pb-24 lg:px-10 lg:pt-24 lg:pb-32">
             <Reveal>
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 shadow-sm backdrop-blur">
                 <span className="relative flex h-2 w-2">

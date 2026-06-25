@@ -722,7 +722,7 @@ export function LandingPage() {
                 </span>
               </div>
 
-              <h1 className="font-display text-[42px] font-bold leading-[1.05] tracking-tight text-slate-900 sm:text-[56px] lg:text-[64px] lg:leading-[1.03]">
+              <h1 className="font-display text-[42px] font-bold leading-[1.05] tracking-[-0.035em] text-slate-900 sm:text-[56px] lg:text-[64px] lg:leading-[1.03]">
                 A Central de Inteligência que transforma dados do{" "}
                 <span
                   style={{

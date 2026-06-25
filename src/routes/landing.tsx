@@ -746,7 +746,7 @@ export function LandingPage() {
                 <a href="#cta-final">
                   <Button
                     size="lg"
-                    className="h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-900/25 transition-transform hover:-translate-y-0.5"
+                    className="ac-btn-glow h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-900/25 transition-all hover:-translate-y-0.5"
                     style={{ background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})` }}
                   >
                     Solicitar Demonstração Gratuita
@@ -757,11 +757,35 @@ export function LandingPage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="h-14 rounded-full border-slate-300 bg-white px-8 text-base font-semibold text-slate-800 hover:bg-slate-50"
+                    className="ac-btn-glow h-14 rounded-full border-slate-300 bg-white px-8 text-base font-semibold text-slate-800 hover:bg-slate-50"
                   >
                     Ver Funcionalidades de Inteligência
                   </Button>
                 </a>
+              </div>
+
+              {/* Social proof immediate */}
+              <p className="mt-5 text-sm font-medium text-slate-600">
+                <span style={{ color: BLUE_DEEP }} className="font-semibold">
+                  Mais de R$ 5M
+                </span>{" "}
+                em faturamento mensal monitorados pela nossa inteligência.
+              </p>
+
+              {/* Certification seal */}
+              <div className="mt-6 inline-flex items-center gap-2.5 rounded-full border border-slate-200/80 bg-white/80 px-4 py-2 shadow-sm backdrop-blur">
+                <span
+                  className="inline-flex size-6 items-center justify-center rounded-full text-white shadow"
+                  style={{
+                    background: `linear-gradient(135deg, ${BLUE}, ${CYAN})`,
+                    boxShadow: `0 0 12px -2px ${NEON}`,
+                  }}
+                >
+                  <ShieldCheck className="size-3.5" />
+                </span>
+                <span className="text-[10.5px] font-semibold uppercase tracking-[0.18em] text-slate-700">
+                  Plataforma Certificada · Integração Oficial via API Mercado Livre
+                </span>
               </div>
 
               <IntegrationBar />
@@ -800,11 +824,13 @@ export function LandingPage() {
             <div className="mx-auto max-w-2xl text-center">
               <SectionLabel tone="dark">O problema do vendedor profissional</SectionLabel>
               <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Você está vendendo no escuro?
+                Pare de queimar margem com anúncios cegos e falta de controle operacional.
               </h2>
               <p className="mt-4 text-base text-white/70">
                 A maioria dos vendedores profissionais opera no improviso — sem visão de margem,
-                sem controle de estoque e sem inteligência sobre a concorrência.
+                sem controle de estoque e sem inteligência sobre a concorrência. O{" "}
+                <span className="font-semibold text-white">Motor de Insights AC360®</span> existe
+                para encerrar esse ciclo.
               </p>
             </div>
           </Reveal>
@@ -887,9 +913,9 @@ export function LandingPage() {
               },
               {
                 icon: Radar,
-                title: "Radar IA de Performance",
+                title: "Radar IA Financeiro",
                 description:
-                  "Diagnósticos automáticos que identificam riscos de ruptura, baixa conversão e oportunidades de kits.",
+                  "Diagnósticos automáticos do Motor de Insights AC360® que identificam riscos de ruptura, queda de margem e oportunidades de kit.",
                 bullets: [
                   "Alertas de ruptura antes que aconteça",
                   "Detecção de queda de conversão",
@@ -1263,7 +1289,7 @@ export function LandingPage() {
                 </span>
               </div>
               <p className="mt-5 max-w-xs text-sm leading-relaxed text-white/65">
-                A inteligência definitiva para vendedores de marketplace.
+                A central de inteligência comercial definitiva para vendedores profissionais.
               </p>
               <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
                 <ShieldIcon className="size-3.5" style={{ color: CYAN }} />
@@ -1273,51 +1299,56 @@ export function LandingPage() {
               </div>
             </div>
 
-            {/* Col 2 — Soluções */}
+            {/* Col 2 — Funcionalidades */}
             <div>
               <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
-                Soluções
+                Funcionalidades
               </h4>
               <ul className="mt-5 space-y-3 text-sm text-white/75">
                 <li><a href="#solucoes" className="transition-colors hover:text-white">Inteligência Multi-conta</a></li>
-                <li><a href="#solucoes" className="transition-colors hover:text-white">Radar IA</a></li>
+                <li><a href="#solucoes" className="transition-colors hover:text-white">Radar IA Financeiro</a></li>
                 <li><a href="#solucoes" className="transition-colors hover:text-white">Controle de Margem</a></li>
                 <li><a href="#solucoes" className="transition-colors hover:text-white">Espionagem de Mercado</a></li>
               </ul>
             </div>
 
-            {/* Col 3 — Empresa */}
+            {/* Col 3 — Suporte */}
             <div>
               <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
-                Empresa
+                Suporte
               </h4>
               <ul className="mt-5 space-y-3 text-sm text-white/75">
-                <li><a href="#top" className="transition-colors hover:text-white">Sobre nós</a></li>
-                <li><a href="#planos" className="transition-colors hover:text-white">Planos</a></li>
                 <li><a href="#faq" className="transition-colors hover:text-white">FAQ</a></li>
-                <li><a href="#cta-final" className="transition-colors hover:text-white">Suporte</a></li>
+                <li><a href="#cta-final" className="transition-colors hover:text-white">Central de Ajuda</a></li>
+                <li><a href="#cta-final" className="transition-colors hover:text-white">Solicitar Demo</a></li>
+                <li><Link to="/login" className="transition-colors hover:text-white">Área do Cliente</Link></li>
               </ul>
             </div>
 
-            {/* Col 4 — Legal */}
+            {/* Col 4 — Institucional */}
             <div>
               <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
-                Legal
+                Institucional
               </h4>
               <ul className="mt-5 space-y-3 text-sm text-white/75">
                 <li><a href="#" className="transition-colors hover:text-white">Termos de Uso</a></li>
                 <li><a href="#" className="transition-colors hover:text-white">Privacidade</a></li>
+                <li><a href="#" className="transition-colors hover:text-white">Blog</a></li>
                 <li><a href="#" className="transition-colors hover:text-white">API Oficial</a></li>
-                <li><a href="#" className="transition-colors hover:text-white">LGPD</a></li>
               </ul>
             </div>
           </div>
 
           {/* Bottom row */}
           <div className="mt-16 flex flex-col items-center justify-between gap-5 border-t border-white/10 pt-8 sm:flex-row">
-            <p className="text-xs text-white/50">
-              © {new Date().getFullYear()} Agente Comercial 360. Todos os direitos reservados.
-            </p>
+            <div className="flex flex-col items-center gap-1 sm:items-start">
+              <p className="text-xs text-white/50">
+                © {new Date().getFullYear()} Agente Comercial 360. Todos os direitos reservados.
+              </p>
+              <p className="text-[11px] font-medium uppercase tracking-[0.18em]" style={{ color: CYAN }}>
+                Feito para quem escala com inteligência.
+              </p>
+            </div>
             <div className="flex items-center gap-3">
               {[
                 { icon: Linkedin, href: "#", label: "LinkedIn" },

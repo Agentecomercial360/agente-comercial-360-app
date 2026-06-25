@@ -177,3 +177,13 @@
     letter-spacing: -0.02em;
   }
 }
+
+@utility ac-btn-glow {
+  transition: box-shadow 280ms ease, transform 280ms ease;
+  &:hover {
+    box-shadow:
+      0 0 0 1px oklch(0.82 0.17 215 / 0.45),
+      0 0 22px -2px oklch(0.62 0.20 255 / 0.65),
+      0 0 48px -8px oklch(0.78 0.18 215 / 0.55);
+  }
+}

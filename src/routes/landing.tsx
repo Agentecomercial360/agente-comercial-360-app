@@ -531,15 +531,65 @@ function IntegrationBar() {
 /* ---------- Ecosystem section (below hero) ---------- */
 function EcosystemSection() {
   const partners = [
-    "Mercado Livre",
-    "Mercado Pago",
-    "Mercado Envios",
-    "Shopee",
-    "Bling",
-    "Tiny",
+    {
+      name: "Mercado Livre",
+      desc: "Sincronize contas, produtos, anúncios, pedidos e performance em uma visão multi-conta.",
+      badge: "Integração principal",
+      badgeTone: "primary",
+      icon: Store,
+    },
+    {
+      name: "Mercado Pago",
+      desc: "Base para acompanhar pagamentos, taxas, repasses e rentabilidade real por venda.",
+      badge: "Financeiro",
+      badgeTone: "neutral",
+      icon: DollarSign,
+    },
+    {
+      name: "Mercado Envios",
+      desc: "Estrutura para análise logística, envio, região do comprador e performance por estado.",
+      badge: "Logística",
+      badgeTone: "neutral",
+      icon: Truck,
+    },
+    {
+      name: "Shopee",
+      desc: "Preparado para expansão multi-marketplace e consolidação futura das vendas.",
+      badge: "Marketplace futuro",
+      badgeTone: "soft",
+      icon: ShoppingBag,
+    },
+    {
+      name: "Bling",
+      desc: "Conexão estratégica para ERP, estoque, cadastro de produtos, compras e operação interna.",
+      badge: "ERP",
+      badgeTone: "neutral",
+      icon: Boxes,
+    },
+    {
+      name: "Tiny",
+      desc: "Integração futura para centralizar dados operacionais, estoque, pedidos e produtos.",
+      badge: "ERP futuro",
+      badgeTone: "soft",
+      icon: Workflow,
+    },
+  ] as const;
+
+  const badgeClass = (tone: string) =>
+    tone === "primary"
+      ? "border-blue-200 bg-blue-50 text-blue-700"
+      : tone === "soft"
+        ? "border-slate-200 bg-slate-50 text-slate-500"
+        : "border-slate-200 bg-white text-slate-600";
+
+  const highlights = [
+    { label: "Multi-conta", icon: Layers },
+    { label: "Marketplace + ERP", icon: Plug },
+    { label: "Dados preparados para IA", icon: Brain },
   ];
+
   return (
-    <section className="relative overflow-hidden border-y border-slate-200/70 bg-white py-20 sm:py-24">
+    <section className="relative overflow-hidden border-y border-slate-200/70 bg-white py-24 sm:py-32">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[0.04]"
@@ -552,31 +602,73 @@ function EcosystemSection() {
         <Reveal>
           <div className="mx-auto max-w-2xl text-center">
             <SectionLabel>Ecossistema Integrado</SectionLabel>
-            <h2 className="mt-3 text-2xl font-bold tracking-[-0.02em] text-slate-900 sm:text-3xl">
-              Conectado nativamente aos maiores players do mercado
+            <h2 className="mt-3 text-3xl font-bold tracking-[-0.025em] text-slate-900 sm:text-4xl">
+              Um ecossistema conectado para controlar toda a operação
             </h2>
-            <p className="mt-3 text-sm text-slate-500">
-              Integrações oficiais e parceiros estratégicos para operar marketplace, logística,
-              pagamentos e ERP em um só lugar.
+            <p className="mt-4 text-base text-slate-500">
+              Integre marketplace, pagamentos, logística e ERP em uma única central de
+              inteligência operacional.
             </p>
           </div>
         </Reveal>
+
         <Reveal delay={120}>
-          <div className="mt-12 grid grid-cols-2 items-center gap-x-6 gap-y-8 sm:grid-cols-3 lg:grid-cols-6">
-            {partners.map((p) => (
+          <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {partners.map(({ name, desc, badge, badgeTone, icon: Icon }) => (
               <div
-                key={p}
-                className="flex items-center justify-center"
-                title={p}
+                key={name}
+                className="group relative flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/70 hover:shadow-[0_18px_40px_-18px_rgba(37,99,235,0.35)]"
               >
-                <span
-                  className="select-none text-base font-bold tracking-[-0.02em] text-slate-400 grayscale transition-all duration-300 hover:text-slate-800 hover:scale-[1.04]"
+                <div className="flex items-start justify-between gap-3">
+                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white text-blue-600 transition-colors group-hover:border-blue-200 group-hover:text-blue-700">
+                    <Icon className="h-5 w-5" strokeWidth={2.2} />
+                  </div>
+                  <span
+                    className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${badgeClass(badgeTone)}`}
+                  >
+                    {badge}
+                  </span>
+                </div>
+                <h3
+                  className="mt-5 text-lg font-bold tracking-[-0.02em] text-slate-900"
                   style={{ fontFamily: "var(--font-display)" }}
                 >
-                  {p}
-                </span>
+                  {name}
+                </h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-500">{desc}</p>
+                <div className="mt-5 h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
+                <div className="mt-4 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-400 transition-colors group-hover:text-blue-600">
+                  Conectado ao AC360
+                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                </div>
               </div>
             ))}
+          </div>
+        </Reveal>
+
+        <Reveal delay={200}>
+          <div className="mt-14 rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-blue-50/40 p-6 sm:p-8">
+            <div className="grid items-center gap-6 lg:grid-cols-[1fr_auto]">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                {highlights.map(({ label, icon: Icon }) => (
+                  <div
+                    key={label}
+                    className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3"
+                  >
+                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600">
+                      <Icon className="h-4 w-4" strokeWidth={2.4} />
+                    </div>
+                    <span className="text-sm font-semibold tracking-[-0.01em] text-slate-800">
+                      {label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="max-w-sm text-sm leading-relaxed text-slate-600 lg:text-right">
+                <span className="font-semibold text-slate-900">Do anúncio ao lucro:</span> o AC360
+                conecta os pontos críticos da operação para transformar dados em decisão.
+              </p>
+            </div>
           </div>
         </Reveal>
       </div>

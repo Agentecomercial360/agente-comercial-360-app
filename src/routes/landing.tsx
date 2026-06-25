@@ -613,7 +613,7 @@ export function LandingPage() {
           className="pointer-events-none absolute inset-0 -z-0"
           style={{
             background:
-              "linear-gradient(90deg, rgba(8,12,22,0.94) 0%, rgba(8,12,22,0.82) 45%, rgba(8,12,22,0.55) 100%), radial-gradient(900px 500px at 80% 10%, oklch(0.45 0.18 255 / 0.35), transparent 60%)",
+              "linear-gradient(90deg, rgba(5,8,16,0.97) 0%, rgba(6,10,20,0.92) 45%, rgba(6,10,20,0.72) 100%), radial-gradient(900px 500px at 80% 10%, oklch(0.45 0.18 255 / 0.32), transparent 60%)",
           }}
         />
         {/* Subtle tech grid */}

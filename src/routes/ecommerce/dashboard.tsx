@@ -85,6 +85,27 @@ function fmtDayLabel(key: string): string {
   return dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
 
+// Known account IDs (fallback). Names match exactly the `account_name` column.
+const KNOWN_ACCOUNTS: { id: string; name: string; match: string }[] = [
+  {
+    id: "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4",
+    name: "Mercado Livre - Nightled",
+    match: "nightled",
+  },
+  {
+    id: "6e7cd9a7-a298-4652-8e5e-1813aa748599",
+    name: "Mercado Livre - Alltele",
+    match: "alltele",
+  },
+];
+
+function resolveByName(name: string | null | undefined): string | null {
+  if (!name) return null;
+  const lower = name.toLowerCase();
+  const hit = KNOWN_ACCOUNTS.find((k) => lower.includes(k.match));
+  return hit?.id ?? null;
+}
+
 function DashboardEcommerce() {
   const { accounts, activeAccount, activeAccountId } = useEcommerceActiveAccount();
 
@@ -93,47 +114,71 @@ function DashboardEcommerce() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [allAccountsMap, setAllAccountsMap] = useState<Map<string, string>>(
-    new Map(),
-  );
-  const [allAccountIds, setAllAccountIds] = useState<Set<string>>(new Set());
+  const [companyAccounts, setCompanyAccounts] = useState<
+    { id: string; account_name: string | null; nickname: string | null }[]
+  >([]);
 
-  // Fetch all accounts (unfiltered) for name lookup in the per-account table.
+  // Load all accounts for the company using ONLY existing columns.
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("ecommerce_accounts")
-        .select("id, account_name, nickname, marketplace")
-        .eq("company_id", ECOMMERCE_COMPANY_ID);
+        .select(
+          "id, company_id, account_name, marketplace, auth_status, is_active, ml_user_id, nickname, external_account_code",
+        )
+        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("marketplace", "mercado_livre")
+        .eq("auth_status", "connected")
+        .eq("is_active", true);
       if (cancelled) return;
-      const m = new Map<string, string>();
-      const ids = new Set<string>();
-      (data ?? []).forEach(
-        (a: { id: string; account_name: string | null; nickname: string | null }) => {
-          m.set(a.id, a.account_name || a.nickname || "Conta sem nome");
-          ids.add(a.id);
-        },
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.warn("[dashboard] failed to load company accounts", error);
+        return;
+      }
+      setCompanyAccounts(
+        (data ?? []).map((a: { id: string; account_name: string | null; nickname: string | null }) => ({
+          id: a.id,
+          account_name: a.account_name,
+          nickname: a.nickname,
+        })),
       );
-      setAllAccountsMap(m);
-      setAllAccountIds(ids);
     })();
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // Only filter by account_id if it really belongs to this company.
-  const resolvedActiveAccountId = useMemo(() => {
-    if (!activeAccountId) return null;
-    if (allAccountIds.size === 0) return activeAccountId; // accounts not loaded yet
-    return allAccountIds.has(activeAccountId) ? activeAccountId : null;
-  }, [activeAccountId, allAccountIds]);
+  // Build a unified id → name map from context + company fetch + known fallbacks.
+  const accountNameById = useMemo(() => {
+    const m = new Map<string, string>();
+    KNOWN_ACCOUNTS.forEach((k) => m.set(k.id, k.name));
+    companyAccounts.forEach((a) => {
+      if (a.id) m.set(a.id, a.account_name || a.nickname || m.get(a.id) || "Conta sem nome");
+    });
+    accounts.forEach((a) => {
+      if (a.id) m.set(a.id, a.account_name || a.nickname || m.get(a.id) || "Conta sem nome");
+    });
+    return m;
+  }, [accounts, companyAccounts]);
 
-  const accountMissing =
-    scope === "active" &&
-    allAccountIds.size > 0 &&
-    (!activeAccountId || !allAccountIds.has(activeAccountId));
+  const knownAccountIds = useMemo(() => new Set(accountNameById.keys()), [accountNameById]);
+
+  // Resolve active account id with safe fallbacks.
+  const resolvedActiveAccountId = useMemo(() => {
+    if (activeAccountId && knownAccountIds.has(activeAccountId)) return activeAccountId;
+    // Fallback by selected account name (Nightled / Alltele).
+    const byName = resolveByName(
+      activeAccount?.account_name || activeAccount?.nickname || null,
+    );
+    if (byName) return byName;
+    // Last resort: trust the id from context even if list hasn't loaded yet.
+    if (activeAccountId) return activeAccountId;
+    return null;
+  }, [activeAccountId, activeAccount, knownAccountIds]);
+
+  const accountMissing = scope === "active" && !resolvedActiveAccountId;
 
   useEffect(() => {
     let cancelled = false;
@@ -167,7 +212,7 @@ function DashboardEcommerce() {
             activeAccount?.account_name || activeAccount?.nickname || null,
           activeAccountId,
           resolvedActiveAccountId,
-          accountsCarregadas: Array.from(allAccountsMap.entries()).map(
+          accountsCarregadas: Array.from(accountNameById.entries()).map(
             ([id, name]) => ({ id, name }),
           ),
           scope,
@@ -192,15 +237,7 @@ function DashboardEcommerce() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [period, scope, resolvedActiveAccountId]);
 
-  const accountNameById = useMemo(() => {
-    const map = new Map<string, string>(allAccountsMap);
-    accounts.forEach((a) => {
-      if (!map.has(a.id)) {
-        map.set(a.id, a.account_name || a.nickname || "Conta sem nome");
-      }
-    });
-    return map;
-  }, [accounts, allAccountsMap]);
+
 
   const totals = useMemo(() => {
     let gross = 0;

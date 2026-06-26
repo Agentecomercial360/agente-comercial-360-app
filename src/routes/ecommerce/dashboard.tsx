@@ -1,34 +1,18 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Sparkles,
-  BrainCircuit,
   DollarSign,
   ShoppingBag,
   Receipt,
+  TrendingUp,
   Percent,
+  Truck,
   AlertTriangle,
-  Flame,
-  Package,
-  Boxes,
-  Megaphone,
-  ListChecks,
-  ArrowRight,
-  Info,
+  ShieldCheck,
   BarChart3,
-  Award,
-  Target,
-  Map,
-  CheckCircle2,
-  Activity,
-  Lightbulb,
-  Tag,
-  PauseCircle,
-  PlayCircle,
-  Link2,
+  Info,
   RefreshCcw,
-  Clock,
-  PlugZap,
+  Users,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
@@ -38,109 +22,104 @@ import {
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/dashboard")({
-  component: VisaoGeral,
+  component: DashboardEcommerce,
   head: () => ({
     meta: [{ title: "Visão Geral | Agente Comercial 360" }],
   }),
 });
 
-type Listing = {
+type Order = {
   id: string;
-  product_id: string | null;
-  ml_item_id: string | null;
-  title: string | null;
-  price: number | null;
-  status: string | null;
-  is_active: boolean | null;
-  updated_at: string | null;
+  account_id: string | null;
+  order_date: string | null;
+  total_amount: number | null;
+  mercadolivre_fee: number | null;
+  marketplace_fee: number | null;
+  seller_shipping_cost: number | null;
+  product_cost_total: number | null;
+  net_profit: number | null;
+  profit_confidence: string | null;
+  order_status: string | null;
+  payment_status: string | null;
 };
 
-const monitoringKpis = [
-  { label: "Faturamento do período", icon: DollarSign, accent: "from-emerald-600 to-emerald-800" },
-  { label: "Pedidos", icon: ShoppingBag, accent: "from-blue-700 to-blue-900" },
-  { label: "Ticket médio", icon: Receipt, accent: "from-indigo-600 to-indigo-800" },
-  { label: "Margem estimada", icon: Percent, accent: "from-violet-600 to-violet-800" },
-] as const;
+type PeriodKey = "today" | "7d" | "30d";
 
-const saude = [
-  { label: "Produtos", desc: "Identifica oportunidades, produtos problema e concentração de faturamento.", icon: Package, to: "/ecommerce/produtos", accent: "from-blue-700 to-blue-900" },
-  { label: "Estoque", desc: "Monitora cobertura, giro, ruptura e necessidade de reposição.", icon: Boxes, to: "/ecommerce/estoque", accent: "from-indigo-600 to-indigo-800" },
-  { label: "Ads", desc: "Avalia investimento, retorno, eficiência e campanhas com potencial de escala.", icon: Megaphone, to: "/ecommerce/ads", accent: "from-emerald-600 to-emerald-800" },
-  { label: "Execução", desc: "Organiza prioridades, tarefas e resultados das ações da equipe.", icon: ListChecks, to: "/ecommerce/prioridades", accent: "from-violet-600 to-violet-800" },
-] as const;
+const PERIODS: { key: PeriodKey; label: string; days: number }[] = [
+  { key: "today", label: "Hoje", days: 0 },
+  { key: "7d", label: "7 dias", days: 7 },
+  { key: "30d", label: "30 dias", days: 30 },
+];
 
-const atalhos = [
-  { label: "Curva ABC", to: "/ecommerce/curva-abc", icon: Award },
-  { label: "Inteligência de Produtos", to: "/ecommerce/produtos", icon: Sparkles },
-  { label: "Produtos Problema", to: "/ecommerce/produtos-travados", icon: AlertTriangle },
-  { label: "Estoque e Compras", to: "/ecommerce/estoque", icon: Boxes },
-  { label: "Anúncios e Ads", to: "/ecommerce/ads", icon: Megaphone },
-  { label: "Central de Ações", to: "/ecommerce/prioridades", icon: Target },
-  { label: "Resultados das Ações", to: "/ecommerce/resultados", icon: BarChart3 },
-  { label: "Mapa de Vendas", to: "/ecommerce/mapa-vendas", icon: Map },
-] as const;
-
-const currencyFmt = new Intl.NumberFormat("pt-BR", {
+const brl = new Intl.NumberFormat("pt-BR", {
   style: "currency",
   currency: "BRL",
   maximumFractionDigits: 2,
 });
+const num = new Intl.NumberFormat("pt-BR");
 
-const numberFmt = new Intl.NumberFormat("pt-BR");
-
-function formatDateTime(value: string | null): string {
-  if (!value) return "—";
-  try {
-    return new Date(value).toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return "—";
-  }
+function n(v: number | null | undefined): number {
+  const x = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(x) ? x : 0;
 }
 
-function VisaoGeral() {
-  const { activeAccount, activeAccountId, isActiveConnected, loading: accountLoading } =
-    useEcommerceActiveAccount();
+function startOfPeriod(period: PeriodKey): Date {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  if (period === "today") return d;
+  const days = period === "7d" ? 6 : 29;
+  d.setDate(d.getDate() - days);
+  return d;
+}
 
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [linkedCount, setLinkedCount] = useState<number>(0);
+function dayKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function fmtDayLabel(key: string): string {
+  const [y, m, d] = key.split("-").map(Number);
+  const dt = new Date(y, (m ?? 1) - 1, d ?? 1);
+  return dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
+
+function DashboardEcommerce() {
+  const { accounts, activeAccount, activeAccountId } = useEcommerceActiveAccount();
+
+  const [period, setPeriod] = useState<PeriodKey>("7d");
+  const [scope, setScope] = useState<"active" | "all">("active");
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      if (!activeAccountId || !isActiveConnected) {
-        setListings([]);
-        setLinkedCount(0);
-        return;
-      }
       setLoading(true);
       setErrorMsg(null);
       try {
-        const { data, error } = await supabase
-          .from("ecommerce_listings")
-          .select("id, product_id, ml_item_id, title, price, status, is_active, updated_at")
+        const since = startOfPeriod(period).toISOString();
+        let q = supabase
+          .from("ecommerce_orders")
+          .select(
+            "id, account_id, order_date, total_amount, mercadolivre_fee, marketplace_fee, seller_shipping_cost, product_cost_total, net_profit, profit_confidence, order_status, payment_status",
+          )
           .eq("company_id", ECOMMERCE_COMPANY_ID)
-          .eq("account_id", activeAccountId);
+          .gte("order_date", since)
+          .order("order_date", { ascending: false })
+          .limit(5000);
+        if (scope === "active" && activeAccountId) {
+          q = q.eq("account_id", activeAccountId);
+        }
+        const { data, error } = await q;
         if (error) throw error;
-        if (cancelled) return;
-        const list = (data as Listing[]) ?? [];
-        setListings(list);
-        const linked = new Set(
-          list.filter((l) => l.product_id).map((l) => l.product_id as string),
-        );
-        setLinkedCount(linked.size);
+        if (!cancelled) setOrders((data as Order[]) ?? []);
       } catch (e) {
         if (!cancelled) {
-          setErrorMsg(e instanceof Error ? e.message : "Erro ao carregar dados");
-          setListings([]);
-          setLinkedCount(0);
+          setErrorMsg(e instanceof Error ? e.message : "Erro ao carregar pedidos");
+          setOrders([]);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -150,52 +129,99 @@ function VisaoGeral() {
     return () => {
       cancelled = true;
     };
-  }, [activeAccountId, isActiveConnected]);
+  }, [period, scope, activeAccountId]);
 
-  const metrics = useMemo(() => {
-    const total = listings.length;
-    const isActiveStatus = (l: Listing) =>
-      (l.status ?? "").toLowerCase() === "active" || l.is_active === true;
-    const isPausedStatus = (l: Listing) =>
-      (l.status ?? "").toLowerCase() === "paused";
-    const active = listings.filter(isActiveStatus).length;
-    const paused = listings.filter(isPausedStatus).length;
-    const inactive = listings.filter(
-      (l) => !isActiveStatus(l) && !isPausedStatus(l),
-    ).length;
-    const prices = listings
-      .map((l) => (typeof l.price === "number" ? l.price : Number(l.price)))
-      .filter((n) => Number.isFinite(n) && n > 0) as number[];
-    const avgPrice = prices.length
-      ? prices.reduce((a, b) => a + b, 0) / prices.length
-      : 0;
-    const alertCount = paused + inactive;
-    const lastListingSync = listings.reduce<string | null>((acc, l) => {
-      if (!l.updated_at) return acc;
-      if (!acc || new Date(l.updated_at) > new Date(acc)) return l.updated_at;
-      return acc;
-    }, null);
-    return { total, active, paused, inactive, avgPrice, alertCount, lastListingSync };
-  }, [listings]);
+  const accountNameById = useMemo(() => {
+    const map = new Map<string, string>();
+    accounts.forEach((a) =>
+      map.set(a.id, a.account_name || a.nickname || "Conta sem nome"),
+    );
+    return map;
+  }, [accounts]);
 
-  const accountName =
-    activeAccount?.account_name || activeAccount?.nickname || "—";
-  const lastSync =
-    activeAccount?.last_sync_at || metrics.lastListingSync || null;
+  const totals = useMemo(() => {
+    let gross = 0;
+    let fees = 0;
+    let shipping = 0;
+    let netParcial = 0;
+    let pending = 0;
+    let high = 0;
+    for (const o of orders) {
+      gross += n(o.total_amount);
+      fees += n(o.mercadolivre_fee) + n(o.marketplace_fee);
+      shipping += n(o.seller_shipping_cost);
+      netParcial += n(o.net_profit);
+      if ((o.profit_confidence ?? "").toLowerCase() === "pending_cost") pending += 1;
+      if ((o.profit_confidence ?? "").toLowerCase() === "high") high += 1;
+    }
+    const count = orders.length;
+    const ticket = count > 0 ? gross / count : 0;
+    return { gross, fees, shipping, netParcial, pending, high, count, ticket };
+  }, [orders]);
 
-  const showEmptyState =
-    !accountLoading && (!activeAccount || !isActiveConnected || (!loading && metrics.total === 0));
+  const byDay = useMemo(() => {
+    const map = new Map<string, { gross: number; count: number }>();
+    const start = startOfPeriod(period);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    for (
+      let d = new Date(start);
+      d.getTime() <= today.getTime();
+      d.setDate(d.getDate() + 1)
+    ) {
+      map.set(dayKey(d), { gross: 0, count: 0 });
+    }
+    for (const o of orders) {
+      if (!o.order_date) continue;
+      const k = dayKey(new Date(o.order_date));
+      const cur = map.get(k) ?? { gross: 0, count: 0 };
+      cur.gross += n(o.total_amount);
+      cur.count += 1;
+      map.set(k, cur);
+    }
+    return Array.from(map.entries())
+      .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+      .map(([key, v]) => ({ key, ...v }));
+  }, [orders, period]);
 
-  const realKpis = [
-    { label: "Total de anúncios", value: numberFmt.format(metrics.total), icon: Tag, accent: "from-blue-700 to-blue-900" },
-    { label: "Anúncios ativos", value: numberFmt.format(metrics.active), icon: PlayCircle, accent: "from-emerald-600 to-emerald-800" },
-    { label: "Anúncios pausados", value: numberFmt.format(metrics.paused), icon: PauseCircle, accent: "from-amber-600 to-orange-700" },
-    { label: "Produtos vinculados", value: numberFmt.format(linkedCount), icon: Link2, accent: "from-indigo-600 to-indigo-800" },
-    { label: "Preço médio dos anúncios", value: metrics.avgPrice > 0 ? currencyFmt.format(metrics.avgPrice) : "—", icon: DollarSign, accent: "from-sky-600 to-sky-800" },
-    { label: "Produtos em alerta", value: numberFmt.format(metrics.alertCount), icon: AlertTriangle, accent: "from-rose-700 to-red-900" },
-    { label: "Ações prioritárias", value: numberFmt.format(metrics.paused), icon: Flame, accent: "from-red-700 to-red-900" },
-    { label: "Última sincronização", value: formatDateTime(lastSync), icon: Clock, accent: "from-slate-600 to-slate-800", small: true },
-  ];
+  const maxDayGross = useMemo(
+    () => byDay.reduce((m, d) => Math.max(m, d.gross), 0),
+    [byDay],
+  );
+
+  const byAccount = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        id: string;
+        count: number;
+        gross: number;
+        fees: number;
+        shipping: number;
+        net: number;
+        pending: number;
+      }
+    >();
+    for (const o of orders) {
+      const id = o.account_id ?? "—";
+      const cur =
+        map.get(id) ??
+        { id, count: 0, gross: 0, fees: 0, shipping: 0, net: 0, pending: 0 };
+      cur.count += 1;
+      cur.gross += n(o.total_amount);
+      cur.fees += n(o.mercadolivre_fee) + n(o.marketplace_fee);
+      cur.shipping += n(o.seller_shipping_cost);
+      cur.net += n(o.net_profit);
+      if ((o.profit_confidence ?? "").toLowerCase() === "pending_cost") cur.pending += 1;
+      map.set(id, cur);
+    }
+    return Array.from(map.values()).sort((a, b) => b.gross - a.gross);
+  }, [orders]);
+
+  const scopeLabel =
+    scope === "all"
+      ? "Todas as contas"
+      : activeAccount?.account_name || activeAccount?.nickname || "Conta ativa";
 
   return (
     <EcommerceLayout>
@@ -203,309 +229,327 @@ function VisaoGeral() {
         {/* Header */}
         <header className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-            <Activity className="h-3.5 w-3.5" />
-            Inteligência Executiva
+            <BarChart3 className="h-3.5 w-3.5" />
+            Visão Geral — Dados Reais
           </div>
           <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-            Visão Geral{accountName !== "—" ? ` — ${accountName}` : ""}
+            Dashboard E-commerce — {scopeLabel}
           </h1>
           <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
-            Acompanhe a saúde da operação, os principais riscos, oportunidades
-            e ações prioritárias do e-commerce.
+            Faturamento, pedidos, taxas e resultado parcial dos pedidos
+            sincronizados do Mercado Livre.
           </p>
-          {activeAccount && (
-            <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span
-                className={
-                  isActiveConnected
-                    ? "inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-emerald-700"
-                    : "inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-amber-700"
-                }
-              >
-                <PlugZap className="h-3 w-3" />
-                {isActiveConnected ? "Conta conectada" : "Aguardando conexão"}
-              </span>
-              {lastSync && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/40 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-                  <RefreshCcw className="h-3 w-3" />
-                  Última sincronização: {formatDateTime(lastSync)}
-                </span>
-              )}
-            </div>
-          )}
         </header>
 
-        {showEmptyState ? (
-          <section className="rounded-2xl border border-border/60 bg-card p-10 shadow-[var(--shadow-soft)] text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-              <PlugZap className="h-7 w-7" />
-            </div>
-            <h2 className="mt-4 font-display text-lg font-bold text-foreground">
-              Esta conta ainda não possui dados sincronizados.
-            </h2>
-            <p className="mt-2 text-sm text-muted-foreground max-w-xl mx-auto">
-              Conecte a conta Mercado Livre e realize a primeira sincronização
-              para visualizar a visão geral da operação.
-            </p>
-            <Link
-              to="/ecommerce/contas"
-              className="mt-5 inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-blue-700 hover:bg-blue-100 transition-colors"
+        {/* Filtros */}
+        <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card p-3 shadow-[var(--shadow-soft)]">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-1">
+              Período
+            </span>
+            {PERIODS.map((p) => {
+              const active = period === p.key;
+              return (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => setPeriod(p.key)}
+                  className={
+                    "rounded-full px-3 py-1.5 text-xs font-semibold transition-colors " +
+                    (active
+                      ? "bg-blue-700 text-white shadow-sm"
+                      : "border border-border bg-muted/30 text-foreground hover:bg-muted/60")
+                  }
+                >
+                  {p.label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground px-1">
+              Escopo
+            </span>
+            <button
+              type="button"
+              onClick={() => setScope("active")}
+              className={
+                "rounded-full px-3 py-1.5 text-xs font-semibold transition-colors " +
+                (scope === "active"
+                  ? "bg-blue-700 text-white shadow-sm"
+                  : "border border-border bg-muted/30 text-foreground hover:bg-muted/60")
+              }
+              disabled={!activeAccountId}
+              title={!activeAccountId ? "Nenhuma conta ativa" : undefined}
             >
-              Ir para contas
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </section>
-        ) : (
-          <>
-            {/* KPIs reais */}
-            <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-              {realKpis.map((k) => {
-                const Icon = k.icon;
-                return (
-                  <div
-                    key={k.label}
-                    className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]"
-                  >
-                    <div className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${k.accent} opacity-10`} />
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1.5 min-w-0">
-                        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                          {k.label}
-                        </div>
-                        <div
-                          className={`font-display font-bold text-foreground truncate ${
-                            k.small ? "text-base md:text-lg" : "text-3xl"
-                          }`}
-                          title={k.value}
-                        >
-                          {loading ? "…" : k.value}
-                        </div>
-                      </div>
-                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${k.accent} text-white shadow-md`}>
-                        <Icon className="h-5 w-5" />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </section>
+              Conta ativa
+            </button>
+            <button
+              type="button"
+              onClick={() => setScope("all")}
+              className={
+                "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors " +
+                (scope === "all"
+                  ? "bg-blue-700 text-white shadow-sm"
+                  : "border border-border bg-muted/30 text-foreground hover:bg-muted/60")
+              }
+            >
+              <Users className="h-3.5 w-3.5" />
+              Todas as contas
+            </button>
+          </div>
+        </section>
 
-            {/* KPIs em monitoramento (vendas/faturamento) */}
-            <section>
-              <div className="mb-3 flex items-center gap-2">
-                <h2 className="font-display text-sm font-bold text-foreground uppercase tracking-wider">
-                  Em monitoramento
-                </h2>
-                <span className="text-[11px] text-muted-foreground">
-                  Dados de vendas e faturamento serão exibidos após a integração de pedidos.
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                {monitoringKpis.map((k) => {
-                  const Icon = k.icon;
+        {/* Aviso de resultado parcial */}
+        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          <Info className="h-4 w-4 mt-0.5 shrink-0 text-amber-700" />
+          <p>
+            Os resultados financeiros ainda são parciais enquanto os custos dos
+            produtos não forem preenchidos. Atualize os custos para liberar
+            lucro líquido real e margem confiável.
+          </p>
+        </div>
+
+        {errorMsg && (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            {errorMsg}
+          </div>
+        )}
+
+        {/* KPIs principais */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <Kpi
+            label="Faturamento bruto"
+            value={brl.format(totals.gross)}
+            icon={DollarSign}
+            accent="from-emerald-600 to-emerald-800"
+            loading={loading}
+          />
+          <Kpi
+            label="Total de pedidos"
+            value={num.format(totals.count)}
+            icon={ShoppingBag}
+            accent="from-blue-700 to-blue-900"
+            loading={loading}
+          />
+          <Kpi
+            label="Ticket médio"
+            value={brl.format(totals.ticket)}
+            icon={Receipt}
+            accent="from-indigo-600 to-indigo-800"
+            loading={loading}
+          />
+          <Kpi
+            label="Resultado parcial"
+            sublabel="Antes do custo do produto"
+            value={brl.format(totals.netParcial)}
+            icon={TrendingUp}
+            accent="from-violet-600 to-violet-800"
+            loading={loading}
+          />
+        </section>
+
+        {/* KPIs financeiros adicionais */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          <Kpi
+            label="Taxas Mercado Livre"
+            value={brl.format(totals.fees)}
+            icon={Percent}
+            accent="from-amber-600 to-orange-700"
+            loading={loading}
+          />
+          <Kpi
+            label="Frete vendedor"
+            value={brl.format(totals.shipping)}
+            icon={Truck}
+            accent="from-sky-600 to-sky-800"
+            loading={loading}
+          />
+          <Kpi
+            label="Pedidos pendentes de custo"
+            value={num.format(totals.pending)}
+            icon={AlertTriangle}
+            accent="from-rose-700 to-red-900"
+            loading={loading}
+          />
+          <Kpi
+            label="Pedidos com lucro confiável"
+            value={num.format(totals.high)}
+            icon={ShieldCheck}
+            accent="from-emerald-600 to-emerald-800"
+            loading={loading}
+          />
+        </section>
+
+        {/* Gráfico faturamento por dia */}
+        <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h2 className="font-display text-lg font-bold text-foreground">
+                Faturamento por dia
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Soma diária de faturamento bruto e número de pedidos no período
+                selecionado.
+              </p>
+            </div>
+            {loading && (
+              <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <RefreshCcw className="h-3 w-3 animate-spin" />
+                Carregando…
+              </span>
+            )}
+          </div>
+          {byDay.length === 0 ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">
+              Sem pedidos no período.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <div
+                className="flex items-end gap-2 min-w-full pt-2"
+                style={{ height: 200 }}
+              >
+                {byDay.map((d) => {
+                  const h = maxDayGross > 0 ? (d.gross / maxDayGross) * 170 : 0;
                   return (
                     <div
-                      key={k.label}
-                      className="relative overflow-hidden rounded-2xl border border-dashed border-border/70 bg-muted/20 p-5"
+                      key={d.key}
+                      className="flex flex-col items-center gap-1 flex-1 min-w-[36px] group"
+                      title={`${fmtDayLabel(d.key)} — ${brl.format(d.gross)} (${d.count} pedidos)`}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-1.5">
-                          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            {k.label}
-                          </div>
-                          <div className="font-display text-3xl font-bold text-foreground/40">
-                            —
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            Em monitoramento.
-                          </div>
-                        </div>
-                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${k.accent} text-white shadow-md opacity-70`}>
-                          <Icon className="h-5 w-5" />
-                        </div>
+                      <div className="text-[10px] font-semibold text-foreground/70 tabular-nums">
+                        {d.gross > 0 ? brl.format(d.gross) : ""}
+                      </div>
+                      <div
+                        className="w-full rounded-t-md bg-gradient-to-t from-blue-800 to-blue-500 transition-opacity group-hover:opacity-90"
+                        style={{ height: Math.max(h, d.gross > 0 ? 4 : 0) }}
+                      />
+                      <div className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
+                        {fmtDayLabel(d.key)}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground">
+                        {d.count}p
                       </div>
                     </div>
                   );
                 })}
               </div>
-            </section>
-
-            {errorMsg && (
-              <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                {errorMsg}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Resumo da IA Executiva */}
-        <section className="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/80 via-white to-white p-5 shadow-[var(--shadow-soft)]">
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-blue-500/10 blur-2xl" />
-          <div className="relative flex items-start gap-4">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-700 to-blue-900 text-white shadow-md">
-              <BrainCircuit className="h-5 w-5" />
             </div>
-            <div className="flex-1 space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
-                <h2 className="font-display text-lg font-bold text-foreground">
-                  Resumo da IA Executiva
-                </h2>
-                <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-white/70 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700">
-                  <Sparkles className="h-3 w-3" />
-                  Inteligência
-                </span>
-              </div>
-              <p className="text-sm text-foreground/80 leading-relaxed max-w-3xl">
-                Após a sincronização completa dos dados de vendas, esta área
-                apresentará uma leitura objetiva da operação: principais
-                riscos, oportunidades de crescimento, produtos críticos e
-                ações que merecem prioridade.
-              </p>
-            </div>
-          </div>
+          )}
         </section>
 
-        {/* Saúde da Operação */}
-        <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
-          <div className="mb-4">
-            <h2 className="font-display text-lg font-bold text-foreground">
-              Saúde da Operação
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Diagnóstico geral dos quatro pilares estratégicos do e-commerce.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-            {saude.map((s) => {
-              const Icon = s.icon;
-              return (
-                <div
-                  key={s.label}
-                  className="flex flex-col rounded-xl border border-border/60 bg-muted/20 p-4"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${s.accent} text-white shadow-sm`}>
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div className="text-sm font-bold text-foreground">
-                      {s.label}
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground leading-snug flex-1">
-                    {s.desc}
-                  </p>
-                  <Link
-                    to={s.to}
-                    className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700 hover:text-blue-900 transition-colors"
-                  >
-                    Abrir
-                    <ArrowRight className="h-3 w-3" />
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Ações prioritárias da semana */}
+        {/* Comparativo por conta */}
         <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-700 text-white">
-                <Target className="h-3.5 w-3.5" />
-              </div>
-              <div>
-                <h2 className="font-display text-lg font-bold text-foreground">
-                  Ações prioritárias da semana
-                </h2>
-                <p className="text-xs text-muted-foreground max-w-2xl">
-                  Resumo executivo das ações mais importantes vindas da Central
-                  de Ações.
-                </p>
-              </div>
-            </div>
-            <Link
-              to="/ecommerce/prioridades"
-              className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700 hover:bg-blue-100 transition-colors"
-            >
-              Abrir Central de Ações
-              <ArrowRight className="h-3 w-3" />
-            </Link>
-          </div>
-          <div className="px-5 py-16 text-center">
-            <div className="mx-auto max-w-md space-y-3">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-                <CheckCircle2 className="h-6 w-6" />
-              </div>
-              <div className="font-display text-base font-semibold text-foreground">
-                Aguardando geração automática
-              </div>
-              <p className="text-sm text-muted-foreground">
-                As ações prioritárias serão exibidas após a geração automática
-                da Central de Ações.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Atalhos estratégicos */}
-        <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
-          <div className="mb-4">
+          <div className="border-b border-border/60 px-5 py-4">
             <h2 className="font-display text-lg font-bold text-foreground">
-              Atalhos estratégicos
+              Comparativo por conta
             </h2>
             <p className="text-xs text-muted-foreground">
-              Acesso rápido às telas que compõem a inteligência operacional.
+              Desempenho de cada conta Mercado Livre no período selecionado.
             </p>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
-            {atalhos.map((a) => {
-              const Icon = a.icon;
-              return (
-                <Link
-                  key={a.label}
-                  to={a.to}
-                  className="group flex items-center gap-3 rounded-xl border border-border/60 bg-muted/20 p-4 transition-colors hover:bg-muted/40"
-                >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-700 to-blue-900 text-white shadow-sm">
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1 text-sm font-bold text-foreground">
-                    {a.label}
-                  </div>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Como interpretar */}
-        <section className="rounded-2xl border border-border/60 bg-gradient-to-br from-blue-50/60 to-transparent p-5 shadow-[var(--shadow-soft)]">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-700 text-white">
-              <Lightbulb className="h-3.5 w-3.5" />
+          {byAccount.length === 0 ? (
+            <div className="px-5 py-10 text-center text-sm text-muted-foreground">
+              Sem dados por conta no período.
             </div>
-            <h3 className="font-display text-sm font-bold text-foreground">
-              Como interpretar
-            </h3>
-          </div>
-          <p className="text-sm text-foreground/80 leading-relaxed max-w-3xl">
-            A Visão Geral concentra os principais sinais da operação. Ela não
-            substitui as telas detalhadas, mas ajuda o gestor a entender
-            rapidamente onde existem riscos, oportunidades e prioridades de
-            execução.
-          </p>
-          <div className="mt-4 flex items-start gap-2 rounded-lg border border-blue-100 bg-white/60 p-3 text-xs text-muted-foreground">
-            <Info className="h-3.5 w-3.5 mt-0.5 shrink-0 text-blue-700" />
-            <span>
-              Indicadores financeiros (faturamento, pedidos, ticket médio e
-              margem) permanecem em monitoramento até a integração dos dados
-              de vendas.
-            </span>
-          </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-muted/40 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <tr>
+                    <th className="text-left px-4 py-2.5">Conta</th>
+                    <th className="text-right px-4 py-2.5">Pedidos</th>
+                    <th className="text-right px-4 py-2.5">Faturamento</th>
+                    <th className="text-right px-4 py-2.5">Taxas ML</th>
+                    <th className="text-right px-4 py-2.5">Frete vendedor</th>
+                    <th className="text-right px-4 py-2.5">Resultado parcial</th>
+                    <th className="text-right px-4 py-2.5">Pend. custo</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {byAccount.map((a) => (
+                    <tr key={a.id} className="border-t border-border/60">
+                      <td className="px-4 py-3 font-semibold text-foreground">
+                        {accountNameById.get(a.id) || "Conta sem nome"}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums">
+                        {num.format(a.count)}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums font-semibold">
+                        {brl.format(a.gross)}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-amber-700">
+                        {brl.format(a.fees)}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums text-sky-700">
+                        {brl.format(a.shipping)}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums font-semibold text-violet-700">
+                        {brl.format(a.net)}
+                      </td>
+                      <td className="px-4 py-3 text-right tabular-nums">
+                        {a.pending > 0 ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 text-[11px] font-semibold">
+                            {num.format(a.pending)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       </div>
     </EcommerceLayout>
+  );
+}
+
+function Kpi({
+  label,
+  sublabel,
+  value,
+  icon: Icon,
+  accent,
+  loading,
+}: {
+  label: string;
+  sublabel?: string;
+  value: string;
+  icon: React.ComponentType<{ className?: string }>;
+  accent: string;
+  loading?: boolean;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
+      <div
+        className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${accent} opacity-10`}
+      />
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1.5 min-w-0">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            {label}
+          </div>
+          <div
+            className="font-display text-2xl xl:text-3xl font-bold text-foreground truncate"
+            title={value}
+          >
+            {loading ? "…" : value}
+          </div>
+          {sublabel && (
+            <div className="text-[11px] text-muted-foreground">{sublabel}</div>
+          )}
+        </div>
+        <div
+          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${accent} text-white shadow-md`}
+        >
+          <Icon className="h-5 w-5" />
+        </div>
+      </div>
+    </div>
   );
 }

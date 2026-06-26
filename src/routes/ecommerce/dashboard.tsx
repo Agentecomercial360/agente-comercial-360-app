@@ -184,9 +184,11 @@ function DashboardContent() {
     async function load() {
       if (scope === "active" && !selectedAccountId) {
         setOrders([]);
+        setLoading(false);
         return;
       }
       setLoading(true);
+      setOrders([]);
       setErrorMsg(null);
       try {
         // Date-only string avoids timezone shifts when comparing a DATE column.

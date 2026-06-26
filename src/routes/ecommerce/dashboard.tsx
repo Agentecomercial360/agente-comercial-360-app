@@ -379,6 +379,19 @@ function DashboardEcommerce() {
           </div>
         )}
 
+        {accountMissing && (
+          <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+            <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-rose-700" />
+            <div>
+              <p className="font-semibold">Conta ativa não encontrada.</p>
+              <p className="text-rose-700">
+                Verifique o vínculo da conta selecionada ou troque a conta ativa
+                no topo.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* KPIs principais */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
           <Kpi

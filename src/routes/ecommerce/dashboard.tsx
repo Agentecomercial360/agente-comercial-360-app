@@ -710,3 +710,22 @@ function Kpi({
     </div>
   );
 }
+
+function DiagnosticItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | null | undefined;
+}) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+        {label}
+      </div>
+      <div className="mt-1 break-all font-mono text-[11px] text-slate-900">
+        {value || "null"}
+      </div>
+    </div>
+  );
+}

@@ -397,39 +397,6 @@ function DashboardContent() {
           </div>
         </section>
 
-        {/* Diagnóstico temporário */}
-        <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-800">
-          <h2 className="mb-3 text-sm font-bold text-slate-900">
-            Diagnóstico da conta ativa
-          </h2>
-          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-            <DiagnosticItem label="selectedAccountName" value={selectedAccountName} />
-            <DiagnosticItem label="selectedAccountId" value={selectedAccountId} />
-            <DiagnosticItem label="activeAccountIdResolvido" value={selectedAccountId} />
-            <DiagnosticItem label="scope" value={scope} />
-            <DiagnosticItem label="period" value={period} />
-            <DiagnosticItem label="since" value={since} />
-            <DiagnosticItem
-              label="totalContasCarregadas"
-              value={String(loadedAccountsForDiagnosis.length)}
-            />
-            <DiagnosticItem label="ordersReturned" value={String(orders.length)} />
-          </div>
-          <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3">
-            <div className="mb-2 font-semibold text-slate-900">listaContasCarregadas</div>
-            {loadedAccountsForDiagnosis.length === 0 ? (
-              <div className="text-slate-500">Nenhuma conta carregada no front-end.</div>
-            ) : (
-              <div className="space-y-1 font-mono text-[11px] leading-relaxed text-slate-700">
-                {loadedAccountsForDiagnosis.map((account) => (
-                  <div key={account.id} className="break-all">
-                    {account.id} — {account.account_name || "Sem nome"}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
 
         {/* Aviso de resultado parcial */}
         <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">

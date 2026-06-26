@@ -96,6 +96,7 @@ function DashboardEcommerce() {
   const [allAccountsMap, setAllAccountsMap] = useState<Map<string, string>>(
     new Map(),
   );
+  const [allAccountIds, setAllAccountIds] = useState<Set<string>>(new Set());
 
   // Fetch all accounts (unfiltered) for name lookup in the per-account table.
   useEffect(() => {
@@ -103,32 +104,49 @@ function DashboardEcommerce() {
     (async () => {
       const { data } = await supabase
         .from("ecommerce_accounts")
-        .select("id, account_name, nickname")
+        .select("id, account_name, nickname, marketplace")
         .eq("company_id", ECOMMERCE_COMPANY_ID);
       if (cancelled) return;
       const m = new Map<string, string>();
-      (data ?? []).forEach((a: { id: string; account_name: string | null; nickname: string | null }) =>
-        m.set(a.id, a.account_name || a.nickname || "Conta sem nome"),
+      const ids = new Set<string>();
+      (data ?? []).forEach(
+        (a: { id: string; account_name: string | null; nickname: string | null }) => {
+          m.set(a.id, a.account_name || a.nickname || "Conta sem nome");
+          ids.add(a.id);
+        },
       );
       setAllAccountsMap(m);
+      setAllAccountIds(ids);
     })();
     return () => {
       cancelled = true;
     };
   }, []);
 
+  // Only filter by account_id if it really belongs to this company.
+  const resolvedActiveAccountId = useMemo(() => {
+    if (!activeAccountId) return null;
+    if (allAccountIds.size === 0) return activeAccountId; // accounts not loaded yet
+    return allAccountIds.has(activeAccountId) ? activeAccountId : null;
+  }, [activeAccountId, allAccountIds]);
+
+  const accountMissing =
+    scope === "active" &&
+    allAccountIds.size > 0 &&
+    (!activeAccountId || !allAccountIds.has(activeAccountId));
+
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      // Scope=active but no account selected yet: don't fetch consolidated by mistake.
-      if (scope === "active" && !activeAccountId) {
+      if (scope === "active" && !resolvedActiveAccountId) {
         setOrders([]);
         return;
       }
       setLoading(true);
       setErrorMsg(null);
       try {
-        const since = startOfPeriod(period).toISOString();
+        // Date-only string avoids timezone shifts when comparing a DATE column.
+        const since = dayKey(startOfPeriod(period));
         let q = supabase
           .from("ecommerce_orders")
           .select(
@@ -138,17 +156,24 @@ function DashboardEcommerce() {
           .gte("order_date", since)
           .order("order_date", { ascending: false })
           .limit(5000);
-        if (scope === "active" && activeAccountId) {
-          q = q.eq("account_id", activeAccountId);
+        if (scope === "active" && resolvedActiveAccountId) {
+          q = q.eq("account_id", resolvedActiveAccountId);
         }
         const { data, error } = await q;
         if (error) throw error;
         // eslint-disable-next-line no-console
         console.log("[dashboard] orders loaded", {
-          scope,
+          selectedAccountName:
+            activeAccount?.account_name || activeAccount?.nickname || null,
           activeAccountId,
+          resolvedActiveAccountId,
+          accountsCarregadas: Array.from(allAccountsMap.entries()).map(
+            ([id, name]) => ({ id, name }),
+          ),
+          scope,
           period,
-          count: (data ?? []).length,
+          since,
+          ordersReturned: (data ?? []).length,
         });
         if (!cancelled) setOrders((data as Order[]) ?? []);
       } catch (e) {
@@ -164,7 +189,8 @@ function DashboardEcommerce() {
     return () => {
       cancelled = true;
     };
-  }, [period, scope, activeAccountId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [period, scope, resolvedActiveAccountId]);
 
   const accountNameById = useMemo(() => {
     const map = new Map<string, string>(allAccountsMap);
@@ -350,6 +376,19 @@ function DashboardEcommerce() {
         {errorMsg && (
           <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {errorMsg}
+          </div>
+        )}
+
+        {accountMissing && (
+          <div className="flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+            <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-rose-700" />
+            <div>
+              <p className="font-semibold">Conta ativa não encontrada.</p>
+              <p className="text-rose-700">
+                Verifique o vínculo da conta selecionada ou troque a conta ativa
+                no topo.
+              </p>
+            </div>
           </div>
         )}
 

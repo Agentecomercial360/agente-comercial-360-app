@@ -404,8 +404,8 @@ function DashboardContent() {
             <DiagnosticItem label="selectedAccountName" value={selectedAccountName} />
             <DiagnosticItem label="selectedAccountId" value={selectedAccountId} />
             <DiagnosticItem label="activeAccountIdResolvido" value={selectedAccountId} />
-            <DiagnosticItem label="scopeSelecionado" value={scope} />
-            <DiagnosticItem label="periodoSelecionado" value={period} />
+            <DiagnosticItem label="scope" value={scope} />
+            <DiagnosticItem label="period" value={period} />
             <DiagnosticItem label="since" value={since} />
             <DiagnosticItem
               label="totalContasCarregadas"

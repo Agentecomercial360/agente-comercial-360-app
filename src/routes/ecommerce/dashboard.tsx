@@ -85,28 +85,27 @@ function fmtDayLabel(key: string): string {
   return dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
 
-// Known account IDs (fallback). Names match exactly the `account_name` column.
-const KNOWN_ACCOUNTS: { id: string; name: string; match: string }[] = [
+// Known account IDs used as stable dashboard options/fallback labels.
+const KNOWN_ACCOUNTS: { id: string; name: string }[] = [
   {
     id: "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4",
     name: "Mercado Livre - Nightled",
-    match: "nightled",
   },
   {
     id: "6e7cd9a7-a298-4652-8e5e-1813aa748599",
     name: "Mercado Livre - Alltele",
-    match: "alltele",
   },
 ];
 
-function resolveByName(name: string | null | undefined): string | null {
-  if (!name) return null;
-  const lower = name.toLowerCase();
-  const hit = KNOWN_ACCOUNTS.find((k) => lower.includes(k.match));
-  return hit?.id ?? null;
+function DashboardEcommerce() {
+  return (
+    <EcommerceLayout>
+      <DashboardContent />
+    </EcommerceLayout>
+  );
 }
 
-function DashboardEcommerce() {
+function DashboardContent() {
   const { accounts, activeAccount, activeAccountId } = useEcommerceActiveAccount();
 
   const [period, setPeriod] = useState<PeriodKey>("7d");
@@ -163,27 +162,16 @@ function DashboardEcommerce() {
     return m;
   }, [accounts, companyAccounts]);
 
-  const knownAccountIds = useMemo(() => new Set(accountNameById.keys()), [accountNameById]);
-
-  // Resolve active account id with safe fallbacks.
-  const resolvedActiveAccountId = useMemo(() => {
-    if (activeAccountId && knownAccountIds.has(activeAccountId)) return activeAccountId;
-    // Fallback by selected account name (Nightled / Alltele).
-    const byName = resolveByName(
-      activeAccount?.account_name || activeAccount?.nickname || null,
-    );
-    if (byName) return byName;
-    // Last resort: trust the id from context even if list hasn't loaded yet.
-    if (activeAccountId) return activeAccountId;
-    return null;
-  }, [activeAccountId, activeAccount, knownAccountIds]);
-
-  const accountMissing = scope === "active" && !resolvedActiveAccountId;
-  const selectedAccountName = activeAccount?.account_name || activeAccount?.nickname || null;
+  // Single source of truth for the dashboard: the UUID selected in the top account selector.
   const selectedAccountId = activeAccountId || activeAccount?.id || null;
+  const selectedAccountName = selectedAccountId
+    ? accountNameById.get(selectedAccountId) || activeAccount?.account_name || activeAccount?.nickname || null
+    : null;
+  const accountMissing = scope === "active" && !selectedAccountId;
   const since = useMemo(() => dayKey(startOfPeriod(period)), [period]);
   const loadedAccountsForDiagnosis = useMemo(() => {
     const map = new Map<string, string | null>();
+    KNOWN_ACCOUNTS.forEach((a) => map.set(a.id, a.name));
     companyAccounts.forEach((a) => map.set(a.id, a.account_name || a.nickname || null));
     accounts.forEach((a) => {
       if (!map.has(a.id)) map.set(a.id, a.account_name || a.nickname || null);
@@ -194,11 +182,13 @@ function DashboardEcommerce() {
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      if (scope === "active" && !resolvedActiveAccountId) {
+      if (scope === "active" && !selectedAccountId) {
         setOrders([]);
+        setLoading(false);
         return;
       }
       setLoading(true);
+      setOrders([]);
       setErrorMsg(null);
       try {
         // Date-only string avoids timezone shifts when comparing a DATE column.
@@ -211,8 +201,8 @@ function DashboardEcommerce() {
           .gte("order_date", since)
           .order("order_date", { ascending: false })
           .limit(5000);
-        if (scope === "active" && resolvedActiveAccountId) {
-          q = q.eq("account_id", resolvedActiveAccountId);
+        if (scope === "active" && selectedAccountId) {
+          q = q.eq("account_id", selectedAccountId);
         }
         const { data, error } = await q;
         if (error) throw error;
@@ -221,7 +211,6 @@ function DashboardEcommerce() {
           selectedAccountName,
           selectedAccountId,
           activeAccountId,
-          resolvedActiveAccountId,
           accountsCarregadas: Array.from(accountNameById.entries()).map(
             ([id, name]) => ({ id, name }),
           ),
@@ -244,8 +233,7 @@ function DashboardEcommerce() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [period, scope, resolvedActiveAccountId, since]);
+  }, [accountNameById, activeAccountId, period, scope, selectedAccountId, selectedAccountName, since]);
 
 
 
@@ -331,11 +319,10 @@ function DashboardEcommerce() {
   const scopeLabel =
     scope === "all"
       ? "Todas as contas"
-      : activeAccount?.account_name || activeAccount?.nickname || "Conta ativa";
+      : selectedAccountName || "Conta ativa";
 
   return (
-    <EcommerceLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <header className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
@@ -389,8 +376,8 @@ function DashboardEcommerce() {
                   ? "bg-blue-700 text-white shadow-sm"
                   : "border border-border bg-muted/30 text-foreground hover:bg-muted/60")
               }
-              disabled={!activeAccountId}
-              title={!activeAccountId ? "Nenhuma conta ativa" : undefined}
+              disabled={!selectedAccountId}
+              title={!selectedAccountId ? "Nenhuma conta ativa" : undefined}
             >
               Conta ativa
             </button>
@@ -418,9 +405,9 @@ function DashboardEcommerce() {
           <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
             <DiagnosticItem label="selectedAccountName" value={selectedAccountName} />
             <DiagnosticItem label="selectedAccountId" value={selectedAccountId} />
-            <DiagnosticItem label="activeAccountIdResolvido" value={resolvedActiveAccountId} />
-            <DiagnosticItem label="scopeSelecionado" value={scope} />
-            <DiagnosticItem label="periodoSelecionado" value={period} />
+            <DiagnosticItem label="activeAccountIdResolvido" value={selectedAccountId} />
+            <DiagnosticItem label="scope" value={scope} />
+            <DiagnosticItem label="period" value={period} />
             <DiagnosticItem label="since" value={since} />
             <DiagnosticItem
               label="totalContasCarregadas"
@@ -661,8 +648,7 @@ function DashboardEcommerce() {
             </div>
           )}
         </section>
-      </div>
-    </EcommerceLayout>
+    </div>
   );
 }
 

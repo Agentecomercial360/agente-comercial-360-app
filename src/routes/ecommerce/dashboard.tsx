@@ -107,6 +107,14 @@ function resolveByName(name: string | null | undefined): string | null {
 }
 
 function DashboardEcommerce() {
+  return (
+    <EcommerceLayout>
+      <DashboardContent />
+    </EcommerceLayout>
+  );
+}
+
+function DashboardContent() {
   const { accounts, activeAccount, activeAccountId } = useEcommerceActiveAccount();
 
   const [period, setPeriod] = useState<PeriodKey>("7d");
@@ -163,27 +171,16 @@ function DashboardEcommerce() {
     return m;
   }, [accounts, companyAccounts]);
 
-  const knownAccountIds = useMemo(() => new Set(accountNameById.keys()), [accountNameById]);
-
-  // Resolve active account id with safe fallbacks.
-  const resolvedActiveAccountId = useMemo(() => {
-    if (activeAccountId && knownAccountIds.has(activeAccountId)) return activeAccountId;
-    // Fallback by selected account name (Nightled / Alltele).
-    const byName = resolveByName(
-      activeAccount?.account_name || activeAccount?.nickname || null,
-    );
-    if (byName) return byName;
-    // Last resort: trust the id from context even if list hasn't loaded yet.
-    if (activeAccountId) return activeAccountId;
-    return null;
-  }, [activeAccountId, activeAccount, knownAccountIds]);
-
-  const accountMissing = scope === "active" && !resolvedActiveAccountId;
-  const selectedAccountName = activeAccount?.account_name || activeAccount?.nickname || null;
+  // Single source of truth for the dashboard: the UUID selected in the top account selector.
   const selectedAccountId = activeAccountId || activeAccount?.id || null;
+  const selectedAccountName = selectedAccountId
+    ? accountNameById.get(selectedAccountId) || activeAccount?.account_name || activeAccount?.nickname || null
+    : null;
+  const accountMissing = scope === "active" && !selectedAccountId;
   const since = useMemo(() => dayKey(startOfPeriod(period)), [period]);
   const loadedAccountsForDiagnosis = useMemo(() => {
     const map = new Map<string, string | null>();
+    KNOWN_ACCOUNTS.forEach((a) => map.set(a.id, a.name));
     companyAccounts.forEach((a) => map.set(a.id, a.account_name || a.nickname || null));
     accounts.forEach((a) => {
       if (!map.has(a.id)) map.set(a.id, a.account_name || a.nickname || null);
@@ -194,7 +191,7 @@ function DashboardEcommerce() {
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      if (scope === "active" && !resolvedActiveAccountId) {
+      if (scope === "active" && !selectedAccountId) {
         setOrders([]);
         return;
       }
@@ -211,8 +208,8 @@ function DashboardEcommerce() {
           .gte("order_date", since)
           .order("order_date", { ascending: false })
           .limit(5000);
-        if (scope === "active" && resolvedActiveAccountId) {
-          q = q.eq("account_id", resolvedActiveAccountId);
+        if (scope === "active" && selectedAccountId) {
+          q = q.eq("account_id", selectedAccountId);
         }
         const { data, error } = await q;
         if (error) throw error;
@@ -221,7 +218,6 @@ function DashboardEcommerce() {
           selectedAccountName,
           selectedAccountId,
           activeAccountId,
-          resolvedActiveAccountId,
           accountsCarregadas: Array.from(accountNameById.entries()).map(
             ([id, name]) => ({ id, name }),
           ),
@@ -244,8 +240,7 @@ function DashboardEcommerce() {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [period, scope, resolvedActiveAccountId, since]);
+  }, [accountNameById, activeAccountId, period, scope, selectedAccountId, selectedAccountName, since]);
 
 
 
@@ -334,8 +329,7 @@ function DashboardEcommerce() {
       : activeAccount?.account_name || activeAccount?.nickname || "Conta ativa";
 
   return (
-    <EcommerceLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <header className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
@@ -418,7 +412,7 @@ function DashboardEcommerce() {
           <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
             <DiagnosticItem label="selectedAccountName" value={selectedAccountName} />
             <DiagnosticItem label="selectedAccountId" value={selectedAccountId} />
-            <DiagnosticItem label="activeAccountIdResolvido" value={resolvedActiveAccountId} />
+            <DiagnosticItem label="activeAccountIdResolvido" value={selectedAccountId} />
             <DiagnosticItem label="scopeSelecionado" value={scope} />
             <DiagnosticItem label="periodoSelecionado" value={period} />
             <DiagnosticItem label="since" value={since} />
@@ -661,8 +655,7 @@ function DashboardEcommerce() {
             </div>
           )}
         </section>
-      </div>
-    </EcommerceLayout>
+    </div>
   );
 }
 

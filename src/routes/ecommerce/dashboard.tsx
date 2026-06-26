@@ -179,6 +179,17 @@ function DashboardEcommerce() {
   }, [activeAccountId, activeAccount, knownAccountIds]);
 
   const accountMissing = scope === "active" && !resolvedActiveAccountId;
+  const selectedAccountName = activeAccount?.account_name || activeAccount?.nickname || null;
+  const selectedAccountId = activeAccountId || activeAccount?.id || null;
+  const since = useMemo(() => dayKey(startOfPeriod(period)), [period]);
+  const loadedAccountsForDiagnosis = useMemo(() => {
+    const map = new Map<string, string | null>();
+    companyAccounts.forEach((a) => map.set(a.id, a.account_name || a.nickname || null));
+    accounts.forEach((a) => {
+      if (!map.has(a.id)) map.set(a.id, a.account_name || a.nickname || null);
+    });
+    return Array.from(map.entries()).map(([id, account_name]) => ({ id, account_name }));
+  }, [accounts, companyAccounts]);
 
   useEffect(() => {
     let cancelled = false;
@@ -191,7 +202,6 @@ function DashboardEcommerce() {
       setErrorMsg(null);
       try {
         // Date-only string avoids timezone shifts when comparing a DATE column.
-        const since = dayKey(startOfPeriod(period));
         let q = supabase
           .from("ecommerce_orders")
           .select(
@@ -208,8 +218,8 @@ function DashboardEcommerce() {
         if (error) throw error;
         // eslint-disable-next-line no-console
         console.log("[dashboard] orders loaded", {
-          selectedAccountName:
-            activeAccount?.account_name || activeAccount?.nickname || null,
+          selectedAccountName,
+          selectedAccountId,
           activeAccountId,
           resolvedActiveAccountId,
           accountsCarregadas: Array.from(accountNameById.entries()).map(
@@ -235,7 +245,7 @@ function DashboardEcommerce() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [period, scope, resolvedActiveAccountId]);
+  }, [period, scope, resolvedActiveAccountId, since]);
 
 
 
@@ -397,6 +407,40 @@ function DashboardEcommerce() {
               <Users className="h-3.5 w-3.5" />
               Todas as contas
             </button>
+          </div>
+        </section>
+
+        {/* Diagnóstico temporário */}
+        <section className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-800">
+          <h2 className="mb-3 text-sm font-bold text-slate-900">
+            Diagnóstico da conta ativa
+          </h2>
+          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+            <DiagnosticItem label="selectedAccountName" value={selectedAccountName} />
+            <DiagnosticItem label="selectedAccountId" value={selectedAccountId} />
+            <DiagnosticItem label="activeAccountIdResolvido" value={resolvedActiveAccountId} />
+            <DiagnosticItem label="scopeSelecionado" value={scope} />
+            <DiagnosticItem label="periodoSelecionado" value={period} />
+            <DiagnosticItem label="since" value={since} />
+            <DiagnosticItem
+              label="totalContasCarregadas"
+              value={String(loadedAccountsForDiagnosis.length)}
+            />
+            <DiagnosticItem label="ordersReturned" value={String(orders.length)} />
+          </div>
+          <div className="mt-3 rounded-lg border border-slate-200 bg-white p-3">
+            <div className="mb-2 font-semibold text-slate-900">listaContasCarregadas</div>
+            {loadedAccountsForDiagnosis.length === 0 ? (
+              <div className="text-slate-500">Nenhuma conta carregada no front-end.</div>
+            ) : (
+              <div className="space-y-1 font-mono text-[11px] leading-relaxed text-slate-700">
+                {loadedAccountsForDiagnosis.map((account) => (
+                  <div key={account.id} className="break-all">
+                    {account.id} — {account.account_name || "Sem nome"}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
@@ -662,6 +706,25 @@ function Kpi({
         >
           <Icon className="h-5 w-5" />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function DiagnosticItem({
+  label,
+  value,
+}: {
+  label: string;
+  value: string | null | undefined;
+}) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+        {label}
+      </div>
+      <div className="mt-1 break-all font-mono text-[11px] text-slate-900">
+        {value || "null"}
       </div>
     </div>
   );

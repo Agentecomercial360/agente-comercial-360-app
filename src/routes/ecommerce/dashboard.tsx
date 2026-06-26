@@ -85,26 +85,17 @@ function fmtDayLabel(key: string): string {
   return dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
 
-// Known account IDs (fallback). Names match exactly the `account_name` column.
-const KNOWN_ACCOUNTS: { id: string; name: string; match: string }[] = [
+// Known account IDs used as stable dashboard options/fallback labels.
+const KNOWN_ACCOUNTS: { id: string; name: string }[] = [
   {
     id: "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4",
     name: "Mercado Livre - Nightled",
-    match: "nightled",
   },
   {
     id: "6e7cd9a7-a298-4652-8e5e-1813aa748599",
     name: "Mercado Livre - Alltele",
-    match: "alltele",
   },
 ];
-
-function resolveByName(name: string | null | undefined): string | null {
-  if (!name) return null;
-  const lower = name.toLowerCase();
-  const hit = KNOWN_ACCOUNTS.find((k) => lower.includes(k.match));
-  return hit?.id ?? null;
-}
 
 function DashboardEcommerce() {
   return (
@@ -383,8 +374,8 @@ function DashboardContent() {
                   ? "bg-blue-700 text-white shadow-sm"
                   : "border border-border bg-muted/30 text-foreground hover:bg-muted/60")
               }
-              disabled={!activeAccountId}
-              title={!activeAccountId ? "Nenhuma conta ativa" : undefined}
+              disabled={!selectedAccountId}
+              title={!selectedAccountId ? "Nenhuma conta ativa" : undefined}
             >
               Conta ativa
             </button>

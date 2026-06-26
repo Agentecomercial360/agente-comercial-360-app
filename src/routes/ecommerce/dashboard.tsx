@@ -197,19 +197,6 @@ function DashboardContent() {
         }
         const { data, error } = await q;
         if (error) throw error;
-        // eslint-disable-next-line no-console
-        console.log("[dashboard] orders loaded", {
-          selectedAccountName,
-          selectedAccountId,
-          activeAccountId,
-          accountsCarregadas: Array.from(accountNameById.entries()).map(
-            ([id, name]) => ({ id, name }),
-          ),
-          scope,
-          period,
-          since,
-          ordersReturned: (data ?? []).length,
-        });
         if (!cancelled) setOrders((data as Order[]) ?? []);
       } catch (e) {
         if (!cancelled) {

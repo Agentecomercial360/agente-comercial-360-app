@@ -93,10 +93,38 @@ function DashboardEcommerce() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [allAccountsMap, setAllAccountsMap] = useState<Map<string, string>>(
+    new Map(),
+  );
+
+  // Fetch all accounts (unfiltered) for name lookup in the per-account table.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("ecommerce_accounts")
+        .select("id, account_name, nickname")
+        .eq("company_id", ECOMMERCE_COMPANY_ID);
+      if (cancelled) return;
+      const m = new Map<string, string>();
+      (data ?? []).forEach((a: { id: string; account_name: string | null; nickname: string | null }) =>
+        m.set(a.id, a.account_name || a.nickname || "Conta sem nome"),
+      );
+      setAllAccountsMap(m);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
+      // Scope=active but no account selected yet: don't fetch consolidated by mistake.
+      if (scope === "active" && !activeAccountId) {
+        setOrders([]);
+        return;
+      }
       setLoading(true);
       setErrorMsg(null);
       try {
@@ -115,6 +143,13 @@ function DashboardEcommerce() {
         }
         const { data, error } = await q;
         if (error) throw error;
+        // eslint-disable-next-line no-console
+        console.log("[dashboard] orders loaded", {
+          scope,
+          activeAccountId,
+          period,
+          count: (data ?? []).length,
+        });
         if (!cancelled) setOrders((data as Order[]) ?? []);
       } catch (e) {
         if (!cancelled) {
@@ -132,12 +167,14 @@ function DashboardEcommerce() {
   }, [period, scope, activeAccountId]);
 
   const accountNameById = useMemo(() => {
-    const map = new Map<string, string>();
-    accounts.forEach((a) =>
-      map.set(a.id, a.account_name || a.nickname || "Conta sem nome"),
-    );
+    const map = new Map<string, string>(allAccountsMap);
+    accounts.forEach((a) => {
+      if (!map.has(a.id)) {
+        map.set(a.id, a.account_name || a.nickname || "Conta sem nome");
+      }
+    });
     return map;
-  }, [accounts]);
+  }, [accounts, allAccountsMap]);
 
   const totals = useMemo(() => {
     let gross = 0;

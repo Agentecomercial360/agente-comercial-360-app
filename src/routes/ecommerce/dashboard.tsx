@@ -317,7 +317,7 @@ function DashboardContent() {
   const scopeLabel =
     scope === "all"
       ? "Todas as contas"
-      : activeAccount?.account_name || activeAccount?.nickname || "Conta ativa";
+      : selectedAccountName || "Conta ativa";
 
   return (
     <div className="space-y-6">

@@ -169,15 +169,6 @@ function DashboardContent() {
     : null;
   const accountMissing = scope === "active" && !selectedAccountId;
   const since = useMemo(() => dayKey(startOfPeriod(period)), [period]);
-  const loadedAccountsForDiagnosis = useMemo(() => {
-    const map = new Map<string, string | null>();
-    KNOWN_ACCOUNTS.forEach((a) => map.set(a.id, a.name));
-    companyAccounts.forEach((a) => map.set(a.id, a.account_name || a.nickname || null));
-    accounts.forEach((a) => {
-      if (!map.has(a.id)) map.set(a.id, a.account_name || a.nickname || null);
-    });
-    return Array.from(map.entries()).map(([id, account_name]) => ({ id, account_name }));
-  }, [accounts, companyAccounts]);
 
   useEffect(() => {
     let cancelled = false;

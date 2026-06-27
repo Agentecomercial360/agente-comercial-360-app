@@ -812,27 +812,55 @@ function EditCostModal({
       toast.error("Informe um valor de custo válido.");
       return;
     }
-    if (parsed < 0) {
-      toast.error("O custo não pode ser negativo.");
+    if (!(parsed > 0)) {
+      toast.error("O custo precisa ser maior que zero.");
       return;
-    }
-    if (parsed === 0) {
-      const ok = window.confirm(
-        "Tem certeza que deseja definir o custo como R$ 0,00?",
-      );
-      if (!ok) return;
     }
     setSaving(true);
     try {
-      const { error } = await supabase.rpc("update_ecommerce_product_cost_v1", {
-        p_company_id: COMPANY_ID,
-        p_product_id: product.id,
-        p_cost_price: parsed,
-        p_changed_by: "AC360 painel",
-        p_notes: notes.trim() ? notes.trim() : null,
-      });
+      const { data, error } = await supabase.rpc(
+        "update_ecommerce_product_cost_v2",
+        {
+          p_company_id: COMPANY_ID,
+          p_product_id: product.id,
+          p_cost_price: parsed,
+          p_changed_by: "AC360 painel",
+          p_notes: "Custo atualizado pela tela de Custos e Margem",
+        },
+      );
       if (error) throw error;
-      toast.success("Custo atualizado com sucesso.");
+
+      const result = (Array.isArray(data) ? data[0] : data) as
+        | {
+            success?: boolean;
+            message?: string;
+            sku?: string;
+            product_name?: string;
+            old_cost_price?: number | string;
+            new_cost_price?: number | string;
+            items_recalculated?: number;
+            orders_recalculated?: number;
+            orders_high_confidence?: number;
+            orders_pending_cost?: number;
+          }
+        | null;
+
+      if (result && result.success === false) {
+        toast.error(result.message || "Erro ao atualizar custo.");
+        return;
+      }
+
+      const oldCost = Number(result?.old_cost_price ?? currentCost) || 0;
+      const newCost = Number(result?.new_cost_price ?? parsed) || parsed;
+      const items = result?.items_recalculated ?? 0;
+      const orders = result?.orders_recalculated ?? 0;
+
+      toast.success(
+        "Custo atualizado com sucesso. Pedidos impactados recalculados.",
+        {
+          description: `SKU ${result?.sku ?? product.sku ?? "—"} • ${formatBRL(oldCost)} → ${formatBRL(newCost)} • ${items} itens / ${orders} pedidos recalculados`,
+        },
+      );
       onSaved();
     } catch (e: any) {
       toast.error(e?.message || "Erro ao atualizar custo.");

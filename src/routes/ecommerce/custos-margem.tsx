@@ -148,11 +148,27 @@ function CustosMargem() {
 
       const { data: items, error: ei } = await supabase
         .from("ecommerce_order_items")
-        .select("order_id,product_id,quantity,unit_price")
+        .select("order_id,product_id,quantity,unit_price,total_price")
         .eq("company_id", COMPANY_ID)
         .limit(50000);
       if (ei) throw ei;
       setOrderItems((items || []) as OrderItemRow[]);
+
+      // Contagem de pedidos por nível de confiança de lucro.
+      const [{ count: pendCount }, { count: highCount }] = await Promise.all([
+        supabase
+          .from("ecommerce_orders")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", COMPANY_ID)
+          .eq("profit_confidence", "pending_cost"),
+        supabase
+          .from("ecommerce_orders")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", COMPANY_ID)
+          .eq("profit_confidence", "high"),
+      ]);
+      setPendingCostOrders(pendCount ?? 0);
+      setHighConfOrders(highCount ?? 0);
     } catch (e: any) {
       setError(e?.message || "Erro ao carregar produtos.");
     } finally {

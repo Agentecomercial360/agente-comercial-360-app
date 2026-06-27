@@ -954,20 +954,6 @@ function EditCostModal({
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">
-              Observação (opcional)
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-              maxLength={500}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Motivo da alteração, fornecedor, NF, etc."
-              disabled={saving}
-            />
-          </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-border/60 px-5 py-3 bg-muted/20">

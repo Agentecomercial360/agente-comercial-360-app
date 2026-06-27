@@ -104,6 +104,8 @@ function CustosMargem() {
   const [ordersById, setOrdersById] = useState<Map<string, OrderLiteRow>>(new Map());
   const [filter, setFilter] = useState<FilterKey>("all");
   const [editing, setEditing] = useState<ProductRow | null>(null);
+  const [pendingCostOrders, setPendingCostOrders] = useState<number>(0);
+  const [highConfOrders, setHighConfOrders] = useState<number>(0);
 
   const load = useCallback(async () => {
     setLoading(true);

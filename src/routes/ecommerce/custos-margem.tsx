@@ -285,6 +285,34 @@ function CustosMargem() {
     return rows;
   }, [orderItems, ordersById, products, accounts]);
 
+  // Diagnóstico de impacto financeiro bloqueado por falta de custo.
+  const blockedImpact = useMemo(() => {
+    const productsById = new Map(products.map((p) => [p.id, p]));
+    let blockedRevenue = 0;
+    const soldNoCostIds = new Set<string>();
+    const soldWithCostIds = new Set<string>();
+    for (const it of orderItems) {
+      if (!it.product_id) continue;
+      const p = productsById.get(it.product_id);
+      if (!p) continue;
+      const cost = p.cost_price ?? 0;
+      if (cost > 0) {
+        soldWithCostIds.add(it.product_id);
+      } else {
+        soldNoCostIds.add(it.product_id);
+        const total =
+          Number(it.total_price ?? 0) ||
+          (Number(it.quantity ?? 0) || 0) * (Number(it.unit_price ?? 0) || 0);
+        blockedRevenue += total;
+      }
+    }
+    return {
+      blockedRevenue,
+      soldNoCostCount: soldNoCostIds.size,
+      soldWithCostCount: soldWithCostIds.size,
+    };
+  }, [orderItems, products]);
+
   const totals = useMemo(() => {
     const total = enriched.length;
     const withCost = enriched.filter((e) => e.hasCost).length;

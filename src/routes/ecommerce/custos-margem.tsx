@@ -62,6 +62,7 @@ type OrderItemRow = {
   product_id: string | null;
   quantity: number | null;
   unit_price: number | null;
+  total_price: number | null;
 };
 
 type OrderLiteRow = {

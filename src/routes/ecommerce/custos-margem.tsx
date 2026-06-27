@@ -208,6 +208,64 @@ function CustosMargem() {
     });
   }, [products, listingsByProduct, accounts]);
 
+  const soldNoCost: SoldNoCost[] = useMemo(() => {
+    if (orderItems.length === 0 || products.length === 0) return [];
+    const productsById = new Map(products.map((p) => [p.id, p]));
+    type Agg = {
+      orders: Set<string>;
+      units: number;
+      revenue: number;
+      accountIds: Set<string>;
+    };
+    const map = new Map<string, Agg>();
+    for (const it of orderItems) {
+      if (!it.product_id) continue;
+      const p = productsById.get(it.product_id);
+      if (!p) continue;
+      const cost = p.cost_price ?? 0;
+      if (cost > 0) continue;
+      const qty = Number(it.quantity ?? 0) || 0;
+      const unit = Number(it.unit_price ?? 0) || 0;
+      const rev = qty * unit;
+      const agg = map.get(it.product_id) ?? {
+        orders: new Set<string>(),
+        units: 0,
+        revenue: 0,
+        accountIds: new Set<string>(),
+      };
+      if (it.order_id) {
+        agg.orders.add(it.order_id);
+        const ord = ordersById.get(it.order_id);
+        if (ord?.account_id) agg.accountIds.add(ord.account_id);
+      }
+      agg.units += qty;
+      agg.revenue += rev;
+      map.set(it.product_id, agg);
+    }
+    const rows: SoldNoCost[] = [];
+    for (const [pid, agg] of map.entries()) {
+      const p = productsById.get(pid)!;
+      const accountNames = Array.from(agg.accountIds).map((id) => {
+        const a = accounts.get(id);
+        return a?.account_name || a?.nickname || id;
+      });
+      let priority: SoldNoCost["priority"];
+      if (agg.revenue > 500 || agg.units > 20) priority = "high";
+      else if (agg.revenue >= 100) priority = "medium";
+      else priority = "low";
+      rows.push({
+        product: p,
+        orders: agg.orders.size,
+        units: agg.units,
+        revenue: agg.revenue,
+        accountNames,
+        priority,
+      });
+    }
+    rows.sort((a, b) => b.revenue - a.revenue);
+    return rows;
+  }, [orderItems, ordersById, products, accounts]);
+
   const totals = useMemo(() => {
     const total = enriched.length;
     const withCost = enriched.filter((e) => e.hasCost).length;

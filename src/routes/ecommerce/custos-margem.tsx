@@ -402,6 +402,136 @@ function CustosMargem() {
           </div>
         )}
 
+        {/* Produtos vendidos sem custo */}
+        <section className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50/60 to-amber-50/40 shadow-[var(--shadow-soft)] overflow-hidden">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-rose-200/70 px-5 py-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-600 to-rose-800 text-white shadow-md">
+                <Flame className="h-5 w-5" />
+              </div>
+              <div className="space-y-1 max-w-2xl">
+                <h2 className="font-display text-lg font-bold text-foreground">
+                  Produtos vendidos sem custo
+                </h2>
+                <p className="text-xs md:text-[13px] text-muted-foreground">
+                  Esses produtos já venderam, mas ainda não possuem custo cadastrado.
+                  Preencha primeiro os itens com maior faturamento para liberar lucro real
+                  e margem confiável.
+                </p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-white/70 px-3 py-1 text-[11px] font-semibold text-rose-700">
+              {soldNoCost.length} produto(s)
+            </span>
+          </div>
+          {loading ? (
+            <div className="px-5 py-10 text-center text-sm text-muted-foreground">
+              Carregando vendas…
+            </div>
+          ) : soldNoCost.length === 0 ? (
+            <div className="px-5 py-10 text-center text-sm text-muted-foreground">
+              Nenhum produto vendido está sem custo. Excelente trabalho.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-white/60 text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <th className="text-left px-4 py-3 font-semibold">SKU</th>
+                    <th className="text-left px-4 py-3 font-semibold">Produto</th>
+                    <th className="text-right px-4 py-3 font-semibold">Preço venda</th>
+                    <th className="text-right px-4 py-3 font-semibold">Pedidos</th>
+                    <th className="text-right px-4 py-3 font-semibold">Unidades</th>
+                    <th className="text-right px-4 py-3 font-semibold">Faturamento</th>
+                    <th className="text-left px-4 py-3 font-semibold">Contas</th>
+                    <th className="text-center px-4 py-3 font-semibold">Status</th>
+                    <th className="text-center px-4 py-3 font-semibold">Prioridade</th>
+                    <th className="text-right px-4 py-3 font-semibold">Ação</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-rose-100">
+                  {soldNoCost.map((r) => {
+                    const pm =
+                      r.priority === "high"
+                        ? { label: "Alta", cls: "bg-rose-100 text-rose-700 border-rose-200" }
+                        : r.priority === "medium"
+                          ? { label: "Média", cls: "bg-amber-100 text-amber-800 border-amber-200" }
+                          : { label: "Baixa", cls: "bg-slate-100 text-slate-700 border-slate-200" };
+                    return (
+                      <tr key={r.product.id} className="hover:bg-white/60 transition">
+                        <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                          {r.product.sku ?? "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-semibold text-foreground leading-tight">
+                            {r.product.product_name ?? "Produto sem nome"}
+                          </div>
+                          {r.product.category && (
+                            <div className="text-[11px] text-muted-foreground mt-0.5">
+                              {r.product.category}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums">
+                          {formatBRL(r.product.sale_price)}
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums">{r.orders}</td>
+                        <td className="px-4 py-3 text-right tabular-nums">{r.units}</td>
+                        <td className="px-4 py-3 text-right tabular-nums font-semibold text-foreground">
+                          {formatBRL(r.revenue)}
+                        </td>
+                        <td className="px-4 py-3 text-xs">
+                          {r.accountNames.length === 0 ? (
+                            <span className="text-muted-foreground">—</span>
+                          ) : (
+                            <div className="flex flex-wrap gap-1">
+                              {r.accountNames.slice(0, 3).map((n, i) => (
+                                <span
+                                  key={i}
+                                  className="rounded-md border border-border bg-white/70 px-1.5 py-0.5 text-[10px] text-foreground/80"
+                                >
+                                  {n}
+                                </span>
+                              ))}
+                              {r.accountNames.length > 3 && (
+                                <span className="text-[10px] text-muted-foreground">
+                                  +{r.accountNames.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
+                            <AlertTriangle className="h-3 w-3" />
+                            Sem custo
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span
+                            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${pm.cls}`}
+                          >
+                            {pm.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={() => setEditing(r.product)}
+                            className="inline-flex items-center gap-1.5 rounded-md bg-rose-700 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-rose-800 transition"
+                          >
+                            <Pencil className="h-3 w-3" />
+                            Atualizar custo
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+
         {/* Lista */}
         <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4">

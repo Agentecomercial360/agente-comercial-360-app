@@ -788,7 +788,7 @@ function EditCostModal({
   const [value, setValue] = useState<string>(
     currentCost > 0 ? String(currentCost).replace(".", ",") : "",
   );
-  const [notes, setNotes] = useState<string>("");
+  
   const [saving, setSaving] = useState(false);
 
   const parsed = useMemo(() => {
@@ -812,27 +812,55 @@ function EditCostModal({
       toast.error("Informe um valor de custo válido.");
       return;
     }
-    if (parsed < 0) {
-      toast.error("O custo não pode ser negativo.");
+    if (!(parsed > 0)) {
+      toast.error("O custo precisa ser maior que zero.");
       return;
-    }
-    if (parsed === 0) {
-      const ok = window.confirm(
-        "Tem certeza que deseja definir o custo como R$ 0,00?",
-      );
-      if (!ok) return;
     }
     setSaving(true);
     try {
-      const { error } = await supabase.rpc("update_ecommerce_product_cost_v1", {
-        p_company_id: COMPANY_ID,
-        p_product_id: product.id,
-        p_cost_price: parsed,
-        p_changed_by: "AC360 painel",
-        p_notes: notes.trim() ? notes.trim() : null,
-      });
+      const { data, error } = await supabase.rpc(
+        "update_ecommerce_product_cost_v2",
+        {
+          p_company_id: COMPANY_ID,
+          p_product_id: product.id,
+          p_cost_price: parsed,
+          p_changed_by: "AC360 painel",
+          p_notes: "Custo atualizado pela tela de Custos e Margem",
+        },
+      );
       if (error) throw error;
-      toast.success("Custo atualizado com sucesso.");
+
+      const result = (Array.isArray(data) ? data[0] : data) as
+        | {
+            success?: boolean;
+            message?: string;
+            sku?: string;
+            product_name?: string;
+            old_cost_price?: number | string;
+            new_cost_price?: number | string;
+            items_recalculated?: number;
+            orders_recalculated?: number;
+            orders_high_confidence?: number;
+            orders_pending_cost?: number;
+          }
+        | null;
+
+      if (result && result.success === false) {
+        toast.error(result.message || "Erro ao atualizar custo.");
+        return;
+      }
+
+      const oldCost = Number(result?.old_cost_price ?? currentCost) || 0;
+      const newCost = Number(result?.new_cost_price ?? parsed) || parsed;
+      const items = result?.items_recalculated ?? 0;
+      const orders = result?.orders_recalculated ?? 0;
+
+      toast.success(
+        "Custo atualizado com sucesso. Pedidos impactados recalculados.",
+        {
+          description: `SKU ${result?.sku ?? product.sku ?? "—"} • ${formatBRL(oldCost)} → ${formatBRL(newCost)} • ${items} itens / ${orders} pedidos recalculados`,
+        },
+      );
       onSaved();
     } catch (e: any) {
       toast.error(e?.message || "Erro ao atualizar custo.");
@@ -926,20 +954,6 @@ function EditCostModal({
             </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">
-              Observação (opcional)
-            </label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-              maxLength={500}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Motivo da alteração, fornecedor, NF, etc."
-              disabled={saving}
-            />
-          </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-border/60 px-5 py-3 bg-muted/20">

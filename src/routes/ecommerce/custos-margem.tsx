@@ -449,6 +449,106 @@ function CustosMargem() {
           </div>
         )}
 
+        {/* Impacto financeiro bloqueado por falta de custo */}
+        <section className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50/70 via-white to-rose-50/40 shadow-[var(--shadow-soft)] overflow-hidden">
+          <div className="border-b border-amber-200/70 px-5 py-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-600 to-rose-700 text-white shadow-md">
+                <DollarSign className="h-5 w-5" />
+              </div>
+              <div className="space-y-1 max-w-3xl">
+                <h2 className="font-display text-lg font-bold text-foreground">
+                  Impacto financeiro bloqueado por falta de custo
+                </h2>
+                <p className="text-xs md:text-[13px] text-muted-foreground">
+                  Esses valores representam vendas reais que ainda não podem ter lucro e
+                  margem calculados com segurança porque falta o custo unitário dos
+                  produtos.
+                </p>
+              </div>
+            </div>
+          </div>
+          {loading ? (
+            <div className="px-5 py-10 text-center text-sm text-muted-foreground">
+              Carregando diagnóstico financeiro…
+            </div>
+          ) : blockedImpact.blockedRevenue === 0 &&
+            pendingCostOrders === 0 &&
+            blockedImpact.soldNoCostCount === 0 ? (
+            <div className="px-5 py-10 text-center text-sm text-muted-foreground">
+              Todos os produtos vendidos possuem custo cadastrado.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 p-5">
+              {[
+                {
+                  label: "Faturamento bloqueado",
+                  value: formatBRL(blockedImpact.blockedRevenue),
+                  hint: "Receita sem lucro calculável",
+                  icon: DollarSign,
+                  accent: "from-rose-600 to-rose-800",
+                  tone: "text-rose-700",
+                },
+                {
+                  label: "Pedidos pendentes de custo",
+                  value: pendingCostOrders.toLocaleString("pt-BR"),
+                  hint: "profit_confidence = pending_cost",
+                  icon: AlertTriangle,
+                  accent: "from-amber-600 to-orange-700",
+                  tone: "text-amber-700",
+                },
+                {
+                  label: "Produtos vendidos sem custo",
+                  value: blockedImpact.soldNoCostCount.toLocaleString("pt-BR"),
+                  hint: "SKUs aguardando custo",
+                  icon: Package,
+                  accent: "from-orange-600 to-rose-700",
+                  tone: "text-orange-700",
+                },
+                {
+                  label: "Pedidos com lucro confiável",
+                  value: highConfOrders.toLocaleString("pt-BR"),
+                  hint: "profit_confidence = high",
+                  icon: CheckCircle2,
+                  accent: "from-emerald-600 to-emerald-800",
+                  tone: "text-emerald-700",
+                },
+              ].map((c) => {
+                const Icon = c.icon;
+                return (
+                  <div
+                    key={c.label}
+                    className="relative overflow-hidden rounded-2xl border border-border/60 bg-white/80 backdrop-blur-sm p-5 shadow-[var(--shadow-soft)]"
+                  >
+                    <div
+                      className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${c.accent} opacity-10`}
+                    />
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1.5 min-w-0">
+                        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          {c.label}
+                        </div>
+                        <div
+                          className={`font-display text-2xl md:text-3xl font-bold ${c.tone} tabular-nums truncate`}
+                        >
+                          {c.value}
+                        </div>
+                        <div className="text-[11px] text-muted-foreground">{c.hint}</div>
+                      </div>
+                      <div
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${c.accent} text-white shadow-md`}
+                      >
+                        <Icon className="h-5 w-5" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+
         {/* Produtos vendidos sem custo */}
         <section className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50/60 to-amber-50/40 shadow-[var(--shadow-soft)] overflow-hidden">
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-rose-200/70 px-5 py-4">

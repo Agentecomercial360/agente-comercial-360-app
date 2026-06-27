@@ -99,6 +99,8 @@ function CustosMargem() {
   const [products, setProducts] = useState<ProductRow[]>([]);
   const [listings, setListings] = useState<ListingRow[]>([]);
   const [accounts, setAccounts] = useState<Map<string, AccountRow>>(new Map());
+  const [orderItems, setOrderItems] = useState<OrderItemRow[]>([]);
+  const [ordersById, setOrdersById] = useState<Map<string, OrderLiteRow>>(new Map());
   const [filter, setFilter] = useState<FilterKey>("all");
   const [editing, setEditing] = useState<ProductRow | null>(null);
 
@@ -129,6 +131,25 @@ function CustosMargem() {
       const am = new Map<string, AccountRow>();
       (accs || []).forEach((a: any) => am.set(a.id, a as AccountRow));
       setAccounts(am);
+
+      // Vendas para a seção "Produtos vendidos sem custo".
+      const { data: ords, error: eo } = await supabase
+        .from("ecommerce_orders")
+        .select("id,account_id")
+        .eq("company_id", COMPANY_ID)
+        .limit(20000);
+      if (eo) throw eo;
+      const ordMap = new Map<string, OrderLiteRow>();
+      (ords || []).forEach((o: any) => ordMap.set(o.id, o as OrderLiteRow));
+      setOrdersById(ordMap);
+
+      const { data: items, error: ei } = await supabase
+        .from("ecommerce_order_items")
+        .select("order_id,product_id,quantity,unit_price")
+        .eq("company_id", COMPANY_ID)
+        .limit(50000);
+      if (ei) throw ei;
+      setOrderItems((items || []) as OrderItemRow[]);
     } catch (e: any) {
       setError(e?.message || "Erro ao carregar produtos.");
     } finally {

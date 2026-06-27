@@ -788,7 +788,7 @@ function EditCostModal({
   const [value, setValue] = useState<string>(
     currentCost > 0 ? String(currentCost).replace(".", ",") : "",
   );
-  const [notes, setNotes] = useState<string>("");
+  
   const [saving, setSaving] = useState(false);
 
   const parsed = useMemo(() => {

@@ -57,6 +57,27 @@ type FilterKey =
   | "high_priority"
   | "paused";
 
+type OrderItemRow = {
+  order_id: string | null;
+  product_id: string | null;
+  quantity: number | null;
+  unit_price: number | null;
+};
+
+type OrderLiteRow = {
+  id: string;
+  account_id: string | null;
+};
+
+type SoldNoCost = {
+  product: ProductRow;
+  orders: number;
+  units: number;
+  revenue: number;
+  accountNames: string[];
+  priority: "high" | "medium" | "low";
+};
+
 function formatBRL(v: number | null | undefined): string {
   if (v == null || Number.isNaN(v)) return "—";
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });

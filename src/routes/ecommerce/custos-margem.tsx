@@ -135,11 +135,13 @@ function CustosMargemContent() {
           supabase
             .from("ecommerce_products")
             .select("id,sku,product_name,category,sale_price,cost_price,status")
-            .eq("company_id", COMPANY_ID),
+            .eq("company_id", COMPANY_ID)
+            .limit(50000),
           supabase
             .from("ecommerce_listings")
             .select("id,product_id,account_id,status")
-            .eq("company_id", COMPANY_ID),
+            .eq("company_id", COMPANY_ID)
+            .limit(50000),
           supabase
             .from("ecommerce_accounts")
             .select("id,account_name,marketplace,nickname")
@@ -168,42 +170,31 @@ function CustosMargemContent() {
       setOrdersById(ordMap);
 
       // Itens sempre passam por ecommerce_orders: o account_id está no pedido, não no item.
-      let itemsQuery = supabase
-        .from("ecommerce_order_items")
-        .select("order_id,product_id,quantity,unit_price,total_price")
-        .eq("company_id", COMPANY_ID)
-        .limit(50000);
-      if (selectedAccountId) {
-        const orderIds = Array.from(ordMap.keys());
-        if (orderIds.length === 0) {
-          setOrderItems([]);
-        } else {
-          // Supabase `in()` limita lista — chunk se necessário.
-          const chunks: string[][] = [];
-          for (let i = 0; i < orderIds.length; i += 1000) {
-            chunks.push(orderIds.slice(i, i + 1000));
-          }
-          const results = await Promise.all(
-            chunks.map((c) =>
-              supabase
-                .from("ecommerce_order_items")
-                .select("order_id,product_id,quantity,unit_price,total_price")
-                .eq("company_id", COMPANY_ID)
-                .in("order_id", c)
-                .limit(50000),
-            ),
-          );
-          const all: OrderItemRow[] = [];
-          for (const r of results) {
-            if (r.error) throw r.error;
-            all.push(...((r.data || []) as OrderItemRow[]));
-          }
-          setOrderItems(all);
-        }
+      const orderIds = Array.from(ordMap.keys());
+      if (orderIds.length === 0) {
+        setOrderItems([]);
       } else {
-        const { data: items, error: ei } = await itemsQuery;
-        if (ei) throw ei;
-        setOrderItems((items || []) as OrderItemRow[]);
+        // Supabase `in()` limita lista — chunk se necessário.
+        const chunks: string[][] = [];
+        for (let i = 0; i < orderIds.length; i += 1000) {
+          chunks.push(orderIds.slice(i, i + 1000));
+        }
+        const results = await Promise.all(
+          chunks.map((c) =>
+            supabase
+              .from("ecommerce_order_items")
+              .select("order_id,product_id,quantity,unit_price,total_price")
+              .eq("company_id", COMPANY_ID)
+              .in("order_id", c)
+              .limit(50000),
+          ),
+        );
+        const all: OrderItemRow[] = [];
+        for (const r of results) {
+          if (r.error) throw r.error;
+          all.push(...((r.data || []) as OrderItemRow[]));
+        }
+        setOrderItems(all);
       }
 
       // Contagem de pedidos por nível de confiança de lucro, respeitando o ID da conta ativa.

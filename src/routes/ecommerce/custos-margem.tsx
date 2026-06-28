@@ -104,7 +104,11 @@ function CustosMargem() {
 }
 
 function CustosMargemContent() {
-  const { activeAccountId, activeAccount } = useEcommerceActiveAccount();
+  const {
+    activeAccountId,
+    activeAccount,
+    loading: accountsLoading,
+  } = useEcommerceActiveAccount();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<ProductRow[]>([]);
@@ -127,6 +131,7 @@ function CustosMargemContent() {
   const isFilteringByAccount = Boolean(selectedAccountId);
 
   const load = useCallback(async () => {
+    if (accountsLoading) return;
     setLoading(true);
     setError(null);
     try {
@@ -218,7 +223,7 @@ function CustosMargemContent() {
     } finally {
       setLoading(false);
     }
-  }, [selectedAccountId]);
+  }, [accountsLoading, selectedAccountId]);
 
   useEffect(() => {
     void load();

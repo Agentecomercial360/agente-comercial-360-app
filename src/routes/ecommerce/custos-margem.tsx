@@ -561,30 +561,8 @@ function CustosMargemContent() {
                   margem calculados com segurança porque falta o custo unitário dos
                   produtos.
                 </p>
-                <div className="mt-3 grid gap-1.5 rounded-lg border border-amber-200/70 bg-white/60 px-3 py-2 text-[11px] text-amber-900 sm:grid-cols-2">
-                  <div>
-                    <span className="font-semibold">companyId:</span> {COMPANY_ID}
-                  </div>
-                  <div>
-                    <span className="font-semibold">activeAccountId:</span>{" "}
-                    {selectedAccountId ?? "—"}
-                  </div>
-                  <div>
-                    <span className="font-semibold">p_account_id (RPC):</span>{" "}
-                    {isAllAccounts ? "null" : selectedAccountId}
-                  </div>
-                  <div>
-                    <span className="font-semibold">conta ativa:</span> {selectedAccountName}
-                  </div>
-                  <div>
-                    <span className="font-semibold">modo:</span>{" "}
-                    {isAllAccounts ? "Todas as contas" : "Conta específica"}
-                  </div>
-                  <div>
-                    <span className="font-semibold">filtrando por conta:</span>{" "}
-                    {isFilteringByAccount ? "sim" : "não"}
-                  </div>
-                </div>
+              </div>
+
               </div>
             </div>
           </div>

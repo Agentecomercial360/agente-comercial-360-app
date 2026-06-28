@@ -147,6 +147,8 @@ function CustosMargemContent() {
   const [blockingProducts, setBlockingProducts] = useState<BlockingProduct[]>([]);
   const [blockingLoading, setBlockingLoading] = useState(false);
   const [impactReloadKey, setImpactReloadKey] = useState(0);
+  const [dailySeries, setDailySeries] = useState<DailyPoint[]>([]);
+  const [dailyLoading, setDailyLoading] = useState(false);
   const selectedAccountId = activeAccountId ?? null;
   const isAllAccounts = !selectedAccountId;
   const selectedAccountName = selectedAccountId

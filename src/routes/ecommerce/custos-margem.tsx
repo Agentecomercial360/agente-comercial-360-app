@@ -238,6 +238,50 @@ function CustosMargemContent() {
     void load();
   }, [load]);
 
+  // Impacto financeiro bloqueado por falta de custo — somente via RPC.
+  useEffect(() => {
+    if (accountsLoading) return;
+    let cancelled = false;
+    const p_account_id = isAllAccounts ? null : selectedAccountId;
+    // eslint-disable-next-line no-console
+    console.log("CostImpact RPC params", {
+      companyId: COMPANY_ID,
+      activeAccountId: selectedAccountId,
+      p_account_id,
+      activeAccountName: selectedAccountName,
+    });
+    setImpactLoading(true);
+    supabase
+      .rpc("get_ecommerce_cost_impact_summary_v1", {
+        p_company_id: COMPANY_ID,
+        p_account_id,
+      })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error("get_ecommerce_cost_impact_summary_v1 error", error);
+          setImpactSummary(null);
+        } else {
+          const row = Array.isArray(data) ? data[0] : data;
+          setImpactSummary(
+            row
+              ? {
+                  faturamento_bloqueado: Number(row.faturamento_bloqueado ?? 0),
+                  pedidos_pendentes_custo: Number(row.pedidos_pendentes_custo ?? 0),
+                  produtos_vendidos_sem_custo: Number(row.produtos_vendidos_sem_custo ?? 0),
+                  pedidos_lucro_confiavel: Number(row.pedidos_lucro_confiavel ?? 0),
+                }
+              : null,
+          );
+        }
+        setImpactLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [accountsLoading, selectedAccountId, isAllAccounts, selectedAccountName]);
+
+
   const listingsByProduct = useMemo(() => {
     const m = new Map<string, ListingRow[]>();
     for (const l of listings) {

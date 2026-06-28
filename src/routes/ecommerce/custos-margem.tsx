@@ -563,9 +563,8 @@ function CustosMargemContent() {
                 </p>
               </div>
             </div>
-
-            </div>
           </div>
+
           {impactLoading || !impactSummary ? (
             <div className="px-5 py-10 text-center text-sm text-muted-foreground">
               {impactLoading ? "Carregando diagnóstico financeiro…" : "Sem dados retornados pela RPC."}

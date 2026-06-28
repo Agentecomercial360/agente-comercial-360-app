@@ -243,19 +243,13 @@ function CustosMargemContent() {
     if (accountsLoading) return;
     let cancelled = false;
     const p_account_id = isAllAccounts ? null : selectedAccountId;
-    // eslint-disable-next-line no-console
-    console.log("CostImpact RPC params", {
-      companyId: COMPANY_ID,
-      activeAccountId: selectedAccountId,
-      p_account_id,
-      activeAccountName: selectedAccountName,
-    });
     setImpactLoading(true);
     supabase
       .rpc("get_ecommerce_cost_impact_summary_v1", {
         p_company_id: COMPANY_ID,
         p_account_id,
       })
+
       .then(({ data, error }) => {
         if (cancelled) return;
         if (error) {
@@ -567,33 +561,10 @@ function CustosMargemContent() {
                   margem calculados com segurança porque falta o custo unitário dos
                   produtos.
                 </p>
-                <div className="mt-3 grid gap-1.5 rounded-lg border border-amber-200/70 bg-white/60 px-3 py-2 text-[11px] text-amber-900 sm:grid-cols-2">
-                  <div>
-                    <span className="font-semibold">companyId:</span> {COMPANY_ID}
-                  </div>
-                  <div>
-                    <span className="font-semibold">activeAccountId:</span>{" "}
-                    {selectedAccountId ?? "—"}
-                  </div>
-                  <div>
-                    <span className="font-semibold">p_account_id (RPC):</span>{" "}
-                    {isAllAccounts ? "null" : selectedAccountId}
-                  </div>
-                  <div>
-                    <span className="font-semibold">conta ativa:</span> {selectedAccountName}
-                  </div>
-                  <div>
-                    <span className="font-semibold">modo:</span>{" "}
-                    {isAllAccounts ? "Todas as contas" : "Conta específica"}
-                  </div>
-                  <div>
-                    <span className="font-semibold">filtrando por conta:</span>{" "}
-                    {isFilteringByAccount ? "sim" : "não"}
-                  </div>
-                </div>
               </div>
             </div>
           </div>
+
           {impactLoading || !impactSummary ? (
             <div className="px-5 py-10 text-center text-sm text-muted-foreground">
               {impactLoading ? "Carregando diagnóstico financeiro…" : "Sem dados retornados pela RPC."}
@@ -656,11 +627,11 @@ function CustosMargemContent() {
                           {c.label}
                         </div>
                         <div
-                          className={`font-display max-w-full text-2xl md:text-3xl font-bold ${c.tone} tabular-nums whitespace-normal [overflow-wrap:anywhere] leading-tight`}
+                          className={`font-display text-xl sm:text-2xl md:text-3xl font-bold ${c.tone} tabular-nums whitespace-nowrap leading-tight`}
                         >
-
                           {c.value}
                         </div>
+
                         <div className="text-[11px] text-muted-foreground">{c.hint}</div>
                       </div>
                       <div

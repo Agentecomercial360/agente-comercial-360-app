@@ -563,8 +563,9 @@ function CustosMargem() {
                           {c.label}
                         </div>
                         <div
-                          className={`font-display text-2xl md:text-3xl font-bold ${c.tone} tabular-nums truncate`}
+                          className={`font-display text-2xl md:text-3xl font-bold ${c.tone} tabular-nums break-words leading-tight`}
                         >
+
                           {c.value}
                         </div>
                         <div className="text-[11px] text-muted-foreground">{c.hint}</div>

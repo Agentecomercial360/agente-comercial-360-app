@@ -127,6 +127,9 @@ function CustosMargemContent() {
     pedidos_lucro_confiavel: number;
   } | null>(null);
   const [impactLoading, setImpactLoading] = useState(false);
+  const [blockingProducts, setBlockingProducts] = useState<BlockingProduct[]>([]);
+  const [blockingLoading, setBlockingLoading] = useState(false);
+  const [impactReloadKey, setImpactReloadKey] = useState(0);
   const selectedAccountId = activeAccountId ?? null;
   const isAllAccounts = !selectedAccountId;
   const selectedAccountName = selectedAccountId

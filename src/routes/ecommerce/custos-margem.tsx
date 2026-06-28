@@ -96,7 +96,15 @@ function isPausedStatus(s: string | null | undefined): boolean {
 }
 
 function CustosMargem() {
-  const { activeAccountId } = useEcommerceActiveAccount();
+  return (
+    <EcommerceLayout>
+      <CustosMargemContent />
+    </EcommerceLayout>
+  );
+}
+
+function CustosMargemContent() {
+  const { activeAccountId, activeAccount } = useEcommerceActiveAccount();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<ProductRow[]>([]);
@@ -108,6 +116,15 @@ function CustosMargem() {
   const [editing, setEditing] = useState<ProductRow | null>(null);
   const [pendingCostOrders, setPendingCostOrders] = useState<number>(0);
   const [highConfOrders, setHighConfOrders] = useState<number>(0);
+  const selectedAccountId = activeAccountId || activeAccount?.id || null;
+  const selectedAccountName = selectedAccountId
+    ? activeAccount?.account_name ||
+      activeAccount?.nickname ||
+      accounts.get(selectedAccountId)?.account_name ||
+      accounts.get(selectedAccountId)?.nickname ||
+      "Conta ativa"
+    : "Todas as contas";
+  const isFilteringByAccount = Boolean(selectedAccountId);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -137,26 +154,26 @@ function CustosMargem() {
       (accs || []).forEach((a: any) => am.set(a.id, a as AccountRow));
       setAccounts(am);
 
-      // Pedidos filtrados pela conta ativa quando houver.
+      // Pedidos filtrados pelo ID interno da conta ativa quando houver.
       let ordersQuery = supabase
         .from("ecommerce_orders")
         .select("id,account_id")
         .eq("company_id", COMPANY_ID)
         .limit(20000);
-      if (activeAccountId) ordersQuery = ordersQuery.eq("account_id", activeAccountId);
+      if (selectedAccountId) ordersQuery = ordersQuery.eq("account_id", selectedAccountId);
       const { data: ords, error: eo } = await ordersQuery;
       if (eo) throw eo;
       const ordMap = new Map<string, OrderLiteRow>();
       (ords || []).forEach((o: any) => ordMap.set(o.id, o as OrderLiteRow));
       setOrdersById(ordMap);
 
-      // Itens dos pedidos da conta ativa. Quando há conta ativa, restringe via order_id.
+      // Itens sempre passam por ecommerce_orders: o account_id está no pedido, não no item.
       let itemsQuery = supabase
         .from("ecommerce_order_items")
         .select("order_id,product_id,quantity,unit_price,total_price")
         .eq("company_id", COMPANY_ID)
         .limit(50000);
-      if (activeAccountId) {
+      if (selectedAccountId) {
         const orderIds = Array.from(ordMap.keys());
         if (orderIds.length === 0) {
           setOrderItems([]);
@@ -189,7 +206,7 @@ function CustosMargem() {
         setOrderItems((items || []) as OrderItemRow[]);
       }
 
-      // Contagem de pedidos por nível de confiança de lucro, respeitando a conta ativa.
+      // Contagem de pedidos por nível de confiança de lucro, respeitando o ID da conta ativa.
       const baseCount = () =>
         supabase
           .from("ecommerce_orders")
@@ -197,18 +214,20 @@ function CustosMargem() {
           .eq("company_id", COMPANY_ID);
       const pendQ = baseCount().eq("profit_confidence", "pending_cost");
       const highQ = baseCount().eq("profit_confidence", "high");
-      const [{ count: pendCount }, { count: highCount }] = await Promise.all([
-        activeAccountId ? pendQ.eq("account_id", activeAccountId) : pendQ,
-        activeAccountId ? highQ.eq("account_id", activeAccountId) : highQ,
+      const [pendingResult, highResult] = await Promise.all([
+        selectedAccountId ? pendQ.eq("account_id", selectedAccountId) : pendQ,
+        selectedAccountId ? highQ.eq("account_id", selectedAccountId) : highQ,
       ]);
-      setPendingCostOrders(pendCount ?? 0);
-      setHighConfOrders(highCount ?? 0);
+      if (pendingResult.error) throw pendingResult.error;
+      if (highResult.error) throw highResult.error;
+      setPendingCostOrders(pendingResult.count ?? 0);
+      setHighConfOrders(highResult.count ?? 0);
     } catch (e: any) {
       setError(e?.message || "Erro ao carregar produtos.");
     } finally {
       setLoading(false);
     }
-  }, [activeAccountId]);
+  }, [selectedAccountId]);
 
   useEffect(() => {
     void load();
@@ -422,7 +441,7 @@ function CustosMargem() {
   ];
 
   return (
-    <EcommerceLayout>
+    <>
       <div className="space-y-6">
         <header className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
@@ -499,6 +518,22 @@ function CustosMargem() {
                   margem calculados com segurança porque falta o custo unitário dos
                   produtos.
                 </p>
+                <div className="mt-3 grid gap-1.5 rounded-lg border border-amber-200/70 bg-white/60 px-3 py-2 text-[11px] text-amber-900 sm:grid-cols-2">
+                  <div>
+                    <span className="font-semibold">companyId usado:</span> {COMPANY_ID}
+                  </div>
+                  <div>
+                    <span className="font-semibold">activeAccountId usado:</span>{" "}
+                    {selectedAccountId ?? "Todas as contas"}
+                  </div>
+                  <div>
+                    <span className="font-semibold">conta ativa:</span> {selectedAccountName}
+                  </div>
+                  <div>
+                    <span className="font-semibold">filtrando por conta:</span>{" "}
+                    {isFilteringByAccount ? "sim" : "não"}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -563,7 +598,7 @@ function CustosMargem() {
                           {c.label}
                         </div>
                         <div
-                          className={`font-display text-2xl md:text-3xl font-bold ${c.tone} tabular-nums break-words leading-tight`}
+                          className={`font-display max-w-full text-2xl md:text-3xl font-bold ${c.tone} tabular-nums whitespace-normal [overflow-wrap:anywhere] leading-tight`}
                         >
 
                           {c.value}
@@ -952,7 +987,7 @@ function CustosMargem() {
           }}
         />
       )}
-    </EcommerceLayout>
+    </>
   );
 }
 

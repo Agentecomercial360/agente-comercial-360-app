@@ -562,8 +562,8 @@ function CustosMargemContent() {
                   produtos.
                 </p>
               </div>
+            </div>
 
-              </div>
             </div>
           </div>
           {impactLoading || !impactSummary ? (

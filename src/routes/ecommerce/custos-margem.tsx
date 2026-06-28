@@ -569,14 +569,22 @@ function CustosMargemContent() {
                 </p>
                 <div className="mt-3 grid gap-1.5 rounded-lg border border-amber-200/70 bg-white/60 px-3 py-2 text-[11px] text-amber-900 sm:grid-cols-2">
                   <div>
-                    <span className="font-semibold">companyId usado:</span> {COMPANY_ID}
+                    <span className="font-semibold">companyId:</span> {COMPANY_ID}
                   </div>
                   <div>
-                    <span className="font-semibold">activeAccountId usado:</span>{" "}
-                    {selectedAccountId ?? "Todas as contas"}
+                    <span className="font-semibold">activeAccountId:</span>{" "}
+                    {selectedAccountId ?? "—"}
+                  </div>
+                  <div>
+                    <span className="font-semibold">p_account_id (RPC):</span>{" "}
+                    {isAllAccounts ? "null" : selectedAccountId}
                   </div>
                   <div>
                     <span className="font-semibold">conta ativa:</span> {selectedAccountName}
+                  </div>
+                  <div>
+                    <span className="font-semibold">modo:</span>{" "}
+                    {isAllAccounts ? "Todas as contas" : "Conta específica"}
                   </div>
                   <div>
                     <span className="font-semibold">filtrando por conta:</span>{" "}
@@ -586,13 +594,13 @@ function CustosMargemContent() {
               </div>
             </div>
           </div>
-          {loading ? (
+          {impactLoading || !impactSummary ? (
             <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-              Carregando diagnóstico financeiro…
+              {impactLoading ? "Carregando diagnóstico financeiro…" : "Sem dados retornados pela RPC."}
             </div>
-          ) : blockedImpact.blockedRevenue === 0 &&
-            pendingCostOrders === 0 &&
-            blockedImpact.soldNoCostCount === 0 ? (
+          ) : impactSummary.faturamento_bloqueado === 0 &&
+            impactSummary.pedidos_pendentes_custo === 0 &&
+            impactSummary.produtos_vendidos_sem_custo === 0 ? (
             <div className="px-5 py-10 text-center text-sm text-muted-foreground">
               Todos os produtos vendidos possuem custo cadastrado.
             </div>
@@ -601,7 +609,7 @@ function CustosMargemContent() {
               {[
                 {
                   label: "Faturamento bloqueado",
-                  value: formatBRL(blockedImpact.blockedRevenue),
+                  value: formatBRL(impactSummary.faturamento_bloqueado),
                   hint: "Receita sem lucro calculável",
                   icon: DollarSign,
                   accent: "from-rose-600 to-rose-800",
@@ -609,7 +617,7 @@ function CustosMargemContent() {
                 },
                 {
                   label: "Pedidos pendentes de custo",
-                  value: pendingCostOrders.toLocaleString("pt-BR"),
+                  value: impactSummary.pedidos_pendentes_custo.toLocaleString("pt-BR"),
                   hint: "profit_confidence = pending_cost",
                   icon: AlertTriangle,
                   accent: "from-amber-600 to-orange-700",
@@ -617,7 +625,7 @@ function CustosMargemContent() {
                 },
                 {
                   label: "Produtos vendidos sem custo",
-                  value: blockedImpact.soldNoCostCount.toLocaleString("pt-BR"),
+                  value: impactSummary.produtos_vendidos_sem_custo.toLocaleString("pt-BR"),
                   hint: "SKUs aguardando custo",
                   icon: Package,
                   accent: "from-orange-600 to-rose-700",
@@ -625,13 +633,14 @@ function CustosMargemContent() {
                 },
                 {
                   label: "Pedidos com lucro confiável",
-                  value: highConfOrders.toLocaleString("pt-BR"),
+                  value: impactSummary.pedidos_lucro_confiavel.toLocaleString("pt-BR"),
                   hint: "profit_confidence = high",
                   icon: CheckCircle2,
                   accent: "from-emerald-600 to-emerald-800",
                   tone: "text-emerald-700",
                 },
               ].map((c) => {
+
                 const Icon = c.icon;
                 return (
                   <div

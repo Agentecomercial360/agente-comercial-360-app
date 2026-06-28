@@ -199,6 +199,7 @@ function ActiveAccountSelector() {
           onChange={(e) => setActiveAccountId(e.target.value || null)}
           className="appearance-none rounded-lg bg-transparent pl-2 pr-7 py-1 text-xs font-semibold text-foreground outline-none cursor-pointer hover:bg-muted/60 focus:bg-muted/60 max-w-[200px]"
         >
+          <option value="">Todas as contas</option>
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>
               {a.account_name || a.nickname || a.id}

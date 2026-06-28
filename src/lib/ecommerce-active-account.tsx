@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 
 export const ECOMMERCE_COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
 const STORAGE_KEY = "ac360_ecommerce_active_account_id";
+const ALL_ACCOUNTS_STORAGE_VALUE = "__all_accounts__";
 
 export type EcommerceAccount = {
   id: string;
@@ -62,7 +63,8 @@ export function EcommerceActiveAccountProvider({ children }: { children: ReactNo
   const [activeAccountId, setActiveAccountIdState] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
     try {
-      return window.localStorage.getItem(STORAGE_KEY);
+      const stored = window.localStorage.getItem(STORAGE_KEY);
+      return stored === ALL_ACCOUNTS_STORAGE_VALUE ? null : stored;
     } catch {
       return null;
     }
@@ -72,7 +74,7 @@ export function EcommerceActiveAccountProvider({ children }: { children: ReactNo
     setActiveAccountIdState(id);
     try {
       if (id) window.localStorage.setItem(STORAGE_KEY, id);
-      else window.localStorage.removeItem(STORAGE_KEY);
+      else window.localStorage.setItem(STORAGE_KEY, ALL_ACCOUNTS_STORAGE_VALUE);
     } catch {
       /* ignore */
     }
@@ -100,6 +102,14 @@ export function EcommerceActiveAccountProvider({ children }: { children: ReactNo
         setActiveAccountIdState(null);
         return;
       }
+      const allAccountsSelected =
+        typeof window !== "undefined" &&
+        window.localStorage.getItem(STORAGE_KEY) === ALL_ACCOUNTS_STORAGE_VALUE;
+      if (allAccountsSelected) {
+        setActiveAccountIdState(null);
+        return;
+      }
+
       const stored = activeAccountId && list.find((a) => a.id === activeAccountId);
       if (!stored) {
         const nightled = list.find((a) =>

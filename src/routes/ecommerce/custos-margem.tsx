@@ -120,7 +120,15 @@ function CustosMargemContent() {
   const [editing, setEditing] = useState<ProductRow | null>(null);
   const [pendingCostOrders, setPendingCostOrders] = useState<number>(0);
   const [highConfOrders, setHighConfOrders] = useState<number>(0);
-  const selectedAccountId = activeAccountId || activeAccount?.id || null;
+  const [impactSummary, setImpactSummary] = useState<{
+    faturamento_bloqueado: number;
+    pedidos_pendentes_custo: number;
+    produtos_vendidos_sem_custo: number;
+    pedidos_lucro_confiavel: number;
+  } | null>(null);
+  const [impactLoading, setImpactLoading] = useState(false);
+  const selectedAccountId = activeAccountId ?? null;
+  const isAllAccounts = !selectedAccountId;
   const selectedAccountName = selectedAccountId
     ? activeAccount?.account_name ||
       activeAccount?.nickname ||
@@ -129,6 +137,7 @@ function CustosMargemContent() {
       "Conta ativa"
     : "Todas as contas";
   const isFilteringByAccount = Boolean(selectedAccountId);
+
 
   const load = useCallback(async () => {
     if (accountsLoading) return;

@@ -96,6 +96,19 @@ type BlockingProduct = {
   status_acao: string | null;
 };
 
+type DailyPoint = {
+  dia: string;
+  pedidos_total: number;
+  faturamento_total: number;
+  faturamento_bloqueado: number;
+  faturamento_liberado: number;
+  pedidos_pendentes_custo: number;
+  pedidos_lucro_confiavel: number;
+  produtos_vendidos_sem_custo: number;
+};
+
+
+
 
 function formatBRL(v: number | null | undefined): string {
   if (v == null || Number.isNaN(v)) return "—";

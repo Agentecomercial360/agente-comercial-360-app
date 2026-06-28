@@ -80,6 +80,23 @@ type SoldNoCost = {
   priority: "high" | "medium" | "low";
 };
 
+type BlockingProduct = {
+  ranking: number;
+  product_id: string;
+  sku: string | null;
+  product_name: string | null;
+  sale_price: number | null;
+  cost_price: number | null;
+  pedidos: number;
+  unidades_vendidas: number;
+  faturamento_bloqueado: number;
+  percentual_do_bloqueado: number;
+  contas: string[] | string | null;
+  prioridade: string | null;
+  status_acao: string | null;
+};
+
+
 function formatBRL(v: number | null | undefined): string {
   if (v == null || Number.isNaN(v)) return "—";
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });

@@ -337,6 +337,48 @@ function CustosMargemContent() {
     };
   }, [accountsLoading, selectedAccountId, isAllAccounts, impactReloadKey]);
 
+  // Evolução do lucro bloqueado — somente via RPC.
+  useEffect(() => {
+    if (accountsLoading) return;
+    let cancelled = false;
+    const p_account_id = isAllAccounts ? null : selectedAccountId;
+    setDailyLoading(true);
+    supabase
+      .rpc("get_ecommerce_cost_blocking_daily_v1", {
+        p_company_id: COMPANY_ID,
+        p_account_id,
+        p_days: null,
+      })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error("get_ecommerce_cost_blocking_daily_v1 error", error);
+          setDailySeries([]);
+        } else {
+          const rows = (data || []) as DailyPoint[];
+          const norm = rows
+            .map((r) => ({
+              dia: String(r.dia),
+              pedidos_total: Number(r.pedidos_total ?? 0),
+              faturamento_total: Number(r.faturamento_total ?? 0),
+              faturamento_bloqueado: Number(r.faturamento_bloqueado ?? 0),
+              faturamento_liberado: Number(r.faturamento_liberado ?? 0),
+              pedidos_pendentes_custo: Number(r.pedidos_pendentes_custo ?? 0),
+              pedidos_lucro_confiavel: Number(r.pedidos_lucro_confiavel ?? 0),
+              produtos_vendidos_sem_custo: Number(r.produtos_vendidos_sem_custo ?? 0),
+            }))
+            .sort((a, b) => a.dia.localeCompare(b.dia));
+          setDailySeries(norm);
+        }
+        setDailyLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [accountsLoading, selectedAccountId, isAllAccounts, impactReloadKey]);
+
+
+
 
 
 

@@ -627,11 +627,11 @@ function CustosMargemContent() {
                           {c.label}
                         </div>
                         <div
-                          className={`font-display max-w-full text-2xl md:text-3xl font-bold ${c.tone} tabular-nums whitespace-normal [overflow-wrap:anywhere] leading-tight`}
+                          className={`font-display text-xl sm:text-2xl md:text-3xl font-bold ${c.tone} tabular-nums whitespace-nowrap leading-tight`}
                         >
-
                           {c.value}
                         </div>
+
                         <div className="text-[11px] text-muted-foreground">{c.hint}</div>
                       </div>
                       <div

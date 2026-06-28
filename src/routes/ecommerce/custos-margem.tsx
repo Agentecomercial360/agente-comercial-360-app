@@ -96,6 +96,7 @@ function isPausedStatus(s: string | null | undefined): boolean {
 }
 
 function CustosMargem() {
+  const { activeAccountId } = useEcommerceActiveAccount();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [products, setProducts] = useState<ProductRow[]>([]);
@@ -136,37 +137,69 @@ function CustosMargem() {
       (accs || []).forEach((a: any) => am.set(a.id, a as AccountRow));
       setAccounts(am);
 
-      // Vendas para a seção "Produtos vendidos sem custo".
-      const { data: ords, error: eo } = await supabase
+      // Pedidos filtrados pela conta ativa quando houver.
+      let ordersQuery = supabase
         .from("ecommerce_orders")
         .select("id,account_id")
         .eq("company_id", COMPANY_ID)
         .limit(20000);
+      if (activeAccountId) ordersQuery = ordersQuery.eq("account_id", activeAccountId);
+      const { data: ords, error: eo } = await ordersQuery;
       if (eo) throw eo;
       const ordMap = new Map<string, OrderLiteRow>();
       (ords || []).forEach((o: any) => ordMap.set(o.id, o as OrderLiteRow));
       setOrdersById(ordMap);
 
-      const { data: items, error: ei } = await supabase
+      // Itens dos pedidos da conta ativa. Quando há conta ativa, restringe via order_id.
+      let itemsQuery = supabase
         .from("ecommerce_order_items")
         .select("order_id,product_id,quantity,unit_price,total_price")
         .eq("company_id", COMPANY_ID)
         .limit(50000);
-      if (ei) throw ei;
-      setOrderItems((items || []) as OrderItemRow[]);
+      if (activeAccountId) {
+        const orderIds = Array.from(ordMap.keys());
+        if (orderIds.length === 0) {
+          setOrderItems([]);
+        } else {
+          // Supabase `in()` limita lista — chunk se necessário.
+          const chunks: string[][] = [];
+          for (let i = 0; i < orderIds.length; i += 1000) {
+            chunks.push(orderIds.slice(i, i + 1000));
+          }
+          const results = await Promise.all(
+            chunks.map((c) =>
+              supabase
+                .from("ecommerce_order_items")
+                .select("order_id,product_id,quantity,unit_price,total_price")
+                .eq("company_id", COMPANY_ID)
+                .in("order_id", c)
+                .limit(50000),
+            ),
+          );
+          const all: OrderItemRow[] = [];
+          for (const r of results) {
+            if (r.error) throw r.error;
+            all.push(...((r.data || []) as OrderItemRow[]));
+          }
+          setOrderItems(all);
+        }
+      } else {
+        const { data: items, error: ei } = await itemsQuery;
+        if (ei) throw ei;
+        setOrderItems((items || []) as OrderItemRow[]);
+      }
 
-      // Contagem de pedidos por nível de confiança de lucro.
+      // Contagem de pedidos por nível de confiança de lucro, respeitando a conta ativa.
+      const baseCount = () =>
+        supabase
+          .from("ecommerce_orders")
+          .select("id", { count: "exact", head: true })
+          .eq("company_id", COMPANY_ID);
+      const pendQ = baseCount().eq("profit_confidence", "pending_cost");
+      const highQ = baseCount().eq("profit_confidence", "high");
       const [{ count: pendCount }, { count: highCount }] = await Promise.all([
-        supabase
-          .from("ecommerce_orders")
-          .select("id", { count: "exact", head: true })
-          .eq("company_id", COMPANY_ID)
-          .eq("profit_confidence", "pending_cost"),
-        supabase
-          .from("ecommerce_orders")
-          .select("id", { count: "exact", head: true })
-          .eq("company_id", COMPANY_ID)
-          .eq("profit_confidence", "high"),
+        activeAccountId ? pendQ.eq("account_id", activeAccountId) : pendQ,
+        activeAccountId ? highQ.eq("account_id", activeAccountId) : highQ,
       ]);
       setPendingCostOrders(pendCount ?? 0);
       setHighConfOrders(highCount ?? 0);
@@ -175,7 +208,7 @@ function CustosMargem() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeAccountId]);
 
   useEffect(() => {
     void load();

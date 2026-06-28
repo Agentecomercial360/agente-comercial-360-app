@@ -1061,6 +1061,7 @@ function CustosMargemContent() {
           onClose={() => setEditing(null)}
           onSaved={async () => {
             setEditing(null);
+            setImpactReloadKey((k) => k + 1);
             await load();
           }}
         />

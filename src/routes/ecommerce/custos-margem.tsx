@@ -126,6 +126,97 @@ function formatBRL(v: number | null | undefined): string {
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+function formatBRLZero(v: number | null | undefined): string {
+  const n = Number(v ?? 0);
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function parseDayUTC(d: string): Date {
+  // RPC returns dates as 'YYYY-MM-DD' or ISO. Parse without TZ skew.
+  const s = String(d).slice(0, 10);
+  const [y, m, day] = s.split("-").map(Number);
+  return new Date(Date.UTC(y, (m || 1) - 1, day || 1));
+}
+
+function formatDayShort(d: string): string {
+  const dt = parseDayUTC(d);
+  return dt.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "UTC",
+  });
+}
+
+function formatDayLong(d: string): string {
+  const dt = parseDayUTC(d);
+  return dt.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function DailyTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: DailyPoint }>;
+}) {
+  if (!active || !payload || payload.length === 0) return null;
+  const p = payload[0].payload;
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs shadow-lg">
+      <div className="mb-1.5 font-semibold text-foreground">{formatDayLong(p.dia)}</div>
+      <div className="grid gap-1">
+        <Row label="Faturamento total" value={formatBRLZero(p.faturamento_total)} />
+        <Row
+          label="Faturamento bloqueado"
+          value={formatBRLZero(p.faturamento_bloqueado)}
+          color="text-rose-700"
+        />
+        <Row
+          label="Faturamento liberado"
+          value={formatBRLZero(p.faturamento_liberado)}
+          color="text-emerald-700"
+        />
+        <div className="mt-1 border-t border-slate-100 pt-1.5 grid gap-0.5 text-[11px] text-muted-foreground">
+          <div className="flex justify-between gap-6">
+            <span>Pedidos pendentes de custo</span>
+            <span className="font-medium text-foreground">
+              {p.pedidos_pendentes_custo.toLocaleString("pt-BR")}
+            </span>
+          </div>
+          <div className="flex justify-between gap-6">
+            <span>Pedidos com lucro confiável</span>
+            <span className="font-medium text-foreground">
+              {p.pedidos_lucro_confiavel.toLocaleString("pt-BR")}
+            </span>
+          </div>
+          <div className="flex justify-between gap-6">
+            <span>Produtos vendidos sem custo</span>
+            <span className="font-medium text-foreground">
+              {p.produtos_vendidos_sem_custo.toLocaleString("pt-BR")}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, value, color }: { label: string; value: string; color?: string }) {
+  return (
+    <div className="flex justify-between gap-6">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={`font-semibold ${color ?? "text-foreground"}`}>{value}</span>
+    </div>
+  );
+}
+
+
+
 function isActiveStatus(s: string | null | undefined): boolean {
   const k = (s ?? "").toLowerCase();
   return k === "active" || k === "ativo" || k === "ativa";

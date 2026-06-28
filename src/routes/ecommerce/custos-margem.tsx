@@ -764,6 +764,101 @@ function CustosMargemContent() {
           )}
         </section>
 
+        {/* Evolução do lucro bloqueado */}
+        <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/40 to-white shadow-[var(--shadow-soft)] overflow-hidden">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/70 px-5 py-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-white shadow-md">
+                <TrendingUp className="h-5 w-5" />
+              </div>
+              <div className="space-y-1 max-w-3xl">
+                <h2 className="font-display text-lg font-bold text-foreground">
+                  Evolução do lucro bloqueado
+                </h2>
+                <p className="text-xs md:text-[13px] text-muted-foreground">
+                  Mostra por dia quanto do faturamento ainda está sem lucro calculável por falta
+                  de custo cadastrado.
+                </p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-[11px] font-semibold text-slate-700">
+              {selectedAccountName}
+            </span>
+          </div>
+
+          <div className="p-5">
+            {dailyLoading ? (
+              <div className="py-16 text-center text-sm text-muted-foreground">
+                Carregando evolução…
+              </div>
+            ) : dailySeries.length === 0 ? (
+              <div className="py-16 text-center text-sm text-muted-foreground">
+                Sem dados financeiros para o período selecionado.
+              </div>
+            ) : (
+              <div className="h-[360px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart
+                    data={dailySeries}
+                    margin={{ top: 10, right: 20, left: 0, bottom: 5 }}
+                  >
+                    <defs>
+                      <linearGradient id="gradBlocked" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#e11d48" stopOpacity={0.95} />
+                        <stop offset="100%" stopColor="#e11d48" stopOpacity={0.55} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                    <XAxis
+                      dataKey="dia"
+                      tickFormatter={formatDayShort}
+                      tick={{ fontSize: 11, fill: "#64748b" }}
+                      tickLine={false}
+                      axisLine={{ stroke: "#cbd5e1" }}
+                    />
+                    <YAxis
+                      tickFormatter={(v: number) =>
+                        v >= 1000
+                          ? `R$ ${(v / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}k`
+                          : `R$ ${v}`
+                      }
+                      tick={{ fontSize: 11, fill: "#64748b" }}
+                      tickLine={false}
+                      axisLine={{ stroke: "#cbd5e1" }}
+                      width={70}
+                    />
+                    <RTooltip content={<DailyTooltip />} />
+                    <Legend
+                      wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+                      formatter={(value) =>
+                        value === "faturamento_bloqueado"
+                          ? "Faturamento bloqueado"
+                          : "Faturamento liberado"
+                      }
+                    />
+                    <Bar
+                      dataKey="faturamento_bloqueado"
+                      fill="url(#gradBlocked)"
+                      radius={[6, 6, 0, 0]}
+                      maxBarSize={48}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="faturamento_liberado"
+                      stroke="#059669"
+                      strokeWidth={2.5}
+                      dot={{ r: 3, fill: "#059669" }}
+                      activeDot={{ r: 5 }}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        </section>
+
+
+
         {/* Produtos que mais bloqueiam lucro real */}
         <section className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50/60 via-white to-amber-50/40 shadow-[var(--shadow-soft)] overflow-hidden">
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-orange-200/70 px-5 py-4">

@@ -16,6 +16,17 @@ import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
 import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
+import {
+  ResponsiveContainer,
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RTooltip,
+  Legend,
+} from "recharts";
 
 export const Route = createFileRoute("/ecommerce/custos-margem")({
   component: CustosMargem,

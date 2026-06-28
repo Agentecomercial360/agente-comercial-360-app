@@ -243,19 +243,13 @@ function CustosMargemContent() {
     if (accountsLoading) return;
     let cancelled = false;
     const p_account_id = isAllAccounts ? null : selectedAccountId;
-    // eslint-disable-next-line no-console
-    console.log("CostImpact RPC params", {
-      companyId: COMPANY_ID,
-      activeAccountId: selectedAccountId,
-      p_account_id,
-      activeAccountName: selectedAccountName,
-    });
     setImpactLoading(true);
     supabase
       .rpc("get_ecommerce_cost_impact_summary_v1", {
         p_company_id: COMPANY_ID,
         p_account_id,
       })
+
       .then(({ data, error }) => {
         if (cancelled) return;
         if (error) {

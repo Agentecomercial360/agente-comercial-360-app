@@ -80,6 +80,23 @@ type SoldNoCost = {
   priority: "high" | "medium" | "low";
 };
 
+type BlockingProduct = {
+  ranking: number;
+  product_id: string;
+  sku: string | null;
+  product_name: string | null;
+  sale_price: number | null;
+  cost_price: number | null;
+  pedidos: number;
+  unidades_vendidas: number;
+  faturamento_bloqueado: number;
+  percentual_do_bloqueado: number;
+  contas: string[] | string | null;
+  prioridade: string | null;
+  status_acao: string | null;
+};
+
+
 function formatBRL(v: number | null | undefined): string {
   if (v == null || Number.isNaN(v)) return "—";
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -127,6 +144,9 @@ function CustosMargemContent() {
     pedidos_lucro_confiavel: number;
   } | null>(null);
   const [impactLoading, setImpactLoading] = useState(false);
+  const [blockingProducts, setBlockingProducts] = useState<BlockingProduct[]>([]);
+  const [blockingLoading, setBlockingLoading] = useState(false);
+  const [impactReloadKey, setImpactReloadKey] = useState(0);
   const selectedAccountId = activeAccountId ?? null;
   const isAllAccounts = !selectedAccountId;
   const selectedAccountName = selectedAccountId
@@ -273,7 +293,36 @@ function CustosMargemContent() {
     return () => {
       cancelled = true;
     };
-  }, [accountsLoading, selectedAccountId, isAllAccounts, selectedAccountName]);
+  }, [accountsLoading, selectedAccountId, isAllAccounts, selectedAccountName, impactReloadKey]);
+
+  // Produtos que mais bloqueiam lucro real — somente via RPC.
+  useEffect(() => {
+    if (accountsLoading) return;
+    let cancelled = false;
+    const p_account_id = isAllAccounts ? null : selectedAccountId;
+    setBlockingLoading(true);
+    supabase
+      .rpc("get_ecommerce_cost_blocking_products_v1", {
+        p_company_id: COMPANY_ID,
+        p_account_id,
+        p_limit: 20,
+      })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error("get_ecommerce_cost_blocking_products_v1 error", error);
+          setBlockingProducts([]);
+        } else {
+          setBlockingProducts((data || []) as BlockingProduct[]);
+        }
+        setBlockingLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [accountsLoading, selectedAccountId, isAllAccounts, impactReloadKey]);
+
+
 
 
   const listingsByProduct = useMemo(() => {
@@ -647,8 +696,186 @@ function CustosMargemContent() {
           )}
         </section>
 
+        {/* Produtos que mais bloqueiam lucro real */}
+        <section className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50/60 via-white to-amber-50/40 shadow-[var(--shadow-soft)] overflow-hidden">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-orange-200/70 px-5 py-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-600 to-rose-700 text-white shadow-md">
+                <TrendingUp className="h-5 w-5" />
+              </div>
+              <div className="space-y-1 max-w-3xl">
+                <h2 className="font-display text-lg font-bold text-foreground">
+                  Produtos que mais bloqueiam lucro real
+                </h2>
+                <p className="text-xs md:text-[13px] text-muted-foreground">
+                  Esses produtos concentram o maior faturamento ainda sem custo cadastrado.
+                  Atualizar esses custos libera lucro real, margem real e ranking de
+                  rentabilidade.
+                </p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-white/70 px-3 py-1 text-[11px] font-semibold text-orange-700">
+              Top {blockingProducts.length}
+            </span>
+          </div>
+
+          {blockingLoading ? (
+            <div className="px-5 py-10 text-center text-sm text-muted-foreground">
+              Carregando ranking…
+            </div>
+          ) : blockingProducts.length === 0 ? (
+            <div className="px-5 py-10 text-center text-sm text-muted-foreground">
+              Nenhum produto bloqueando lucro real no filtro atual.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-white/60 text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <th className="text-center px-3 py-3 font-semibold">#</th>
+                    <th className="text-left px-3 py-3 font-semibold">SKU</th>
+                    <th className="text-left px-3 py-3 font-semibold">Produto</th>
+                    <th className="text-right px-3 py-3 font-semibold">Faturamento bloqueado</th>
+                    <th className="text-right px-3 py-3 font-semibold">% do bloqueado</th>
+                    <th className="text-right px-3 py-3 font-semibold">Unidades</th>
+                    <th className="text-right px-3 py-3 font-semibold">Pedidos</th>
+                    <th className="text-left px-3 py-3 font-semibold">Contas</th>
+                    <th className="text-center px-3 py-3 font-semibold">Prioridade</th>
+                    <th className="text-center px-3 py-3 font-semibold">Status</th>
+                    <th className="text-right px-3 py-3 font-semibold">Ação</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-orange-100">
+                  {blockingProducts.map((b) => {
+                    const isTop10 = b.ranking <= 10;
+                    const prioRaw = (b.prioridade ?? "").toLowerCase();
+                    const isHigh = isTop10 || prioRaw.includes("alta") || prioRaw === "high";
+                    const isMed = !isHigh && (prioRaw.includes("med") || prioRaw === "medium");
+                    const prio = isHigh
+                      ? { label: "Alta", cls: "bg-rose-100 text-rose-700 border-rose-200" }
+                      : isMed
+                        ? { label: "Média", cls: "bg-amber-100 text-amber-800 border-amber-200" }
+                        : {
+                            label: b.prioridade || "Baixa",
+                            cls: "bg-slate-100 text-slate-700 border-slate-200",
+                          };
+                    const contasList = Array.isArray(b.contas)
+                      ? b.contas
+                      : typeof b.contas === "string" && b.contas
+                        ? b.contas.split(",").map((s) => s.trim()).filter(Boolean)
+                        : [];
+                    const pct = Number(b.percentual_do_bloqueado ?? 0);
+                    return (
+                      <tr
+                        key={b.product_id}
+                        className={`transition hover:bg-white/70 ${
+                          isTop10 ? "bg-orange-50/40" : ""
+                        }`}
+                      >
+                        <td className="px-3 py-3 text-center">
+                          <span
+                            className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-[11px] font-bold ${
+                              isHigh
+                                ? "bg-gradient-to-br from-orange-600 to-rose-700 text-white"
+                                : "bg-muted text-foreground/70"
+                            }`}
+                          >
+                            {b.ranking}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 font-mono text-xs text-muted-foreground">
+                          {b.sku ?? "—"}
+                        </td>
+                        <td className="px-3 py-3">
+                          <div className="font-semibold text-foreground leading-tight">
+                            {b.product_name ?? "Produto sem nome"}
+                          </div>
+                          <div className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">
+                            Preço {formatBRL(b.sale_price)}
+                          </div>
+                        </td>
+                        <td className="px-3 py-3 text-right tabular-nums font-bold text-rose-700 whitespace-nowrap">
+                          {formatBRL(b.faturamento_bloqueado)}
+                        </td>
+                        <td className="px-3 py-3 text-right tabular-nums font-semibold text-foreground">
+                          {pct.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}%
+                        </td>
+                        <td className="px-3 py-3 text-right tabular-nums">
+                          {Number(b.unidades_vendidas ?? 0).toLocaleString("pt-BR")}
+                        </td>
+                        <td className="px-3 py-3 text-right tabular-nums">
+                          {Number(b.pedidos ?? 0).toLocaleString("pt-BR")}
+                        </td>
+                        <td className="px-3 py-3 text-xs">
+                          {contasList.length === 0 ? (
+                            <span className="text-muted-foreground">—</span>
+                          ) : (
+                            <div className="flex flex-wrap gap-1">
+                              {contasList.slice(0, 3).map((n, i) => (
+                                <span
+                                  key={i}
+                                  className="rounded-md border border-border bg-white/70 px-1.5 py-0.5 text-[10px] text-foreground/80"
+                                >
+                                  {n}
+                                </span>
+                              ))}
+                              {contasList.length > 3 && (
+                                <span className="text-[10px] text-muted-foreground">
+                                  +{contasList.length - 3}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <span
+                            className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${prio.cls}`}
+                          >
+                            {prio.label}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-center">
+                          <span className="inline-flex items-center gap-1 rounded-full border border-border bg-white/70 px-2 py-0.5 text-[11px] font-medium text-foreground/80">
+                            {b.status_acao || "Pendente"}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3 text-right">
+                          <button
+                            onClick={() => {
+                              const existing = products.find((p) => p.id === b.product_id);
+                              setEditing(
+                                existing ?? {
+                                  id: b.product_id,
+                                  sku: b.sku,
+                                  product_name: b.product_name,
+                                  category: null,
+                                  sale_price: b.sale_price,
+                                  cost_price: b.cost_price,
+                                  status: null,
+                                },
+                              );
+                            }}
+                            className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold text-white transition ${
+                              isHigh
+                                ? "bg-rose-700 hover:bg-rose-800"
+                                : "bg-blue-700 hover:bg-blue-800"
+                            }`}
+                          >
+                            <Pencil className="h-3 w-3" />
+                            Atualizar custo
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
 
         {/* Produtos vendidos sem custo */}
+
         <section className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50/60 to-amber-50/40 shadow-[var(--shadow-soft)] overflow-hidden">
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-rose-200/70 px-5 py-4">
             <div className="flex items-start gap-3">
@@ -1012,6 +1239,7 @@ function CustosMargemContent() {
           onClose={() => setEditing(null)}
           onSaved={async () => {
             setEditing(null);
+            setImpactReloadKey((k) => k + 1);
             await load();
           }}
         />

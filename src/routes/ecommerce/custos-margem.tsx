@@ -293,7 +293,36 @@ function CustosMargemContent() {
     return () => {
       cancelled = true;
     };
-  }, [accountsLoading, selectedAccountId, isAllAccounts, selectedAccountName]);
+  }, [accountsLoading, selectedAccountId, isAllAccounts, selectedAccountName, impactReloadKey]);
+
+  // Produtos que mais bloqueiam lucro real — somente via RPC.
+  useEffect(() => {
+    if (accountsLoading) return;
+    let cancelled = false;
+    const p_account_id = isAllAccounts ? null : selectedAccountId;
+    setBlockingLoading(true);
+    supabase
+      .rpc("get_ecommerce_cost_blocking_products_v1", {
+        p_company_id: COMPANY_ID,
+        p_account_id,
+        p_limit: 20,
+      })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error("get_ecommerce_cost_blocking_products_v1 error", error);
+          setBlockingProducts([]);
+        } else {
+          setBlockingProducts((data || []) as BlockingProduct[]);
+        }
+        setBlockingLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [accountsLoading, selectedAccountId, isAllAccounts, impactReloadKey]);
+
+
 
 
   const listingsByProduct = useMemo(() => {

@@ -16,6 +16,17 @@ import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
 import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
+import {
+  ResponsiveContainer,
+  ComposedChart,
+  Bar,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RTooltip,
+  Legend,
+} from "recharts";
 
 export const Route = createFileRoute("/ecommerce/custos-margem")({
   component: CustosMargem,
@@ -96,11 +107,115 @@ type BlockingProduct = {
   status_acao: string | null;
 };
 
+type DailyPoint = {
+  dia: string;
+  pedidos_total: number;
+  faturamento_total: number;
+  faturamento_bloqueado: number;
+  faturamento_liberado: number;
+  pedidos_pendentes_custo: number;
+  pedidos_lucro_confiavel: number;
+  produtos_vendidos_sem_custo: number;
+};
+
+
+
 
 function formatBRL(v: number | null | undefined): string {
   if (v == null || Number.isNaN(v)) return "—";
   return v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
+
+function formatBRLZero(v: number | null | undefined): string {
+  const n = Number(v ?? 0);
+  return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+function parseDayUTC(d: string): Date {
+  // RPC returns dates as 'YYYY-MM-DD' or ISO. Parse without TZ skew.
+  const s = String(d).slice(0, 10);
+  const [y, m, day] = s.split("-").map(Number);
+  return new Date(Date.UTC(y, (m || 1) - 1, day || 1));
+}
+
+function formatDayShort(d: string): string {
+  const dt = parseDayUTC(d);
+  return dt.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "UTC",
+  });
+}
+
+function formatDayLong(d: string): string {
+  const dt = parseDayUTC(d);
+  return dt.toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function DailyTooltip({
+  active,
+  payload,
+}: {
+  active?: boolean;
+  payload?: Array<{ payload: DailyPoint }>;
+}) {
+  if (!active || !payload || payload.length === 0) return null;
+  const p = payload[0].payload;
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs shadow-lg">
+      <div className="mb-1.5 font-semibold text-foreground">{formatDayLong(p.dia)}</div>
+      <div className="grid gap-1">
+        <Row label="Faturamento total" value={formatBRLZero(p.faturamento_total)} />
+        <Row
+          label="Faturamento bloqueado"
+          value={formatBRLZero(p.faturamento_bloqueado)}
+          color="text-rose-700"
+        />
+        <Row
+          label="Faturamento liberado"
+          value={formatBRLZero(p.faturamento_liberado)}
+          color="text-emerald-700"
+        />
+        <div className="mt-1 border-t border-slate-100 pt-1.5 grid gap-0.5 text-[11px] text-muted-foreground">
+          <div className="flex justify-between gap-6">
+            <span>Pedidos pendentes de custo</span>
+            <span className="font-medium text-foreground">
+              {p.pedidos_pendentes_custo.toLocaleString("pt-BR")}
+            </span>
+          </div>
+          <div className="flex justify-between gap-6">
+            <span>Pedidos com lucro confiável</span>
+            <span className="font-medium text-foreground">
+              {p.pedidos_lucro_confiavel.toLocaleString("pt-BR")}
+            </span>
+          </div>
+          <div className="flex justify-between gap-6">
+            <span>Produtos vendidos sem custo</span>
+            <span className="font-medium text-foreground">
+              {p.produtos_vendidos_sem_custo.toLocaleString("pt-BR")}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, value, color }: { label: string; value: string; color?: string }) {
+  return (
+    <div className="flex justify-between gap-6">
+      <span className="text-muted-foreground">{label}</span>
+      <span className={`font-semibold ${color ?? "text-foreground"}`}>{value}</span>
+    </div>
+  );
+}
+
+
 
 function isActiveStatus(s: string | null | undefined): boolean {
   const k = (s ?? "").toLowerCase();
@@ -147,6 +262,8 @@ function CustosMargemContent() {
   const [blockingProducts, setBlockingProducts] = useState<BlockingProduct[]>([]);
   const [blockingLoading, setBlockingLoading] = useState(false);
   const [impactReloadKey, setImpactReloadKey] = useState(0);
+  const [dailySeries, setDailySeries] = useState<DailyPoint[]>([]);
+  const [dailyLoading, setDailyLoading] = useState(false);
   const selectedAccountId = activeAccountId ?? null;
   const isAllAccounts = !selectedAccountId;
   const selectedAccountName = selectedAccountId
@@ -321,6 +438,48 @@ function CustosMargemContent() {
       cancelled = true;
     };
   }, [accountsLoading, selectedAccountId, isAllAccounts, impactReloadKey]);
+
+  // Evolução do lucro bloqueado — somente via RPC.
+  useEffect(() => {
+    if (accountsLoading) return;
+    let cancelled = false;
+    const p_account_id = isAllAccounts ? null : selectedAccountId;
+    setDailyLoading(true);
+    supabase
+      .rpc("get_ecommerce_cost_blocking_daily_v1", {
+        p_company_id: COMPANY_ID,
+        p_account_id,
+        p_days: null,
+      })
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          console.error("get_ecommerce_cost_blocking_daily_v1 error", error);
+          setDailySeries([]);
+        } else {
+          const rows = (data || []) as DailyPoint[];
+          const norm = rows
+            .map((r) => ({
+              dia: String(r.dia),
+              pedidos_total: Number(r.pedidos_total ?? 0),
+              faturamento_total: Number(r.faturamento_total ?? 0),
+              faturamento_bloqueado: Number(r.faturamento_bloqueado ?? 0),
+              faturamento_liberado: Number(r.faturamento_liberado ?? 0),
+              pedidos_pendentes_custo: Number(r.pedidos_pendentes_custo ?? 0),
+              pedidos_lucro_confiavel: Number(r.pedidos_lucro_confiavel ?? 0),
+              produtos_vendidos_sem_custo: Number(r.produtos_vendidos_sem_custo ?? 0),
+            }))
+            .sort((a, b) => a.dia.localeCompare(b.dia));
+          setDailySeries(norm);
+        }
+        setDailyLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [accountsLoading, selectedAccountId, isAllAccounts, impactReloadKey]);
+
+
 
 
 
@@ -695,6 +854,101 @@ function CustosMargemContent() {
             </div>
           )}
         </section>
+
+        {/* Evolução do lucro bloqueado */}
+        <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/40 to-white shadow-[var(--shadow-soft)] overflow-hidden">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/70 px-5 py-4">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-800 to-slate-600 text-white shadow-md">
+                <TrendingUp className="h-5 w-5" />
+              </div>
+              <div className="space-y-1 max-w-3xl">
+                <h2 className="font-display text-lg font-bold text-foreground">
+                  Evolução do lucro bloqueado
+                </h2>
+                <p className="text-xs md:text-[13px] text-muted-foreground">
+                  Mostra por dia quanto do faturamento ainda está sem lucro calculável por falta
+                  de custo cadastrado.
+                </p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/70 px-3 py-1 text-[11px] font-semibold text-slate-700">
+              {selectedAccountName}
+            </span>
+          </div>
+
+          <div className="p-5">
+            {dailyLoading ? (
+              <div className="py-16 text-center text-sm text-muted-foreground">
+                Carregando evolução…
+              </div>
+            ) : dailySeries.length === 0 ? (
+              <div className="py-16 text-center text-sm text-muted-foreground">
+                Sem dados financeiros para o período selecionado.
+              </div>
+            ) : (
+              <div className="h-[360px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart
+                    data={dailySeries}
+                    margin={{ top: 10, right: 20, left: 0, bottom: 5 }}
+                  >
+                    <defs>
+                      <linearGradient id="gradBlocked" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#e11d48" stopOpacity={0.95} />
+                        <stop offset="100%" stopColor="#e11d48" stopOpacity={0.55} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                    <XAxis
+                      dataKey="dia"
+                      tickFormatter={formatDayShort}
+                      tick={{ fontSize: 11, fill: "#64748b" }}
+                      tickLine={false}
+                      axisLine={{ stroke: "#cbd5e1" }}
+                    />
+                    <YAxis
+                      tickFormatter={(v: number) =>
+                        v >= 1000
+                          ? `R$ ${(v / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}k`
+                          : `R$ ${v}`
+                      }
+                      tick={{ fontSize: 11, fill: "#64748b" }}
+                      tickLine={false}
+                      axisLine={{ stroke: "#cbd5e1" }}
+                      width={70}
+                    />
+                    <RTooltip content={<DailyTooltip />} />
+                    <Legend
+                      wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+                      formatter={(value) =>
+                        value === "faturamento_bloqueado"
+                          ? "Faturamento bloqueado"
+                          : "Faturamento liberado"
+                      }
+                    />
+                    <Bar
+                      dataKey="faturamento_bloqueado"
+                      fill="url(#gradBlocked)"
+                      radius={[6, 6, 0, 0]}
+                      maxBarSize={48}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="faturamento_liberado"
+                      stroke="#059669"
+                      strokeWidth={2.5}
+                      dot={{ r: 3, fill: "#059669" }}
+                      activeDot={{ r: 5 }}
+                    />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        </section>
+
+
 
         {/* Produtos que mais bloqueiam lucro real */}
         <section className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50/60 via-white to-amber-50/40 shadow-[var(--shadow-soft)] overflow-hidden">

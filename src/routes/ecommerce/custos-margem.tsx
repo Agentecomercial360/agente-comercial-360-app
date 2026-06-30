@@ -868,10 +868,10 @@ function CustosMargemContent() {
               </div>
               <div className="space-y-1 max-w-3xl">
                 <h2 className="font-display text-lg md:text-xl font-bold text-slate-900">
-                  Diagnóstico financeiro da operação
+                  Diagnóstico financeiro da conta
                 </h2>
                 <p className="text-xs md:text-[13px] text-slate-600">
-                  Indicadores executivos do faturamento real cruzado com a base de custos cadastrados.
+                  Indicadores executivos da conta selecionada — faturamento real cruzado com os custos cadastrados.
                 </p>
               </div>
             </div>

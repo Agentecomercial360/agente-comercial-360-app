@@ -757,42 +757,42 @@ function CustosMargemContent() {
         )}
 
         {/* Impacto financeiro bloqueado por falta de custo */}
-        <section className="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50/70 via-white to-rose-50/40 shadow-[var(--shadow-soft)] overflow-hidden">
-          <div className="border-b border-amber-200/70 px-5 py-4">
+        <section className="rounded-2xl border border-slate-200 bg-white shadow-[var(--shadow-soft)] overflow-hidden">
+          <div className="border-b border-slate-200 px-5 py-4 md:px-6 md:py-5 bg-gradient-to-r from-slate-50/80 to-white">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-600 to-rose-700 text-white shadow-md">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-700 to-slate-900 text-white shadow-md">
                 <DollarSign className="h-5 w-5" />
               </div>
               <div className="space-y-1 max-w-3xl">
-                <h2 className="font-display text-lg font-bold text-foreground">
-                  Impacto financeiro bloqueado por falta de custo
+                <h2 className="font-display text-lg md:text-xl font-bold text-slate-900">
+                  Diagnóstico financeiro da operação
                 </h2>
-                <p className="text-xs md:text-[13px] text-muted-foreground">
-                  Esses valores representam vendas reais que ainda não podem ter lucro e
-                  margem calculados com segurança porque falta o custo unitário dos
-                  produtos.
+                <p className="text-xs md:text-[13px] text-slate-600">
+                  Indicadores executivos do faturamento real cruzado com a base de custos cadastrados.
                 </p>
               </div>
             </div>
           </div>
 
           {impactLoading || !impactSummary ? (
-            <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-              {impactLoading ? "Carregando diagnóstico financeiro…" : "Sem dados retornados pela RPC."}
+            <div className="px-5 py-12 text-center text-sm text-slate-500">
+              {impactLoading
+                ? "Carregando diagnóstico financeiro…"
+                : "Lucro aguardando cadastro de custo."}
             </div>
           ) : impactSummary.faturamento_bloqueado === 0 &&
             impactSummary.pedidos_pendentes_custo === 0 &&
             impactSummary.produtos_vendidos_sem_custo === 0 ? (
-            <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-              Todos os produtos vendidos possuem custo cadastrado.
+            <div className="px-5 py-12 text-center text-sm text-slate-500">
+              Todos os produtos vendidos possuem custo cadastrado. Margem real liberada.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 p-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 p-5 md:p-6">
               {[
                 {
                   label: "Faturamento bloqueado",
                   value: formatBRL(impactSummary.faturamento_bloqueado),
-                  hint: "Receita sem lucro calculável",
+                  hint: "Valor vendido que ainda não possui margem real por falta de custo cadastrado.",
                   icon: DollarSign,
                   accent: "from-rose-600 to-rose-800",
                   tone: "text-rose-700",
@@ -800,7 +800,7 @@ function CustosMargemContent() {
                 {
                   label: "Pedidos pendentes de custo",
                   value: impactSummary.pedidos_pendentes_custo.toLocaleString("pt-BR"),
-                  hint: "profit_confidence = pending_cost",
+                  hint: "Pedidos reais sincronizados, mas ainda sem lucro validado.",
                   icon: AlertTriangle,
                   accent: "from-amber-600 to-orange-700",
                   tone: "text-amber-700",
@@ -808,7 +808,7 @@ function CustosMargemContent() {
                 {
                   label: "Produtos vendidos sem custo",
                   value: impactSummary.produtos_vendidos_sem_custo.toLocaleString("pt-BR"),
-                  hint: "SKUs aguardando custo",
+                  hint: "Produtos que precisam de custo para liberar o cálculo de margem.",
                   icon: Package,
                   accent: "from-orange-600 to-rose-700",
                   tone: "text-orange-700",
@@ -816,34 +816,34 @@ function CustosMargemContent() {
                 {
                   label: "Pedidos com lucro confiável",
                   value: impactSummary.pedidos_lucro_confiavel.toLocaleString("pt-BR"),
-                  hint: "profit_confidence = high",
+                  hint: "Pedidos com custo preenchido e margem calculada.",
                   icon: CheckCircle2,
                   accent: "from-emerald-600 to-emerald-800",
                   tone: "text-emerald-700",
                 },
               ].map((c) => {
-
                 const Icon = c.icon;
                 return (
                   <div
                     key={c.label}
-                    className="relative overflow-hidden rounded-2xl border border-border/60 bg-white/80 backdrop-blur-sm p-5 shadow-[var(--shadow-soft)]"
+                    className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-soft)] transition hover:border-slate-300 hover:shadow-md"
                   >
                     <div
-                      className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${c.accent} opacity-10`}
+                      className={`absolute -right-10 -top-10 h-28 w-28 rounded-full bg-gradient-to-br ${c.accent} opacity-[0.08] transition group-hover:opacity-[0.14]`}
                     />
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1.5 min-w-0">
-                        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <div className="relative flex items-start justify-between gap-3">
+                      <div className="space-y-2 min-w-0">
+                        <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                           {c.label}
                         </div>
                         <div
-                          className={`font-display text-xl sm:text-2xl md:text-3xl font-bold ${c.tone} tabular-nums whitespace-nowrap leading-tight`}
+                          className={`font-display text-2xl md:text-[28px] xl:text-[32px] font-bold ${c.tone} tabular-nums whitespace-nowrap leading-none`}
                         >
                           {c.value}
                         </div>
-
-                        <div className="text-[11px] text-muted-foreground">{c.hint}</div>
+                        <div className="text-[11px] leading-snug text-slate-500 pr-2">
+                          {c.hint}
+                        </div>
                       </div>
                       <div
                         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${c.accent} text-white shadow-md`}
@@ -856,6 +856,25 @@ function CustosMargemContent() {
               })}
             </div>
           )}
+        </section>
+
+        {/* Por que isso importa? */}
+        <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 px-6 py-6 md:px-8 md:py-7 text-white shadow-[var(--shadow-soft)]">
+          <div className="flex items-start gap-4 max-w-4xl">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 backdrop-blur">
+              <Info className="h-5 w-5 text-blue-200" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="font-display text-lg md:text-xl font-bold tracking-tight">
+                Por que isso importa?
+              </h3>
+              <p className="text-[13px] md:text-sm text-slate-200/90 leading-relaxed">
+                Sem custo cadastrado, o faturamento existe, mas o lucro fica invisível. Esta tela
+                mostra onde o dinheiro está travado e quais produtos devem ser corrigidos primeiro
+                para revelar a margem real da operação.
+              </p>
+            </div>
+          </div>
         </section>
 
         {/* Evolução do lucro bloqueado */}

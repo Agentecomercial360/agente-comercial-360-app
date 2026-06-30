@@ -971,11 +971,11 @@ function CustosMargemContent() {
               </div>
               <div className="space-y-1 max-w-3xl">
                 <h2 className="font-display text-lg font-bold text-foreground">
-                  Evolução do lucro bloqueado
+                  Evolução do faturamento aguardando custo
                 </h2>
                 <p className="text-xs md:text-[13px] text-muted-foreground">
-                  Mostra por dia quanto do faturamento ainda está sem lucro calculável por falta
-                  de custo cadastrado.
+                  Mostra por dia quanto foi vendido na conta selecionada, mas ainda aguarda custo
+                  para liberar o cálculo de margem real.
                 </p>
               </div>
             </div>

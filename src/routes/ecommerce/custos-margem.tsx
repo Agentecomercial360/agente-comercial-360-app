@@ -776,43 +776,50 @@ function CustosMargemContent() {
           <div className="absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-slate-900/5 blur-2xl" aria-hidden />
           <div className="relative space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-                <TrendingUp className="h-3.5 w-3.5" />
-                Central de Lucro Real
-              </span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-700">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 Dados reais do Mercado Livre
               </span>
+              {isFilteringByAccount && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                  Conta conectada
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-700">
+                Lucro aguardando custo
+              </span>
             </div>
             <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
-              Central de Lucro Real
+              {isFilteringByAccount
+                ? `Conta em Foco: ${selectedAccountName}`
+                : "Central de Lucro Real — Todas as contas"}
             </h1>
             <p className="text-sm md:text-base text-slate-600 max-w-3xl leading-relaxed">
-              Veja quanto faturamento ainda não tem lucro confiável e quais produtos precisam
-              de custo para liberar a margem real.
+              {isFilteringByAccount
+                ? "Diagnóstico real da conta selecionada com pedidos, produtos vendidos e lucro aguardando cadastro de custo."
+                : "Visão consolidada das contas conectadas, com lucro aguardando cadastro de custo em toda a operação."}
             </p>
           </div>
         </header>
 
-        {/* KPIs */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {kpis.map((k) => {
+        {/* KPIs da conta selecionada */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
+          {accountKpis.map((k) => {
             const Icon = k.icon;
             return (
               <div
                 key={k.label}
-                className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]"
+                className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-soft)]"
               >
                 <div
                   className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${k.accent} opacity-10`}
                 />
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1.5">
-                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <div className="relative flex items-start justify-between gap-3">
+                  <div className="space-y-1.5 min-w-0">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                       {k.label}
                     </div>
-                    <div className="font-display text-3xl font-bold text-foreground">
+                    <div className={`font-display text-2xl md:text-[26px] font-bold ${k.tone} tabular-nums whitespace-nowrap leading-none`}>
                       {loading ? "—" : k.value}
                     </div>
                   </div>
@@ -825,6 +832,25 @@ function CustosMargemContent() {
               </div>
             );
           })}
+        </section>
+
+        {/* Por que isso importa? */}
+        <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 px-6 py-6 md:px-8 md:py-7 text-white shadow-[var(--shadow-soft)]">
+          <div className="flex items-start gap-4 max-w-4xl">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 backdrop-blur">
+              <Info className="h-5 w-5 text-blue-200" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="font-display text-lg md:text-xl font-bold tracking-tight">
+                Por que isso importa?
+              </h3>
+              <p className="text-[13px] md:text-sm text-slate-200/90 leading-relaxed">
+                Esta conta já possui pedidos reais sincronizados e itens vinculados aos produtos.
+                O próximo passo é cadastrar o custo dos SKUs prioritários para revelar margem real,
+                lucro por pedido e rentabilidade da operação.
+              </p>
+            </div>
+          </div>
         </section>
 
         {error && (

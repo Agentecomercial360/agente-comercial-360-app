@@ -694,24 +694,27 @@ function CustosMargemContent() {
   return (
     <>
       <div className="space-y-6">
-        <header className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-            <TrendingUp className="h-3.5 w-3.5" />
-            Inteligência Financeira
-          </div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-            Custos e Margem
-          </h1>
-          <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
-            Diagnóstico de produtos sem custo cadastrado. Sem custo, o sistema não calcula
-            lucro líquido, margem real, curva ABC financeira nem Radar IA de rentabilidade.
-          </p>
-          <div className="inline-flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 max-w-3xl">
-            <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-            <span>
-              Atualize os custos dos produtos para liberar lucro líquido, margem real,
-              curva ABC financeira e Radar IA de rentabilidade.
-            </span>
+        <header className="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/60 to-blue-50/40 px-6 py-7 md:px-8 md:py-9 shadow-[var(--shadow-soft)]">
+          <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-blue-600/10 blur-2xl" aria-hidden />
+          <div className="absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-slate-900/5 blur-2xl" aria-hidden />
+          <div className="relative space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                <TrendingUp className="h-3.5 w-3.5" />
+                Central de Lucro Real
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Dados reais do Mercado Livre
+              </span>
+            </div>
+            <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
+              Central de Lucro Real
+            </h1>
+            <p className="text-sm md:text-base text-slate-600 max-w-3xl leading-relaxed">
+              Veja quanto faturamento ainda não tem lucro confiável e quais produtos precisam
+              de custo para liberar a margem real.
+            </p>
           </div>
         </header>
 

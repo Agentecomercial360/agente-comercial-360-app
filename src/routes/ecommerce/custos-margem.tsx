@@ -655,7 +655,8 @@ function CustosMargemContent() {
     }
   }, [enriched, filter]);
 
-  const kpis = [
+  // KPIs gerais (mantidos, mas movidos para a seção "Base geral de produtos cadastrados")
+  const baseKpis = [
     {
       label: "Total de produtos",
       value: totals.total.toString(),
@@ -682,6 +683,82 @@ function CustosMargemContent() {
     },
   ];
 
+  // Métricas da conta selecionada, derivadas dos pedidos/itens já filtrados pelo account_id.
+  const accountMetrics = useMemo(() => {
+    const pedidosSincronizados = ordersById.size;
+    const productsById = new Map(products.map((p) => [p.id, p]));
+    let faturamento = 0;
+    const skuSet = new Set<string>();
+    const linkedOrders = new Set<string>();
+    for (const it of orderItems) {
+      const total =
+        Number(it.total_price ?? 0) ||
+        (Number(it.quantity ?? 0) || 0) * (Number(it.unit_price ?? 0) || 0);
+      faturamento += total;
+      if (it.product_id && productsById.has(it.product_id)) {
+        const p = productsById.get(it.product_id)!;
+        skuSet.add(p.sku || it.product_id);
+        if (it.order_id) linkedOrders.add(it.order_id);
+      }
+    }
+    return {
+      pedidosSincronizados,
+      faturamento,
+      skusVendidos: skuSet.size,
+      itensVinculados: `${linkedOrders.size}/${pedidosSincronizados}`,
+      produtosAguardandoCusto: soldNoCost.length,
+      pedidosLucroConfiavel: highConfOrders,
+    };
+  }, [ordersById, orderItems, products, soldNoCost, highConfOrders]);
+
+  const accountKpis = [
+    {
+      label: "Faturamento da conta",
+      value: formatBRL(accountMetrics.faturamento),
+      icon: DollarSign,
+      accent: "from-blue-700 to-slate-900",
+      tone: "text-blue-800",
+    },
+    {
+      label: "Pedidos sincronizados",
+      value: accountMetrics.pedidosSincronizados.toLocaleString("pt-BR"),
+      icon: Package,
+      accent: "from-blue-600 to-blue-800",
+      tone: "text-foreground",
+    },
+    {
+      label: "SKUs vendidos",
+      value: accountMetrics.skusVendidos.toLocaleString("pt-BR"),
+      icon: TrendingUp,
+      accent: "from-slate-700 to-slate-900",
+      tone: "text-foreground",
+    },
+    {
+      label: "Itens vinculados",
+      value: accountMetrics.itensVinculados,
+      icon: CheckCircle2,
+      accent: "from-emerald-600 to-emerald-800",
+      tone: "text-emerald-700",
+    },
+    {
+      label: "Produtos aguardando custo",
+      value: accountMetrics.produtosAguardandoCusto.toLocaleString("pt-BR"),
+      icon: AlertTriangle,
+      accent: "from-amber-600 to-orange-700",
+      tone: "text-amber-700",
+    },
+    {
+      label: "Pedidos com lucro confiável",
+      value: accountMetrics.pedidosLucroConfiavel.toLocaleString("pt-BR"),
+      icon: CheckCircle2,
+      accent: "from-emerald-600 to-emerald-800",
+      tone: "text-emerald-700",
+    },
+  ];
+
+  // Produto campeão = primeiro item do ranking de bloqueio para esta conta.
+  const championProduct = blockingProducts[0] ?? null;
+
   const filterChips: { key: FilterKey; label: string }[] = [
     { key: "all", label: "Todos" },
     { key: "without_cost", label: "Sem custo" },
@@ -699,43 +776,50 @@ function CustosMargemContent() {
           <div className="absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-slate-900/5 blur-2xl" aria-hidden />
           <div className="relative space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-                <TrendingUp className="h-3.5 w-3.5" />
-                Central de Lucro Real
-              </span>
               <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-700">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 Dados reais do Mercado Livre
               </span>
+              {isFilteringByAccount && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                  Conta conectada
+                </span>
+              )}
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-700">
+                Lucro aguardando custo
+              </span>
             </div>
             <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
-              Central de Lucro Real
+              {isFilteringByAccount
+                ? `Conta em Foco: ${selectedAccountName}`
+                : "Central de Lucro Real — Todas as contas"}
             </h1>
             <p className="text-sm md:text-base text-slate-600 max-w-3xl leading-relaxed">
-              Veja quanto faturamento ainda não tem lucro confiável e quais produtos precisam
-              de custo para liberar a margem real.
+              {isFilteringByAccount
+                ? "Diagnóstico real da conta selecionada com pedidos, produtos vendidos e lucro aguardando cadastro de custo."
+                : "Visão consolidada das contas conectadas, com lucro aguardando cadastro de custo em toda a operação."}
             </p>
           </div>
         </header>
 
-        {/* KPIs */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {kpis.map((k) => {
+        {/* KPIs da conta selecionada */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">
+          {accountKpis.map((k) => {
             const Icon = k.icon;
             return (
               <div
                 key={k.label}
-                className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]"
+                className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-soft)]"
               >
                 <div
                   className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${k.accent} opacity-10`}
                 />
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1.5">
-                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <div className="relative flex items-start justify-between gap-3">
+                  <div className="space-y-1.5 min-w-0">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
                       {k.label}
                     </div>
-                    <div className="font-display text-3xl font-bold text-foreground">
+                    <div className={`font-display text-2xl md:text-[26px] font-bold ${k.tone} tabular-nums whitespace-nowrap leading-none`}>
                       {loading ? "—" : k.value}
                     </div>
                   </div>
@@ -748,6 +832,25 @@ function CustosMargemContent() {
               </div>
             );
           })}
+        </section>
+
+        {/* Por que isso importa? */}
+        <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 px-6 py-6 md:px-8 md:py-7 text-white shadow-[var(--shadow-soft)]">
+          <div className="flex items-start gap-4 max-w-4xl">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 backdrop-blur">
+              <Info className="h-5 w-5 text-blue-200" />
+            </div>
+            <div className="space-y-1.5">
+              <h3 className="font-display text-lg md:text-xl font-bold tracking-tight">
+                Por que isso importa?
+              </h3>
+              <p className="text-[13px] md:text-sm text-slate-200/90 leading-relaxed">
+                Esta conta já possui pedidos reais sincronizados e itens vinculados aos produtos.
+                O próximo passo é cadastrar o custo dos SKUs prioritários para revelar margem real,
+                lucro por pedido e rentabilidade da operação.
+              </p>
+            </div>
+          </div>
         </section>
 
         {error && (
@@ -765,10 +868,10 @@ function CustosMargemContent() {
               </div>
               <div className="space-y-1 max-w-3xl">
                 <h2 className="font-display text-lg md:text-xl font-bold text-slate-900">
-                  Diagnóstico financeiro da operação
+                  Diagnóstico financeiro da conta
                 </h2>
                 <p className="text-xs md:text-[13px] text-slate-600">
-                  Indicadores executivos do faturamento real cruzado com a base de custos cadastrados.
+                  Indicadores executivos da conta selecionada — faturamento real cruzado com os custos cadastrados.
                 </p>
               </div>
             </div>
@@ -858,24 +961,6 @@ function CustosMargemContent() {
           )}
         </section>
 
-        {/* Por que isso importa? */}
-        <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 px-6 py-6 md:px-8 md:py-7 text-white shadow-[var(--shadow-soft)]">
-          <div className="flex items-start gap-4 max-w-4xl">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 backdrop-blur">
-              <Info className="h-5 w-5 text-blue-200" />
-            </div>
-            <div className="space-y-1.5">
-              <h3 className="font-display text-lg md:text-xl font-bold tracking-tight">
-                Por que isso importa?
-              </h3>
-              <p className="text-[13px] md:text-sm text-slate-200/90 leading-relaxed">
-                Sem custo cadastrado, o faturamento existe, mas o lucro fica invisível. Esta tela
-                mostra onde o dinheiro está travado e quais produtos devem ser corrigidos primeiro
-                para revelar a margem real da operação.
-              </p>
-            </div>
-          </div>
-        </section>
 
         {/* Evolução do lucro bloqueado */}
         <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/40 to-white shadow-[var(--shadow-soft)] overflow-hidden">
@@ -886,11 +971,11 @@ function CustosMargemContent() {
               </div>
               <div className="space-y-1 max-w-3xl">
                 <h2 className="font-display text-lg font-bold text-foreground">
-                  Evolução do lucro bloqueado
+                  Evolução do faturamento aguardando custo
                 </h2>
                 <p className="text-xs md:text-[13px] text-muted-foreground">
-                  Mostra por dia quanto do faturamento ainda está sem lucro calculável por falta
-                  de custo cadastrado.
+                  Mostra por dia quanto foi vendido na conta selecionada, mas ainda aguarda custo
+                  para liberar o cálculo de margem real.
                 </p>
               </div>
             </div>
@@ -971,6 +1056,33 @@ function CustosMargemContent() {
         </section>
 
 
+        {/* Produto campeão da conta */}
+        {championProduct && (
+          <section className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50/70 via-white to-blue-50/40 px-6 py-5 shadow-[var(--shadow-soft)]">
+            <div className="flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-700 to-slate-900 text-white shadow-md">
+                <Flame className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                  Produto campeão da conta
+                </div>
+                <h3 className="font-display text-base md:text-lg font-bold text-slate-900">
+                  O SKU{" "}
+                  <span className="font-mono">{championProduct.sku ?? "—"}</span>{" "}
+                  concentra{" "}
+                  {Number(championProduct.percentual_do_bloqueado ?? 0).toLocaleString("pt-BR", {
+                    maximumFractionDigits: 2,
+                  })}
+                  % do faturamento aguardando custo nesta conta.
+                </h3>
+                <p className="text-[13px] text-slate-600 leading-relaxed max-w-3xl">
+                  Cadastre primeiro o custo deste produto para liberar a maior parte da análise de margem.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Produtos que mais bloqueiam lucro real */}
         <section className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50/60 via-white to-amber-50/40 shadow-[var(--shadow-soft)] overflow-hidden">
@@ -1487,6 +1599,55 @@ function CustosMargemContent() {
               </table>
             </div>
           )}
+        </section>
+
+
+        {/* Base geral de produtos cadastrados (consolidado da empresa, independente da conta) */}
+        <section className="rounded-2xl border border-slate-200 bg-slate-50/60 p-5 md:p-6 shadow-[var(--shadow-soft)]">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-md">
+              <Package className="h-5 w-5" />
+            </div>
+            <div className="space-y-1 max-w-3xl">
+              <h2 className="font-display text-lg font-bold text-slate-900">
+                Base geral de produtos cadastrados
+              </h2>
+              <p className="text-xs md:text-[13px] text-slate-600">
+                Visão consolidada da empresa — independe da conta selecionada acima. Usada para
+                acompanhar a cobertura de custo no catálogo completo.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            {baseKpis.map((k) => {
+              const Icon = k.icon;
+              return (
+                <div
+                  key={k.label}
+                  className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-soft)]"
+                >
+                  <div
+                    className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${k.accent} opacity-10`}
+                  />
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1.5">
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                        {k.label}
+                      </div>
+                      <div className="font-display text-3xl font-bold text-foreground tabular-nums">
+                        {loading ? "—" : k.value}
+                      </div>
+                    </div>
+                    <div
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${k.accent} text-white shadow-md`}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </section>
 
         <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">

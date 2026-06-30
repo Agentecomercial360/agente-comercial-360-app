@@ -1056,6 +1056,33 @@ function CustosMargemContent() {
         </section>
 
 
+        {/* Produto campeão da conta */}
+        {championProduct && (
+          <section className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50/70 via-white to-blue-50/40 px-6 py-5 shadow-[var(--shadow-soft)]">
+            <div className="flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-700 to-slate-900 text-white shadow-md">
+                <Flame className="h-5 w-5" />
+              </div>
+              <div className="space-y-1">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                  Produto campeão da conta
+                </div>
+                <h3 className="font-display text-base md:text-lg font-bold text-slate-900">
+                  O SKU{" "}
+                  <span className="font-mono">{championProduct.sku ?? "—"}</span>{" "}
+                  concentra{" "}
+                  {Number(championProduct.percentual_do_bloqueado ?? 0).toLocaleString("pt-BR", {
+                    maximumFractionDigits: 2,
+                  })}
+                  % do faturamento aguardando custo nesta conta.
+                </h3>
+                <p className="text-[13px] text-slate-600 leading-relaxed max-w-3xl">
+                  Cadastre primeiro o custo deste produto para liberar a maior parte da análise de margem.
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Produtos que mais bloqueiam lucro real */}
         <section className="rounded-2xl border border-orange-200 bg-gradient-to-br from-orange-50/60 via-white to-amber-50/40 shadow-[var(--shadow-soft)] overflow-hidden">

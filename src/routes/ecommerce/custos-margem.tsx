@@ -655,7 +655,8 @@ function CustosMargemContent() {
     }
   }, [enriched, filter]);
 
-  const kpis = [
+  // KPIs gerais (mantidos, mas movidos para a seção "Base geral de produtos cadastrados")
+  const baseKpis = [
     {
       label: "Total de produtos",
       value: totals.total.toString(),
@@ -681,6 +682,82 @@ function CustosMargemContent() {
       accent: "from-rose-600 to-rose-800",
     },
   ];
+
+  // Métricas da conta selecionada, derivadas dos pedidos/itens já filtrados pelo account_id.
+  const accountMetrics = useMemo(() => {
+    const pedidosSincronizados = ordersById.size;
+    const productsById = new Map(products.map((p) => [p.id, p]));
+    let faturamento = 0;
+    const skuSet = new Set<string>();
+    const linkedOrders = new Set<string>();
+    for (const it of orderItems) {
+      const total =
+        Number(it.total_price ?? 0) ||
+        (Number(it.quantity ?? 0) || 0) * (Number(it.unit_price ?? 0) || 0);
+      faturamento += total;
+      if (it.product_id && productsById.has(it.product_id)) {
+        const p = productsById.get(it.product_id)!;
+        skuSet.add(p.sku || it.product_id);
+        if (it.order_id) linkedOrders.add(it.order_id);
+      }
+    }
+    return {
+      pedidosSincronizados,
+      faturamento,
+      skusVendidos: skuSet.size,
+      itensVinculados: `${linkedOrders.size}/${pedidosSincronizados}`,
+      produtosAguardandoCusto: soldNoCost.length,
+      pedidosLucroConfiavel: highConfOrders,
+    };
+  }, [ordersById, orderItems, products, soldNoCost, highConfOrders]);
+
+  const accountKpis = [
+    {
+      label: "Faturamento da conta",
+      value: formatBRL(accountMetrics.faturamento),
+      icon: DollarSign,
+      accent: "from-blue-700 to-slate-900",
+      tone: "text-blue-800",
+    },
+    {
+      label: "Pedidos sincronizados",
+      value: accountMetrics.pedidosSincronizados.toLocaleString("pt-BR"),
+      icon: Package,
+      accent: "from-blue-600 to-blue-800",
+      tone: "text-foreground",
+    },
+    {
+      label: "SKUs vendidos",
+      value: accountMetrics.skusVendidos.toLocaleString("pt-BR"),
+      icon: TrendingUp,
+      accent: "from-slate-700 to-slate-900",
+      tone: "text-foreground",
+    },
+    {
+      label: "Itens vinculados",
+      value: accountMetrics.itensVinculados,
+      icon: CheckCircle2,
+      accent: "from-emerald-600 to-emerald-800",
+      tone: "text-emerald-700",
+    },
+    {
+      label: "Produtos aguardando custo",
+      value: accountMetrics.produtosAguardandoCusto.toLocaleString("pt-BR"),
+      icon: AlertTriangle,
+      accent: "from-amber-600 to-orange-700",
+      tone: "text-amber-700",
+    },
+    {
+      label: "Pedidos com lucro confiável",
+      value: accountMetrics.pedidosLucroConfiavel.toLocaleString("pt-BR"),
+      icon: CheckCircle2,
+      accent: "from-emerald-600 to-emerald-800",
+      tone: "text-emerald-700",
+    },
+  ];
+
+  // Produto campeão = primeiro item do ranking de bloqueio para esta conta.
+  const championProduct = blockingProducts[0] ?? null;
 
   const filterChips: { key: FilterKey; label: string }[] = [
     { key: "all", label: "Todos" },

@@ -984,9 +984,8 @@ function CustosMargemContent() {
                   Produtos que mais bloqueiam lucro real
                 </h2>
                 <p className="text-xs md:text-[13px] text-muted-foreground">
-                  Esses produtos concentram o maior faturamento ainda sem custo cadastrado.
-                  Atualizar esses custos libera lucro real, margem real e ranking de
-                  rentabilidade.
+                  Comece pelos produtos do topo: eles são os que mais impedem o sistema de
+                  calcular lucro real.
                 </p>
               </div>
             </div>
@@ -1001,7 +1000,7 @@ function CustosMargemContent() {
             </div>
           ) : blockingProducts.length === 0 ? (
             <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-              Nenhum produto bloqueando lucro real no filtro atual.
+              Lucro aguardando cadastro de custo. Atualize os custos para liberar o ranking.
             </div>
           ) : (
             <div className="overflow-x-auto">

@@ -1601,6 +1601,55 @@ function CustosMargemContent() {
           )}
         </section>
 
+
+        {/* Base geral de produtos cadastrados (consolidado da empresa, independente da conta) */}
+        <section className="rounded-2xl border border-slate-200 bg-slate-50/60 p-5 md:p-6 shadow-[var(--shadow-soft)]">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-slate-700 to-slate-900 text-white shadow-md">
+              <Package className="h-5 w-5" />
+            </div>
+            <div className="space-y-1 max-w-3xl">
+              <h2 className="font-display text-lg font-bold text-slate-900">
+                Base geral de produtos cadastrados
+              </h2>
+              <p className="text-xs md:text-[13px] text-slate-600">
+                Visão consolidada da empresa — independe da conta selecionada acima. Usada para
+                acompanhar a cobertura de custo no catálogo completo.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            {baseKpis.map((k) => {
+              const Icon = k.icon;
+              return (
+                <div
+                  key={k.label}
+                  className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-[var(--shadow-soft)]"
+                >
+                  <div
+                    className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${k.accent} opacity-10`}
+                  />
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1.5">
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                        {k.label}
+                      </div>
+                      <div className="font-display text-3xl font-bold text-foreground tabular-nums">
+                        {loading ? "—" : k.value}
+                      </div>
+                    </div>
+                    <div
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${k.accent} text-white shadow-md`}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
           <div className="flex items-start gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-md">

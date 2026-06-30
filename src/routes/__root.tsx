@@ -74,6 +74,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "google", content: "notranslate" },
+      { httpEquiv: "Content-Language", content: "pt-BR" },
       { title: "Lovable App" },
       { name: "description", content: "Agent Connect Hub is a SaaS login system for sales agents, providing access to CRM and sales tools." },
       { name: "author", content: "Lovable" },

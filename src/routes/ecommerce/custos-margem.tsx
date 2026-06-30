@@ -1252,7 +1252,7 @@ function CustosMargemContent() {
                         <td className="px-4 py-3 text-center">
                           <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
                             <AlertTriangle className="h-3 w-3" />
-                            Sem custo
+                            Pendente de custo
                           </span>
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -1431,7 +1431,7 @@ function CustosMargemContent() {
                           ) : (
                             <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-700">
                               <AlertTriangle className="h-3 w-3" />
-                              Sem custo
+                              Pendente de custo
                             </span>
                           )}
                         </td>

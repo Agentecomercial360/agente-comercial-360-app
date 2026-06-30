@@ -74,6 +74,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "google", content: "notranslate" },
+      { httpEquiv: "Content-Language", content: "pt-BR" },
       { title: "Lovable App" },
       { name: "description", content: "Agent Connect Hub is a SaaS login system for sales agents, providing access to CRM and sales tools." },
       { name: "author", content: "Lovable" },
@@ -108,11 +110,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pt-BR" translate="no" className="notranslate">
       <head>
+        <meta name="google" content="notranslate" />
         <HeadContent />
       </head>
-      <body>
+      <body translate="no" className="notranslate">
         {children}
         <Scripts />
       </body>

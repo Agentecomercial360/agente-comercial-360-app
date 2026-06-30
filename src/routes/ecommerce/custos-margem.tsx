@@ -961,24 +961,6 @@ function CustosMargemContent() {
           )}
         </section>
 
-        {/* Por que isso importa? */}
-        <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 px-6 py-6 md:px-8 md:py-7 text-white shadow-[var(--shadow-soft)]">
-          <div className="flex items-start gap-4 max-w-4xl">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 backdrop-blur">
-              <Info className="h-5 w-5 text-blue-200" />
-            </div>
-            <div className="space-y-1.5">
-              <h3 className="font-display text-lg md:text-xl font-bold tracking-tight">
-                Por que isso importa?
-              </h3>
-              <p className="text-[13px] md:text-sm text-slate-200/90 leading-relaxed">
-                Sem custo cadastrado, o faturamento existe, mas o lucro fica invisível. Esta tela
-                mostra onde o dinheiro está travado e quais produtos devem ser corrigidos primeiro
-                para revelar a margem real da operação.
-              </p>
-            </div>
-          </div>
-        </section>
 
         {/* Evolução do lucro bloqueado */}
         <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/40 to-white shadow-[var(--shadow-soft)] overflow-hidden">

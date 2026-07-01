@@ -174,7 +174,7 @@ function DashboardContent() {
     ? accountNameById.get(selectedAccountId) || activeAccount?.account_name || activeAccount?.nickname || null
     : null;
   const accountMissing = scope === "active" && !selectedAccountId;
-  const since = useMemo(() => dayKey(startOfPeriod(period)), [period]);
+  const range = useMemo(() => getPeriodRange(period as SharedPeriodKey), [period]);
 
   useEffect(() => {
     let cancelled = false;
@@ -188,14 +188,15 @@ function DashboardContent() {
       setOrders([]);
       setErrorMsg(null);
       try {
-        // Date-only string avoids timezone shifts when comparing a DATE column.
+        // Janela canônica em America/Sao_Paulo — mesma usada pelo Mapa de Vendas.
         let q = supabase
           .from("ecommerce_orders")
           .select(
-            "id, account_id, order_date, total_amount, mercadolivre_fee, marketplace_fee, seller_shipping_cost, product_cost_total, net_profit, profit_confidence, order_status, payment_status",
+            "id, account_id, order_date, total_amount, mercadolivre_fee, marketplace_fee, seller_shipping_cost, product_cost_total, net_profit, profit_confidence, order_status, payment_status, buyer_city, buyer_state",
           )
           .eq("company_id", ECOMMERCE_COMPANY_ID)
-          .gte("order_date", since)
+          .gte("order_date", range.sinceISO)
+          .lte("order_date", range.untilISO)
           .order("order_date", { ascending: false })
           .limit(5000);
         if (scope === "active" && selectedAccountId) {
@@ -217,7 +218,7 @@ function DashboardContent() {
     return () => {
       cancelled = true;
     };
-  }, [accountNameById, activeAccountId, period, scope, selectedAccountId, selectedAccountName, since]);
+  }, [accountNameById, activeAccountId, period, scope, selectedAccountId, selectedAccountName, range.sinceISO, range.untilISO]);
 
 
 

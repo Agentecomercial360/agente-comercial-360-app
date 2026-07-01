@@ -14,6 +14,7 @@ import {
   Building2,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { SalesMap, type CityPoint } from "@/components/ecommerce/SalesMap";
 import { supabase } from "@/lib/supabase";
 import {
   ECOMMERCE_COMPANY_ID,

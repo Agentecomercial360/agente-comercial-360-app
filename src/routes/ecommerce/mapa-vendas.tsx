@@ -421,9 +421,8 @@ function MapaVendasContent() {
     return map;
   }, [filtered]);
 
-  // Product × region aggregation
+  // Product × region aggregation (canonical UF + city label)
   const productRegions = useMemo(() => {
-    // key: sku/name -> { sku, name, qty, revenue, byCity: Map<city/uf, {orders, qty, revenue}>, byState: same }
     type Bucket = {
       sku: string;
       name: string;
@@ -450,13 +449,13 @@ function MapaVendasContent() {
       b.qty += Number(r.item.quantity ?? 0);
       b.revenue += Number(r.item.total_price ?? 0);
       b.orders.add(r.order.id);
-      const uf = (r.order.buyer_state || "—").toUpperCase();
-      const cityKey = `${r.order.buyer_city || "—"}/${uf}`;
-      const cy = b.byCity.get(cityKey) ?? { orders: new Set<string>(), qty: 0, revenue: 0 };
+      const uf = r.loc.stateCode ?? "—";
+      const cityLabel = `${r.loc.cityName ?? "—"}/${uf}`;
+      const cy = b.byCity.get(cityLabel) ?? { orders: new Set<string>(), qty: 0, revenue: 0 };
       cy.orders.add(r.order.id);
       cy.qty += Number(r.item.quantity ?? 0);
       cy.revenue += Number(r.item.total_price ?? 0);
-      b.byCity.set(cityKey, cy);
+      b.byCity.set(cityLabel, cy);
       const st = b.byState.get(uf) ?? { orders: new Set<string>(), qty: 0, revenue: 0 };
       st.orders.add(r.order.id);
       st.qty += Number(r.item.quantity ?? 0);

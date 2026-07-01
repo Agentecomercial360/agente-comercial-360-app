@@ -20,6 +20,12 @@ import {
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
+import {
+  aggregateOrderMetrics,
+  getPeriodRange,
+  isCancelled,
+  type PeriodKey as SharedPeriodKey,
+} from "@/lib/ecommerce-metrics";
 
 export const Route = createFileRoute("/ecommerce/dashboard")({
   component: DashboardEcommerce,

@@ -229,11 +229,20 @@ function MapaVendasContent() {
 
   const flat: FlatRow[] = useMemo(() => {
     const ordersById = new Map(orders.map((o) => [o.id, o]));
+    const locByOrder = new Map<string, CanonicalLocation>();
+    for (const o of orders) {
+      locByOrder.set(o.id, normalizeLocation(o.buyer_state, o.buyer_city));
+    }
     const rows: FlatRow[] = [];
     for (const it of items) {
       const o = ordersById.get(it.order_id);
       if (!o) continue;
-      rows.push({ order: o, item: it, accountName: resolveAccountName(o.account_id) });
+      rows.push({
+        order: o,
+        item: it,
+        accountName: resolveAccountName(o.account_id),
+        loc: locByOrder.get(o.id)!,
+      });
     }
     for (const o of orders) {
       if (!items.some((i) => i.order_id === o.id)) {
@@ -250,6 +259,7 @@ function MapaVendasContent() {
             product_id: null,
           },
           accountName: resolveAccountName(o.account_id),
+          loc: locByOrder.get(o.id)!,
         });
       }
     }

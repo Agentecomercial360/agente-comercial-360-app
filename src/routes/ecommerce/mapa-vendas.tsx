@@ -588,11 +588,30 @@ function MapaVendasContent() {
 
       {/* KPIs */}
       <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-        <Kpi icon={<ShoppingCart className="h-4 w-4" />} label="Pedidos hoje" value={String(kpis.ordersToday)} accent="primary" />
-        <Kpi icon={<DollarSign className="h-4 w-4" />} label="Faturamento hoje" value={BRL(kpis.revenueToday)} accent="success" />
-        <Kpi icon={<Package className="h-4 w-4" />} label="Unidades vendidas hoje" value={String(kpis.unitsToday)} accent="info" />
-        <Kpi icon={<Users className="h-4 w-4" />} label="Compradores identificados" value={String(kpis.buyersToday)} accent="primary" />
+        <Kpi icon={<ShoppingCart className="h-4 w-4" />} label={periodCountLabel(period, "orders")} value={String(kpis.ordersPeriod)} accent="primary" />
+        <Kpi icon={<DollarSign className="h-4 w-4" />} label={periodCountLabel(period, "revenue")} value={BRL(kpis.revenuePeriod)} accent="success" />
+        <Kpi icon={<Package className="h-4 w-4" />} label={period === "today" ? "Unidades vendidas hoje" : "Unidades vendidas"} value={String(kpis.units)} accent="info" />
+        <Kpi icon={<Users className="h-4 w-4" />} label="Compradores identificados" value={String(kpis.buyers)} accent="primary" />
         <Kpi icon={<Link2Off className="h-4 w-4" />} label="Produtos não vinculados" value={String(kpis.unlinked)} accent="warning" />
+      </section>
+
+      {/* Checagem de reconciliação — mesmos totais devem aparecer em /ecommerce/dashboard */}
+      <section className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <span className="font-semibold text-foreground">
+            Checagem — {range.label} · {range.spStartDate} → {range.spEndDate} (America/Sao_Paulo)
+          </span>
+          <span className="text-muted-foreground">
+            Cancelados excluídos: {kpis.cancelledCount}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+          <ReconTile label="Pedidos no período" value={String(kpis.ordersPeriod)} />
+          <ReconTile label="Com localização" value={String(kpis.ordersWithLocation)} />
+          <ReconTile label="Sem localização" value={String(kpis.ordersWithoutLocation)} />
+          <ReconTile label="Faturamento total" value={BRL(kpis.revenuePeriod)} />
+          <ReconTile label="Faturamento c/ loc." value={BRL(kpis.revenueWithLocation)} />
+        </div>
       </section>
 
       {/* Filters */}

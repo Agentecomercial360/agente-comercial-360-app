@@ -149,6 +149,8 @@ function MapaVendasContent() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<FlatRow | null>(null);
   const [selectedCity, setSelectedCity] = useState<{ city: string; uf: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<"map" | "cities" | "products" | "orders">("map");
+  const [productQuery, setProductQuery] = useState("");
 
   useEffect(() => {
     void load();

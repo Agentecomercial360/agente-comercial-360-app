@@ -1330,3 +1330,229 @@ function CityOrdersModal({
     </div>
   );
 }
+
+function InsightCell({
+  icon,
+  label,
+  main,
+  detail,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  main: string;
+  detail: string;
+}) {
+  return (
+    <div className="bg-white px-5 py-4">
+      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
+        <span className="text-slate-400">{icon}</span>
+        {label}
+      </div>
+      <div className="mt-1.5 text-sm font-semibold text-foreground truncate" title={main}>
+        {main}
+      </div>
+      {detail && (
+        <div className="mt-0.5 text-[11px] text-muted-foreground truncate" title={detail}>
+          {detail}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type ProductBucket = {
+  sku: string;
+  name: string;
+  qty: number;
+  revenue: number;
+  orders: Set<string>;
+  byCity: Map<string, { orders: Set<string>; qty: number; revenue: number }>;
+  byState: Map<string, { orders: Set<string>; qty: number; revenue: number }>;
+};
+
+function ProductRegionView({
+  products,
+  query,
+  onQuery,
+  loading,
+}: {
+  products: ProductBucket[];
+  query: string;
+  onQuery: (q: string) => void;
+  loading: boolean;
+}) {
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? products.filter(
+        (p) =>
+          (p.sku ?? "").toLowerCase().includes(q) ||
+          (p.name ?? "").toLowerCase().includes(q),
+      )
+    : products;
+  const [openKey, setOpenKey] = useState<string | null>(null);
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
+      <div className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
+        <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+          Produtos por região
+        </div>
+        <div className="font-display text-base font-semibold text-foreground">
+          Onde cada produto está vendendo
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Clique em um produto para ver a distribuição por cidade e estado.
+        </p>
+      </div>
+
+      <div className="border-b border-slate-200 px-6 py-3">
+        <div className="relative max-w-md">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => onQuery(e.target.value)}
+            placeholder="Filtrar por SKU ou produto…"
+            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-blue-400"
+          />
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+          Calculando produtos por região…
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+          Nenhum produto encontrado para o filtro.
+        </div>
+      ) : (
+        <div className="divide-y divide-slate-100">
+          {filtered.slice(0, 60).map((p) => {
+            const key = `${p.sku}||${p.name}`;
+            const isOpen = openKey === key;
+            const avg = p.orders.size > 0 ? p.revenue / p.orders.size : 0;
+            const topStates = Array.from(p.byState.entries())
+              .map(([uf, v]) => ({ uf, orders: v.orders.size, qty: v.qty, revenue: v.revenue }))
+              .sort((a, b) => b.revenue - a.revenue);
+            const topCities = Array.from(p.byCity.entries())
+              .map(([k, v]) => ({ key: k, orders: v.orders.size, qty: v.qty, revenue: v.revenue }))
+              .sort((a, b) => b.revenue - a.revenue);
+            return (
+              <div key={key}>
+                <button
+                  onClick={() => setOpenKey(isOpen ? null : key)}
+                  className="flex w-full items-center gap-4 px-6 py-3 text-left hover:bg-slate-50/60"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-semibold text-foreground truncate">
+                      {p.name}
+                    </div>
+                    <div className="mt-0.5 text-[11px] text-muted-foreground">
+                      SKU: {p.sku} · {p.byState.size} UF · {p.byCity.size}{" "}
+                      {p.byCity.size === 1 ? "cidade" : "cidades"}
+                    </div>
+                  </div>
+                  <div className="hidden text-right md:block">
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Unidades
+                    </div>
+                    <div className="text-xs font-semibold text-foreground">{p.qty}</div>
+                  </div>
+                  <div className="hidden text-right md:block">
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Faturamento
+                    </div>
+                    <div className="text-xs font-semibold text-foreground whitespace-nowrap">
+                      {BRL(p.revenue)}
+                    </div>
+                  </div>
+                  <div className="hidden text-right md:block">
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Ticket médio
+                    </div>
+                    <div className="text-xs font-semibold text-foreground whitespace-nowrap">
+                      {BRL(avg)}
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground">{isOpen ? "−" : "+"}</div>
+                </button>
+                {isOpen && (
+                  <div className="grid grid-cols-1 gap-0 border-t border-slate-100 bg-slate-50/40 lg:grid-cols-2 lg:divide-x lg:divide-slate-200">
+                    <div className="p-4">
+                      <div className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+                        Por estado
+                      </div>
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                            <th className="py-1.5 pr-2 font-medium">UF</th>
+                            <th className="py-1.5 pr-2 font-medium text-right">Pedidos</th>
+                            <th className="py-1.5 pr-2 font-medium text-right">Qtd</th>
+                            <th className="py-1.5 pr-2 font-medium text-right">Faturamento</th>
+                            <th className="py-1.5 pl-2 font-medium text-right">Ticket médio</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {topStates.map((r) => (
+                            <tr key={r.uf}>
+                              <td className="py-1.5 pr-2 font-medium text-foreground">{r.uf}</td>
+                              <td className="py-1.5 pr-2 text-right">{r.orders}</td>
+                              <td className="py-1.5 pr-2 text-right">{r.qty}</td>
+                              <td className="py-1.5 pr-2 text-right font-semibold whitespace-nowrap">
+                                {BRL(r.revenue)}
+                              </td>
+                              <td className="py-1.5 pl-2 text-right whitespace-nowrap">
+                                {BRL(r.orders > 0 ? r.revenue / r.orders : 0)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="p-4">
+                      <div className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+                        Por cidade
+                      </div>
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                            <th className="py-1.5 pr-2 font-medium">Cidade/UF</th>
+                            <th className="py-1.5 pr-2 font-medium text-right">Pedidos</th>
+                            <th className="py-1.5 pr-2 font-medium text-right">Qtd</th>
+                            <th className="py-1.5 pr-2 font-medium text-right">Faturamento</th>
+                            <th className="py-1.5 pl-2 font-medium text-right">Ticket médio</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {topCities.slice(0, 15).map((r) => (
+                            <tr key={r.key}>
+                              <td className="py-1.5 pr-2 font-medium text-foreground">{r.key}</td>
+                              <td className="py-1.5 pr-2 text-right">{r.orders}</td>
+                              <td className="py-1.5 pr-2 text-right">{r.qty}</td>
+                              <td className="py-1.5 pr-2 text-right font-semibold whitespace-nowrap">
+                                {BRL(r.revenue)}
+                              </td>
+                              <td className="py-1.5 pl-2 text-right whitespace-nowrap">
+                                {BRL(r.orders > 0 ? r.revenue / r.orders : 0)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {filtered.length > 60 && (
+            <div className="border-t border-slate-200 px-6 py-3 text-center text-xs text-muted-foreground">
+              Mostrando 60 de {filtered.length} produtos. Refine a busca para ver mais.
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+

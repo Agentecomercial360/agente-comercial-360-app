@@ -292,29 +292,29 @@ function MapaVendasContent() {
     });
   }, [flat, search, paymentFilter, shippingFilter]);
 
+  // KPIs alinhados à camada única de métricas: mesmo período, mesma regra
+  // de cancelamento e mesmo campo de valor usados na Visão Geral.
   const kpis = useMemo(() => {
-    const startToday = new Date();
-    startToday.setHours(0, 0, 0, 0);
-    const todayOrders = orders.filter(
-      (o) => o.order_date && new Date(o.order_date) >= startToday,
-    );
-    const todayOrderIds = new Set(todayOrders.map((o) => o.id));
-    const todayItems = items.filter((i) => todayOrderIds.has(i.order_id));
-
-    const totalToday = todayOrders.reduce((s, o) => s + Number(o.total_amount ?? 0), 0);
-    const unitsToday = todayItems.reduce((s, i) => s + Number(i.quantity ?? 0), 0);
+    const activeOrders = orders.filter((o) => !isCancelled(o.order_status));
+    const activeIds = new Set(activeOrders.map((o) => o.id));
+    const base = aggregateOrderMetrics(activeOrders);
+    const activeItems = items.filter((i) => activeIds.has(i.order_id));
+    const units = activeItems.reduce((s, i) => s + Number(i.quantity ?? 0), 0);
     const buyers = new Set(
-      todayOrders
+      activeOrders
         .map((o) => (o.buyer_nickname || o.buyer_name || "").trim())
         .filter(Boolean),
     );
-    const unlinked = items.filter((i) => !i.product_id).length;
-
+    const unlinked = activeItems.filter((i) => !i.product_id).length;
     return {
-      ordersToday: todayOrders.length,
-      revenueToday: totalToday,
-      unitsToday,
-      buyersToday: buyers.size,
+      ordersPeriod: base.totalOrders,
+      revenuePeriod: base.totalRevenue,
+      ordersWithLocation: base.ordersWithLocation,
+      ordersWithoutLocation: base.ordersWithoutLocation,
+      revenueWithLocation: base.revenueWithLocation,
+      cancelledCount: base.cancelledCount,
+      units,
+      buyers: buyers.size,
       unlinked,
     };
   }, [orders, items]);

@@ -1787,12 +1787,10 @@ function MapSelectionPanel({
     pick.kind === "city"
       ? filtered.filter(
           (r) =>
-            (r.order.buyer_city ?? "") === pick.city &&
-            (r.order.buyer_state ?? "").toUpperCase() === pick.uf.toUpperCase(),
+            r.loc.stateCode === pick.uf.toUpperCase() &&
+            cityKey(r.loc.cityName) === cityKey(pick.city),
         )
-      : filtered.filter(
-          (r) => (r.order.buyer_state ?? "").toUpperCase() === pick.uf.toUpperCase(),
-        );
+      : filtered.filter((r) => r.loc.stateCode === pick.uf.toUpperCase());
 
   // Unique orders in scope
   const uniqOrders = Array.from(

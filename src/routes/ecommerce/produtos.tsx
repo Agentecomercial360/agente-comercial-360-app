@@ -202,32 +202,21 @@ function InteligenciaProdutosInner() {
     setSyncing(true);
     setSyncMessage(null);
     try {
-      const res = await fetch(SYNC_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ company_id: COMPANY_ID, account_id: selectedAccountId }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      console.log("Resposta sincronização Mercado Livre:", data);
-      if (data?.status !== "success") {
-        throw new Error("Resposta inválida da API de sincronização.");
-      }
-      const productsUpserted = data.result?.products_upserted ?? 0;
-      const listingsUpserted = data.result?.listings_upserted ?? 0;
+      const result = await runSmartAccountSync(selectedAccountId, { days: 1 });
+      console.log("Resposta sync-account-smart:", result.raw);
       await loadData(selectedAccountId);
-      setSyncMessage({
-        kind: "success",
-        text: `Sincronização concluída: ${productsUpserted} produtos e ${listingsUpserted} anúncios atualizados.`,
-      });
-    } catch {
+      window.dispatchEvent(new CustomEvent("mercadolivre-products-synced"));
+      setSyncMessage({ kind: "success", text: formatSmartSyncMessage(result) });
+    } catch (e: any) {
       setSyncMessage({
         kind: "error",
-        text: "Não foi possível sincronizar agora. Tente novamente em instantes.",
+        text: e?.message
+          ? `Não foi possível sincronizar: ${e.message}`
+          : "Não foi possível sincronizar agora. Tente novamente em instantes.",
       });
     } finally {
       setSyncing(false);
-      setTimeout(() => setSyncMessage(null), 6000);
+      setTimeout(() => setSyncMessage(null), 8000);
     }
   }
 

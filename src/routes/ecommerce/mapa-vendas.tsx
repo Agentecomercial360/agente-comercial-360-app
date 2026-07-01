@@ -65,6 +65,7 @@ type FlatRow = {
   order: OrderRow;
   item: ItemRow;
   accountName: string;
+  loc: CanonicalLocation;
 };
 
 const BRL = (n: number | null | undefined) =>

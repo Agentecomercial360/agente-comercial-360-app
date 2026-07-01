@@ -682,3 +682,16 @@ function Kpi({
     </div>
   );
 }
+
+function ReconItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+      <div className="font-display text-sm font-bold text-foreground tabular-nums">
+        {value}
+      </div>
+    </div>
+  );
+}

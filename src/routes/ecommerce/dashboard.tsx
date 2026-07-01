@@ -300,7 +300,7 @@ function DashboardContent() {
         pending: number;
       }
     >();
-    for (const o of orders) {
+    for (const o of activeOrders) {
       const id = o.account_id ?? "—";
       const cur =
         map.get(id) ??
@@ -314,7 +314,7 @@ function DashboardContent() {
       map.set(id, cur);
     }
     return Array.from(map.values()).sort((a, b) => b.gross - a.gross);
-  }, [orders]);
+  }, [activeOrders]);
 
   const scopeLabel =
     scope === "all"

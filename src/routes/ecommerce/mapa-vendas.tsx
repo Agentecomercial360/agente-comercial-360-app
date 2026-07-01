@@ -616,193 +616,335 @@ function MapaVendasContent() {
         </div>
       </section>
 
-      {/* Mapa de vendas (interativo) */}
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
-        <div className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
+      {/* Leitura executiva do mapa */}
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[var(--shadow-soft)]">
+        <div className="flex items-center gap-2 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-3">
+          <Lightbulb className="h-4 w-4 text-slate-500" />
           <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-            Mapa de vendas
+            Leitura executiva do mapa
           </div>
-          <div className="font-display text-base font-semibold text-foreground">
-            De onde saíram os pedidos
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Bolhas posicionadas por cidade/estado. Clique em uma cidade para ver os pedidos.
-          </p>
         </div>
-        <div className="p-4">
-          {loading || accLoading ? (
-            <div className="py-16 text-center text-sm text-muted-foreground">Carregando mapa…</div>
-          ) : cityPoints.length === 0 ? (
-            <div className="py-16 text-center text-sm text-muted-foreground">
-              Sem pedidos com localização no período/conta selecionados.
-            </div>
-          ) : (
-            <SalesMap
-              points={cityPoints}
-              onSelect={(city, uf) => setSelectedCity({ city, uf })}
-            />
-          )}
-        </div>
-      </section>
-
-      {/* Distribuição geográfica das vendas */}
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
-        <div className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
-          <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-            Distribuição geográfica das vendas
-          </div>
-          <div className="font-display text-base font-semibold text-foreground">
-            Vendas por cidade e estado
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Ranking executivo com base nos pedidos reais do período e da conta selecionada.
-          </p>
-        </div>
-
         {loading || accLoading ? (
-          <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-            Calculando distribuição…
+          <div className="px-6 py-8 text-center text-sm text-muted-foreground">
+            Calculando insights…
           </div>
         ) : geo.ordersCount === 0 ? (
-          <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-            Sem pedidos no período para gerar a distribuição geográfica.
+          <div className="px-6 py-8 text-center text-sm text-muted-foreground">
+            Sem dados suficientes para gerar leitura executiva.
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-0 lg:grid-cols-2 lg:divide-x lg:divide-slate-200">
-            <GeoRankingTable
-              title="Estados"
-              icon={<MapPin className="h-4 w-4" />}
-              rows={geo.states.slice(0, 10)}
-              total={geo.totalRevenue}
+          <div className="grid grid-cols-1 gap-px bg-slate-100 md:grid-cols-2 lg:grid-cols-3">
+            <InsightCell
+              icon={<Trophy className="h-3.5 w-3.5" />}
+              label="Estado com maior faturamento"
+              main={insights.topState ? insights.topState.key : "—"}
+              detail={
+                insights.topState
+                  ? `${BRL(insights.topState.revenue)} · ${insights.topState.orders} pedidos`
+                  : ""
+              }
             />
-            <GeoRankingTable
-              title="Cidades"
-              icon={<Building2 className="h-4 w-4" />}
-              rows={geo.cities.slice(0, 10)}
-              total={geo.totalRevenue}
+            <InsightCell
+              icon={<Building2 className="h-3.5 w-3.5" />}
+              label="Cidade com mais pedidos"
+              main={insights.topCityByOrders ? insights.topCityByOrders.key : "—"}
+              detail={
+                insights.topCityByOrders
+                  ? `${insights.topCityByOrders.orders} pedidos · ${BRL(insights.topCityByOrders.revenue)}`
+                  : ""
+              }
+            />
+            <InsightCell
+              icon={<Target className="h-3.5 w-3.5" />}
+              label="Cidade com maior ticket médio"
+              main={insights.topCityByAvg ? insights.topCityByAvg.key : "—"}
+              detail={
+                insights.topCityByAvg
+                  ? BRL(insights.topCityByAvg.revenue / insights.topCityByAvg.orders)
+                  : ""
+              }
+            />
+            <InsightCell
+              icon={<Package className="h-3.5 w-3.5" />}
+              label={`Produto mais vendido${insights.topProductRegion ? ` em ${insights.topProductRegion.region}` : ""}`}
+              main={insights.topProductRegion ? insights.topProductRegion.product : "—"}
+              detail={
+                insights.topProductRegion
+                  ? `${insights.topProductRegion.qty} unidades vendidas`
+                  : ""
+              }
+            />
+            <InsightCell
+              icon={<Truck className="h-3.5 w-3.5" />}
+              label="Regiões com envio pendente"
+              main={
+                insights.topPendingShip.length
+                  ? insights.topPendingShip.map(([uf]) => uf).join(" · ")
+                  : "Nenhuma"
+              }
+              detail={
+                insights.topPendingShip.length
+                  ? insights.topPendingShip
+                      .map(([uf, n]) => `${uf}: ${n}`)
+                      .join(" · ")
+                  : "Todos os envios em dia"
+              }
+            />
+            <InsightCell
+              icon={<Link2Off className="h-3.5 w-3.5" />}
+              label="Regiões com produtos não vinculados"
+              main={
+                insights.topUnlinked.length
+                  ? insights.topUnlinked.map(([uf]) => uf).join(" · ")
+                  : "Nenhuma"
+              }
+              detail={
+                insights.topUnlinked.length
+                  ? insights.topUnlinked
+                      .map(([uf, n]) => `${uf}: ${n} itens`)
+                      .join(" · ")
+                  : "Todos os itens vinculados"
+              }
+            />
+            <InsightCell
+              icon={<MapPin className="h-3.5 w-3.5" />}
+              label="Concentração top 3 estados"
+              main={`${insights.top3StateShare.toFixed(1)}%`}
+              detail="do faturamento no período"
+            />
+            <InsightCell
+              icon={<Building2 className="h-3.5 w-3.5" />}
+              label="Concentração top 3 cidades"
+              main={`${insights.top3CityShare.toFixed(1)}%`}
+              detail="do faturamento no período"
             />
           </div>
         )}
       </section>
 
-      {/* Table */}
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
-        <div className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
-          <div>
+      {/* Tabs */}
+      <div className="flex flex-wrap items-center gap-1 rounded-xl border border-slate-200 bg-white p-1">
+        {(
+          [
+            { k: "map", label: "Mapa" },
+            { k: "cities", label: "Cidades" },
+            { k: "products", label: "Produtos por região" },
+            { k: "orders", label: "Pedidos" },
+          ] as const
+        ).map((t) => (
+          <button
+            key={t.k}
+            onClick={() => setActiveTab(t.k)}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              activeTab === t.k
+                ? "bg-slate-900 text-white"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "map" && (
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
+          <div className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
             <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-              Pedidos reais
+              Mapa Inteligente de Vendas
             </div>
             <div className="font-display text-base font-semibold text-foreground">
-              {filtered.length.toLocaleString("pt-BR")}{" "}
-              {filtered.length === 1 ? "linha" : "linhas"}
+              De onde saíram os pedidos
             </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Bolhas por cidade/estado. Clique em uma cidade para abrir o resumo operacional.
+            </p>
           </div>
-        </div>
-
-        {loading || accLoading ? (
-          <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-            Carregando pedidos…
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-            Nenhum pedido encontrado para os filtros selecionados.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1280px] text-sm">
-              <thead>
-                <tr className="bg-slate-50/70 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-                  <th className="px-4 py-3 font-medium">Data</th>
-                  <th className="px-4 py-3 font-medium">Conta</th>
-                  <th className="px-4 py-3 font-medium">Pedido</th>
-                  <th className="px-4 py-3 font-medium">Comprador</th>
-                  <th className="px-4 py-3 font-medium">Cidade/UF</th>
-                  <th className="px-4 py-3 font-medium">SKU</th>
-                  <th className="px-4 py-3 font-medium">Produto</th>
-                  <th className="px-4 py-3 font-medium text-right">Qtd</th>
-                  <th className="px-4 py-3 font-medium text-right">Valor</th>
-                  <th className="px-4 py-3 font-medium">Pagamento</th>
-                  <th className="px-4 py-3 font-medium">Envio</th>
-                  <th className="px-4 py-3 font-medium">Lucro</th>
-                  <th className="px-4 py-3 font-medium">Vínculo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200/70">
-                {filtered.slice(0, 300).map((r) => (
-                  <tr
-                    key={`${r.order.id}-${r.item.id}`}
-                    className="cursor-pointer hover:bg-slate-50/60"
-                    onClick={() => setSelected(r)}
-                  >
-                    <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
-                      {fmtDate(r.order.order_date)}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
-                      {r.accountName}
-                    </td>
-                    <td className="px-4 py-3 text-xs font-medium text-foreground">
-                      #{r.order.external_order_id ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-foreground/90">
-                      {r.order.buyer_nickname ?? r.order.buyer_name ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
-                      {r.order.buyer_city ? `${r.order.buyer_city}/${r.order.buyer_state ?? ""}` : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-foreground/90">{r.item.sku ?? "—"}</td>
-                    <td className="px-4 py-3 text-xs text-foreground/90 max-w-[260px] truncate">
-                      {r.item.product_name ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-right text-xs text-foreground/90">
-                      {r.item.quantity ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-right text-xs font-medium text-foreground whitespace-nowrap">
-                      {BRL(r.item.total_price ?? r.order.total_amount)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${statusTone("payment", r.order.payment_status)}`}>
-                        {translateStatus(r.order.payment_status)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${statusTone("shipping", r.order.shipping_status)}`}>
-                        {translateStatus(r.order.shipping_status)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {r.order.profit_confidence === "pending_cost" ? (
-                        <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                          Aguardando custo
-                        </span>
-                      ) : (
-                        <span className="inline-flex rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
-                          {r.order.profit_status ?? "—"}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {r.item.product_id ? (
-                        <span className="inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-                          Vinculado
-                        </span>
-                      ) : (
-                        <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                          Não vinculado
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {filtered.length > 300 && (
-              <div className="border-t border-slate-200 px-6 py-3 text-center text-xs text-muted-foreground">
-                Mostrando 300 de {filtered.length.toLocaleString("pt-BR")} linhas. Refine os filtros para ver mais.
+          <div className="p-4">
+            {loading || accLoading ? (
+              <div className="py-16 text-center text-sm text-muted-foreground">Carregando mapa…</div>
+            ) : cityPoints.length === 0 ? (
+              <div className="py-16 text-center text-sm text-muted-foreground">
+                Sem pedidos com localização no período/conta selecionados.
               </div>
+            ) : (
+              <SalesMap
+                points={cityPoints}
+                onSelect={(city, uf) => setSelectedCity({ city, uf })}
+              />
             )}
           </div>
-        )}
-      </section>
+        </section>
+      )}
+
+      {activeTab === "cities" && (
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
+          <div className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
+            <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+              Distribuição geográfica das vendas
+            </div>
+            <div className="font-display text-base font-semibold text-foreground">
+              Vendas por cidade e estado
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Ranking executivo com base nos pedidos reais do período e da conta selecionada.
+            </p>
+          </div>
+          {loading || accLoading ? (
+            <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+              Calculando distribuição…
+            </div>
+          ) : geo.ordersCount === 0 ? (
+            <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+              Sem pedidos no período para gerar a distribuição geográfica.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-0 lg:grid-cols-2 lg:divide-x lg:divide-slate-200">
+              <GeoRankingTable
+                title="Estados"
+                icon={<MapPin className="h-4 w-4" />}
+                rows={geo.states.slice(0, 10)}
+                total={geo.totalRevenue}
+              />
+              <GeoRankingTable
+                title="Cidades"
+                icon={<Building2 className="h-4 w-4" />}
+                rows={geo.cities.slice(0, 10)}
+                total={geo.totalRevenue}
+              />
+            </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === "products" && (
+        <ProductRegionView
+          products={productRegions}
+          query={productQuery}
+          onQuery={setProductQuery}
+          loading={loading || accLoading}
+        />
+      )}
+
+      {activeTab === "orders" && (
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
+          <div className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
+            <div>
+              <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                Pedidos reais
+              </div>
+              <div className="font-display text-base font-semibold text-foreground">
+                {filtered.length.toLocaleString("pt-BR")}{" "}
+                {filtered.length === 1 ? "linha" : "linhas"}
+              </div>
+            </div>
+          </div>
+
+          {loading || accLoading ? (
+            <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+              Carregando pedidos…
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+              Nenhum pedido encontrado para os filtros selecionados.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[1280px] text-sm">
+                <thead>
+                  <tr className="bg-slate-50/70 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <th className="px-4 py-3 font-medium">Data</th>
+                    <th className="px-4 py-3 font-medium">Conta</th>
+                    <th className="px-4 py-3 font-medium">Pedido</th>
+                    <th className="px-4 py-3 font-medium">Comprador</th>
+                    <th className="px-4 py-3 font-medium">Cidade/UF</th>
+                    <th className="px-4 py-3 font-medium">SKU</th>
+                    <th className="px-4 py-3 font-medium">Produto</th>
+                    <th className="px-4 py-3 font-medium text-right">Qtd</th>
+                    <th className="px-4 py-3 font-medium text-right">Valor</th>
+                    <th className="px-4 py-3 font-medium">Pagamento</th>
+                    <th className="px-4 py-3 font-medium">Envio</th>
+                    <th className="px-4 py-3 font-medium">Lucro</th>
+                    <th className="px-4 py-3 font-medium">Vínculo</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200/70">
+                  {filtered.slice(0, 300).map((r) => (
+                    <tr
+                      key={`${r.order.id}-${r.item.id}`}
+                      className="cursor-pointer hover:bg-slate-50/60"
+                      onClick={() => setSelected(r)}
+                    >
+                      <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
+                        {fmtDate(r.order.order_date)}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
+                        {r.accountName}
+                      </td>
+                      <td className="px-4 py-3 text-xs font-medium text-foreground">
+                        #{r.order.external_order_id ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-foreground/90">
+                        {r.order.buyer_nickname ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
+                        {r.order.buyer_city ? `${r.order.buyer_city}/${r.order.buyer_state ?? ""}` : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-foreground/90">{r.item.sku ?? "—"}</td>
+                      <td className="px-4 py-3 text-xs text-foreground/90 max-w-[260px] truncate">
+                        {r.item.product_name ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right text-xs text-foreground/90">
+                        {r.item.quantity ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right text-xs font-medium text-foreground whitespace-nowrap">
+                        {BRL(r.item.total_price ?? r.order.total_amount)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${statusTone("payment", r.order.payment_status)}`}>
+                          {translateStatus(r.order.payment_status)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${statusTone("shipping", r.order.shipping_status)}`}>
+                          {translateStatus(r.order.shipping_status)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {r.order.profit_confidence === "pending_cost" ? (
+                          <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                            Aguardando custo
+                          </span>
+                        ) : (
+                          <span className="inline-flex rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                            {r.order.profit_status ?? "—"}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {r.item.product_id ? (
+                          <span className="inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                            Vinculado
+                          </span>
+                        ) : (
+                          <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                            Não vinculado
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filtered.length > 300 && (
+                <div className="border-t border-slate-200 px-6 py-3 text-center text-xs text-muted-foreground">
+                  Mostrando 300 de {filtered.length.toLocaleString("pt-BR")} linhas. Refine os filtros para ver mais.
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
 
       {selected && (
         <DetailModal row={selected} onClose={() => setSelected(null)} />

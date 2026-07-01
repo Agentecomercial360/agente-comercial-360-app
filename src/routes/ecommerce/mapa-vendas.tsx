@@ -170,16 +170,12 @@ function MapaVendasContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeAccountId, period]);
 
+  const range = useMemo(() => getPeriodRange(period), [period]);
+
   async function load() {
     try {
       setLoading(true);
       setError(null);
-
-      const now = new Date();
-      const since = new Date(now);
-      if (period === "today") since.setHours(0, 0, 0, 0);
-      else if (period === "7d") since.setDate(now.getDate() - 7);
-      else since.setDate(now.getDate() - 30);
 
       let q = supabase
         .from("ecommerce_orders")
@@ -187,9 +183,10 @@ function MapaVendasContent() {
           "id, account_id, external_order_id, order_date, buyer_name, buyer_nickname, buyer_city, buyer_state, order_status, payment_status, shipping_status, total_amount, profit_status, profit_confidence",
         )
         .eq("company_id", ECOMMERCE_COMPANY_ID)
-        .gte("order_date", since.toISOString())
+        .gte("order_date", range.sinceISO)
+        .lte("order_date", range.untilISO)
         .order("order_date", { ascending: false })
-        .limit(1000);
+        .limit(5000);
 
       if (activeAccountId) q = q.eq("account_id", activeAccountId);
 

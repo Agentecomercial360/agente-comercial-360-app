@@ -144,6 +144,7 @@ function MapaVendasContent() {
   const [shippingFilter, setShippingFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<FlatRow | null>(null);
+  const [selectedCity, setSelectedCity] = useState<{ city: string; uf: string } | null>(null);
 
   useEffect(() => {
     void load();

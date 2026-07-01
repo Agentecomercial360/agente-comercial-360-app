@@ -230,6 +230,7 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [signingOut, setSigningOut] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { activeAccountId, activeAccount } = useEcommerceActiveAccount();
 
   const handleSignOut = useCallback(async () => {
     if (signingOut) return;

@@ -330,6 +330,37 @@ function MapaVendasContent() {
     return { states, cities, totalRevenue, ordersCount: uniqueOrders.length };
   }, [filtered]);
 
+  const cityPoints: CityPoint[] = useMemo(() => {
+    const map = new Map<string, CityPoint>();
+    const seen = new Set<string>();
+    for (const r of filtered) {
+      const o = r.order;
+      if (!o.buyer_city || !o.buyer_state) continue;
+      if (seen.has(o.id)) continue;
+      seen.add(o.id);
+      const key = `${o.buyer_city}||${o.buyer_state}`;
+      const cur = map.get(key) ?? {
+        city: o.buyer_city,
+        uf: o.buyer_state,
+        orders: 0,
+        revenue: 0,
+      };
+      cur.orders += 1;
+      cur.revenue += Number(o.total_amount ?? 0);
+      map.set(key, cur);
+    }
+    return Array.from(map.values());
+  }, [filtered]);
+
+  const cityRows: FlatRow[] = useMemo(() => {
+    if (!selectedCity) return [];
+    return filtered.filter(
+      (r) =>
+        (r.order.buyer_city ?? "") === selectedCity.city &&
+        (r.order.buyer_state ?? "") === selectedCity.uf,
+    );
+  }, [filtered, selectedCity]);
+
   const paymentOptions = useMemo(() => {
     const s = new Set<string>();
     orders.forEach((o) => o.payment_status && s.add(o.payment_status));

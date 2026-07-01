@@ -1215,6 +1215,18 @@ function CityOrdersModal({
               <span>
                 Ticket médio: <b className="text-foreground">{BRL(avg)}</b>
               </span>
+              <span>
+                Produtos vendidos:{" "}
+                <b className="text-foreground">
+                  {rows.reduce((s, r) => s + Number(r.item.quantity ?? 0), 0)}
+                </b>
+              </span>
+              <span>
+                Contas:{" "}
+                <b className="text-foreground">
+                  {new Set(rows.map((r) => r.accountName)).size}
+                </b>
+              </span>
             </div>
           </div>
           <button
@@ -1225,7 +1237,66 @@ function CityOrdersModal({
           </button>
         </div>
 
+        {/* SKU summary */}
+        {(() => {
+          const skuMap = new Map<
+            string,
+            { sku: string; name: string; qty: number; revenue: number; linked: boolean }
+          >();
+          for (const r of rows) {
+            const key = r.item.sku || r.item.product_name || "—";
+            const cur =
+              skuMap.get(key) ?? {
+                sku: r.item.sku ?? "—",
+                name: r.item.product_name ?? "—",
+                qty: 0,
+                revenue: 0,
+                linked: false,
+              };
+            cur.qty += Number(r.item.quantity ?? 0);
+            cur.revenue += Number(r.item.total_price ?? 0);
+            if (r.item.product_id) cur.linked = true;
+            skuMap.set(key, cur);
+          }
+          const skus = Array.from(skuMap.values()).sort((a, b) => b.revenue - a.revenue);
+          if (skus.length === 0) return null;
+          return (
+            <div className="border-b border-slate-200 bg-slate-50/40 px-6 py-3">
+              <div className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+                SKUs vendidos nesta cidade ({skus.length})
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {skus.slice(0, 12).map((s) => (
+                  <div
+                    key={s.sku + s.name}
+                    className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1"
+                    title={s.name}
+                  >
+                    <span className="text-[11px] font-semibold text-foreground max-w-[200px] truncate">
+                      {s.name}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {s.qty}× · {BRL(s.revenue)}
+                    </span>
+                    {!s.linked && (
+                      <span className="rounded border border-amber-200 bg-amber-50 px-1 text-[9px] font-semibold text-amber-700">
+                        s/ vínculo
+                      </span>
+                    )}
+                  </div>
+                ))}
+                {skus.length > 12 && (
+                  <span className="self-center text-[11px] text-muted-foreground">
+                    +{skus.length - 12} outros
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="overflow-auto">
+
           <table className="w-full min-w-[1200px] text-sm">
             <thead className="sticky top-0 bg-slate-50/95 backdrop-blur">
               <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground">

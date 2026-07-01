@@ -486,11 +486,11 @@ function MapaVendasContent() {
       if (best) topProductRegion = { region: topState.key, ...best };
     }
 
-    // Regions with pending shipping
+    // Regions with pending shipping (canonical UF)
     const pendingShippingStates = new Map<string, number>();
     const unlinkedStates = new Map<string, number>();
     for (const r of filtered) {
-      const uf = (r.order.buyer_state || "—").toUpperCase();
+      const uf = r.loc.stateCode ?? "—";
       const sh = (r.order.shipping_status ?? "").toLowerCase();
       if (["pending", "handling", "ready_to_ship"].includes(sh)) {
         pendingShippingStates.set(uf, (pendingShippingStates.get(uf) ?? 0) + 1);

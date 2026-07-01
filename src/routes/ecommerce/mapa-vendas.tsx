@@ -12,6 +12,10 @@ import {
   X,
   MapPin,
   Building2,
+  Trophy,
+  Truck,
+  Lightbulb,
+  Target,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { SalesMap, type CityPoint } from "@/components/ecommerce/SalesMap";
@@ -145,6 +149,8 @@ function MapaVendasContent() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<FlatRow | null>(null);
   const [selectedCity, setSelectedCity] = useState<{ city: string; uf: string } | null>(null);
+  const [activeTab, setActiveTab] = useState<"map" | "cities" | "products" | "orders">("map");
+  const [productQuery, setProductQuery] = useState("");
 
   useEffect(() => {
     void load();
@@ -361,6 +367,144 @@ function MapaVendasContent() {
     );
   }, [filtered, selectedCity]);
 
+  // City-level SKU aggregation (used both for city modal and executive insights)
+  const cityProductAgg = useMemo(() => {
+    // key: `${city}||${uf}` -> Map<sku|name, { name, sku, qty, revenue }>
+    const map = new Map<
+      string,
+      Map<string, { sku: string; name: string; qty: number; revenue: number; linked: boolean }>
+    >();
+    for (const r of filtered) {
+      const o = r.order;
+      if (!o.buyer_city || !o.buyer_state) continue;
+      const cityKey = `${o.buyer_city}||${o.buyer_state}`;
+      const skuKey = r.item.sku || r.item.product_name || "—";
+      const bucket = map.get(cityKey) ?? new Map();
+      const cur = bucket.get(skuKey) ?? {
+        sku: r.item.sku ?? "—",
+        name: r.item.product_name ?? "—",
+        qty: 0,
+        revenue: 0,
+        linked: false,
+      };
+      cur.qty += Number(r.item.quantity ?? 0);
+      cur.revenue += Number(r.item.total_price ?? 0);
+      if (r.item.product_id) cur.linked = true;
+      bucket.set(skuKey, cur);
+      map.set(cityKey, bucket);
+    }
+    return map;
+  }, [filtered]);
+
+  // Product × region aggregation
+  const productRegions = useMemo(() => {
+    // key: sku/name -> { sku, name, qty, revenue, byCity: Map<city/uf, {orders, qty, revenue}>, byState: same }
+    type Bucket = {
+      sku: string;
+      name: string;
+      qty: number;
+      revenue: number;
+      orders: Set<string>;
+      byCity: Map<string, { orders: Set<string>; qty: number; revenue: number }>;
+      byState: Map<string, { orders: Set<string>; qty: number; revenue: number }>;
+    };
+    const map = new Map<string, Bucket>();
+    for (const r of filtered) {
+      const key = r.item.sku || r.item.product_name || "—";
+      if (!r.item.sku && !r.item.product_name) continue;
+      const b: Bucket =
+        map.get(key) ?? {
+          sku: r.item.sku ?? "—",
+          name: r.item.product_name ?? "—",
+          qty: 0,
+          revenue: 0,
+          orders: new Set(),
+          byCity: new Map(),
+          byState: new Map(),
+        };
+      b.qty += Number(r.item.quantity ?? 0);
+      b.revenue += Number(r.item.total_price ?? 0);
+      b.orders.add(r.order.id);
+      const uf = (r.order.buyer_state || "—").toUpperCase();
+      const cityKey = `${r.order.buyer_city || "—"}/${uf}`;
+      const cy = b.byCity.get(cityKey) ?? { orders: new Set<string>(), qty: 0, revenue: 0 };
+      cy.orders.add(r.order.id);
+      cy.qty += Number(r.item.quantity ?? 0);
+      cy.revenue += Number(r.item.total_price ?? 0);
+      b.byCity.set(cityKey, cy);
+      const st = b.byState.get(uf) ?? { orders: new Set<string>(), qty: 0, revenue: 0 };
+      st.orders.add(r.order.id);
+      st.qty += Number(r.item.quantity ?? 0);
+      st.revenue += Number(r.item.total_price ?? 0);
+      b.byState.set(uf, st);
+      map.set(key, b);
+    }
+    return Array.from(map.values()).sort((a, b) => b.revenue - a.revenue);
+  }, [filtered]);
+
+  // Executive insights
+  const insights = useMemo(() => {
+    const topState = geo.states[0] ?? null;
+    const topCityByOrders = [...geo.cities].sort((a, b) => b.orders - a.orders)[0] ?? null;
+    const topCityByAvg = [...geo.cities]
+      .filter((c) => c.orders > 0)
+      .sort((a, b) => b.revenue / b.orders - a.revenue / a.orders)[0] ?? null;
+
+    // Top product by region (per top state)
+    let topProductRegion: { region: string; product: string; qty: number } | null = null;
+    if (topState) {
+      let best: { product: string; qty: number } | null = null;
+      for (const p of productRegions) {
+        const st = p.byState.get(topState.key);
+        if (!st) continue;
+        if (!best || st.qty > best.qty) best = { product: p.name, qty: st.qty };
+      }
+      if (best) topProductRegion = { region: topState.key, ...best };
+    }
+
+    // Regions with pending shipping
+    const pendingShippingStates = new Map<string, number>();
+    const unlinkedStates = new Map<string, number>();
+    for (const r of filtered) {
+      const uf = (r.order.buyer_state || "—").toUpperCase();
+      const sh = (r.order.shipping_status ?? "").toLowerCase();
+      if (["pending", "handling", "ready_to_ship"].includes(sh)) {
+        pendingShippingStates.set(uf, (pendingShippingStates.get(uf) ?? 0) + 1);
+      }
+      if (!r.item.product_id) {
+        unlinkedStates.set(uf, (unlinkedStates.get(uf) ?? 0) + 1);
+      }
+    }
+    const topPendingShip = Array.from(pendingShippingStates.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+    const topUnlinked = Array.from(unlinkedStates.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+
+    const top3StateShare =
+      geo.totalRevenue > 0
+        ? (geo.states.slice(0, 3).reduce((s, x) => s + x.revenue, 0) / geo.totalRevenue) * 100
+        : 0;
+    const top3CityShare =
+      geo.totalRevenue > 0
+        ? (geo.cities.slice(0, 3).reduce((s, x) => s + x.revenue, 0) / geo.totalRevenue) * 100
+        : 0;
+
+    return {
+      topState,
+      topCityByOrders,
+      topCityByAvg,
+      topProductRegion,
+      topPendingShip,
+      topUnlinked,
+      top3StateShare,
+      top3CityShare,
+    };
+  }, [filtered, geo, productRegions]);
+
+
+
   const paymentOptions = useMemo(() => {
     const s = new Set<string>();
     orders.forEach((o) => o.payment_status && s.add(o.payment_status));
@@ -472,193 +616,335 @@ function MapaVendasContent() {
         </div>
       </section>
 
-      {/* Mapa de vendas (interativo) */}
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
-        <div className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
+      {/* Leitura executiva do mapa */}
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[var(--shadow-soft)]">
+        <div className="flex items-center gap-2 border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-3">
+          <Lightbulb className="h-4 w-4 text-slate-500" />
           <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-            Mapa de vendas
+            Leitura executiva do mapa
           </div>
-          <div className="font-display text-base font-semibold text-foreground">
-            De onde saíram os pedidos
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Bolhas posicionadas por cidade/estado. Clique em uma cidade para ver os pedidos.
-          </p>
         </div>
-        <div className="p-4">
-          {loading || accLoading ? (
-            <div className="py-16 text-center text-sm text-muted-foreground">Carregando mapa…</div>
-          ) : cityPoints.length === 0 ? (
-            <div className="py-16 text-center text-sm text-muted-foreground">
-              Sem pedidos com localização no período/conta selecionados.
-            </div>
-          ) : (
-            <SalesMap
-              points={cityPoints}
-              onSelect={(city, uf) => setSelectedCity({ city, uf })}
-            />
-          )}
-        </div>
-      </section>
-
-      {/* Distribuição geográfica das vendas */}
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
-        <div className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
-          <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-            Distribuição geográfica das vendas
-          </div>
-          <div className="font-display text-base font-semibold text-foreground">
-            Vendas por cidade e estado
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Ranking executivo com base nos pedidos reais do período e da conta selecionada.
-          </p>
-        </div>
-
         {loading || accLoading ? (
-          <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-            Calculando distribuição…
+          <div className="px-6 py-8 text-center text-sm text-muted-foreground">
+            Calculando insights…
           </div>
         ) : geo.ordersCount === 0 ? (
-          <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-            Sem pedidos no período para gerar a distribuição geográfica.
+          <div className="px-6 py-8 text-center text-sm text-muted-foreground">
+            Sem dados suficientes para gerar leitura executiva.
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-0 lg:grid-cols-2 lg:divide-x lg:divide-slate-200">
-            <GeoRankingTable
-              title="Estados"
-              icon={<MapPin className="h-4 w-4" />}
-              rows={geo.states.slice(0, 10)}
-              total={geo.totalRevenue}
+          <div className="grid grid-cols-1 gap-px bg-slate-100 md:grid-cols-2 lg:grid-cols-3">
+            <InsightCell
+              icon={<Trophy className="h-3.5 w-3.5" />}
+              label="Estado com maior faturamento"
+              main={insights.topState ? insights.topState.key : "—"}
+              detail={
+                insights.topState
+                  ? `${BRL(insights.topState.revenue)} · ${insights.topState.orders} pedidos`
+                  : ""
+              }
             />
-            <GeoRankingTable
-              title="Cidades"
-              icon={<Building2 className="h-4 w-4" />}
-              rows={geo.cities.slice(0, 10)}
-              total={geo.totalRevenue}
+            <InsightCell
+              icon={<Building2 className="h-3.5 w-3.5" />}
+              label="Cidade com mais pedidos"
+              main={insights.topCityByOrders ? insights.topCityByOrders.key : "—"}
+              detail={
+                insights.topCityByOrders
+                  ? `${insights.topCityByOrders.orders} pedidos · ${BRL(insights.topCityByOrders.revenue)}`
+                  : ""
+              }
+            />
+            <InsightCell
+              icon={<Target className="h-3.5 w-3.5" />}
+              label="Cidade com maior ticket médio"
+              main={insights.topCityByAvg ? insights.topCityByAvg.key : "—"}
+              detail={
+                insights.topCityByAvg
+                  ? BRL(insights.topCityByAvg.revenue / insights.topCityByAvg.orders)
+                  : ""
+              }
+            />
+            <InsightCell
+              icon={<Package className="h-3.5 w-3.5" />}
+              label={`Produto mais vendido${insights.topProductRegion ? ` em ${insights.topProductRegion.region}` : ""}`}
+              main={insights.topProductRegion ? insights.topProductRegion.product : "—"}
+              detail={
+                insights.topProductRegion
+                  ? `${insights.topProductRegion.qty} unidades vendidas`
+                  : ""
+              }
+            />
+            <InsightCell
+              icon={<Truck className="h-3.5 w-3.5" />}
+              label="Regiões com envio pendente"
+              main={
+                insights.topPendingShip.length
+                  ? insights.topPendingShip.map(([uf]) => uf).join(" · ")
+                  : "Nenhuma"
+              }
+              detail={
+                insights.topPendingShip.length
+                  ? insights.topPendingShip
+                      .map(([uf, n]) => `${uf}: ${n}`)
+                      .join(" · ")
+                  : "Todos os envios em dia"
+              }
+            />
+            <InsightCell
+              icon={<Link2Off className="h-3.5 w-3.5" />}
+              label="Regiões com produtos não vinculados"
+              main={
+                insights.topUnlinked.length
+                  ? insights.topUnlinked.map(([uf]) => uf).join(" · ")
+                  : "Nenhuma"
+              }
+              detail={
+                insights.topUnlinked.length
+                  ? insights.topUnlinked
+                      .map(([uf, n]) => `${uf}: ${n} itens`)
+                      .join(" · ")
+                  : "Todos os itens vinculados"
+              }
+            />
+            <InsightCell
+              icon={<MapPin className="h-3.5 w-3.5" />}
+              label="Concentração top 3 estados"
+              main={`${insights.top3StateShare.toFixed(1)}%`}
+              detail="do faturamento no período"
+            />
+            <InsightCell
+              icon={<Building2 className="h-3.5 w-3.5" />}
+              label="Concentração top 3 cidades"
+              main={`${insights.top3CityShare.toFixed(1)}%`}
+              detail="do faturamento no período"
             />
           </div>
         )}
       </section>
 
-      {/* Table */}
-      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
-        <div className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
-          <div>
+      {/* Tabs */}
+      <div className="flex flex-wrap items-center gap-1 rounded-xl border border-slate-200 bg-white p-1">
+        {(
+          [
+            { k: "map", label: "Mapa" },
+            { k: "cities", label: "Cidades" },
+            { k: "products", label: "Produtos por região" },
+            { k: "orders", label: "Pedidos" },
+          ] as const
+        ).map((t) => (
+          <button
+            key={t.k}
+            onClick={() => setActiveTab(t.k)}
+            className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              activeTab === t.k
+                ? "bg-slate-900 text-white"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "map" && (
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
+          <div className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
             <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-              Pedidos reais
+              Mapa Inteligente de Vendas
             </div>
             <div className="font-display text-base font-semibold text-foreground">
-              {filtered.length.toLocaleString("pt-BR")}{" "}
-              {filtered.length === 1 ? "linha" : "linhas"}
+              De onde saíram os pedidos
             </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Bolhas por cidade/estado. Clique em uma cidade para abrir o resumo operacional.
+            </p>
           </div>
-        </div>
-
-        {loading || accLoading ? (
-          <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-            Carregando pedidos…
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-            Nenhum pedido encontrado para os filtros selecionados.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1280px] text-sm">
-              <thead>
-                <tr className="bg-slate-50/70 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-                  <th className="px-4 py-3 font-medium">Data</th>
-                  <th className="px-4 py-3 font-medium">Conta</th>
-                  <th className="px-4 py-3 font-medium">Pedido</th>
-                  <th className="px-4 py-3 font-medium">Comprador</th>
-                  <th className="px-4 py-3 font-medium">Cidade/UF</th>
-                  <th className="px-4 py-3 font-medium">SKU</th>
-                  <th className="px-4 py-3 font-medium">Produto</th>
-                  <th className="px-4 py-3 font-medium text-right">Qtd</th>
-                  <th className="px-4 py-3 font-medium text-right">Valor</th>
-                  <th className="px-4 py-3 font-medium">Pagamento</th>
-                  <th className="px-4 py-3 font-medium">Envio</th>
-                  <th className="px-4 py-3 font-medium">Lucro</th>
-                  <th className="px-4 py-3 font-medium">Vínculo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200/70">
-                {filtered.slice(0, 300).map((r) => (
-                  <tr
-                    key={`${r.order.id}-${r.item.id}`}
-                    className="cursor-pointer hover:bg-slate-50/60"
-                    onClick={() => setSelected(r)}
-                  >
-                    <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
-                      {fmtDate(r.order.order_date)}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
-                      {r.accountName}
-                    </td>
-                    <td className="px-4 py-3 text-xs font-medium text-foreground">
-                      #{r.order.external_order_id ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-foreground/90">
-                      {r.order.buyer_nickname ?? r.order.buyer_name ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
-                      {r.order.buyer_city ? `${r.order.buyer_city}/${r.order.buyer_state ?? ""}` : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-foreground/90">{r.item.sku ?? "—"}</td>
-                    <td className="px-4 py-3 text-xs text-foreground/90 max-w-[260px] truncate">
-                      {r.item.product_name ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-right text-xs text-foreground/90">
-                      {r.item.quantity ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-right text-xs font-medium text-foreground whitespace-nowrap">
-                      {BRL(r.item.total_price ?? r.order.total_amount)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${statusTone("payment", r.order.payment_status)}`}>
-                        {translateStatus(r.order.payment_status)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${statusTone("shipping", r.order.shipping_status)}`}>
-                        {translateStatus(r.order.shipping_status)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {r.order.profit_confidence === "pending_cost" ? (
-                        <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                          Aguardando custo
-                        </span>
-                      ) : (
-                        <span className="inline-flex rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
-                          {r.order.profit_status ?? "—"}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      {r.item.product_id ? (
-                        <span className="inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-                          Vinculado
-                        </span>
-                      ) : (
-                        <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                          Não vinculado
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {filtered.length > 300 && (
-              <div className="border-t border-slate-200 px-6 py-3 text-center text-xs text-muted-foreground">
-                Mostrando 300 de {filtered.length.toLocaleString("pt-BR")} linhas. Refine os filtros para ver mais.
+          <div className="p-4">
+            {loading || accLoading ? (
+              <div className="py-16 text-center text-sm text-muted-foreground">Carregando mapa…</div>
+            ) : cityPoints.length === 0 ? (
+              <div className="py-16 text-center text-sm text-muted-foreground">
+                Sem pedidos com localização no período/conta selecionados.
               </div>
+            ) : (
+              <SalesMap
+                points={cityPoints}
+                onSelect={(city, uf) => setSelectedCity({ city, uf })}
+              />
             )}
           </div>
-        )}
-      </section>
+        </section>
+      )}
+
+      {activeTab === "cities" && (
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
+          <div className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
+            <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+              Distribuição geográfica das vendas
+            </div>
+            <div className="font-display text-base font-semibold text-foreground">
+              Vendas por cidade e estado
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Ranking executivo com base nos pedidos reais do período e da conta selecionada.
+            </p>
+          </div>
+          {loading || accLoading ? (
+            <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+              Calculando distribuição…
+            </div>
+          ) : geo.ordersCount === 0 ? (
+            <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+              Sem pedidos no período para gerar a distribuição geográfica.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-0 lg:grid-cols-2 lg:divide-x lg:divide-slate-200">
+              <GeoRankingTable
+                title="Estados"
+                icon={<MapPin className="h-4 w-4" />}
+                rows={geo.states.slice(0, 10)}
+                total={geo.totalRevenue}
+              />
+              <GeoRankingTable
+                title="Cidades"
+                icon={<Building2 className="h-4 w-4" />}
+                rows={geo.cities.slice(0, 10)}
+                total={geo.totalRevenue}
+              />
+            </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === "products" && (
+        <ProductRegionView
+          products={productRegions}
+          query={productQuery}
+          onQuery={setProductQuery}
+          loading={loading || accLoading}
+        />
+      )}
+
+      {activeTab === "orders" && (
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
+          <div className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
+            <div>
+              <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                Pedidos reais
+              </div>
+              <div className="font-display text-base font-semibold text-foreground">
+                {filtered.length.toLocaleString("pt-BR")}{" "}
+                {filtered.length === 1 ? "linha" : "linhas"}
+              </div>
+            </div>
+          </div>
+
+          {loading || accLoading ? (
+            <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+              Carregando pedidos…
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+              Nenhum pedido encontrado para os filtros selecionados.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[1280px] text-sm">
+                <thead>
+                  <tr className="bg-slate-50/70 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <th className="px-4 py-3 font-medium">Data</th>
+                    <th className="px-4 py-3 font-medium">Conta</th>
+                    <th className="px-4 py-3 font-medium">Pedido</th>
+                    <th className="px-4 py-3 font-medium">Comprador</th>
+                    <th className="px-4 py-3 font-medium">Cidade/UF</th>
+                    <th className="px-4 py-3 font-medium">SKU</th>
+                    <th className="px-4 py-3 font-medium">Produto</th>
+                    <th className="px-4 py-3 font-medium text-right">Qtd</th>
+                    <th className="px-4 py-3 font-medium text-right">Valor</th>
+                    <th className="px-4 py-3 font-medium">Pagamento</th>
+                    <th className="px-4 py-3 font-medium">Envio</th>
+                    <th className="px-4 py-3 font-medium">Lucro</th>
+                    <th className="px-4 py-3 font-medium">Vínculo</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200/70">
+                  {filtered.slice(0, 300).map((r) => (
+                    <tr
+                      key={`${r.order.id}-${r.item.id}`}
+                      className="cursor-pointer hover:bg-slate-50/60"
+                      onClick={() => setSelected(r)}
+                    >
+                      <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
+                        {fmtDate(r.order.order_date)}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
+                        {r.accountName}
+                      </td>
+                      <td className="px-4 py-3 text-xs font-medium text-foreground">
+                        #{r.order.external_order_id ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-foreground/90">
+                        {r.order.buyer_nickname ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
+                        {r.order.buyer_city ? `${r.order.buyer_city}/${r.order.buyer_state ?? ""}` : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-foreground/90">{r.item.sku ?? "—"}</td>
+                      <td className="px-4 py-3 text-xs text-foreground/90 max-w-[260px] truncate">
+                        {r.item.product_name ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right text-xs text-foreground/90">
+                        {r.item.quantity ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right text-xs font-medium text-foreground whitespace-nowrap">
+                        {BRL(r.item.total_price ?? r.order.total_amount)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${statusTone("payment", r.order.payment_status)}`}>
+                          {translateStatus(r.order.payment_status)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${statusTone("shipping", r.order.shipping_status)}`}>
+                          {translateStatus(r.order.shipping_status)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {r.order.profit_confidence === "pending_cost" ? (
+                          <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                            Aguardando custo
+                          </span>
+                        ) : (
+                          <span className="inline-flex rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                            {r.order.profit_status ?? "—"}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {r.item.product_id ? (
+                          <span className="inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                            Vinculado
+                          </span>
+                        ) : (
+                          <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                            Não vinculado
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {filtered.length > 300 && (
+                <div className="border-t border-slate-200 px-6 py-3 text-center text-xs text-muted-foreground">
+                  Mostrando 300 de {filtered.length.toLocaleString("pt-BR")} linhas. Refine os filtros para ver mais.
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+      )}
+
 
       {selected && (
         <DetailModal row={selected} onClose={() => setSelected(null)} />
@@ -929,6 +1215,18 @@ function CityOrdersModal({
               <span>
                 Ticket médio: <b className="text-foreground">{BRL(avg)}</b>
               </span>
+              <span>
+                Produtos vendidos:{" "}
+                <b className="text-foreground">
+                  {rows.reduce((s, r) => s + Number(r.item.quantity ?? 0), 0)}
+                </b>
+              </span>
+              <span>
+                Contas:{" "}
+                <b className="text-foreground">
+                  {new Set(rows.map((r) => r.accountName)).size}
+                </b>
+              </span>
             </div>
           </div>
           <button
@@ -939,7 +1237,66 @@ function CityOrdersModal({
           </button>
         </div>
 
+        {/* SKU summary */}
+        {(() => {
+          const skuMap = new Map<
+            string,
+            { sku: string; name: string; qty: number; revenue: number; linked: boolean }
+          >();
+          for (const r of rows) {
+            const key = r.item.sku || r.item.product_name || "—";
+            const cur =
+              skuMap.get(key) ?? {
+                sku: r.item.sku ?? "—",
+                name: r.item.product_name ?? "—",
+                qty: 0,
+                revenue: 0,
+                linked: false,
+              };
+            cur.qty += Number(r.item.quantity ?? 0);
+            cur.revenue += Number(r.item.total_price ?? 0);
+            if (r.item.product_id) cur.linked = true;
+            skuMap.set(key, cur);
+          }
+          const skus = Array.from(skuMap.values()).sort((a, b) => b.revenue - a.revenue);
+          if (skus.length === 0) return null;
+          return (
+            <div className="border-b border-slate-200 bg-slate-50/40 px-6 py-3">
+              <div className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+                SKUs vendidos nesta cidade ({skus.length})
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {skus.slice(0, 12).map((s) => (
+                  <div
+                    key={s.sku + s.name}
+                    className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1"
+                    title={s.name}
+                  >
+                    <span className="text-[11px] font-semibold text-foreground max-w-[200px] truncate">
+                      {s.name}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      {s.qty}× · {BRL(s.revenue)}
+                    </span>
+                    {!s.linked && (
+                      <span className="rounded border border-amber-200 bg-amber-50 px-1 text-[9px] font-semibold text-amber-700">
+                        s/ vínculo
+                      </span>
+                    )}
+                  </div>
+                ))}
+                {skus.length > 12 && (
+                  <span className="self-center text-[11px] text-muted-foreground">
+                    +{skus.length - 12} outros
+                  </span>
+                )}
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="overflow-auto">
+
           <table className="w-full min-w-[1200px] text-sm">
             <thead className="sticky top-0 bg-slate-50/95 backdrop-blur">
               <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -1044,3 +1401,229 @@ function CityOrdersModal({
     </div>
   );
 }
+
+function InsightCell({
+  icon,
+  label,
+  main,
+  detail,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  main: string;
+  detail: string;
+}) {
+  return (
+    <div className="bg-white px-5 py-4">
+      <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest text-muted-foreground">
+        <span className="text-slate-400">{icon}</span>
+        {label}
+      </div>
+      <div className="mt-1.5 text-sm font-semibold text-foreground truncate" title={main}>
+        {main}
+      </div>
+      {detail && (
+        <div className="mt-0.5 text-[11px] text-muted-foreground truncate" title={detail}>
+          {detail}
+        </div>
+      )}
+    </div>
+  );
+}
+
+type ProductBucket = {
+  sku: string;
+  name: string;
+  qty: number;
+  revenue: number;
+  orders: Set<string>;
+  byCity: Map<string, { orders: Set<string>; qty: number; revenue: number }>;
+  byState: Map<string, { orders: Set<string>; qty: number; revenue: number }>;
+};
+
+function ProductRegionView({
+  products,
+  query,
+  onQuery,
+  loading,
+}: {
+  products: ProductBucket[];
+  query: string;
+  onQuery: (q: string) => void;
+  loading: boolean;
+}) {
+  const q = query.trim().toLowerCase();
+  const filtered = q
+    ? products.filter(
+        (p) =>
+          (p.sku ?? "").toLowerCase().includes(q) ||
+          (p.name ?? "").toLowerCase().includes(q),
+      )
+    : products;
+  const [openKey, setOpenKey] = useState<string | null>(null);
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
+      <div className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
+        <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+          Produtos por região
+        </div>
+        <div className="font-display text-base font-semibold text-foreground">
+          Onde cada produto está vendendo
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Clique em um produto para ver a distribuição por cidade e estado.
+        </p>
+      </div>
+
+      <div className="border-b border-slate-200 px-6 py-3">
+        <div className="relative max-w-md">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <input
+            value={query}
+            onChange={(e) => onQuery(e.target.value)}
+            placeholder="Filtrar por SKU ou produto…"
+            className="h-9 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-blue-400"
+          />
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+          Calculando produtos por região…
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="px-6 py-10 text-center text-sm text-muted-foreground">
+          Nenhum produto encontrado para o filtro.
+        </div>
+      ) : (
+        <div className="divide-y divide-slate-100">
+          {filtered.slice(0, 60).map((p) => {
+            const key = `${p.sku}||${p.name}`;
+            const isOpen = openKey === key;
+            const avg = p.orders.size > 0 ? p.revenue / p.orders.size : 0;
+            const topStates = Array.from(p.byState.entries())
+              .map(([uf, v]) => ({ uf, orders: v.orders.size, qty: v.qty, revenue: v.revenue }))
+              .sort((a, b) => b.revenue - a.revenue);
+            const topCities = Array.from(p.byCity.entries())
+              .map(([k, v]) => ({ key: k, orders: v.orders.size, qty: v.qty, revenue: v.revenue }))
+              .sort((a, b) => b.revenue - a.revenue);
+            return (
+              <div key={key}>
+                <button
+                  onClick={() => setOpenKey(isOpen ? null : key)}
+                  className="flex w-full items-center gap-4 px-6 py-3 text-left hover:bg-slate-50/60"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-semibold text-foreground truncate">
+                      {p.name}
+                    </div>
+                    <div className="mt-0.5 text-[11px] text-muted-foreground">
+                      SKU: {p.sku} · {p.byState.size} UF · {p.byCity.size}{" "}
+                      {p.byCity.size === 1 ? "cidade" : "cidades"}
+                    </div>
+                  </div>
+                  <div className="hidden text-right md:block">
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Unidades
+                    </div>
+                    <div className="text-xs font-semibold text-foreground">{p.qty}</div>
+                  </div>
+                  <div className="hidden text-right md:block">
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Faturamento
+                    </div>
+                    <div className="text-xs font-semibold text-foreground whitespace-nowrap">
+                      {BRL(p.revenue)}
+                    </div>
+                  </div>
+                  <div className="hidden text-right md:block">
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Ticket médio
+                    </div>
+                    <div className="text-xs font-semibold text-foreground whitespace-nowrap">
+                      {BRL(avg)}
+                    </div>
+                  </div>
+                  <div className="text-xs text-muted-foreground">{isOpen ? "−" : "+"}</div>
+                </button>
+                {isOpen && (
+                  <div className="grid grid-cols-1 gap-0 border-t border-slate-100 bg-slate-50/40 lg:grid-cols-2 lg:divide-x lg:divide-slate-200">
+                    <div className="p-4">
+                      <div className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+                        Por estado
+                      </div>
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                            <th className="py-1.5 pr-2 font-medium">UF</th>
+                            <th className="py-1.5 pr-2 font-medium text-right">Pedidos</th>
+                            <th className="py-1.5 pr-2 font-medium text-right">Qtd</th>
+                            <th className="py-1.5 pr-2 font-medium text-right">Faturamento</th>
+                            <th className="py-1.5 pl-2 font-medium text-right">Ticket médio</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {topStates.map((r) => (
+                            <tr key={r.uf}>
+                              <td className="py-1.5 pr-2 font-medium text-foreground">{r.uf}</td>
+                              <td className="py-1.5 pr-2 text-right">{r.orders}</td>
+                              <td className="py-1.5 pr-2 text-right">{r.qty}</td>
+                              <td className="py-1.5 pr-2 text-right font-semibold whitespace-nowrap">
+                                {BRL(r.revenue)}
+                              </td>
+                              <td className="py-1.5 pl-2 text-right whitespace-nowrap">
+                                {BRL(r.orders > 0 ? r.revenue / r.orders : 0)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="p-4">
+                      <div className="mb-2 text-[10px] uppercase tracking-widest text-muted-foreground">
+                        Por cidade
+                      </div>
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="text-left text-[10px] uppercase tracking-wider text-muted-foreground">
+                            <th className="py-1.5 pr-2 font-medium">Cidade/UF</th>
+                            <th className="py-1.5 pr-2 font-medium text-right">Pedidos</th>
+                            <th className="py-1.5 pr-2 font-medium text-right">Qtd</th>
+                            <th className="py-1.5 pr-2 font-medium text-right">Faturamento</th>
+                            <th className="py-1.5 pl-2 font-medium text-right">Ticket médio</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {topCities.slice(0, 15).map((r) => (
+                            <tr key={r.key}>
+                              <td className="py-1.5 pr-2 font-medium text-foreground">{r.key}</td>
+                              <td className="py-1.5 pr-2 text-right">{r.orders}</td>
+                              <td className="py-1.5 pr-2 text-right">{r.qty}</td>
+                              <td className="py-1.5 pr-2 text-right font-semibold whitespace-nowrap">
+                                {BRL(r.revenue)}
+                              </td>
+                              <td className="py-1.5 pl-2 text-right whitespace-nowrap">
+                                {BRL(r.orders > 0 ? r.revenue / r.orders : 0)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {filtered.length > 60 && (
+            <div className="border-t border-slate-200 px-6 py-3 text-center text-xs text-muted-foreground">
+              Mostrando 60 de {filtered.length} produtos. Refine a busca para ver mais.
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+

@@ -408,6 +408,25 @@ function DashboardContent() {
           </p>
         </div>
 
+        {/* Checagem de reconciliação — mesmos números devem aparecer no Mapa de Vendas */}
+        <section className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="font-semibold text-foreground">
+              Checagem — {range.label} · {range.spStartDate} → {range.spEndDate} (America/Sao_Paulo)
+            </span>
+            <span className="text-muted-foreground">
+              Cancelados excluídos: {num.format(totals.cancelledCount)}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+            <ReconItem label="Pedidos no período" value={num.format(totals.count)} />
+            <ReconItem label="Com localização" value={num.format(totals.withLocation)} />
+            <ReconItem label="Sem localização" value={num.format(totals.withoutLocation)} />
+            <ReconItem label="Faturamento total" value={brl.format(totals.gross)} />
+            <ReconItem label="Faturamento c/ loc." value={brl.format(totals.revenueWithLocation)} />
+          </div>
+        </section>
+
         {errorMsg && (
           <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {errorMsg}

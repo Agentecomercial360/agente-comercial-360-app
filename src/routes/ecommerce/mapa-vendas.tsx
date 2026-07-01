@@ -316,37 +316,46 @@ function MapaVendasContent() {
     };
   }, [orders, items]);
 
-  // Geographic aggregations (based on filtered orders scope: respects account + period)
+  // Geographic aggregations — canonical stateCode + normalized city.
+  // "geo.states[].key" is the UF code (e.g. "GO"), also used to match SalesMap state paths.
+  // "geo.cities[].key" is `${city}/${UF}` for display; cityKeyCanon is the accent-insensitive folding.
   const geo = useMemo(() => {
-    const filteredOrderIds = new Set(filtered.map((r) => r.order.id));
-    const uniqueOrders = Array.from(
-      new Map(
-        filtered.map((r) => [r.order.id, r.order] as const),
-      ).values(),
-    ).filter((o) => filteredOrderIds.has(o.id));
-
+    const uniqueOrdersMap = new Map<string, { order: OrderRow; loc: CanonicalLocation }>();
+    for (const r of filtered) {
+      if (!uniqueOrdersMap.has(r.order.id))
+        uniqueOrdersMap.set(r.order.id, { order: r.order, loc: r.loc });
+    }
+    const uniqueOrders = Array.from(uniqueOrdersMap.values());
     const totalRevenue = uniqueOrders.reduce(
-      (s, o) => s + Number(o.total_amount ?? 0),
+      (s, { order }) => s + Number(order.total_amount ?? 0),
       0,
     );
 
-    type Agg = { key: string; orders: number; revenue: number };
+    type Agg = { key: string; label: string; orders: number; revenue: number };
     const byState = new Map<string, Agg>();
     const byCity = new Map<string, Agg>();
 
-    for (const o of uniqueOrders) {
-      const uf = (o.buyer_state || "—").toUpperCase();
-      const city = o.buyer_city || "—";
-      const stKey = uf;
-      const cityKey = `${city}/${uf}`;
-      const stAgg = byState.get(stKey) ?? { key: stKey, orders: 0, revenue: 0 };
-      stAgg.orders += 1;
-      stAgg.revenue += Number(o.total_amount ?? 0);
-      byState.set(stKey, stAgg);
-      const cyAgg = byCity.get(cityKey) ?? { key: cityKey, orders: 0, revenue: 0 };
-      cyAgg.orders += 1;
-      cyAgg.revenue += Number(o.total_amount ?? 0);
-      byCity.set(cityKey, cyAgg);
+    for (const { order, loc } of uniqueOrders) {
+      const code = loc.stateCode;
+      const cityName = loc.cityName;
+      if (code) {
+        const st = byState.get(code) ?? { key: code, label: code, orders: 0, revenue: 0 };
+        st.orders += 1;
+        st.revenue += Number(order.total_amount ?? 0);
+        byState.set(code, st);
+      }
+      if (code && cityName) {
+        const cKey = `${cityKey(cityName)}||${code}`;
+        const cy = byCity.get(cKey) ?? {
+          key: `${cityName}/${code}`,
+          label: `${cityName}/${code}`,
+          orders: 0,
+          revenue: 0,
+        };
+        cy.orders += 1;
+        cy.revenue += Number(order.total_amount ?? 0);
+        byCity.set(cKey, cy);
+      }
     }
     const states = Array.from(byState.values()).sort((a, b) => b.revenue - a.revenue);
     const cities = Array.from(byCity.values()).sort((a, b) => b.revenue - a.revenue);
@@ -357,19 +366,18 @@ function MapaVendasContent() {
     const map = new Map<string, CityPoint>();
     const seen = new Set<string>();
     for (const r of filtered) {
-      const o = r.order;
-      if (!o.buyer_city || !o.buyer_state) continue;
-      if (seen.has(o.id)) continue;
-      seen.add(o.id);
-      const key = `${o.buyer_city}||${o.buyer_state}`;
+      if (!r.loc.stateCode || !r.loc.cityName) continue;
+      if (seen.has(r.order.id)) continue;
+      seen.add(r.order.id);
+      const key = `${cityKey(r.loc.cityName)}||${r.loc.stateCode}`;
       const cur = map.get(key) ?? {
-        city: o.buyer_city,
-        uf: o.buyer_state,
+        city: r.loc.cityName,
+        uf: r.loc.stateCode,
         orders: 0,
         revenue: 0,
       };
       cur.orders += 1;
-      cur.revenue += Number(o.total_amount ?? 0);
+      cur.revenue += Number(r.order.total_amount ?? 0);
       map.set(key, cur);
     }
     return Array.from(map.values());
@@ -377,10 +385,10 @@ function MapaVendasContent() {
 
   const cityRows: FlatRow[] = useMemo(() => {
     if (!selectedCity) return [];
+    const ck = cityKey(selectedCity.city);
+    const uf = selectedCity.uf.toUpperCase();
     return filtered.filter(
-      (r) =>
-        (r.order.buyer_city ?? "") === selectedCity.city &&
-        (r.order.buyer_state ?? "") === selectedCity.uf,
+      (r) => r.loc.stateCode === uf && cityKey(r.loc.cityName) === ck,
     );
   }, [filtered, selectedCity]);
 

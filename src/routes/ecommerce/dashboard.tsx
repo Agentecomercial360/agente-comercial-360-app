@@ -269,7 +269,7 @@ function DashboardContent() {
     ) {
       map.set(dayKey(d), { gross: 0, count: 0 });
     }
-    for (const o of orders) {
+    for (const o of activeOrders) {
       if (!o.order_date) continue;
       const k = dayKey(new Date(o.order_date));
       const cur = map.get(k) ?? { gross: 0, count: 0 };
@@ -280,7 +280,7 @@ function DashboardContent() {
     return Array.from(map.entries())
       .sort((a, b) => (a[0] < b[0] ? -1 : 1))
       .map(([key, v]) => ({ key, ...v }));
-  }, [orders, period]);
+  }, [activeOrders, period]);
 
   const maxDayGross = useMemo(
     () => byDay.reduce((m, d) => Math.max(m, d.gross), 0),

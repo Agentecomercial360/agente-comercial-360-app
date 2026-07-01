@@ -26,7 +26,6 @@ export const Route = createFileRoute("/ecommerce/produtos")({
 });
 
 const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
-  "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products";
 
 type Product = {
   id: string;

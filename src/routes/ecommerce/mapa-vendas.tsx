@@ -339,7 +339,7 @@ function MapaVendasContent() {
       const code = loc.stateCode;
       const cityName = loc.cityName;
       if (code) {
-        const st = byState.get(code) ?? { key: code, label: code, orders: 0, revenue: 0 };
+        const st = byState.get(code) ?? { key: code, label: loc.stateName ?? code, orders: 0, revenue: 0 };
         st.orders += 1;
         st.revenue += Number(order.total_amount ?? 0);
         byState.set(code, st);

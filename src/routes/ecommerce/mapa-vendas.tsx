@@ -25,6 +25,12 @@ import {
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { normalizeLocation, cityKey, type CanonicalLocation } from "@/lib/br-locations";
+import {
+  aggregateOrderMetrics,
+  getPeriodRange,
+  isCancelled,
+  periodCountLabel,
+} from "@/lib/ecommerce-metrics";
 
 export const Route = createFileRoute("/ecommerce/mapa-vendas")({
   component: MapaVendas,

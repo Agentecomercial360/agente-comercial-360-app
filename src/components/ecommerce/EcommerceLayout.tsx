@@ -33,6 +33,7 @@ import {
   EcommerceActiveAccountProvider,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
+import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
 
 const navGroups = [
   {

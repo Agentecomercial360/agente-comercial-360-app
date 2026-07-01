@@ -24,6 +24,7 @@ import {
   ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
+import { normalizeLocation, cityKey, type CanonicalLocation } from "@/lib/br-locations";
 
 export const Route = createFileRoute("/ecommerce/mapa-vendas")({
   component: MapaVendas,

@@ -224,25 +224,38 @@ function DashboardContent() {
 
 
 
+  // Métricas ativas: pedidos cancelados são excluídos (regra unificada com Mapa de Vendas).
+  const activeOrders = useMemo(() => orders.filter((o) => !isCancelled(o.order_status)), [orders]);
+
   const totals = useMemo(() => {
-    let gross = 0;
+    const base = aggregateOrderMetrics(activeOrders);
     let fees = 0;
     let shipping = 0;
     let netParcial = 0;
     let pending = 0;
     let high = 0;
-    for (const o of orders) {
-      gross += n(o.total_amount);
+    for (const o of activeOrders) {
       fees += n(o.mercadolivre_fee) + n(o.marketplace_fee);
       shipping += n(o.seller_shipping_cost);
       netParcial += n(o.net_profit);
       if ((o.profit_confidence ?? "").toLowerCase() === "pending_cost") pending += 1;
       if ((o.profit_confidence ?? "").toLowerCase() === "high") high += 1;
     }
-    const count = orders.length;
-    const ticket = count > 0 ? gross / count : 0;
-    return { gross, fees, shipping, netParcial, pending, high, count, ticket };
-  }, [orders]);
+    return {
+      gross: base.totalRevenue,
+      count: base.totalOrders,
+      ticket: base.ticket,
+      withLocation: base.ordersWithLocation,
+      withoutLocation: base.ordersWithoutLocation,
+      revenueWithLocation: base.revenueWithLocation,
+      cancelledCount: orders.length - activeOrders.length,
+      fees,
+      shipping,
+      netParcial,
+      pending,
+      high,
+    };
+  }, [activeOrders, orders.length]);
 
   const byDay = useMemo(() => {
     const map = new Map<string, { gross: number; count: number }>();

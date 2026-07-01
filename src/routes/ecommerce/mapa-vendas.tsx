@@ -879,3 +879,168 @@ function Field({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+function CityOrdersModal({
+  city,
+  uf,
+  rows,
+  onClose,
+  onOpenRow,
+}: {
+  city: string;
+  uf: string;
+  rows: FlatRow[];
+  onClose: () => void;
+  onOpenRow: (r: FlatRow) => void;
+}) {
+  const totalRevenue = rows.reduce(
+    (s, r) => s + Number(r.item.total_price ?? r.order.total_amount ?? 0),
+    0,
+  );
+  const uniqueOrders = new Set(rows.map((r) => r.order.id)).size;
+  const avg = uniqueOrders > 0 ? totalRevenue / uniqueOrders : 0;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-6xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between border-b border-slate-200 bg-gradient-to-b from-white to-slate-50 px-6 py-4">
+          <div>
+            <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+              Pedidos por localidade
+            </div>
+            <div className="font-display text-lg font-bold text-foreground">
+              {city}/{uf}
+            </div>
+            <div className="mt-1 flex flex-wrap gap-4 text-xs text-muted-foreground">
+              <span>
+                <b className="text-foreground">{uniqueOrders}</b>{" "}
+                {uniqueOrders === 1 ? "pedido" : "pedidos"}
+              </span>
+              <span>
+                Faturamento:{" "}
+                <b className="text-foreground">{BRL(totalRevenue)}</b>
+              </span>
+              <span>
+                Ticket médio: <b className="text-foreground">{BRL(avg)}</b>
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1 text-muted-foreground hover:bg-slate-100"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="overflow-auto">
+          <table className="w-full min-w-[1200px] text-sm">
+            <thead className="sticky top-0 bg-slate-50/95 backdrop-blur">
+              <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground">
+                <th className="px-4 py-3 font-medium">Data</th>
+                <th className="px-4 py-3 font-medium">Conta</th>
+                <th className="px-4 py-3 font-medium">Pedido</th>
+                <th className="px-4 py-3 font-medium">Comprador</th>
+                <th className="px-4 py-3 font-medium">Cidade/UF</th>
+                <th className="px-4 py-3 font-medium">SKU</th>
+                <th className="px-4 py-3 font-medium">Produto</th>
+                <th className="px-4 py-3 font-medium text-right">Qtd</th>
+                <th className="px-4 py-3 font-medium text-right">Valor</th>
+                <th className="px-4 py-3 font-medium">Pagamento</th>
+                <th className="px-4 py-3 font-medium">Envio</th>
+                <th className="px-4 py-3 font-medium">Vínculo</th>
+                <th className="px-4 py-3 font-medium">Lucro</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-200/70">
+              {rows.map((r) => (
+                <tr
+                  key={`${r.order.id}-${r.item.id}`}
+                  className="cursor-pointer hover:bg-slate-50/60"
+                  onClick={() => onOpenRow(r)}
+                >
+                  <td className="px-4 py-3 text-xs whitespace-nowrap">
+                    {fmtDate(r.order.order_date)}
+                  </td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap">{r.accountName}</td>
+                  <td className="px-4 py-3 text-xs font-medium">
+                    #{r.order.external_order_id ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 text-xs">{r.order.buyer_nickname ?? "—"}</td>
+                  <td className="px-4 py-3 text-xs whitespace-nowrap">
+                    {r.order.buyer_city}/{r.order.buyer_state}
+                  </td>
+                  <td className="px-4 py-3 text-xs">{r.item.sku ?? "—"}</td>
+                  <td className="px-4 py-3 text-xs max-w-[260px] truncate">
+                    {r.item.product_name ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 text-right text-xs">{r.item.quantity ?? "—"}</td>
+                  <td className="px-4 py-3 text-right text-xs font-medium whitespace-nowrap">
+                    {BRL(r.item.total_price ?? r.order.total_amount)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${statusTone(
+                        "payment",
+                        r.order.payment_status,
+                      )}`}
+                    >
+                      {translateStatus(r.order.payment_status)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${statusTone(
+                        "shipping",
+                        r.order.shipping_status,
+                      )}`}
+                    >
+                      {translateStatus(r.order.shipping_status)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3">
+                    {r.item.product_id ? (
+                      <span className="inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                        Vinculado
+                      </span>
+                    ) : (
+                      <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                        Não vinculado
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {r.order.profit_confidence === "pending_cost" ? (
+                      <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                        Aguardando custo
+                      </span>
+                    ) : (
+                      <span className="inline-flex rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                        {r.order.profit_status ?? "—"}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="border-t border-slate-200 bg-slate-50/60 px-6 py-3 text-right">
+          <button
+            onClick={onClose}
+            className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}

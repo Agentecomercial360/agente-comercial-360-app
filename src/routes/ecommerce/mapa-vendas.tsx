@@ -2,19 +2,21 @@ import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Map as MapIcon,
-  Store,
-  CheckCircle2,
+  ShoppingCart,
+  DollarSign,
   Package,
-  MapPinned,
-  Info,
-  Clock,
+  Users,
+  Link2Off,
+  Search,
   AlertCircle,
-  CircleDashed,
-  ArrowRight,
+  X,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
-import brStatesData from "@/data/br-states.json";
+import {
+  ECOMMERCE_COMPANY_ID,
+  useEcommerceActiveAccount,
+} from "@/lib/ecommerce-active-account";
 
 export const Route = createFileRoute("/ecommerce/mapa-vendas")({
   component: MapaVendas,
@@ -23,45 +25,57 @@ export const Route = createFileRoute("/ecommerce/mapa-vendas")({
   }),
 });
 
-const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
-
-type BrState = { uf: string; name: string; d: string; cx: number; cy: number };
-const STATES = brStatesData as BrState[];
-
-type AccountRow = {
-  id: string;
-  account_name: string | null;
-  marketplace: string | null;
-  nickname: string | null;
-  auth_status: string | null;
-  ml_user_id: string | null;
-  is_active: boolean | null;
-  last_sync_at: string | null;
-};
-
-type ListingRow = {
+type OrderRow = {
   id: string;
   account_id: string | null;
-  status: string | null;
-  updated_at: string | null;
+  external_order_id: string | null;
+  order_date: string | null;
+  buyer_name: string | null;
+  buyer_nickname: string | null;
+  buyer_city: string | null;
+  buyer_state: string | null;
+  order_status: string | null;
+  payment_status: string | null;
+  shipping_status: string | null;
+  total_amount: number | null;
+  profit_status: string | null;
+  profit_confidence: string | null;
 };
 
-function normMarketplace(value: string | null | undefined): string {
-  return (value ?? "").toLowerCase().replace(/[\s-]/g, "_");
-}
-function isMercadoLivre(value: string | null | undefined): boolean {
-  const k = normMarketplace(value);
-  return k === "mercado_livre" || k === "mercadolivre" || k === "ml";
-}
-function isShopee(value: string | null | undefined): boolean {
-  return normMarketplace(value) === "shopee";
-}
+type ItemRow = {
+  id: string;
+  order_id: string;
+  sku: string | null;
+  product_name: string | null;
+  quantity: number | null;
+  unit_price: number | null;
+  total_price: number | null;
+  product_id: string | null;
+};
 
-function isConnected(a: AccountRow): boolean {
-  return (a.auth_status ?? "").trim().toLowerCase() === "connected";
-}
+type FlatRow = {
+  order: OrderRow;
+  item: ItemRow;
+  accountName: string;
+};
 
-function formatDateTime(iso: string | null | undefined): string {
+const BRL = (n: number | null | undefined) =>
+  (n ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+const fmtDate = (iso: string | null) => {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch {
+    return "—";
+  }
+};
+
+const fmtDateTime = (iso: string | null) => {
   if (!iso) return "—";
   try {
     return new Date(iso).toLocaleString("pt-BR", {
@@ -72,151 +86,208 @@ function formatDateTime(iso: string | null | undefined): string {
       minute: "2-digit",
     });
   } catch {
-    return iso;
+    return "—";
   }
-}
-
-type AccountView = {
-  account: AccountRow;
-  connected: boolean;
-  total: number;
-  active: number;
-  paused: number;
-  lastSync: string | null;
-  visualStatus:
-    | "ready"
-    | "awaiting_sync"
-    | "awaiting_connection"
-    | "future_marketplace";
 };
 
+function translateStatus(s: string | null | undefined): string {
+  const k = (s ?? "").toLowerCase();
+  const map: Record<string, string> = {
+    paid: "Pago",
+    approved: "Aprovado",
+    cancelled: "Cancelado",
+    canceled: "Cancelado",
+    pending: "Pendente",
+    ready_to_ship: "Pronto para enviar",
+    shipped: "Enviado",
+    delivered: "Entregue",
+    handling: "Em preparação",
+    in_transit: "Em trânsito",
+    not_delivered: "Não entregue",
+  };
+  return map[k] ?? (s ?? "—");
+}
+
+function statusTone(kind: "payment" | "shipping", s: string | null | undefined): string {
+  const k = (s ?? "").toLowerCase();
+  if (["paid", "approved", "delivered", "shipped"].includes(k))
+    return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (["cancelled", "canceled", "not_delivered"].includes(k))
+    return "bg-red-50 text-red-700 border-red-200";
+  if (["pending", "handling", "ready_to_ship", "in_transit"].includes(k))
+    return "bg-amber-50 text-amber-700 border-amber-200";
+  return "bg-slate-100 text-slate-600 border-slate-200";
+}
+
 function MapaVendas() {
+  const { accounts, activeAccountId, activeAccount, loading: accLoading } =
+    useEcommerceActiveAccount();
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [accounts, setAccounts] = useState<AccountRow[]>([]);
-  const [listings, setListings] = useState<ListingRow[]>([]);
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [items, setItems] = useState<ItemRow[]>([]);
+
+  const [period, setPeriod] = useState<"today" | "7d" | "30d">("30d");
+  const [paymentFilter, setPaymentFilter] = useState<string>("all");
+  const [shippingFilter, setShippingFilter] = useState<string>("all");
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState<FlatRow | null>(null);
 
   useEffect(() => {
-    void loadData();
-  }, []);
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAccountId, period]);
 
-  async function loadData() {
+  async function load() {
     try {
       setLoading(true);
       setError(null);
 
-      const accRes = await supabase
-        .from("ecommerce_accounts")
+      const now = new Date();
+      const since = new Date(now);
+      if (period === "today") since.setHours(0, 0, 0, 0);
+      else if (period === "7d") since.setDate(now.getDate() - 7);
+      else since.setDate(now.getDate() - 30);
+
+      let q = supabase
+        .from("ecommerce_orders")
         .select(
-          "id, account_name, marketplace, nickname, auth_status, ml_user_id, is_active, last_sync_at",
+          "id, account_id, external_order_id, order_date, buyer_name, buyer_nickname, buyer_city, buyer_state, order_status, payment_status, shipping_status, total_amount, profit_status, profit_confidence",
         )
-        .eq("company_id", COMPANY_ID)
-        .order("account_name", { ascending: true });
+        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .gte("order_date", since.toISOString())
+        .order("order_date", { ascending: false })
+        .limit(1000);
 
-      if (accRes.error) throw accRes.error;
+      if (activeAccountId) q = q.eq("account_id", activeAccountId);
 
-      const accountRows = (accRes.data as AccountRow[]) ?? [];
-      const mercadoLivreAccountIds = accountRows
-        .filter((account) => isMercadoLivre(account.marketplace))
-        .map((account) => account.id);
+      const oRes = await q;
+      if (oRes.error) throw oRes.error;
+      const oRows = (oRes.data as OrderRow[]) ?? [];
+      setOrders(oRows);
 
-      const listRes = mercadoLivreAccountIds.length
-        ? await supabase
-            .from("ecommerce_listings")
-            .select("id, account_id, status, updated_at")
-            .eq("company_id", COMPANY_ID)
-            .in("account_id", mercadoLivreAccountIds)
-        : { data: [], error: null };
-
-      if (listRes.error) throw listRes.error;
-
-      setAccounts(accountRows);
-      setListings((listRes.data as ListingRow[]) ?? []);
+      if (oRows.length === 0) {
+        setItems([]);
+        return;
+      }
+      const orderIds = oRows.map((o) => o.id);
+      const iRes = await supabase
+        .from("ecommerce_order_items")
+        .select("id, order_id, sku, product_name, quantity, unit_price, total_price, product_id")
+        .in("order_id", orderIds);
+      if (iRes.error) throw iRes.error;
+      setItems((iRes.data as ItemRow[]) ?? []);
     } catch (e: any) {
-      setError(e?.message ?? "Erro ao carregar dados.");
+      setError(e?.message ?? "Erro ao carregar pedidos.");
     } finally {
       setLoading(false);
     }
   }
 
-
-  // ML accounts + Shopee (future) rows
-  const mlAccounts = useMemo(
-    () => accounts.filter((a) => isMercadoLivre(a.marketplace)),
-    [accounts],
-  );
-  const shopeeAccounts = useMemo(
-    () => accounts.filter((a) => isShopee(a.marketplace)),
-    [accounts],
-  );
-
-  const listingsByAccount = useMemo(() => {
-    const m = new Map<string, ListingRow[]>();
-    for (const l of listings) {
-      if (!l.account_id) continue;
-      const arr = m.get(l.account_id) ?? [];
-      arr.push(l);
-      m.set(l.account_id, arr);
-    }
+  const accountsById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const a of accounts) m.set(a.id, a.account_name ?? a.nickname ?? "—");
     return m;
-  }, [listings]);
+  }, [accounts]);
 
-  const rows: AccountView[] = useMemo(() => {
-    const build = (
-      a: AccountRow,
-      future: boolean,
-    ): AccountView => {
-      const connected = !future && isConnected(a);
-      const ls = listingsByAccount.get(a.id) ?? [];
-      const total = ls.length;
-      const active = ls.filter(
-        (l) =>
-          (l.status ?? "").toLowerCase() === "active" ||
-          (l.status ?? "").toLowerCase() === "ativo",
-      ).length;
-      const paused = ls.filter(
-        (l) =>
-          (l.status ?? "").toLowerCase() === "paused" ||
-          (l.status ?? "").toLowerCase() === "pausado",
-      ).length;
-      const lastSync = a.last_sync_at ?? null;
+  const flat: FlatRow[] = useMemo(() => {
+    const ordersById = new Map(orders.map((o) => [o.id, o]));
+    const rows: FlatRow[] = [];
+    for (const it of items) {
+      const o = ordersById.get(it.order_id);
+      if (!o) continue;
+      rows.push({
+        order: o,
+        item: it,
+        accountName: (o.account_id && accountsById.get(o.account_id)) || "—",
+      });
+    }
+    // orders with no items (rare) still appear
+    for (const o of orders) {
+      if (!items.some((i) => i.order_id === o.id)) {
+        rows.push({
+          order: o,
+          item: {
+            id: `empty-${o.id}`,
+            order_id: o.id,
+            sku: null,
+            product_name: null,
+            quantity: null,
+            unit_price: null,
+            total_price: null,
+            product_id: null,
+          },
+          accountName: (o.account_id && accountsById.get(o.account_id)) || "—",
+        });
+      }
+    }
+    return rows;
+  }, [orders, items, accountsById]);
 
-      let visualStatus: AccountView["visualStatus"];
-      if (future) visualStatus = "future_marketplace";
-      else if (connected && total > 0) visualStatus = "ready";
-      else if (connected && total === 0) visualStatus = "awaiting_sync";
-      else visualStatus = "awaiting_connection";
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return flat.filter((r) => {
+      if (paymentFilter !== "all" && (r.order.payment_status ?? "") !== paymentFilter)
+        return false;
+      if (shippingFilter !== "all" && (r.order.shipping_status ?? "") !== shippingFilter)
+        return false;
+      if (!q) return true;
+      const hay = [
+        r.order.external_order_id,
+        r.order.buyer_nickname,
+        r.order.buyer_name,
+        r.item.sku,
+        r.item.product_name,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [flat, search, paymentFilter, shippingFilter]);
 
-      return {
-        account: a,
-        connected,
-        total,
-        active,
-        paused,
-        lastSync,
-        visualStatus,
-      };
+  const kpis = useMemo(() => {
+    const startToday = new Date();
+    startToday.setHours(0, 0, 0, 0);
+    const todayOrders = orders.filter(
+      (o) => o.order_date && new Date(o.order_date) >= startToday,
+    );
+    const todayOrderIds = new Set(todayOrders.map((o) => o.id));
+    const todayItems = items.filter((i) => todayOrderIds.has(i.order_id));
+
+    const totalToday = todayOrders.reduce((s, o) => s + Number(o.total_amount ?? 0), 0);
+    const unitsToday = todayItems.reduce((s, i) => s + Number(i.quantity ?? 0), 0);
+    const buyers = new Set(
+      todayOrders
+        .map((o) => (o.buyer_nickname || o.buyer_name || "").trim())
+        .filter(Boolean),
+    );
+    const unlinked = items.filter((i) => !i.product_id).length;
+
+    return {
+      ordersToday: todayOrders.length,
+      revenueToday: totalToday,
+      unitsToday,
+      buyersToday: buyers.size,
+      unlinked,
     };
-    return [
-      ...mlAccounts.map((a) => build(a, false)),
-      ...shopeeAccounts.map((a) => build(a, true)),
-    ];
-  }, [mlAccounts, shopeeAccounts, listingsByAccount]);
+  }, [orders, items]);
 
-
-  const summary = useMemo(() => {
-    const totalMl = mlAccounts.length;
-    const connectedMl = rows.filter(
-      (r) => r.visualStatus !== "future_marketplace" && r.connected,
-    ).length;
-    const totalListings = listings.length;
-    const readyForMap = rows.filter((r) => r.visualStatus === "ready").length;
-    return { totalMl, connectedMl, totalListings, readyForMap };
-  }, [rows, mlAccounts, listings, accounts]);
+  const paymentOptions = useMemo(() => {
+    const s = new Set<string>();
+    orders.forEach((o) => o.payment_status && s.add(o.payment_status));
+    return Array.from(s);
+  }, [orders]);
+  const shippingOptions = useMemo(() => {
+    const s = new Set<string>();
+    orders.forEach((o) => o.shipping_status && s.add(o.shipping_status));
+    return Array.from(s);
+  }, [orders]);
 
   return (
     <EcommerceLayout>
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Header */}
         <header className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -231,18 +302,15 @@ function MapaVendas() {
                 Mapa de Vendas
               </h1>
               <p className="text-sm text-muted-foreground max-w-2xl">
-                Visualize a preparação das contas Mercado Livre para análise
-                futura de vendas por estado, cidade e região.
+                Veja os pedidos reais, compradores, produtos vendidos e status
+                operacional por conta.
               </p>
             </div>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-60" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500" />
-            </span>
-            <span className="text-xs font-semibold text-blue-700">
-              Dados geográficos em preparação
+          <div className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-muted-foreground">
+            Conta em foco:{" "}
+            <span className="font-semibold text-foreground">
+              {activeAccountId ? activeAccount?.account_name ?? "—" : "Todas as contas"}
             </span>
           </div>
         </header>
@@ -254,308 +322,197 @@ function MapaVendas() {
           </div>
         )}
 
-        {/* Top summary */}
-        <section className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <SummaryCard
-            icon={<Store className="h-4 w-4" />}
-            label="Contas Mercado Livre"
-            value={loading ? "…" : String(summary.totalMl)}
-            hint="Total de contas Mercado Livre cadastradas."
-            accent="primary"
-          />
-          <SummaryCard
-            icon={<CheckCircle2 className="h-4 w-4" />}
-            label="Contas conectadas"
-            value={loading ? "…" : String(summary.connectedMl)}
-            hint="Contas com autorização ativa no Mercado Livre."
-            accent="success"
-          />
-          <SummaryCard
-            icon={<Package className="h-4 w-4" />}
-            label="Anúncios sincronizados"
-            value={loading ? "…" : summary.totalListings.toLocaleString("pt-BR")}
-            hint="Total de anúncios já trazidos para a base."
-            accent="info"
-          />
-          <SummaryCard
-            icon={<MapPinned className="h-4 w-4" />}
-            label="Prontas para mapa"
-            value={loading ? "…" : String(summary.readyForMap)}
-            hint="Contas conectadas com ao menos 1 anúncio sincronizado."
-            accent="warning"
-          />
+        {/* KPIs */}
+        <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
+          <Kpi icon={<ShoppingCart className="h-4 w-4" />} label="Pedidos hoje" value={String(kpis.ordersToday)} accent="primary" />
+          <Kpi icon={<DollarSign className="h-4 w-4" />} label="Faturamento hoje" value={BRL(kpis.revenueToday)} accent="success" />
+          <Kpi icon={<Package className="h-4 w-4" />} label="Produtos vendidos hoje" value={String(kpis.unitsToday)} accent="info" />
+          <Kpi icon={<Users className="h-4 w-4" />} label="Compradores identificados" value={String(kpis.buyersToday)} accent="primary" />
+          <Kpi icon={<Link2Off className="h-4 w-4" />} label="Produtos não vinculados" value={String(kpis.unlinked)} accent="warning" />
         </section>
 
-        {/* Status das contas */}
-        <section className="overflow-hidden rounded-2xl border border-slate-200/80 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
+        {/* Filters */}
+        <section className="rounded-2xl border border-slate-200 bg-card p-4 shadow-[var(--shadow-soft)]">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-[1fr_180px_180px_180px]">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar por pedido, comprador, SKU ou produto…"
+                className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-sm outline-none focus:border-blue-400"
+              />
+            </div>
+            <select
+              value={period}
+              onChange={(e) => setPeriod(e.target.value as any)}
+              className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-blue-400"
+            >
+              <option value="today">Hoje</option>
+              <option value="7d">Últimos 7 dias</option>
+              <option value="30d">Últimos 30 dias</option>
+            </select>
+            <select
+              value={paymentFilter}
+              onChange={(e) => setPaymentFilter(e.target.value)}
+              className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-blue-400"
+            >
+              <option value="all">Pagamento: todos</option>
+              {paymentOptions.map((s) => (
+                <option key={s} value={s}>
+                  {translateStatus(s)}
+                </option>
+              ))}
+            </select>
+            <select
+              value={shippingFilter}
+              onChange={(e) => setShippingFilter(e.target.value)}
+              className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm outline-none focus:border-blue-400"
+            >
+              <option value="all">Envio: todos</option>
+              {shippingOptions.map((s) => (
+                <option key={s} value={s}>
+                  {translateStatus(s)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </section>
+
+        {/* Table */}
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
+          <div className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
             <div>
               <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                Preparação multi-conta
+                Pedidos reais
               </div>
               <div className="font-display text-base font-semibold text-foreground">
-                Status das contas para análise regional
+                {filtered.length.toLocaleString("pt-BR")}{" "}
+                {filtered.length === 1 ? "linha" : "linhas"}
               </div>
             </div>
-            <span className="text-xs text-muted-foreground">
-              {rows.length} {rows.length === 1 ? "conta" : "contas"}
-            </span>
           </div>
 
-          {loading ? (
+          {loading || accLoading ? (
             <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-              Carregando contas…
+              Carregando pedidos…
             </div>
-          ) : rows.length === 0 ? (
+          ) : filtered.length === 0 ? (
             <div className="px-6 py-10 text-center text-sm text-muted-foreground">
-              Nenhuma conta Mercado Livre cadastrada para esta empresa.
+              Nenhum pedido encontrado para os filtros selecionados.
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[920px] text-sm">
+              <table className="w-full min-w-[1280px] text-sm">
                 <thead>
                   <tr className="bg-slate-50/70 text-left text-[11px] uppercase tracking-wider text-muted-foreground">
-                    <th className="px-6 py-3 font-medium">Conta</th>
-                    <th className="px-4 py-3 font-medium">Status conexão</th>
-                    <th className="px-4 py-3 font-medium text-right">Anúncios</th>
-                    <th className="px-4 py-3 font-medium text-right">Ativos</th>
-                    <th className="px-4 py-3 font-medium text-right">Pausados</th>
-                    <th className="px-4 py-3 font-medium">Última sync</th>
-                    <th className="px-6 py-3 font-medium">Status mapa</th>
+                    <th className="px-4 py-3 font-medium">Data</th>
+                    <th className="px-4 py-3 font-medium">Conta</th>
+                    <th className="px-4 py-3 font-medium">Pedido</th>
+                    <th className="px-4 py-3 font-medium">Comprador</th>
+                    <th className="px-4 py-3 font-medium">Cidade/UF</th>
+                    <th className="px-4 py-3 font-medium">SKU</th>
+                    <th className="px-4 py-3 font-medium">Produto</th>
+                    <th className="px-4 py-3 font-medium text-right">Qtd</th>
+                    <th className="px-4 py-3 font-medium text-right">Valor</th>
+                    <th className="px-4 py-3 font-medium">Pagamento</th>
+                    <th className="px-4 py-3 font-medium">Envio</th>
+                    <th className="px-4 py-3 font-medium">Lucro</th>
+                    <th className="px-4 py-3 font-medium">Vínculo</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200/70">
-                  {rows.map((r) => (
-                    <AccountTableRow key={r.account.id} row={r} />
+                  {filtered.slice(0, 300).map((r) => (
+                    <tr
+                      key={`${r.order.id}-${r.item.id}`}
+                      className="cursor-pointer hover:bg-slate-50/60"
+                      onClick={() => setSelected(r)}
+                    >
+                      <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
+                        {fmtDate(r.order.order_date)}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-foreground/90">{r.accountName}</td>
+                      <td className="px-4 py-3 text-xs font-medium text-foreground">
+                        #{r.order.external_order_id ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-foreground/90">
+                        {r.order.buyer_nickname ?? r.order.buyer_name ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-foreground/90 whitespace-nowrap">
+                        {r.order.buyer_city ? `${r.order.buyer_city}/${r.order.buyer_state ?? ""}` : "—"}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-foreground/90">{r.item.sku ?? "—"}</td>
+                      <td className="px-4 py-3 text-xs text-foreground/90 max-w-[260px] truncate">
+                        {r.item.product_name ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right text-xs text-foreground/90">
+                        {r.item.quantity ?? "—"}
+                      </td>
+                      <td className="px-4 py-3 text-right text-xs font-medium text-foreground whitespace-nowrap">
+                        {BRL(r.item.total_price ?? r.order.total_amount)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${statusTone("payment", r.order.payment_status)}`}>
+                          {translateStatus(r.order.payment_status)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-semibold ${statusTone("shipping", r.order.shipping_status)}`}>
+                          {translateStatus(r.order.shipping_status)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        {r.order.profit_confidence === "pending_cost" ? (
+                          <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                            Aguardando custo
+                          </span>
+                        ) : (
+                          <span className="inline-flex rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                            {r.order.profit_status ?? "—"}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {r.item.product_id ? (
+                          <span className="inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                            Vinculado
+                          </span>
+                        ) : (
+                          <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                            Não vinculado
+                          </span>
+                        )}
+                      </td>
+                    </tr>
                   ))}
                 </tbody>
               </table>
+              {filtered.length > 300 && (
+                <div className="border-t border-slate-200 px-6 py-3 text-center text-xs text-muted-foreground">
+                  Mostrando 300 de {filtered.length.toLocaleString("pt-BR")} linhas. Refine os filtros para ver mais.
+                </div>
+              )}
             </div>
           )}
         </section>
 
-        {/* Map + Next steps */}
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_320px]">
-          {/* Empty Brazil map */}
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
-              <div>
-                <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                  Visão geográfica
-                </div>
-                <div className="font-display text-base font-semibold text-foreground">
-                  Mapa do Brasil
-                </div>
-              </div>
-              <span className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-700">
-                <Clock className="h-3.5 w-3.5" />
-                Em preparação
-              </span>
-            </div>
-
-            <div
-              className="relative px-6 py-10"
-              style={{
-                background:
-                  "linear-gradient(180deg, #F4F8FD 0%, #EAF1F9 100%)",
-              }}
-            >
-              <div
-                aria-hidden
-                className="pointer-events-none absolute inset-0"
-                style={{
-                  background:
-                    "radial-gradient(60% 50% at 50% 38%, rgba(59,130,246,0.16) 0%, rgba(59,130,246,0) 70%)",
-                }}
-              />
-              <div className="relative mx-auto w-full max-w-[560px]">
-                <svg
-                  viewBox="0 0 800 800"
-                  className="block h-auto w-full opacity-70 drop-shadow-[0_14px_30px_rgba(30,58,138,0.10)]"
-                  role="img"
-                  aria-label="Mapa do Brasil (em preparação)"
-                >
-                  <defs>
-                    <linearGradient id="stateNeutral" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#CFDBEC" />
-                      <stop offset="100%" stopColor="#B8C7DD" />
-                    </linearGradient>
-                  </defs>
-                  <g>
-                    {STATES.map((s) => (
-                      <path
-                        key={s.uf}
-                        d={s.d}
-                        fill="url(#stateNeutral)"
-                        stroke="#F8FAFC"
-                        strokeWidth={1.2}
-                        strokeLinejoin="round"
-                      />
-                    ))}
-                  </g>
-                  <g style={{ pointerEvents: "none" }}>
-                    {STATES.map((s) => (
-                      <text
-                        key={s.uf}
-                        x={s.cx}
-                        y={s.cy + 3}
-                        textAnchor="middle"
-                        fontSize={10}
-                        fontWeight={700}
-                        fill="#1E293B"
-                        style={{ userSelect: "none", letterSpacing: 0.3 }}
-                      >
-                        {s.uf}
-                      </text>
-                    ))}
-                  </g>
-                </svg>
-
-                <div className="mx-auto mt-6 max-w-md rounded-xl border border-dashed border-slate-300 bg-white/80 px-5 py-4 text-center backdrop-blur">
-                  <div className="font-display text-sm font-semibold text-foreground">
-                    Dados geográficos em preparação
-                  </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Os dados por estado e cidade serão exibidos após a
-                    sincronização de pedidos reais do Mercado Livre.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Next steps */}
-          <aside className="space-y-4">
-            <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-card shadow-[0_4px_18px_-10px_rgba(15,23,42,0.15)]">
-              <div className="flex items-center gap-2 border-b border-slate-200/80 bg-gradient-to-b from-white to-slate-50/60 px-5 py-3">
-                <span className="flex h-7 w-7 items-center justify-center rounded-md bg-blue-50 text-blue-600">
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-                <div className="text-xs font-semibold text-foreground">
-                  Próxima etapa
-                </div>
-              </div>
-              <ol className="space-y-3 px-5 py-4 text-sm">
-                {[
-                  "Sincronizar pedidos reais",
-                  "Capturar estado e cidade do comprador/envio",
-                  "Agrupar receita, pedidos, ticket médio e cancelamentos por região",
-                  "Alimentar o mapa com dados reais",
-                ].map((step, i) => (
-                  <li key={i} className="flex gap-3">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-[11px] font-semibold text-blue-700">
-                      {i + 1}
-                    </span>
-                    <span className="text-foreground/90 leading-snug">
-                      {step}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </div>
-
-            <div className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)]">
-              <div className="inline-flex items-center gap-2 rounded-md border border-blue-100 bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-700">
-                <Info className="h-3.5 w-3.5" />
-                <span>Como funciona</span>
-              </div>
-              <p className="mt-3 text-xs leading-relaxed text-foreground/90">
-                Cada conta Mercado Livre conectada passa a alimentar o mapa
-                quando seus pedidos forem sincronizados. Contas com anúncios já
-                trazidos estão prontas para a próxima etapa de geolocalização.
-              </p>
-            </div>
-          </aside>
-        </section>
+        {selected && (
+          <DetailModal row={selected} onClose={() => setSelected(null)} />
+        )}
       </div>
     </EcommerceLayout>
   );
 }
 
-function AccountTableRow({ row }: { row: AccountView }) {
-  const { account, total, active, paused, lastSync, visualStatus } = row;
-
-  const statusLabel = (account.auth_status ?? "—").toLowerCase();
-
-  return (
-    <tr className="hover:bg-slate-50/60">
-      <td className="px-6 py-4">
-        <div className="font-medium text-foreground">
-          {account.account_name ?? "Conta sem nome"}
-        </div>
-        <div className="text-xs text-muted-foreground">
-          {account.nickname ?? "—"}
-        </div>
-      </td>
-      <td className="px-4 py-4">
-        <div className="flex flex-col gap-0.5 text-xs">
-          <span className="text-foreground/90">auth: {statusLabel}</span>
-        </div>
-      </td>
-
-      <td className="px-4 py-4 text-right text-sm font-medium text-foreground">
-        {total.toLocaleString("pt-BR")}
-      </td>
-      <td className="px-4 py-4 text-right text-sm text-emerald-600">
-        {active.toLocaleString("pt-BR")}
-      </td>
-      <td className="px-4 py-4 text-right text-sm text-amber-600">
-        {paused.toLocaleString("pt-BR")}
-      </td>
-      <td className="px-4 py-4 text-xs text-muted-foreground">
-        {formatDateTime(lastSync)}
-      </td>
-      <td className="px-6 py-4">
-        <StatusBadge status={visualStatus} />
-      </td>
-    </tr>
-  );
-}
-
-function StatusBadge({ status }: { status: AccountView["visualStatus"] }) {
-  if (status === "ready") {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700">
-        <CheckCircle2 className="h-3.5 w-3.5" />
-        Pronta
-      </span>
-    );
-  }
-  if (status === "awaiting_sync") {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700">
-        <Clock className="h-3.5 w-3.5" />
-        Aguardando sincronização
-      </span>
-    );
-  }
-  if (status === "awaiting_connection") {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700">
-        <Clock className="h-3.5 w-3.5" />
-        Aguardando conexão
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600">
-      <CircleDashed className="h-3.5 w-3.5" />
-      Marketplace futuro
-    </span>
-  );
-}
-
-function SummaryCard({
+function Kpi({
   icon,
   label,
   value,
-  hint,
   accent,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
-  hint: string;
   accent: "primary" | "info" | "success" | "warning";
 }) {
   const accents: Record<string, string> = {
@@ -566,16 +523,114 @@ function SummaryCard({
   };
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-soft)] before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] ${accents[accent]}`}
+      className={`relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-soft)] before:absolute before:left-0 before:top-0 before:h-full before:w-[3px] ${accents[accent]}`}
     >
       <div className="flex items-center gap-2 text-muted-foreground">
         {icon}
         <span className="text-[11px] uppercase tracking-widest">{label}</span>
       </div>
-      <div className="mt-3 font-display text-2xl font-bold text-foreground">
+      <div className="mt-2 font-display text-xl font-bold text-foreground whitespace-nowrap">
         {value}
       </div>
-      <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+    </div>
+  );
+}
+
+function DetailModal({ row, onClose }: { row: FlatRow; onClose: () => void }) {
+  const { order, item, accountName } = row;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between border-b border-slate-200 bg-gradient-to-b from-white to-slate-50 px-6 py-4">
+          <div>
+            <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+              Detalhes do pedido
+            </div>
+            <div className="font-display text-lg font-bold text-foreground">
+              #{order.external_order_id ?? "—"}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1 text-muted-foreground hover:bg-slate-100"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 px-6 py-5 md:grid-cols-2">
+          <Field label="Conta" value={accountName} />
+          <Field label="Data da compra" value={fmtDateTime(order.order_date)} />
+          <Field label="Comprador" value={order.buyer_nickname ?? "—"} />
+          <Field label="Nome" value={order.buyer_name ?? "—"} />
+          <Field
+            label="Cidade/UF"
+            value={order.buyer_city ? `${order.buyer_city}/${order.buyer_state ?? ""}` : "—"}
+          />
+          <Field label="Status do pedido" value={translateStatus(order.order_status)} />
+          <Field label="Status do pagamento" value={translateStatus(order.payment_status)} />
+          <Field label="Status do envio" value={translateStatus(order.shipping_status)} />
+
+          <div className="md:col-span-2 mt-2 rounded-xl border border-slate-200 bg-slate-50/50 p-4">
+            <div className="text-[11px] uppercase tracking-widest text-muted-foreground mb-2">
+              Produto comprado
+            </div>
+            <div className="font-semibold text-foreground">{item.product_name ?? "—"}</div>
+            <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+              <Field label="SKU" value={item.sku ?? "—"} />
+              <Field label="Quantidade" value={String(item.quantity ?? "—")} />
+              <Field label="Valor unitário" value={BRL(item.unit_price)} />
+              <Field label="Valor total" value={BRL(item.total_price)} />
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {order.profit_confidence === "pending_cost" ? (
+                <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                  Lucro aguardando custo
+                </span>
+              ) : (
+                <span className="inline-flex rounded-md border border-slate-200 bg-white px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                  Lucro: {order.profit_status ?? "—"}
+                </span>
+              )}
+              {item.product_id ? (
+                <span className="inline-flex rounded-md border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                  Produto vinculado
+                </span>
+              ) : (
+                <span className="inline-flex rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                  Produto não vinculado
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-slate-200 bg-slate-50/60 px-6 py-3 text-right">
+          <button
+            onClick={onClose}
+            className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800"
+          >
+            Fechar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+        {label}
+      </div>
+      <div className="mt-0.5 text-sm font-medium text-foreground">{value}</div>
     </div>
   );
 }

@@ -16,6 +16,7 @@ import {
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
 import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
+import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
 
 export const Route = createFileRoute("/ecommerce/produtos")({
   component: InteligenciaProdutos,

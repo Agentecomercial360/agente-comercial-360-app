@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
+import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
 
 export const Route = createFileRoute("/ecommerce/contas")({
   component: ContasML,

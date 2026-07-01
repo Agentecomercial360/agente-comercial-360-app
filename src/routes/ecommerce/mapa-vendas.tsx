@@ -810,8 +810,10 @@ function MapaVendasContent() {
                               : "border-slate-200 bg-white hover:bg-slate-50"
                           }`}
                         >
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-semibold text-slate-800">{s.key}</span>
+                          <div className="flex items-center justify-between gap-2 text-xs">
+                            <span className="truncate font-semibold text-slate-800">
+                              {s.label} <span className="text-[10px] font-semibold text-slate-500">({s.key})</span>
+                            </span>
                             <span className="tabular-nums text-slate-700">{BRL(s.revenue)}</span>
                           </div>
                           <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-100">

@@ -24,6 +24,7 @@ import {
   ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
+import { normalizeLocation, cityKey, type CanonicalLocation } from "@/lib/br-locations";
 
 export const Route = createFileRoute("/ecommerce/mapa-vendas")({
   component: MapaVendas,
@@ -64,6 +65,7 @@ type FlatRow = {
   order: OrderRow;
   item: ItemRow;
   accountName: string;
+  loc: CanonicalLocation;
 };
 
 const BRL = (n: number | null | undefined) =>
@@ -227,11 +229,20 @@ function MapaVendasContent() {
 
   const flat: FlatRow[] = useMemo(() => {
     const ordersById = new Map(orders.map((o) => [o.id, o]));
+    const locByOrder = new Map<string, CanonicalLocation>();
+    for (const o of orders) {
+      locByOrder.set(o.id, normalizeLocation(o.buyer_state, o.buyer_city));
+    }
     const rows: FlatRow[] = [];
     for (const it of items) {
       const o = ordersById.get(it.order_id);
       if (!o) continue;
-      rows.push({ order: o, item: it, accountName: resolveAccountName(o.account_id) });
+      rows.push({
+        order: o,
+        item: it,
+        accountName: resolveAccountName(o.account_id),
+        loc: locByOrder.get(o.id)!,
+      });
     }
     for (const o of orders) {
       if (!items.some((i) => i.order_id === o.id)) {
@@ -248,6 +259,7 @@ function MapaVendasContent() {
             product_id: null,
           },
           accountName: resolveAccountName(o.account_id),
+          loc: locByOrder.get(o.id)!,
         });
       }
     }
@@ -304,37 +316,46 @@ function MapaVendasContent() {
     };
   }, [orders, items]);
 
-  // Geographic aggregations (based on filtered orders scope: respects account + period)
+  // Geographic aggregations — canonical stateCode + normalized city.
+  // "geo.states[].key" is the UF code (e.g. "GO"), also used to match SalesMap state paths.
+  // "geo.cities[].key" is `${city}/${UF}` for display; cityKeyCanon is the accent-insensitive folding.
   const geo = useMemo(() => {
-    const filteredOrderIds = new Set(filtered.map((r) => r.order.id));
-    const uniqueOrders = Array.from(
-      new Map(
-        filtered.map((r) => [r.order.id, r.order] as const),
-      ).values(),
-    ).filter((o) => filteredOrderIds.has(o.id));
-
+    const uniqueOrdersMap = new Map<string, { order: OrderRow; loc: CanonicalLocation }>();
+    for (const r of filtered) {
+      if (!uniqueOrdersMap.has(r.order.id))
+        uniqueOrdersMap.set(r.order.id, { order: r.order, loc: r.loc });
+    }
+    const uniqueOrders = Array.from(uniqueOrdersMap.values());
     const totalRevenue = uniqueOrders.reduce(
-      (s, o) => s + Number(o.total_amount ?? 0),
+      (s, { order }) => s + Number(order.total_amount ?? 0),
       0,
     );
 
-    type Agg = { key: string; orders: number; revenue: number };
+    type Agg = { key: string; label: string; orders: number; revenue: number };
     const byState = new Map<string, Agg>();
     const byCity = new Map<string, Agg>();
 
-    for (const o of uniqueOrders) {
-      const uf = (o.buyer_state || "—").toUpperCase();
-      const city = o.buyer_city || "—";
-      const stKey = uf;
-      const cityKey = `${city}/${uf}`;
-      const stAgg = byState.get(stKey) ?? { key: stKey, orders: 0, revenue: 0 };
-      stAgg.orders += 1;
-      stAgg.revenue += Number(o.total_amount ?? 0);
-      byState.set(stKey, stAgg);
-      const cyAgg = byCity.get(cityKey) ?? { key: cityKey, orders: 0, revenue: 0 };
-      cyAgg.orders += 1;
-      cyAgg.revenue += Number(o.total_amount ?? 0);
-      byCity.set(cityKey, cyAgg);
+    for (const { order, loc } of uniqueOrders) {
+      const code = loc.stateCode;
+      const cityName = loc.cityName;
+      if (code) {
+        const st = byState.get(code) ?? { key: code, label: loc.stateName ?? code, orders: 0, revenue: 0 };
+        st.orders += 1;
+        st.revenue += Number(order.total_amount ?? 0);
+        byState.set(code, st);
+      }
+      if (code && cityName) {
+        const cKey = `${cityKey(cityName)}||${code}`;
+        const cy = byCity.get(cKey) ?? {
+          key: `${cityName}/${code}`,
+          label: `${cityName}/${code}`,
+          orders: 0,
+          revenue: 0,
+        };
+        cy.orders += 1;
+        cy.revenue += Number(order.total_amount ?? 0);
+        byCity.set(cKey, cy);
+      }
     }
     const states = Array.from(byState.values()).sort((a, b) => b.revenue - a.revenue);
     const cities = Array.from(byCity.values()).sort((a, b) => b.revenue - a.revenue);
@@ -345,19 +366,18 @@ function MapaVendasContent() {
     const map = new Map<string, CityPoint>();
     const seen = new Set<string>();
     for (const r of filtered) {
-      const o = r.order;
-      if (!o.buyer_city || !o.buyer_state) continue;
-      if (seen.has(o.id)) continue;
-      seen.add(o.id);
-      const key = `${o.buyer_city}||${o.buyer_state}`;
+      if (!r.loc.stateCode || !r.loc.cityName) continue;
+      if (seen.has(r.order.id)) continue;
+      seen.add(r.order.id);
+      const key = `${cityKey(r.loc.cityName)}||${r.loc.stateCode}`;
       const cur = map.get(key) ?? {
-        city: o.buyer_city,
-        uf: o.buyer_state,
+        city: r.loc.cityName,
+        uf: r.loc.stateCode,
         orders: 0,
         revenue: 0,
       };
       cur.orders += 1;
-      cur.revenue += Number(o.total_amount ?? 0);
+      cur.revenue += Number(r.order.total_amount ?? 0);
       map.set(key, cur);
     }
     return Array.from(map.values());
@@ -365,10 +385,10 @@ function MapaVendasContent() {
 
   const cityRows: FlatRow[] = useMemo(() => {
     if (!selectedCity) return [];
+    const ck = cityKey(selectedCity.city);
+    const uf = selectedCity.uf.toUpperCase();
     return filtered.filter(
-      (r) =>
-        (r.order.buyer_city ?? "") === selectedCity.city &&
-        (r.order.buyer_state ?? "") === selectedCity.uf,
+      (r) => r.loc.stateCode === uf && cityKey(r.loc.cityName) === ck,
     );
   }, [filtered, selectedCity]);
 
@@ -401,9 +421,8 @@ function MapaVendasContent() {
     return map;
   }, [filtered]);
 
-  // Product × region aggregation
+  // Product × region aggregation (canonical UF + city label)
   const productRegions = useMemo(() => {
-    // key: sku/name -> { sku, name, qty, revenue, byCity: Map<city/uf, {orders, qty, revenue}>, byState: same }
     type Bucket = {
       sku: string;
       name: string;
@@ -430,13 +449,13 @@ function MapaVendasContent() {
       b.qty += Number(r.item.quantity ?? 0);
       b.revenue += Number(r.item.total_price ?? 0);
       b.orders.add(r.order.id);
-      const uf = (r.order.buyer_state || "—").toUpperCase();
-      const cityKey = `${r.order.buyer_city || "—"}/${uf}`;
-      const cy = b.byCity.get(cityKey) ?? { orders: new Set<string>(), qty: 0, revenue: 0 };
+      const uf = r.loc.stateCode ?? "—";
+      const cityLabel = `${r.loc.cityName ?? "—"}/${uf}`;
+      const cy = b.byCity.get(cityLabel) ?? { orders: new Set<string>(), qty: 0, revenue: 0 };
       cy.orders.add(r.order.id);
       cy.qty += Number(r.item.quantity ?? 0);
       cy.revenue += Number(r.item.total_price ?? 0);
-      b.byCity.set(cityKey, cy);
+      b.byCity.set(cityLabel, cy);
       const st = b.byState.get(uf) ?? { orders: new Set<string>(), qty: 0, revenue: 0 };
       st.orders.add(r.order.id);
       st.qty += Number(r.item.quantity ?? 0);
@@ -467,11 +486,11 @@ function MapaVendasContent() {
       if (best) topProductRegion = { region: topState.key, ...best };
     }
 
-    // Regions with pending shipping
+    // Regions with pending shipping (canonical UF)
     const pendingShippingStates = new Map<string, number>();
     const unlinkedStates = new Map<string, number>();
     for (const r of filtered) {
-      const uf = (r.order.buyer_state || "—").toUpperCase();
+      const uf = r.loc.stateCode ?? "—";
       const sh = (r.order.shipping_status ?? "").toLowerCase();
       if (["pending", "handling", "ready_to_ship"].includes(sh)) {
         pendingShippingStates.set(uf, (pendingShippingStates.get(uf) ?? 0) + 1);
@@ -791,8 +810,10 @@ function MapaVendasContent() {
                               : "border-slate-200 bg-white hover:bg-slate-50"
                           }`}
                         >
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-semibold text-slate-800">{s.key}</span>
+                          <div className="flex items-center justify-between gap-2 text-xs">
+                            <span className="truncate font-semibold text-slate-800">
+                              {s.label} <span className="text-[10px] font-semibold text-slate-500">({s.key})</span>
+                            </span>
                             <span className="tabular-nums text-slate-700">{BRL(s.revenue)}</span>
                           </div>
                           <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-100">
@@ -1768,12 +1789,10 @@ function MapSelectionPanel({
     pick.kind === "city"
       ? filtered.filter(
           (r) =>
-            (r.order.buyer_city ?? "") === pick.city &&
-            (r.order.buyer_state ?? "").toUpperCase() === pick.uf.toUpperCase(),
+            r.loc.stateCode === pick.uf.toUpperCase() &&
+            cityKey(r.loc.cityName) === cityKey(pick.city),
         )
-      : filtered.filter(
-          (r) => (r.order.buyer_state ?? "").toUpperCase() === pick.uf.toUpperCase(),
-        );
+      : filtered.filter((r) => r.loc.stateCode === pick.uf.toUpperCase());
 
   // Unique orders in scope
   const uniqOrders = Array.from(

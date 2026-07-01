@@ -20,6 +20,12 @@ import {
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
+import {
+  aggregateOrderMetrics,
+  getPeriodRange,
+  isCancelled,
+  type PeriodKey as SharedPeriodKey,
+} from "@/lib/ecommerce-metrics";
 
 export const Route = createFileRoute("/ecommerce/dashboard")({
   component: DashboardEcommerce,
@@ -41,6 +47,8 @@ type Order = {
   profit_confidence: string | null;
   order_status: string | null;
   payment_status: string | null;
+  buyer_city: string | null;
+  buyer_state: string | null;
 };
 
 type PeriodKey = "today" | "7d" | "30d";
@@ -168,7 +176,7 @@ function DashboardContent() {
     ? accountNameById.get(selectedAccountId) || activeAccount?.account_name || activeAccount?.nickname || null
     : null;
   const accountMissing = scope === "active" && !selectedAccountId;
-  const since = useMemo(() => dayKey(startOfPeriod(period)), [period]);
+  const range = useMemo(() => getPeriodRange(period as SharedPeriodKey), [period]);
 
   useEffect(() => {
     let cancelled = false;
@@ -182,14 +190,15 @@ function DashboardContent() {
       setOrders([]);
       setErrorMsg(null);
       try {
-        // Date-only string avoids timezone shifts when comparing a DATE column.
+        // Janela canônica em America/Sao_Paulo — mesma usada pelo Mapa de Vendas.
         let q = supabase
           .from("ecommerce_orders")
           .select(
-            "id, account_id, order_date, total_amount, mercadolivre_fee, marketplace_fee, seller_shipping_cost, product_cost_total, net_profit, profit_confidence, order_status, payment_status",
+            "id, account_id, order_date, total_amount, mercadolivre_fee, marketplace_fee, seller_shipping_cost, product_cost_total, net_profit, profit_confidence, order_status, payment_status, buyer_city, buyer_state",
           )
           .eq("company_id", ECOMMERCE_COMPANY_ID)
-          .gte("order_date", since)
+          .gte("order_date", range.sinceISO)
+          .lte("order_date", range.untilISO)
           .order("order_date", { ascending: false })
           .limit(5000);
         if (scope === "active" && selectedAccountId) {
@@ -211,29 +220,42 @@ function DashboardContent() {
     return () => {
       cancelled = true;
     };
-  }, [accountNameById, activeAccountId, period, scope, selectedAccountId, selectedAccountName, since]);
+  }, [accountNameById, activeAccountId, period, scope, selectedAccountId, selectedAccountName, range.sinceISO, range.untilISO]);
 
 
+
+  // Métricas ativas: pedidos cancelados são excluídos (regra unificada com Mapa de Vendas).
+  const activeOrders = useMemo(() => orders.filter((o) => !isCancelled(o.order_status)), [orders]);
 
   const totals = useMemo(() => {
-    let gross = 0;
+    const base = aggregateOrderMetrics(activeOrders);
     let fees = 0;
     let shipping = 0;
     let netParcial = 0;
     let pending = 0;
     let high = 0;
-    for (const o of orders) {
-      gross += n(o.total_amount);
+    for (const o of activeOrders) {
       fees += n(o.mercadolivre_fee) + n(o.marketplace_fee);
       shipping += n(o.seller_shipping_cost);
       netParcial += n(o.net_profit);
       if ((o.profit_confidence ?? "").toLowerCase() === "pending_cost") pending += 1;
       if ((o.profit_confidence ?? "").toLowerCase() === "high") high += 1;
     }
-    const count = orders.length;
-    const ticket = count > 0 ? gross / count : 0;
-    return { gross, fees, shipping, netParcial, pending, high, count, ticket };
-  }, [orders]);
+    return {
+      gross: base.totalRevenue,
+      count: base.totalOrders,
+      ticket: base.ticket,
+      withLocation: base.ordersWithLocation,
+      withoutLocation: base.ordersWithoutLocation,
+      revenueWithLocation: base.revenueWithLocation,
+      cancelledCount: orders.length - activeOrders.length,
+      fees,
+      shipping,
+      netParcial,
+      pending,
+      high,
+    };
+  }, [activeOrders, orders.length]);
 
   const byDay = useMemo(() => {
     const map = new Map<string, { gross: number; count: number }>();
@@ -247,7 +269,7 @@ function DashboardContent() {
     ) {
       map.set(dayKey(d), { gross: 0, count: 0 });
     }
-    for (const o of orders) {
+    for (const o of activeOrders) {
       if (!o.order_date) continue;
       const k = dayKey(new Date(o.order_date));
       const cur = map.get(k) ?? { gross: 0, count: 0 };
@@ -258,7 +280,7 @@ function DashboardContent() {
     return Array.from(map.entries())
       .sort((a, b) => (a[0] < b[0] ? -1 : 1))
       .map(([key, v]) => ({ key, ...v }));
-  }, [orders, period]);
+  }, [activeOrders, period]);
 
   const maxDayGross = useMemo(
     () => byDay.reduce((m, d) => Math.max(m, d.gross), 0),
@@ -278,7 +300,7 @@ function DashboardContent() {
         pending: number;
       }
     >();
-    for (const o of orders) {
+    for (const o of activeOrders) {
       const id = o.account_id ?? "—";
       const cur =
         map.get(id) ??
@@ -292,7 +314,7 @@ function DashboardContent() {
       map.set(id, cur);
     }
     return Array.from(map.values()).sort((a, b) => b.gross - a.gross);
-  }, [orders]);
+  }, [activeOrders]);
 
   const scopeLabel =
     scope === "all"
@@ -385,6 +407,25 @@ function DashboardContent() {
             lucro líquido real e margem confiável.
           </p>
         </div>
+
+        {/* Checagem de reconciliação — mesmos números devem aparecer no Mapa de Vendas */}
+        <section className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="font-semibold text-foreground">
+              Checagem — {range.label} · {range.spStartDate} → {range.spEndDate} (America/Sao_Paulo)
+            </span>
+            <span className="text-muted-foreground">
+              Cancelados excluídos: {num.format(totals.cancelledCount)}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+            <ReconItem label="Pedidos no período" value={num.format(totals.count)} />
+            <ReconItem label="Com localização" value={num.format(totals.withLocation)} />
+            <ReconItem label="Sem localização" value={num.format(totals.withoutLocation)} />
+            <ReconItem label="Faturamento total" value={brl.format(totals.gross)} />
+            <ReconItem label="Faturamento c/ loc." value={brl.format(totals.revenueWithLocation)} />
+          </div>
+        </section>
 
         {errorMsg && (
           <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -637,6 +678,19 @@ function Kpi({
         >
           <Icon className="h-5 w-5" />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ReconItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+      <div className="font-display text-sm font-bold text-foreground tabular-nums">
+        {value}
       </div>
     </div>
   );

@@ -25,6 +25,12 @@ import {
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { normalizeLocation, cityKey, type CanonicalLocation } from "@/lib/br-locations";
+import {
+  aggregateOrderMetrics,
+  getPeriodRange,
+  isCancelled,
+  periodCountLabel,
+} from "@/lib/ecommerce-metrics";
 
 export const Route = createFileRoute("/ecommerce/mapa-vendas")({
   component: MapaVendas,
@@ -164,16 +170,12 @@ function MapaVendasContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeAccountId, period]);
 
+  const range = useMemo(() => getPeriodRange(period), [period]);
+
   async function load() {
     try {
       setLoading(true);
       setError(null);
-
-      const now = new Date();
-      const since = new Date(now);
-      if (period === "today") since.setHours(0, 0, 0, 0);
-      else if (period === "7d") since.setDate(now.getDate() - 7);
-      else since.setDate(now.getDate() - 30);
 
       let q = supabase
         .from("ecommerce_orders")
@@ -181,9 +183,10 @@ function MapaVendasContent() {
           "id, account_id, external_order_id, order_date, buyer_name, buyer_nickname, buyer_city, buyer_state, order_status, payment_status, shipping_status, total_amount, profit_status, profit_confidence",
         )
         .eq("company_id", ECOMMERCE_COMPANY_ID)
-        .gte("order_date", since.toISOString())
+        .gte("order_date", range.sinceISO)
+        .lte("order_date", range.untilISO)
         .order("order_date", { ascending: false })
-        .limit(1000);
+        .limit(5000);
 
       if (activeAccountId) q = q.eq("account_id", activeAccountId);
 
@@ -289,29 +292,29 @@ function MapaVendasContent() {
     });
   }, [flat, search, paymentFilter, shippingFilter]);
 
+  // KPIs alinhados à camada única de métricas: mesmo período, mesma regra
+  // de cancelamento e mesmo campo de valor usados na Visão Geral.
   const kpis = useMemo(() => {
-    const startToday = new Date();
-    startToday.setHours(0, 0, 0, 0);
-    const todayOrders = orders.filter(
-      (o) => o.order_date && new Date(o.order_date) >= startToday,
-    );
-    const todayOrderIds = new Set(todayOrders.map((o) => o.id));
-    const todayItems = items.filter((i) => todayOrderIds.has(i.order_id));
-
-    const totalToday = todayOrders.reduce((s, o) => s + Number(o.total_amount ?? 0), 0);
-    const unitsToday = todayItems.reduce((s, i) => s + Number(i.quantity ?? 0), 0);
+    const activeOrders = orders.filter((o) => !isCancelled(o.order_status));
+    const activeIds = new Set(activeOrders.map((o) => o.id));
+    const base = aggregateOrderMetrics(activeOrders);
+    const activeItems = items.filter((i) => activeIds.has(i.order_id));
+    const units = activeItems.reduce((s, i) => s + Number(i.quantity ?? 0), 0);
     const buyers = new Set(
-      todayOrders
+      activeOrders
         .map((o) => (o.buyer_nickname || o.buyer_name || "").trim())
         .filter(Boolean),
     );
-    const unlinked = items.filter((i) => !i.product_id).length;
-
+    const unlinked = activeItems.filter((i) => !i.product_id).length;
     return {
-      ordersToday: todayOrders.length,
-      revenueToday: totalToday,
-      unitsToday,
-      buyersToday: buyers.size,
+      ordersPeriod: base.totalOrders,
+      revenuePeriod: base.totalRevenue,
+      ordersWithLocation: base.ordersWithLocation,
+      ordersWithoutLocation: base.ordersWithoutLocation,
+      revenueWithLocation: base.revenueWithLocation,
+      cancelledCount: base.cancelledCount,
+      units,
+      buyers: buyers.size,
       unlinked,
     };
   }, [orders, items]);
@@ -585,11 +588,30 @@ function MapaVendasContent() {
 
       {/* KPIs */}
       <section className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
-        <Kpi icon={<ShoppingCart className="h-4 w-4" />} label="Pedidos hoje" value={String(kpis.ordersToday)} accent="primary" />
-        <Kpi icon={<DollarSign className="h-4 w-4" />} label="Faturamento hoje" value={BRL(kpis.revenueToday)} accent="success" />
-        <Kpi icon={<Package className="h-4 w-4" />} label="Unidades vendidas hoje" value={String(kpis.unitsToday)} accent="info" />
-        <Kpi icon={<Users className="h-4 w-4" />} label="Compradores identificados" value={String(kpis.buyersToday)} accent="primary" />
+        <Kpi icon={<ShoppingCart className="h-4 w-4" />} label={periodCountLabel(period, "orders")} value={String(kpis.ordersPeriod)} accent="primary" />
+        <Kpi icon={<DollarSign className="h-4 w-4" />} label={periodCountLabel(period, "revenue")} value={BRL(kpis.revenuePeriod)} accent="success" />
+        <Kpi icon={<Package className="h-4 w-4" />} label={period === "today" ? "Unidades vendidas hoje" : "Unidades vendidas"} value={String(kpis.units)} accent="info" />
+        <Kpi icon={<Users className="h-4 w-4" />} label="Compradores identificados" value={String(kpis.buyers)} accent="primary" />
         <Kpi icon={<Link2Off className="h-4 w-4" />} label="Produtos não vinculados" value={String(kpis.unlinked)} accent="warning" />
+      </section>
+
+      {/* Checagem de reconciliação — mesmos totais devem aparecer em /ecommerce/dashboard */}
+      <section className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <span className="font-semibold text-foreground">
+            Checagem — {range.label} · {range.spStartDate} → {range.spEndDate} (America/Sao_Paulo)
+          </span>
+          <span className="text-muted-foreground">
+            Cancelados excluídos: {kpis.cancelledCount}
+          </span>
+        </div>
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-5">
+          <ReconTile label="Pedidos no período" value={String(kpis.ordersPeriod)} />
+          <ReconTile label="Com localização" value={String(kpis.ordersWithLocation)} />
+          <ReconTile label="Sem localização" value={String(kpis.ordersWithoutLocation)} />
+          <ReconTile label="Faturamento total" value={BRL(kpis.revenuePeriod)} />
+          <ReconTile label="Faturamento c/ loc." value={BRL(kpis.revenueWithLocation)} />
+        </div>
       </section>
 
       {/* Filters */}
@@ -1162,6 +1184,19 @@ function GeoRankingTable({
           </tbody>
         </table>
       )}
+    </div>
+  );
+}
+
+function ReconTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-slate-100 bg-slate-50/60 px-3 py-2">
+      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </div>
+      <div className="font-display text-sm font-bold text-foreground tabular-nums whitespace-nowrap">
+        {value}
+      </div>
     </div>
   );
 }

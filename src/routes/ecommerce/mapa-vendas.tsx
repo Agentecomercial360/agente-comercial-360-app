@@ -663,6 +663,19 @@ function MapaVendasContent() {
       {selected && (
         <DetailModal row={selected} onClose={() => setSelected(null)} />
       )}
+
+      {selectedCity && (
+        <CityOrdersModal
+          city={selectedCity.city}
+          uf={selectedCity.uf}
+          rows={cityRows}
+          onClose={() => setSelectedCity(null)}
+          onOpenRow={(r) => {
+            setSelectedCity(null);
+            setSelected(r);
+          }}
+        />
+      )}
     </div>
   );
 }

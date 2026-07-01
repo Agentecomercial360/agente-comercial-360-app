@@ -367,6 +367,144 @@ function MapaVendasContent() {
     );
   }, [filtered, selectedCity]);
 
+  // City-level SKU aggregation (used both for city modal and executive insights)
+  const cityProductAgg = useMemo(() => {
+    // key: `${city}||${uf}` -> Map<sku|name, { name, sku, qty, revenue }>
+    const map = new Map<
+      string,
+      Map<string, { sku: string; name: string; qty: number; revenue: number; linked: boolean }>
+    >();
+    for (const r of filtered) {
+      const o = r.order;
+      if (!o.buyer_city || !o.buyer_state) continue;
+      const cityKey = `${o.buyer_city}||${o.buyer_state}`;
+      const skuKey = r.item.sku || r.item.product_name || "—";
+      const bucket = map.get(cityKey) ?? new Map();
+      const cur = bucket.get(skuKey) ?? {
+        sku: r.item.sku ?? "—",
+        name: r.item.product_name ?? "—",
+        qty: 0,
+        revenue: 0,
+        linked: false,
+      };
+      cur.qty += Number(r.item.quantity ?? 0);
+      cur.revenue += Number(r.item.total_price ?? 0);
+      if (r.item.product_id) cur.linked = true;
+      bucket.set(skuKey, cur);
+      map.set(cityKey, bucket);
+    }
+    return map;
+  }, [filtered]);
+
+  // Product × region aggregation
+  const productRegions = useMemo(() => {
+    // key: sku/name -> { sku, name, qty, revenue, byCity: Map<city/uf, {orders, qty, revenue}>, byState: same }
+    type Bucket = {
+      sku: string;
+      name: string;
+      qty: number;
+      revenue: number;
+      orders: Set<string>;
+      byCity: Map<string, { orders: Set<string>; qty: number; revenue: number }>;
+      byState: Map<string, { orders: Set<string>; qty: number; revenue: number }>;
+    };
+    const map = new Map<string, Bucket>();
+    for (const r of filtered) {
+      const key = r.item.sku || r.item.product_name || "—";
+      if (!r.item.sku && !r.item.product_name) continue;
+      const b: Bucket =
+        map.get(key) ?? {
+          sku: r.item.sku ?? "—",
+          name: r.item.product_name ?? "—",
+          qty: 0,
+          revenue: 0,
+          orders: new Set(),
+          byCity: new Map(),
+          byState: new Map(),
+        };
+      b.qty += Number(r.item.quantity ?? 0);
+      b.revenue += Number(r.item.total_price ?? 0);
+      b.orders.add(r.order.id);
+      const uf = (r.order.buyer_state || "—").toUpperCase();
+      const cityKey = `${r.order.buyer_city || "—"}/${uf}`;
+      const cy = b.byCity.get(cityKey) ?? { orders: new Set<string>(), qty: 0, revenue: 0 };
+      cy.orders.add(r.order.id);
+      cy.qty += Number(r.item.quantity ?? 0);
+      cy.revenue += Number(r.item.total_price ?? 0);
+      b.byCity.set(cityKey, cy);
+      const st = b.byState.get(uf) ?? { orders: new Set<string>(), qty: 0, revenue: 0 };
+      st.orders.add(r.order.id);
+      st.qty += Number(r.item.quantity ?? 0);
+      st.revenue += Number(r.item.total_price ?? 0);
+      b.byState.set(uf, st);
+      map.set(key, b);
+    }
+    return Array.from(map.values()).sort((a, b) => b.revenue - a.revenue);
+  }, [filtered]);
+
+  // Executive insights
+  const insights = useMemo(() => {
+    const topState = geo.states[0] ?? null;
+    const topCityByOrders = [...geo.cities].sort((a, b) => b.orders - a.orders)[0] ?? null;
+    const topCityByAvg = [...geo.cities]
+      .filter((c) => c.orders > 0)
+      .sort((a, b) => b.revenue / b.orders - a.revenue / a.orders)[0] ?? null;
+
+    // Top product by region (per top state)
+    let topProductRegion: { region: string; product: string; qty: number } | null = null;
+    if (topState) {
+      let best: { product: string; qty: number } | null = null;
+      for (const p of productRegions) {
+        const st = p.byState.get(topState.key);
+        if (!st) continue;
+        if (!best || st.qty > best.qty) best = { product: p.name, qty: st.qty };
+      }
+      if (best) topProductRegion = { region: topState.key, ...best };
+    }
+
+    // Regions with pending shipping
+    const pendingShippingStates = new Map<string, number>();
+    const unlinkedStates = new Map<string, number>();
+    for (const r of filtered) {
+      const uf = (r.order.buyer_state || "—").toUpperCase();
+      const sh = (r.order.shipping_status ?? "").toLowerCase();
+      if (["pending", "handling", "ready_to_ship"].includes(sh)) {
+        pendingShippingStates.set(uf, (pendingShippingStates.get(uf) ?? 0) + 1);
+      }
+      if (!r.item.product_id) {
+        unlinkedStates.set(uf, (unlinkedStates.get(uf) ?? 0) + 1);
+      }
+    }
+    const topPendingShip = Array.from(pendingShippingStates.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+    const topUnlinked = Array.from(unlinkedStates.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 3);
+
+    const top3StateShare =
+      geo.totalRevenue > 0
+        ? (geo.states.slice(0, 3).reduce((s, x) => s + x.revenue, 0) / geo.totalRevenue) * 100
+        : 0;
+    const top3CityShare =
+      geo.totalRevenue > 0
+        ? (geo.cities.slice(0, 3).reduce((s, x) => s + x.revenue, 0) / geo.totalRevenue) * 100
+        : 0;
+
+    return {
+      topState,
+      topCityByOrders,
+      topCityByAvg,
+      topProductRegion,
+      topPendingShip,
+      topUnlinked,
+      top3StateShare,
+      top3CityShare,
+    };
+  }, [filtered, geo, productRegions]);
+
+
+
   const paymentOptions = useMemo(() => {
     const s = new Set<string>();
     orders.forEach((o) => o.payment_status && s.add(o.payment_status));

@@ -47,6 +47,8 @@ type Order = {
   profit_confidence: string | null;
   order_status: string | null;
   payment_status: string | null;
+  buyer_city: string | null;
+  buyer_state: string | null;
 };
 
 type PeriodKey = "today" | "7d" | "30d";

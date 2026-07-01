@@ -33,6 +33,7 @@ import {
   EcommerceActiveAccountProvider,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
+import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
 
 const navGroups = [
   {
@@ -230,6 +231,7 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [signingOut, setSigningOut] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { activeAccountId, activeAccount } = useEcommerceActiveAccount();
 
   const handleSignOut = useCallback(async () => {
     if (signingOut) return;
@@ -271,33 +273,29 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
 
   const handleRefresh = useCallback(async () => {
     if (isUpdating) return;
+    if (!activeAccountId) {
+      toast.error("Selecione uma conta Mercado Livre para sincronizar.");
+      return;
+    }
     setIsUpdating(true);
     try {
-      const response = await fetch(
-        "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products-test"
-      );
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-      const data = await response.json();
-      console.log("Resposta sincronização Mercado Livre:", data);
-      if (data?.status !== "success") {
-        throw new Error("Resposta inválida da API de sincronização.");
-      }
-      const result = data.result ?? data;
-      const productsUpserted = result.products_upserted ?? 0;
-      const listingsUpserted = result.listings_upserted ?? 0;
-      setIsUpdating(false);
+      const result = await runSmartAccountSync(activeAccountId, { days: 1 });
+      console.log("Resposta sync-account-smart:", result.raw);
       setLastUpdate(new Date().toISOString());
       window.dispatchEvent(new CustomEvent("mercadolivre-products-synced"));
-      toast.success(
-        `Sincronização concluída: ${productsUpserted} produtos e ${listingsUpserted} anúncios atualizados.`
+      toast.success(formatSmartSyncMessage(result), {
+        description: activeAccount?.account_name || activeAccount?.nickname || undefined,
+      });
+    } catch (e: any) {
+      toast.error(
+        e?.message
+          ? `Não foi possível sincronizar: ${e.message}`
+          : "Não foi possível sincronizar agora. Tente novamente em instantes.",
       );
-    } catch {
+    } finally {
       setIsUpdating(false);
-      toast.error("Não foi possível sincronizar agora. Tente novamente em instantes.");
     }
-  }, [isUpdating]);
+  }, [isUpdating, activeAccountId, activeAccount]);
 
   return (
     <div className="flex min-h-screen bg-background">

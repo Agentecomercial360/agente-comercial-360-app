@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
+import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
 
 export const Route = createFileRoute("/ecommerce/contas")({
   component: ContasML,
@@ -21,8 +22,7 @@ export const Route = createFileRoute("/ecommerce/contas")({
 });
 
 const ROBOMIX_COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
-const SYNC_ENDPOINT =
-  "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products-test";
+
 
 type AccountRow = {
   id: string;
@@ -198,23 +198,18 @@ function ContasML() {
   async function handleSyncAccount(accountId: string) {
     setSyncingId(accountId);
     try {
-      const res = await fetch(SYNC_ENDPOINT, {
-        method: "GET",
-        headers: { Accept: "application/json" },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      console.log("Resposta sincronização Mercado Livre:", data);
-      if (data?.status !== "success") throw new Error("invalid response");
-      const p = data.result?.products_upserted ?? data.products_upserted ?? 0;
-      const l = data.result?.listings_upserted ?? data.listings_upserted ?? 0;
-      toast.success(
-        `Sincronização concluída: ${p} produtos e ${l} anúncios atualizados.`,
-      );
+      const result = await runSmartAccountSync(accountId, { days: 1 });
+      console.log("Resposta sync-account-smart:", result.raw);
+      toast.success(formatSmartSyncMessage(result));
+      window.dispatchEvent(new CustomEvent("mercadolivre-products-synced"));
       await loadData();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      toast.error("Não foi possível sincronizar agora. Tente novamente em instantes.");
+      toast.error(
+        e?.message
+          ? `Não foi possível sincronizar: ${e.message}`
+          : "Não foi possível sincronizar agora. Tente novamente em instantes.",
+      );
     } finally {
       setSyncingId(null);
     }

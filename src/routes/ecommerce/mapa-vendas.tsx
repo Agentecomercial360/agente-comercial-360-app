@@ -149,6 +149,11 @@ function MapaVendasContent() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<FlatRow | null>(null);
   const [selectedCity, setSelectedCity] = useState<{ city: string; uf: string } | null>(null);
+  const [mapPick, setMapPick] = useState<
+    | { kind: "city"; city: string; uf: string }
+    | { kind: "state"; uf: string }
+    | null
+  >(null);
   const [activeTab, setActiveTab] = useState<"map" | "cities" | "products" | "orders">("map");
   const [productQuery, setProductQuery] = useState("");
 

@@ -472,6 +472,35 @@ function MapaVendasContent() {
         </div>
       </section>
 
+      {/* Mapa de vendas (interativo) */}
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
+        <div className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">
+          <div className="text-[11px] uppercase tracking-widest text-muted-foreground">
+            Mapa de vendas
+          </div>
+          <div className="font-display text-base font-semibold text-foreground">
+            De onde saíram os pedidos
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Bolhas posicionadas por cidade/estado. Clique em uma cidade para ver os pedidos.
+          </p>
+        </div>
+        <div className="p-4">
+          {loading || accLoading ? (
+            <div className="py-16 text-center text-sm text-muted-foreground">Carregando mapa…</div>
+          ) : cityPoints.length === 0 ? (
+            <div className="py-16 text-center text-sm text-muted-foreground">
+              Sem pedidos com localização no período/conta selecionados.
+            </div>
+          ) : (
+            <SalesMap
+              points={cityPoints}
+              onSelect={(city, uf) => setSelectedCity({ city, uf })}
+            />
+          )}
+        </div>
+      </section>
+
       {/* Distribuição geográfica das vendas */}
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
         <div className="border-b border-slate-200 bg-gradient-to-b from-white to-slate-50/60 px-6 py-4">

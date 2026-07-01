@@ -22,8 +22,7 @@ export const Route = createFileRoute("/ecommerce/contas")({
 });
 
 const ROBOMIX_COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
-const SYNC_ENDPOINT =
-  "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-products-test";
+
 
 type AccountRow = {
   id: string;

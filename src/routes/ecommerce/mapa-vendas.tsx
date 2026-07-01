@@ -12,6 +12,10 @@ import {
   X,
   MapPin,
   Building2,
+  Trophy,
+  Truck,
+  Lightbulb,
+  Target,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { SalesMap, type CityPoint } from "@/components/ecommerce/SalesMap";

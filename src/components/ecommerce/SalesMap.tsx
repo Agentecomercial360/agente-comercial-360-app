@@ -1,82 +1,14 @@
 import { useMemo, useState } from "react";
 import { MapPin } from "lucide-react";
+import brStates from "@/data/br-states.json";
 
-// Approximate state centroids (lat, lng) for Brazil
-const STATE_CENTROIDS: Record<string, { lat: number; lng: number }> = {
-  AC: { lat: -9.0, lng: -70.0 },
-  AL: { lat: -9.5, lng: -36.5 },
-  AM: { lat: -4.0, lng: -63.0 },
-  AP: { lat: 1.0, lng: -52.0 },
-  BA: { lat: -12.5, lng: -41.5 },
-  CE: { lat: -5.5, lng: -39.5 },
-  DF: { lat: -15.8, lng: -47.8 },
-  ES: { lat: -19.5, lng: -40.5 },
-  GO: { lat: -16.0, lng: -49.5 },
-  MA: { lat: -5.0, lng: -45.5 },
-  MG: { lat: -18.5, lng: -44.5 },
-  MS: { lat: -20.5, lng: -54.5 },
-  MT: { lat: -13.0, lng: -55.5 },
-  PA: { lat: -4.5, lng: -53.0 },
-  PB: { lat: -7.1, lng: -36.7 },
-  PE: { lat: -8.5, lng: -37.5 },
-  PI: { lat: -7.0, lng: -42.5 },
-  PR: { lat: -24.5, lng: -51.5 },
-  RJ: { lat: -22.5, lng: -43.0 },
-  RN: { lat: -5.8, lng: -36.8 },
-  RO: { lat: -11.0, lng: -63.0 },
-  RR: { lat: 2.0, lng: -61.5 },
-  RS: { lat: -30.0, lng: -53.5 },
-  SC: { lat: -27.0, lng: -50.5 },
-  SE: { lat: -10.5, lng: -37.5 },
-  SP: { lat: -22.0, lng: -48.5 },
-  TO: { lat: -10.5, lng: -48.0 },
-};
+type StateGeom = { uf: string; name: string; d: string; cx: number; cy: number };
+const STATES = brStates as StateGeom[];
+const STATE_BY_UF = new Map(STATES.map((s) => [s.uf.toUpperCase(), s]));
 
-// A few well-known city overrides (approx)
-const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
-  "SÃO PAULO/SP": { lat: -23.55, lng: -46.63 },
-  "SAO PAULO/SP": { lat: -23.55, lng: -46.63 },
-  "CAMPINAS/SP": { lat: -22.9, lng: -47.06 },
-  "JABOTICABAL/SP": { lat: -21.25, lng: -48.32 },
-  "RIBEIRÃO PRETO/SP": { lat: -21.17, lng: -47.81 },
-  "SANTOS/SP": { lat: -23.96, lng: -46.33 },
-  "SÃO JOSÉ DOS CAMPOS/SP": { lat: -23.22, lng: -45.9 },
-  "GUARULHOS/SP": { lat: -23.46, lng: -46.53 },
-  "OSASCO/SP": { lat: -23.53, lng: -46.79 },
-  "SOROCABA/SP": { lat: -23.5, lng: -47.46 },
-  "RIO DE JANEIRO/RJ": { lat: -22.9, lng: -43.2 },
-  "NITERÓI/RJ": { lat: -22.88, lng: -43.1 },
-  "BELO HORIZONTE/MG": { lat: -19.92, lng: -43.94 },
-  "UBERLÂNDIA/MG": { lat: -18.91, lng: -48.28 },
-  "CURITIBA/PR": { lat: -25.43, lng: -49.27 },
-  "LONDRINA/PR": { lat: -23.31, lng: -51.16 },
-  "PORTO ALEGRE/RS": { lat: -30.03, lng: -51.23 },
-  "CAXIAS DO SUL/RS": { lat: -29.17, lng: -51.18 },
-  "FLORIANÓPOLIS/SC": { lat: -27.6, lng: -48.55 },
-  "JOINVILLE/SC": { lat: -26.3, lng: -48.85 },
-  "BLUMENAU/SC": { lat: -26.92, lng: -49.07 },
-  "SALVADOR/BA": { lat: -12.97, lng: -38.5 },
-  "RECIFE/PE": { lat: -8.05, lng: -34.9 },
-  "FORTALEZA/CE": { lat: -3.72, lng: -38.54 },
-  "BRASÍLIA/DF": { lat: -15.78, lng: -47.93 },
-  "GOIÂNIA/GO": { lat: -16.68, lng: -49.25 },
-  "MANAUS/AM": { lat: -3.1, lng: -60.02 },
-  "BELÉM/PA": { lat: -1.46, lng: -48.5 },
-  "NATAL/RN": { lat: -5.79, lng: -35.21 },
-  "JOÃO PESSOA/PB": { lat: -7.12, lng: -34.86 },
-  "MACEIÓ/AL": { lat: -9.65, lng: -35.73 },
-  "ARACAJU/SE": { lat: -10.9, lng: -37.07 },
-  "TERESINA/PI": { lat: -5.09, lng: -42.8 },
-  "SÃO LUÍS/MA": { lat: -2.53, lng: -44.3 },
-  "CUIABÁ/MT": { lat: -15.6, lng: -56.1 },
-  "CAMPO GRANDE/MS": { lat: -20.44, lng: -54.65 },
-  "PORTO VELHO/RO": { lat: -8.76, lng: -63.9 },
-  "BOA VISTA/RR": { lat: 2.82, lng: -60.67 },
-  "RIO BRANCO/AC": { lat: -9.97, lng: -67.8 },
-  "MACAPÁ/AP": { lat: 0.03, lng: -51.06 },
-  "PALMAS/TO": { lat: -10.25, lng: -48.32 },
-  "VITÓRIA/ES": { lat: -20.32, lng: -40.34 },
-};
+// Native viewBox of the geometry (see src/data/br-states.json)
+const VB_W = 800;
+const VB_H = 800;
 
 function hash(s: string) {
   let h = 0;
@@ -84,29 +16,11 @@ function hash(s: string) {
   return h;
 }
 
-function coordsFor(city: string, uf: string) {
-  const key = `${city.trim().toUpperCase()}/${uf.trim().toUpperCase()}`;
-  if (CITY_COORDS[key]) return CITY_COORDS[key];
-  const st = STATE_CENTROIDS[uf.trim().toUpperCase()];
-  if (!st) return null;
-  // Deterministic jitter within ~1 degree of state centroid
-  const h = hash(key);
-  const dLat = ((h % 200) / 100 - 1) * 0.8;
-  const dLng = (((h >> 8) % 200) / 100 - 1) * 0.8;
-  return { lat: st.lat + dLat, lng: st.lng + dLng };
-}
-
-// Projection: equirectangular within Brazil bounds
-const W = 600;
-const H = 650;
-const LNG_MIN = -74;
-const LNG_MAX = -34;
-const LAT_MIN = -34;
-const LAT_MAX = 6;
-function project(lat: number, lng: number) {
-  const x = ((lng - LNG_MIN) / (LNG_MAX - LNG_MIN)) * W;
-  const y = ((LAT_MAX - lat) / (LAT_MAX - LAT_MIN)) * H;
-  return { x, y };
+function jitterFor(city: string, uf: string) {
+  const h = hash(`${city}||${uf}`);
+  const dx = (((h % 200) / 100) - 1) * 26; // ~±26 svg units
+  const dy = ((((h >> 8) % 200) / 100) - 1) * 26;
+  return { dx, dy };
 }
 
 export type CityPoint = {
@@ -116,128 +30,233 @@ export type CityPoint = {
   revenue: number;
 };
 
+export type StatePoint = {
+  uf: string;
+  orders: number;
+  revenue: number;
+};
+
 export function SalesMap({
   points,
-  onSelect,
+  stateStats,
+  selected,
+  onSelectCity,
+  onSelectState,
 }: {
   points: CityPoint[];
-  onSelect: (city: string, uf: string) => void;
+  stateStats: StatePoint[];
+  selected?: { kind: "city"; city: string; uf: string } | { kind: "state"; uf: string } | null;
+  onSelectCity: (city: string, uf: string) => void;
+  onSelectState: (uf: string) => void;
 }) {
-  const [hover, setHover] = useState<CityPoint | null>(null);
-  const [tip, setTip] = useState<{ x: number; y: number } | null>(null);
+  const [hover, setHover] = useState<
+    | { kind: "city"; label: string; sub: string; x: number; y: number }
+    | { kind: "state"; label: string; sub: string; x: number; y: number }
+    | null
+  >(null);
 
-  const maxOrders = useMemo(
-    () => Math.max(1, ...points.map((p) => p.orders)),
+  const stateRevenue = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const s of stateStats) m.set(s.uf.toUpperCase(), s.revenue);
+    return m;
+  }, [stateStats]);
+
+  const stateOrders = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const s of stateStats) m.set(s.uf.toUpperCase(), s.orders);
+    return m;
+  }, [stateStats]);
+
+  const maxStateRev = useMemo(
+    () => Math.max(1, ...stateStats.map((s) => s.revenue)),
+    [stateStats],
+  );
+
+  const maxCityRev = useMemo(
+    () => Math.max(1, ...points.map((p) => p.revenue)),
     [points],
   );
 
-  const placed = useMemo(
-    () =>
-      points
-        .map((p) => {
-          const c = coordsFor(p.city, p.uf);
-          if (!c) return null;
-          const { x, y } = project(c.lat, c.lng);
-          const r = 6 + (p.orders / maxOrders) * 22;
-          return { ...p, x, y, r };
-        })
-        .filter(Boolean) as (CityPoint & { x: number; y: number; r: number })[],
-    [points, maxOrders],
-  );
+  const placed = useMemo(() => {
+    return points
+      .map((p) => {
+        const st = STATE_BY_UF.get(p.uf.toUpperCase());
+        if (!st) return null;
+        const { dx, dy } = jitterFor(p.city, p.uf);
+        return {
+          ...p,
+          x: st.cx + dx,
+          y: st.cy + dy,
+          r: 5 + Math.sqrt(p.revenue / maxCityRev) * 18,
+        };
+      })
+      .filter(Boolean) as (CityPoint & { x: number; y: number; r: number })[];
+  }, [points, maxCityRev]);
+
+  function stateFill(uf: string) {
+    const rev = stateRevenue.get(uf) ?? 0;
+    if (rev === 0) return "#f8fafc"; // slate-50
+    const t = Math.sqrt(rev / maxStateRev);
+    // Interpolate between slate-100 (#f1f5f9) and blue-600 (#2563eb)
+    const c1 = [241, 245, 249];
+    const c2 = [37, 99, 235];
+    const c = c1.map((v, i) => Math.round(v + (c2[i] - v) * (0.15 + t * 0.6)));
+    return `rgb(${c[0]}, ${c[1]}, ${c[2]})`;
+  }
+
+  const selectedUf =
+    selected?.kind === "state"
+      ? selected.uf.toUpperCase()
+      : selected?.kind === "city"
+        ? selected.uf.toUpperCase()
+        : null;
 
   return (
     <div className="relative">
       <svg
-        viewBox={`0 0 ${W} ${H}`}
-        className="w-full h-[520px] rounded-xl bg-gradient-to-br from-slate-50 to-blue-50/40 border border-slate-200"
+        viewBox={`0 0 ${VB_W} ${VB_H}`}
+        preserveAspectRatio="xMidYMid meet"
+        className="mx-auto block h-[460px] w-full max-w-[560px]"
       >
         <defs>
-          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e2e8f0" strokeWidth="0.5" />
-          </pattern>
           <radialGradient id="dot" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.85" />
-            <stop offset="100%" stopColor="#2563eb" stopOpacity="0.35" />
+            <stop offset="0%" stopColor="#1d4ed8" stopOpacity="0.95" />
+            <stop offset="100%" stopColor="#2563eb" stopOpacity="0.55" />
           </radialGradient>
         </defs>
-        <rect width={W} height={H} fill="url(#grid)" />
 
-        {/* State labels as light context */}
-        {Object.entries(STATE_CENTROIDS).map(([uf, c]) => {
-          const { x, y } = project(c.lat, c.lng);
-          return (
-            <text
-              key={uf}
-              x={x}
-              y={y}
-              textAnchor="middle"
-              className="fill-slate-300"
-              style={{ fontSize: 11, fontWeight: 600, userSelect: "none" }}
-            >
-              {uf}
-            </text>
-          );
-        })}
+        {/* States */}
+        <g>
+          {STATES.map((s) => {
+            const uf = s.uf.toUpperCase();
+            const isSelected = selectedUf === uf;
+            const orders = stateOrders.get(uf) ?? 0;
+            const rev = stateRevenue.get(uf) ?? 0;
+            return (
+              <path
+                key={s.uf}
+                d={s.d}
+                fill={stateFill(uf)}
+                stroke={isSelected ? "#1d4ed8" : "#cbd5e1"}
+                strokeWidth={isSelected ? 1.4 : 0.6}
+                className="cursor-pointer transition-colors hover:brightness-95"
+                onMouseEnter={(e) => {
+                  const rect = (
+                    e.currentTarget.ownerSVGElement as SVGSVGElement
+                  ).getBoundingClientRect();
+                  const parentRect = (
+                    e.currentTarget.ownerSVGElement!
+                      .parentElement as HTMLElement
+                  ).getBoundingClientRect();
+                  setHover({
+                    kind: "state",
+                    label: `${s.name} (${s.uf})`,
+                    sub: `${orders} ${orders === 1 ? "pedido" : "pedidos"} · ${rev.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
+                    x: ((s.cx / VB_W) * rect.width) + (rect.left - parentRect.left),
+                    y: ((s.cy / VB_H) * rect.height) + (rect.top - parentRect.top),
+                  });
+                }}
+                onMouseLeave={() => setHover(null)}
+                onClick={() => onSelectState(s.uf)}
+              />
+            );
+          })}
+        </g>
+
+        {/* State labels (subtle) */}
+        <g style={{ pointerEvents: "none" }}>
+          {STATES.map((s) => {
+            const uf = s.uf.toUpperCase();
+            const hasData = (stateRevenue.get(uf) ?? 0) > 0;
+            return (
+              <text
+                key={`t-${s.uf}`}
+                x={s.cx}
+                y={s.cy}
+                textAnchor="middle"
+                dominantBaseline="middle"
+                fill={hasData ? "#0f172a" : "#94a3b8"}
+                opacity={hasData ? 0.75 : 0.5}
+                style={{ fontSize: 10, fontWeight: 600, userSelect: "none" }}
+              >
+                {s.uf}
+              </text>
+            );
+          })}
+        </g>
 
         {/* City bubbles */}
-        {placed.map((p) => (
-          <g
-            key={`${p.city}/${p.uf}`}
-            className="cursor-pointer"
-            onMouseEnter={(e) => {
-              setHover(p);
-              const rect = (e.currentTarget.ownerSVGElement as SVGSVGElement).getBoundingClientRect();
-              const parentRect = (e.currentTarget.ownerSVGElement!.parentElement as HTMLElement).getBoundingClientRect();
-              setTip({
-                x: ((p.x / W) * rect.width) + (rect.left - parentRect.left),
-                y: ((p.y / H) * rect.height) + (rect.top - parentRect.top),
-              });
-            }}
-            onMouseLeave={() => {
-              setHover(null);
-              setTip(null);
-            }}
-            onClick={() => onSelect(p.city, p.uf)}
-          >
-            <circle
-              cx={p.x}
-              cy={p.y}
-              r={p.r}
-              fill="url(#dot)"
-              stroke="#1d4ed8"
-              strokeWidth={1.5}
-              className="transition-all hover:opacity-90"
-            />
-            <circle cx={p.x} cy={p.y} r={2.5} fill="#1e3a8a" />
-          </g>
-        ))}
+        <g>
+          {placed.map((p) => {
+            const isSelected =
+              selected?.kind === "city" &&
+              selected.city === p.city &&
+              selected.uf.toUpperCase() === p.uf.toUpperCase();
+            return (
+              <g
+                key={`${p.city}/${p.uf}`}
+                className="cursor-pointer"
+                onMouseEnter={(e) => {
+                  const rect = (
+                    e.currentTarget.ownerSVGElement as SVGSVGElement
+                  ).getBoundingClientRect();
+                  const parentRect = (
+                    e.currentTarget.ownerSVGElement!
+                      .parentElement as HTMLElement
+                  ).getBoundingClientRect();
+                  setHover({
+                    kind: "city",
+                    label: `${p.city}/${p.uf}`,
+                    sub: `${p.orders} ${p.orders === 1 ? "pedido" : "pedidos"} · ${p.revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`,
+                    x: ((p.x / VB_W) * rect.width) + (rect.left - parentRect.left),
+                    y: ((p.y / VB_H) * rect.height) + (rect.top - parentRect.top),
+                  });
+                }}
+                onMouseLeave={() => setHover(null)}
+                onClick={() => onSelectCity(p.city, p.uf)}
+              >
+                <circle
+                  cx={p.x}
+                  cy={p.y}
+                  r={p.r}
+                  fill="url(#dot)"
+                  stroke={isSelected ? "#1e3a8a" : "#1d4ed8"}
+                  strokeWidth={isSelected ? 2 : 1}
+                  opacity={0.9}
+                />
+                <circle cx={p.x} cy={p.y} r={1.8} fill="#0b1a4b" />
+              </g>
+            );
+          })}
+        </g>
       </svg>
 
-      {hover && tip && (
+      {hover && (
         <div
           className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-lg"
-          style={{ left: tip.x, top: tip.y - 12 }}
+          style={{ left: hover.x, top: hover.y - 10 }}
         >
           <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-800">
             <MapPin className="h-3 w-3 text-blue-600" />
-            {hover.city}/{hover.uf}
+            {hover.label}
           </div>
-          <div className="text-[11px] text-muted-foreground">
-            {hover.orders} {hover.orders === 1 ? "pedido" : "pedidos"} ·{" "}
-            {hover.revenue.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+          <div className="text-[11px] text-muted-foreground">{hover.sub}</div>
+          <div className="mt-0.5 text-[10px] text-blue-600">
+            Clique para ver {hover.kind === "state" ? "o estado" : "a cidade"}
           </div>
-          <div className="text-[10px] text-blue-600 mt-0.5">Clique para ver pedidos</div>
         </div>
       )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-4 text-[11px] text-muted-foreground">
+      <div className="mt-3 flex flex-wrap items-center justify-center gap-4 text-[11px] text-muted-foreground">
         <div className="flex items-center gap-1.5">
-          <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-600/70 border border-blue-800" />
-          Cada bolha = uma cidade. Tamanho proporcional ao nº de pedidos.
+          <span className="inline-block h-3 w-6 rounded-sm bg-gradient-to-r from-slate-100 to-blue-600 border border-slate-200" />
+          Intensidade = faturamento do estado
         </div>
-        <div>
-          {placed.length} {placed.length === 1 ? "cidade" : "cidades"} no mapa.
+        <div className="flex items-center gap-1.5">
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-600/80 border border-blue-900" />
+          Bolha = cidade (tamanho ∝ faturamento)
         </div>
+        <div>{placed.length} {placed.length === 1 ? "cidade" : "cidades"}</div>
       </div>
     </div>
   );

@@ -149,6 +149,11 @@ function MapaVendasContent() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<FlatRow | null>(null);
   const [selectedCity, setSelectedCity] = useState<{ city: string; uf: string } | null>(null);
+  const [mapPick, setMapPick] = useState<
+    | { kind: "city"; city: string; uf: string }
+    | { kind: "state"; uf: string }
+    | null
+  >(null);
   const [activeTab, setActiveTab] = useState<"map" | "cities" | "products" | "orders">("map");
   const [productQuery, setProductQuery] = useState("");
 
@@ -753,28 +758,133 @@ function MapaVendasContent() {
               Mapa Inteligente de Vendas
             </div>
             <div className="font-display text-base font-semibold text-foreground">
-              De onde saíram os pedidos
+              Painel geográfico — onde saíram os pedidos
             </div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Bolhas por cidade/estado. Clique em uma cidade para abrir o resumo operacional.
+              Ranking à esquerda · mapa real do Brasil no centro · detalhes da localidade à direita.
             </p>
           </div>
-          <div className="p-4">
-            {loading || accLoading ? (
-              <div className="py-16 text-center text-sm text-muted-foreground">Carregando mapa…</div>
-            ) : cityPoints.length === 0 ? (
-              <div className="py-16 text-center text-sm text-muted-foreground">
-                Sem pedidos com localização no período/conta selecionados.
+          {loading || accLoading ? (
+            <div className="py-16 text-center text-sm text-muted-foreground">Carregando mapa…</div>
+          ) : cityPoints.length === 0 && geo.states.length === 0 ? (
+            <div className="py-16 text-center text-sm text-muted-foreground">
+              Sem pedidos com localização no período/conta selecionados.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-0 lg:grid-cols-[260px_1fr_300px] lg:divide-x lg:divide-slate-200">
+              {/* Left: rankings */}
+              <div className="max-h-[560px] overflow-auto p-4">
+                <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  <MapPin className="h-3 w-3" /> Top estados por faturamento
+                </div>
+                <ul className="mb-5 space-y-1.5">
+                  {geo.states.slice(0, 8).map((s) => {
+                    const share = geo.totalRevenue > 0 ? (s.revenue / geo.totalRevenue) * 100 : 0;
+                    const active = mapPick?.kind === "state" && mapPick.uf === s.key;
+                    return (
+                      <li key={s.key}>
+                        <button
+                          onClick={() => setMapPick({ kind: "state", uf: s.key })}
+                          className={`w-full rounded-lg border px-2.5 py-1.5 text-left transition-colors ${
+                            active
+                              ? "border-blue-300 bg-blue-50"
+                              : "border-slate-200 bg-white hover:bg-slate-50"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="font-semibold text-slate-800">{s.key}</span>
+                            <span className="tabular-nums text-slate-700">{BRL(s.revenue)}</span>
+                          </div>
+                          <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-100">
+                            <div
+                              className="h-full bg-blue-500"
+                              style={{ width: `${Math.min(100, share)}%` }}
+                            />
+                          </div>
+                          <div className="mt-0.5 flex items-center justify-between text-[10px] text-muted-foreground">
+                            <span>{s.orders} {s.orders === 1 ? "pedido" : "pedidos"}</span>
+                            <span>{share.toFixed(1)}%</span>
+                          </div>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+
+                <div className="mb-2 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                  <Building2 className="h-3 w-3" /> Top cidades por pedidos
+                </div>
+                <ul className="space-y-1.5">
+                  {[...geo.cities].sort((a, b) => b.orders - a.orders).slice(0, 8).map((c) => {
+                    const [city, uf] = c.key.split("/");
+                    const share = geo.totalRevenue > 0 ? (c.revenue / geo.totalRevenue) * 100 : 0;
+                    const active =
+                      mapPick?.kind === "city" && mapPick.city === city && mapPick.uf === uf;
+                    return (
+                      <li key={c.key}>
+                        <button
+                          onClick={() => setMapPick({ kind: "city", city, uf })}
+                          className={`w-full rounded-lg border px-2.5 py-1.5 text-left transition-colors ${
+                            active
+                              ? "border-blue-300 bg-blue-50"
+                              : "border-slate-200 bg-white hover:bg-slate-50"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="truncate font-semibold text-slate-800" title={c.key}>
+                              {city}
+                            </span>
+                            <span className="ml-2 shrink-0 text-[10px] font-semibold text-slate-500">
+                              {uf}
+                            </span>
+                          </div>
+                          <div className="mt-0.5 flex items-center justify-between text-[10px] text-muted-foreground">
+                            <span>{c.orders} {c.orders === 1 ? "pedido" : "pedidos"}</span>
+                            <span className="tabular-nums">{BRL(c.revenue)}</span>
+                          </div>
+                          <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-100">
+                            <div
+                              className="h-full bg-slate-400"
+                              style={{ width: `${Math.min(100, share)}%` }}
+                            />
+                          </div>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
               </div>
-            ) : (
-              <SalesMap
-                points={cityPoints}
-                onSelect={(city, uf) => setSelectedCity({ city, uf })}
-              />
-            )}
-          </div>
+
+              {/* Center: real Brazil map */}
+              <div className="p-4">
+                <SalesMap
+                  points={cityPoints}
+                  stateStats={geo.states.map((s) => ({
+                    uf: s.key,
+                    orders: s.orders,
+                    revenue: s.revenue,
+                  }))}
+                  selected={mapPick}
+                  onSelectCity={(city, uf) => setMapPick({ kind: "city", city, uf })}
+                  onSelectState={(uf) => setMapPick({ kind: "state", uf })}
+                />
+              </div>
+
+              {/* Right: selection summary */}
+              <div className="max-h-[560px] overflow-auto p-4">
+                <MapSelectionPanel
+                  pick={mapPick}
+                  filtered={filtered}
+                  onOpenCityModal={(city, uf) => setSelectedCity({ city, uf })}
+                  onClear={() => setMapPick(null)}
+                />
+              </div>
+            </div>
+          )}
         </section>
       )}
+
+
 
       {activeTab === "cities" && (
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-[0_8px_30px_-12px_rgba(15,23,42,0.12)]">
@@ -1627,3 +1737,161 @@ function ProductRegionView({
   );
 }
 
+
+function MapSelectionPanel({
+  pick,
+  filtered,
+  onOpenCityModal,
+  onClear,
+}: {
+  pick:
+    | { kind: "city"; city: string; uf: string }
+    | { kind: "state"; uf: string }
+    | null;
+  filtered: FlatRow[];
+  onOpenCityModal: (city: string, uf: string) => void;
+  onClear: () => void;
+}) {
+  if (!pick) {
+    return (
+      <div className="flex h-full min-h-[420px] flex-col items-center justify-center text-center text-xs text-muted-foreground">
+        <MapPin className="mb-2 h-6 w-6 text-slate-300" />
+        <div className="font-semibold text-slate-700">Selecione um estado ou cidade</div>
+        <div className="mt-1 max-w-[220px]">
+          Clique no mapa ou no ranking à esquerda para ver os detalhes operacionais da localidade.
+        </div>
+      </div>
+    );
+  }
+
+  const rowsInScope =
+    pick.kind === "city"
+      ? filtered.filter(
+          (r) =>
+            (r.order.buyer_city ?? "") === pick.city &&
+            (r.order.buyer_state ?? "").toUpperCase() === pick.uf.toUpperCase(),
+        )
+      : filtered.filter(
+          (r) => (r.order.buyer_state ?? "").toUpperCase() === pick.uf.toUpperCase(),
+        );
+
+  // Unique orders in scope
+  const uniqOrders = Array.from(
+    new Map(rowsInScope.map((r) => [r.order.id, r.order] as const)).values(),
+  );
+  const orders = uniqOrders.length;
+  const revenue = uniqOrders.reduce((s, o) => s + Number(o.total_amount ?? 0), 0);
+  const avgTicket = orders > 0 ? revenue / orders : 0;
+  const units = rowsInScope.reduce((s, r) => s + Number(r.item.quantity ?? 0), 0);
+  const skus = new Set(rowsInScope.map((r) => r.item.sku || r.item.product_name || "—")).size;
+  const pendingShip = uniqOrders.filter((o) =>
+    ["pending", "handling", "ready_to_ship"].includes(
+      (o.shipping_status ?? "").toLowerCase(),
+    ),
+  ).length;
+  const unlinked = rowsInScope.filter((r) => !r.item.product_id).length;
+
+  const topOrders = [...uniqOrders]
+    .sort((a, b) => Number(b.total_amount ?? 0) - Number(a.total_amount ?? 0))
+    .slice(0, 6);
+
+  const title =
+    pick.kind === "city" ? `${pick.city}/${pick.uf.toUpperCase()}` : `Estado ${pick.uf.toUpperCase()}`;
+  const subtitle = pick.kind === "city" ? "Cidade selecionada" : "Estado selecionado";
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+            {subtitle}
+          </div>
+          <div className="font-display text-base font-semibold text-slate-900">{title}</div>
+        </div>
+        <button
+          onClick={onClear}
+          className="rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] text-slate-500 hover:bg-slate-50"
+        >
+          Limpar
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-xs">
+        <div className="rounded-lg border border-slate-200 bg-white p-2">
+          <div className="text-[10px] text-muted-foreground">Pedidos</div>
+          <div className="font-semibold text-slate-900">{orders}</div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-2">
+          <div className="text-[10px] text-muted-foreground">Faturamento</div>
+          <div className="font-semibold tabular-nums text-slate-900">{BRL(revenue)}</div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-2">
+          <div className="text-[10px] text-muted-foreground">Ticket médio</div>
+          <div className="font-semibold tabular-nums text-slate-900">{BRL(avgTicket)}</div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-2">
+          <div className="text-[10px] text-muted-foreground">Unidades</div>
+          <div className="font-semibold text-slate-900">{units}</div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-2">
+          <div className="text-[10px] text-muted-foreground">SKUs distintos</div>
+          <div className="font-semibold text-slate-900">{skus}</div>
+        </div>
+        <div className="rounded-lg border border-slate-200 bg-white p-2">
+          <div className="text-[10px] text-muted-foreground">Envio pendente</div>
+          <div className={`font-semibold ${pendingShip > 0 ? "text-amber-700" : "text-slate-900"}`}>
+            {pendingShip}
+          </div>
+        </div>
+        <div className="col-span-2 rounded-lg border border-slate-200 bg-white p-2">
+          <div className="text-[10px] text-muted-foreground">Produtos não vinculados</div>
+          <div className={`font-semibold ${unlinked > 0 ? "text-amber-700" : "text-slate-900"}`}>
+            {unlinked} {unlinked === 1 ? "item" : "itens"}
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Principais pedidos
+        </div>
+        {topOrders.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-slate-200 p-3 text-center text-[11px] text-muted-foreground">
+            Sem pedidos nesta localidade.
+          </div>
+        ) : (
+          <ul className="space-y-1.5">
+            {topOrders.map((o) => (
+              <li
+                key={o.id}
+                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px]"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="truncate font-medium text-slate-800">
+                    {o.buyer_nickname || "—"}
+                  </span>
+                  <span className="tabular-nums font-semibold text-slate-900">
+                    {BRL(Number(o.total_amount ?? 0))}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                  <span className="truncate">{o.buyer_city || "—"}/{o.buyer_state || "—"}</span>
+                  <span>{fmtDate(o.order_date)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {pick.kind === "city" && (
+        <button
+          onClick={() => onOpenCityModal(pick.city, pick.uf)}
+          className="w-full rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100"
+        >
+          Ver detalhes completos da cidade
+        </button>
+      )}
+    </div>
+  );
+}

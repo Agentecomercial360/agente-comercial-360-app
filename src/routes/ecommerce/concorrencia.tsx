@@ -297,7 +297,8 @@ function ConcorrenciaInner() {
         /* ignore */
       }
       if (!res.ok || (data && data.status && data.status !== "success")) {
-        throw new Error(data?.message || data?.error || `HTTP ${res.status}`);
+        const baseMsg = data?.message || data?.error || `HTTP ${res.status}`;
+        throw new Error(`${baseMsg} [${res.status}]`);
       }
       const payload = (data?.data ?? data) as Partial<CompetitorItem> | undefined;
       if (!payload || !payload.item_id) throw new Error("Resposta inválida");

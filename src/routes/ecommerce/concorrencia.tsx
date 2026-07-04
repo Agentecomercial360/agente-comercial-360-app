@@ -119,6 +119,14 @@ function extractItemId(input: string): string | null {
 function parseErrorMessage(rawMsg: string, url: string): string {
   const msg = (rawMsg || "").toLowerCase();
   const extracted = extractItemId(url);
+  const isForbidden =
+    /\b403\b/.test(msg) ||
+    msg.includes("access_denied") ||
+    msg.includes("access denied") ||
+    msg.includes("forbidden");
+  if (isForbidden) {
+    return "Este anúncio está restrito pela API do Mercado Livre. Isso pode acontecer com links de catálogo, anúncios patrocinados ou páginas /up/MLBU. Tente usar outro anúncio direto do vendedor.";
+  }
   const hasCatalogMarker =
     /mlbu|\/up\/|\/p\/mlb|catalog/i.test(url) || msg.includes("catalog") || msg.includes("mlbu");
   if (hasCatalogMarker && !extracted) {
@@ -289,7 +297,8 @@ function ConcorrenciaInner() {
         /* ignore */
       }
       if (!res.ok || (data && data.status && data.status !== "success")) {
-        throw new Error(data?.message || data?.error || `HTTP ${res.status}`);
+        const baseMsg = data?.message || data?.error || `HTTP ${res.status}`;
+        throw new Error(`${baseMsg} [${res.status}]`);
       }
       const payload = (data?.data ?? data) as Partial<CompetitorItem> | undefined;
       if (!payload || !payload.item_id) throw new Error("Resposta inválida");

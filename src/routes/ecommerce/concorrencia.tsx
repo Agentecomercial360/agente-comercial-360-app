@@ -262,6 +262,13 @@ function ConcorrenciaInner() {
       toast.error("Selecione uma conta Mercado Livre ativa.");
       return;
     }
+    const extractedId = extractItemId(trimmed);
+    if (!extractedId) {
+      toast.error(
+        "Não foi possível identificar o ID do anúncio (MLB) neste link. Cole o link direto do anúncio ou o ID (ex.: MLB3106845273).",
+      );
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(SYNC_ITEM_ENDPOINT, {
@@ -270,6 +277,7 @@ function ConcorrenciaInner() {
         body: JSON.stringify({
           company_id: ECOMMERCE_COMPANY_ID,
           account_id: activeAccountId,
+          item_id: extractedId,
           item_url: trimmed,
         }),
       });

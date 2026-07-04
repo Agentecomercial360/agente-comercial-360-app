@@ -22,6 +22,7 @@ import {
   Link2,
   ChevronDown,
   DollarSign,
+  Target,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -49,6 +50,7 @@ const navGroups = [
       { label: "Produtos Estratégicos", to: "/ecommerce/produtos-estrategicos", icon: PieChart },
       { label: "Produtos Problema", to: "/ecommerce/produtos-travados", icon: ShieldAlert },
       { label: "Custos e Margem", to: "/ecommerce/custos-margem", icon: DollarSign },
+      { label: "Inteligência de Concorrência", to: "/ecommerce/concorrencia", icon: Target },
     ],
   },
   {

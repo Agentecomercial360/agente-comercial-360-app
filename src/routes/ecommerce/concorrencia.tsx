@@ -95,15 +95,37 @@ function formatCurrency(value: number | null | undefined, currency: string | nul
   }
 }
 
+function extractItemId(input: string): string | null {
+  const raw = (input || "").trim();
+  if (!raw) return null;
+  // 1) Pure ID: MLB123... (reject MLBU)
+  const pure = raw.match(/^MLB-?(\d{5,})$/i);
+  if (pure) return `MLB${pure[1]}`;
+  // 2) item_id:MLB123 inside URL/query
+  const byParam = raw.match(/item_id[:=]\s*MLB-?(\d{5,})/i);
+  if (byParam) return `MLB${byParam[1]}`;
+  // 3) Any MLB-123 or MLB123 anywhere (skip MLBU)
+  const matches = raw.match(/MLBU?\d+|MLB-\d+/gi);
+  if (matches) {
+    for (const m of matches) {
+      if (/^MLBU/i.test(m)) continue;
+      const d = m.match(/(\d{5,})/);
+      if (d) return `MLB${d[1]}`;
+    }
+  }
+  return null;
+}
+
 function parseErrorMessage(rawMsg: string, url: string): string {
   const msg = (rawMsg || "").toLowerCase();
-  const isCatalog =
-    /mlbu|\/p\/mlb|catalog/i.test(url) || msg.includes("catalog") || msg.includes("mlbu");
-  if (isCatalog) {
-    return "Este link parece ser de catálogo. Envie o link direto do anúncio do vendedor contendo MLB.";
+  const extracted = extractItemId(url);
+  const hasCatalogMarker =
+    /mlbu|\/up\/|\/p\/mlb|catalog/i.test(url) || msg.includes("catalog") || msg.includes("mlbu");
+  if (hasCatalogMarker && !extracted) {
+    return "Este link é de catálogo. Envie o link direto do anúncio do vendedor contendo MLB seguido de números.";
   }
-  if (msg.includes("item_id") || msg.includes("invalid url") || msg.includes("url")) {
-    return "Este link parece ser de catálogo. Envie o link direto do anúncio do vendedor contendo MLB.";
+  if (!extracted && (msg.includes("item_id") || msg.includes("invalid url") || msg.includes("url"))) {
+    return "Não foi possível identificar o ID do anúncio (MLB) na URL enviada.";
   }
   return "Não foi possível consultar este anúncio.";
 }
@@ -240,6 +262,13 @@ function ConcorrenciaInner() {
       toast.error("Selecione uma conta Mercado Livre ativa.");
       return;
     }
+    const extractedId = extractItemId(trimmed);
+    if (!extractedId) {
+      toast.error(
+        "Não foi possível identificar o ID do anúncio (MLB) neste link. Cole o link direto do anúncio ou o ID (ex.: MLB3106845273).",
+      );
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(SYNC_ITEM_ENDPOINT, {
@@ -248,6 +277,7 @@ function ConcorrenciaInner() {
         body: JSON.stringify({
           company_id: ECOMMERCE_COMPANY_ID,
           account_id: activeAccountId,
+          item_id: extractedId,
           item_url: trimmed,
         }),
       });

@@ -297,6 +297,103 @@ function diagnose(
   };
 }
 
+type ThreatLevel = "baixa" | "media" | "alta";
+type Threat = { score: number; level: ThreatLevel; reasons: string[] };
+
+function threatFor(
+  item: CompetitorItem,
+  basePrice: number | null,
+  baseShip: ShippingType,
+  baseRep: ReputationLevel,
+): Threat {
+  let score = 0;
+  const reasons: string[] = [];
+  if (item.price != null && basePrice != null && basePrice > 0) {
+    const pct = ((basePrice - item.price) / basePrice) * 100;
+    if (pct > 15) {
+      score += 35;
+      reasons.push("preço muito menor");
+    } else if (pct > 5) {
+      score += 25;
+      reasons.push("preço menor");
+    } else if (pct > 0) {
+      score += 10;
+      reasons.push("preço levemente menor");
+    }
+  }
+  if (item.free_shipping === true) {
+    score += 12;
+    reasons.push("frete grátis");
+  }
+  if (item.shipping_type === "full" && baseShip !== "full") {
+    score += 20;
+    reasons.push("envio Full");
+  }
+  const sold = item.sold_quantity ?? 0;
+  if (sold > 100) {
+    score += 15;
+    reasons.push("alto volume de vendas");
+  } else if (sold > 20) {
+    score += 8;
+    reasons.push("volume relevante");
+  }
+  const avail = item.available_quantity ?? 0;
+  if (avail > 50) {
+    score += 5;
+    reasons.push("estoque alto");
+  }
+  const compHighRep = item.seller_reputation === "platinum" || item.seller_reputation === "gold";
+  const baseHighRep = baseRep === "platinum" || baseRep === "gold";
+  if (compHighRep && !baseHighRep) {
+    score += 15;
+    reasons.push("reputação superior");
+  }
+  score = Math.min(100, score);
+  const level: ThreatLevel = score >= 55 ? "alta" : score >= 30 ? "media" : "baixa";
+  return { score, level, reasons };
+}
+
+function recommendationsFor(
+  item: CompetitorItem,
+  basePrice: number | null,
+  baseShip: ShippingType,
+  baseRep: ReputationLevel,
+): string[] {
+  const recs: string[] = [];
+  if (item.price != null && basePrice != null && basePrice > 0) {
+    const pct = ((basePrice - item.price) / basePrice) * 100;
+    if (pct > 10) recs.push("Revisar preço (validar margem antes)");
+    else if (pct > 3) recs.push("Testar cupom ou oferta pontual");
+  }
+  if (item.shipping_type === "full" && baseShip !== "full") {
+    recs.push("Avaliar migração para Full");
+  }
+  if (item.free_shipping === true) {
+    recs.push("Considerar frete grátis promocional");
+  }
+  if ((item.sold_quantity ?? 0) > 100) {
+    recs.push("Testar campanha de Ads para visibilidade");
+  }
+  const compHighRep = item.seller_reputation === "platinum" || item.seller_reputation === "gold";
+  const baseHighRep = baseRep === "platinum" || baseRep === "gold";
+  if (compHighRep && !baseHighRep) {
+    recs.push("Focar em avaliações e reputação");
+  }
+  if (recs.length === 0) recs.push("Monitorar sem agir agora");
+  return recs;
+}
+
+const THREAT_STYLE: Record<ThreatLevel, string> = {
+  baixa: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  media: "border-amber-200 bg-amber-50 text-amber-700",
+  alta: "border-rose-200 bg-rose-50 text-rose-700",
+};
+const THREAT_LABEL: Record<ThreatLevel, string> = {
+  baixa: "Baixa ameaça",
+  media: "Média ameaça",
+  alta: "Alta ameaça",
+};
+
 function ConcorrenciaPage() {
   return (
     <EcommerceLayout>

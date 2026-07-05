@@ -604,6 +604,8 @@ function ConcorrenciaInner() {
       available_quantity: available != null ? Math.trunc(available) : null,
       sold_quantity: sold != null ? Math.trunc(sold) : null,
       note: manualForm.note.trim() || null,
+      shipping_type: manualForm.shipping_type,
+      seller_reputation: manualForm.seller_reputation,
       updated_at: nowIso,
     };
 

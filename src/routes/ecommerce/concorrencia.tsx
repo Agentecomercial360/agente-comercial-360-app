@@ -1530,10 +1530,23 @@ function ConcorrenciaInner() {
                             "—"
                           )}
                         </TableCell>
-                        <TableCell className="max-w-[220px]">
-                          <div className="text-xs text-muted-foreground" title={verdict?.action}>
-                            {verdict?.action ?? "—"}
-                          </div>
+                        <TableCell>
+                          <span
+                            className={
+                              "inline-flex items-center rounded-md border px-2 py-0.5 text-xs " +
+                              THREAT_STYLE[threat.level]
+                            }
+                            title={threat.reasons.join(" • ") || undefined}
+                          >
+                            {THREAT_LABEL[threat.level]}
+                          </span>
+                        </TableCell>
+                        <TableCell className="max-w-[240px]">
+                          <ul className="space-y-0.5 text-xs text-muted-foreground">
+                            {recs.map((r, i) => (
+                              <li key={i}>• {r}</li>
+                            ))}
+                          </ul>
                         </TableCell>
                         <TableCell className="text-xs">
                           {SHIPPING_LABEL[it.shipping_type]}

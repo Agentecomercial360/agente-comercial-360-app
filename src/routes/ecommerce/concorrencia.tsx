@@ -297,6 +297,103 @@ function diagnose(
   };
 }
 
+type ThreatLevel = "baixa" | "media" | "alta";
+type Threat = { score: number; level: ThreatLevel; reasons: string[] };
+
+function threatFor(
+  item: CompetitorItem,
+  basePrice: number | null,
+  baseShip: ShippingType,
+  baseRep: ReputationLevel,
+): Threat {
+  let score = 0;
+  const reasons: string[] = [];
+  if (item.price != null && basePrice != null && basePrice > 0) {
+    const pct = ((basePrice - item.price) / basePrice) * 100;
+    if (pct > 15) {
+      score += 35;
+      reasons.push("preço muito menor");
+    } else if (pct > 5) {
+      score += 25;
+      reasons.push("preço menor");
+    } else if (pct > 0) {
+      score += 10;
+      reasons.push("preço levemente menor");
+    }
+  }
+  if (item.free_shipping === true) {
+    score += 12;
+    reasons.push("frete grátis");
+  }
+  if (item.shipping_type === "full" && baseShip !== "full") {
+    score += 20;
+    reasons.push("envio Full");
+  }
+  const sold = item.sold_quantity ?? 0;
+  if (sold > 100) {
+    score += 15;
+    reasons.push("alto volume de vendas");
+  } else if (sold > 20) {
+    score += 8;
+    reasons.push("volume relevante");
+  }
+  const avail = item.available_quantity ?? 0;
+  if (avail > 50) {
+    score += 5;
+    reasons.push("estoque alto");
+  }
+  const compHighRep = item.seller_reputation === "platinum" || item.seller_reputation === "gold";
+  const baseHighRep = baseRep === "platinum" || baseRep === "gold";
+  if (compHighRep && !baseHighRep) {
+    score += 15;
+    reasons.push("reputação superior");
+  }
+  score = Math.min(100, score);
+  const level: ThreatLevel = score >= 55 ? "alta" : score >= 30 ? "media" : "baixa";
+  return { score, level, reasons };
+}
+
+function recommendationsFor(
+  item: CompetitorItem,
+  basePrice: number | null,
+  baseShip: ShippingType,
+  baseRep: ReputationLevel,
+): string[] {
+  const recs: string[] = [];
+  if (item.price != null && basePrice != null && basePrice > 0) {
+    const pct = ((basePrice - item.price) / basePrice) * 100;
+    if (pct > 10) recs.push("Revisar preço (validar margem antes)");
+    else if (pct > 3) recs.push("Testar cupom ou oferta pontual");
+  }
+  if (item.shipping_type === "full" && baseShip !== "full") {
+    recs.push("Avaliar migração para Full");
+  }
+  if (item.free_shipping === true) {
+    recs.push("Considerar frete grátis promocional");
+  }
+  if ((item.sold_quantity ?? 0) > 100) {
+    recs.push("Testar campanha de Ads para visibilidade");
+  }
+  const compHighRep = item.seller_reputation === "platinum" || item.seller_reputation === "gold";
+  const baseHighRep = baseRep === "platinum" || baseRep === "gold";
+  if (compHighRep && !baseHighRep) {
+    recs.push("Focar em avaliações e reputação");
+  }
+  if (recs.length === 0) recs.push("Monitorar sem agir agora");
+  return recs;
+}
+
+const THREAT_STYLE: Record<ThreatLevel, string> = {
+  baixa: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  media: "border-amber-200 bg-amber-50 text-amber-700",
+  alta: "border-rose-200 bg-rose-50 text-rose-700",
+};
+const THREAT_LABEL: Record<ThreatLevel, string> = {
+  baixa: "Baixa ameaça",
+  media: "Média ameaça",
+  alta: "Alta ameaça",
+};
+
 function ConcorrenciaPage() {
   return (
     <EcommerceLayout>
@@ -641,7 +738,13 @@ function ConcorrenciaInner() {
     : "unknown";
 
   const diagnosedList = useMemo(() => {
-    if (!selectedBase) return [] as { item: CompetitorItem; verdict: Verdict | null }[];
+    if (!selectedBase)
+      return [] as {
+        item: CompetitorItem;
+        verdict: Verdict | null;
+        threat: Threat;
+        recs: string[];
+      }[];
     return competitorsForBase.map((it) => ({
       item: it,
       verdict: diagnose(
@@ -653,6 +756,8 @@ function ConcorrenciaInner() {
         it.seller_reputation,
         it.currency_id,
       ),
+      threat: threatFor(it, selectedBase.price, baseShipping, baseReputation),
+      recs: recommendationsFor(it, selectedBase.price, baseShipping, baseReputation),
     }));
   }, [competitorsForBase, selectedBase, baseShipping, baseReputation]);
 
@@ -668,6 +773,128 @@ function ConcorrenciaInner() {
     }
     return { critical, attention, competitive, total: diagnosedList.length };
   }, [diagnosedList]);
+
+  const strategy = useMemo(() => {
+    if (!selectedBase || diagnosedList.length === 0) return null;
+    const basePrice = selectedBase.price;
+    const prices = diagnosedList
+      .map((d) => d.item.price)
+      .filter((p): p is number => typeof p === "number" && p > 0);
+    const minPrice = prices.length ? Math.min(...prices) : null;
+    const maxPrice = prices.length ? Math.max(...prices) : null;
+    const avgPrice = prices.length ? prices.reduce((a, b) => a + b, 0) / prices.length : null;
+    const diffToMin =
+      basePrice != null && minPrice != null ? basePrice - minPrice : null;
+    const diffToMinPct =
+      basePrice != null && minPrice != null && minPrice > 0
+        ? ((basePrice - minPrice) / minPrice) * 100
+        : null;
+
+    const freeShipCount = diagnosedList.filter((d) => d.item.free_shipping === true).length;
+    const fullCount = diagnosedList.filter((d) => d.item.shipping_type === "full").length;
+    const baseHasFull = baseShipping === "full";
+    const losingLogistics = !baseHasFull && fullCount > 0;
+
+    const priceStatus: "competitivo" | "atencao" | "critico" =
+      diffToMinPct == null
+        ? "competitivo"
+        : diffToMinPct <= 0
+          ? "competitivo"
+          : diffToMinPct <= 10
+            ? "atencao"
+            : "critico";
+
+    const sorted = [...diagnosedList].sort((a, b) => b.threat.score - a.threat.score);
+    const topThreat = sorted[0] ?? null;
+
+    // Risk factor tallies
+    const riskFactors = {
+      preco: diagnosedList.filter(
+        (d) => basePrice != null && d.item.price != null && d.item.price < basePrice,
+      ).length,
+      frete: diagnosedList.filter((d) => d.item.free_shipping === true).length,
+      envio: diagnosedList.filter(
+        (d) => d.item.shipping_type === "full" && !baseHasFull,
+      ).length,
+      vendas: diagnosedList.filter((d) => (d.item.sold_quantity ?? 0) > 50).length,
+      reputacao: diagnosedList.filter(
+        (d) =>
+          (d.item.seller_reputation === "platinum" || d.item.seller_reputation === "gold") &&
+          !(baseReputation === "platinum" || baseReputation === "gold"),
+      ).length,
+    };
+
+    // Main risk driver
+    const mainRiskEntry = Object.entries(riskFactors).sort((a, b) => b[1] - a[1])[0];
+    const mainRisk = mainRiskEntry && mainRiskEntry[1] > 0 ? mainRiskEntry[0] : null;
+    const mainRiskLabel: Record<string, string> = {
+      preco: "Preço",
+      frete: "Frete grátis dos concorrentes",
+      envio: "Vantagem logística (Full)",
+      vendas: "Volume de vendas dos concorrentes",
+      reputacao: "Reputação dos concorrentes",
+    };
+
+    // Best action
+    let bestAction = "Monitorar sem agir agora";
+    if (priceStatus === "critico") bestAction = "Rever preço — mas valide margem antes de reduzir";
+    else if (losingLogistics) bestAction = "Avaliar migração para Full ou frete grátis";
+    else if (priceStatus === "atencao" && freeShipCount > 0) bestAction = "Testar cupom ou frete grátis pontual";
+    else if (riskFactors.vendas > 0) bestAction = "Testar campanha de Ads para ganhar visibilidade";
+
+    // Executive text
+    const parts: string[] = [];
+    if (mainRisk === "preco" && topThreat && topThreat.item.price != null && basePrice != null) {
+      const gap = basePrice - topThreat.item.price;
+      parts.push(
+        `O produto está em risco principalmente por preço. O concorrente mais agressivo está ${formatCurrency(gap)} abaixo`,
+      );
+      if (topThreat.item.free_shipping) parts.push("com frete grátis");
+      if ((topThreat.item.sold_quantity ?? 0) > 50)
+        parts.push(`e ${topThreat.item.sold_quantity} vendas registradas`);
+      parts.push(". Antes de reduzir preço, valide margem e considere cupom, frete grátis ou Ads.");
+    } else if (mainRisk === "envio") {
+      parts.push(
+        `${fullCount} concorrente(s) usam Full enquanto você não. A vantagem logística pesa mais do que preço em muitos casos — avalie migrar para Full ou oferecer frete grátis.`,
+      );
+    } else if (mainRisk === "frete") {
+      parts.push(
+        `${freeShipCount} concorrente(s) oferecem frete grátis. Considere um cupom ou uma promoção pontual de frete antes de mexer no preço.`,
+      );
+    } else if (mainRisk === "reputacao") {
+      parts.push(
+        "Concorrentes com reputação superior podem estar convertendo melhor. Foque em avaliações e pós-venda; reduzir preço sozinho pode não resolver.",
+      );
+    } else if (mainRisk === "vendas") {
+      parts.push(
+        "Concorrentes com volume alto de vendas ganham posição no ranking. Considere Ads para acelerar visibilidade.",
+      );
+    } else {
+      parts.push("Seu produto está bem posicionado nos fatores monitorados. Mantenha a vigilância e reavalie ao surgirem novos concorrentes.");
+    }
+    const executive = parts.join(" ").replace(/\s+\./g, ".");
+
+    return {
+      basePrice,
+      minPrice,
+      maxPrice,
+      avgPrice,
+      diffToMin,
+      diffToMinPct,
+      priceStatus,
+      freeShipCount,
+      fullCount,
+      baseHasFull,
+      losingLogistics,
+      topThreat,
+      riskFactors,
+      mainRisk,
+      mainRiskLabel: mainRisk ? mainRiskLabel[mainRisk] : "Nenhum risco relevante",
+      bestAction,
+      executive,
+      sorted,
+    };
+  }, [diagnosedList, selectedBase, baseShipping, baseReputation]);
 
   return (
     <div className="space-y-6">
@@ -948,6 +1175,263 @@ function ConcorrenciaInner() {
         </div>
       ) : null}
 
+      {/* Strategic reading */}
+      {selectedBase && strategy ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Leitura estratégica do produto</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Executive text */}
+            <div className="rounded-md border bg-muted/30 p-4 text-sm leading-relaxed text-foreground">
+              {strategy.executive}
+            </div>
+
+            {/* Decision cards */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-lg border bg-card p-4">
+                <div className="text-xs text-muted-foreground">Situação geral</div>
+                <div
+                  className={
+                    "mt-1 text-sm font-semibold " +
+                    (strategy.priceStatus === "critico"
+                      ? "text-rose-700"
+                      : strategy.priceStatus === "atencao"
+                        ? "text-amber-700"
+                        : "text-emerald-700")
+                  }
+                >
+                  {strategy.priceStatus === "critico"
+                    ? "Crítico"
+                    : strategy.priceStatus === "atencao"
+                      ? "Atenção"
+                      : "Competitivo"}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {summary.total} concorrente(s) monitorados
+                </div>
+              </div>
+              <div className="rounded-lg border bg-card p-4">
+                <div className="text-xs text-muted-foreground">Principal risco</div>
+                <div className="mt-1 text-sm font-semibold">{strategy.mainRiskLabel}</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {strategy.freeShipCount} c/ frete grátis • {strategy.fullCount} c/ Full
+                </div>
+              </div>
+              <div className="rounded-lg border bg-card p-4">
+                <div className="text-xs text-muted-foreground">Melhor ação sugerida</div>
+                <div className="mt-1 text-sm font-semibold">{strategy.bestAction}</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Considere margem antes de reduzir preço.
+                </div>
+              </div>
+              <div className="rounded-lg border bg-card p-4">
+                <div className="text-xs text-muted-foreground">Concorrente mais agressivo</div>
+                <div className="mt-1 truncate text-sm font-semibold" title={strategy.topThreat?.item.title}>
+                  {strategy.topThreat?.item.title ?? "—"}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {strategy.topThreat
+                    ? `${THREAT_LABEL[strategy.topThreat.threat.level]} • ${formatCurrency(strategy.topThreat.item.price, strategy.topThreat.item.currency_id)}`
+                    : "—"}
+                </div>
+              </div>
+            </div>
+
+            {/* Price analysis + shipping */}
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="rounded-lg border p-4">
+                <div className="text-sm font-medium">Preço</div>
+                <div className="mt-3 space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Menor preço concorrente</span>
+                    <span className="tabular-nums">{formatCurrency(strategy.minPrice)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Preço médio concorrentes</span>
+                    <span className="tabular-nums">{formatCurrency(strategy.avgPrice)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Seu preço</span>
+                    <span className="tabular-nums font-medium">
+                      {formatCurrency(strategy.basePrice)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2">
+                    <span className="text-muted-foreground">Diferença vs menor</span>
+                    <span
+                      className={
+                        "tabular-nums font-medium " +
+                        (strategy.diffToMinPct != null && strategy.diffToMinPct > 10
+                          ? "text-rose-700"
+                          : strategy.diffToMinPct != null && strategy.diffToMinPct > 0
+                            ? "text-amber-700"
+                            : "text-emerald-700")
+                      }
+                    >
+                      {strategy.diffToMin != null ? formatCurrency(strategy.diffToMin) : "—"}
+                      {strategy.diffToMinPct != null
+                        ? ` (${strategy.diffToMinPct > 0 ? "+" : ""}${strategy.diffToMinPct.toFixed(1)}%)`
+                        : ""}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Price bars */}
+                <div className="mt-4 space-y-1.5">
+                  {(() => {
+                    const rows: { label: string; price: number | null; self?: boolean }[] = [
+                      { label: "Você", price: strategy.basePrice, self: true },
+                      ...strategy.sorted.slice(0, 6).map((d) => ({
+                        label: d.item.title,
+                        price: d.item.price,
+                      })),
+                    ];
+                    const max = Math.max(
+                      ...rows.map((r) => r.price ?? 0),
+                      strategy.maxPrice ?? 0,
+                      1,
+                    );
+                    return rows.map((r, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs">
+                        <div className="w-24 shrink-0 truncate text-muted-foreground" title={r.label}>
+                          {r.label}
+                        </div>
+                        <div className="relative h-2 flex-1 overflow-hidden rounded bg-muted">
+                          <div
+                            className={
+                              "h-full " + (r.self ? "bg-foreground/70" : "bg-muted-foreground/50")
+                            }
+                            style={{ width: `${((r.price ?? 0) / max) * 100}%` }}
+                          />
+                        </div>
+                        <div className="w-20 shrink-0 text-right tabular-nums">
+                          {formatCurrency(r.price)}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              <div className="rounded-lg border p-4">
+                <div className="text-sm font-medium">Frete e envio</div>
+                <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
+                  <div className="rounded border bg-muted/20 p-3">
+                    <div className="text-muted-foreground">Concorrentes com frete grátis</div>
+                    <div className="mt-1 text-xl font-semibold tabular-nums">
+                      {strategy.freeShipCount}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        {" "}
+                        / {summary.total}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="rounded border bg-muted/20 p-3">
+                    <div className="text-muted-foreground">Concorrentes com Full</div>
+                    <div className="mt-1 text-xl font-semibold tabular-nums">
+                      {strategy.fullCount}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        {" "}
+                        / {summary.total}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 text-xs text-muted-foreground">
+                  {strategy.losingLogistics
+                    ? "Você não usa Full e há concorrentes que usam — desvantagem logística."
+                    : strategy.baseHasFull
+                      ? "Você usa Full — vantagem logística mantida."
+                      : "Nenhum concorrente com Full identificado até aqui."}
+                </div>
+
+                {/* Risk factors */}
+                <div className="mt-4">
+                  <div className="text-sm font-medium">Motivos de risco</div>
+                  <div className="mt-2 space-y-1.5">
+                    {(
+                      [
+                        ["preco", "Preço", strategy.riskFactors.preco],
+                        ["frete", "Frete grátis", strategy.riskFactors.frete],
+                        ["envio", "Envio Full", strategy.riskFactors.envio],
+                        ["vendas", "Volume de vendas", strategy.riskFactors.vendas],
+                        ["reputacao", "Reputação", strategy.riskFactors.reputacao],
+                      ] as const
+                    ).map(([k, label, v]) => {
+                      const pct = summary.total > 0 ? (v / summary.total) * 100 : 0;
+                      return (
+                        <div key={k} className="flex items-center gap-2 text-xs">
+                          <div className="w-32 shrink-0 text-muted-foreground">{label}</div>
+                          <div className="relative h-2 flex-1 overflow-hidden rounded bg-muted">
+                            <div
+                              className="h-full bg-muted-foreground/50"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <div className="w-14 shrink-0 text-right tabular-nums">
+                            {v} / {summary.total}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Threat ranking */}
+            <div className="rounded-lg border p-4">
+              <div className="text-sm font-medium">Ranking de ameaça</div>
+              <div className="mt-3 space-y-2">
+                {strategy.sorted.slice(0, 5).map((d) => (
+                  <div
+                    key={d.item.key}
+                    className="flex items-center gap-3 rounded border bg-card p-2 text-xs"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{d.item.title}</div>
+                      <div className="mt-0.5 text-muted-foreground">
+                        {d.threat.reasons.length ? d.threat.reasons.join(" • ") : "Sem fatores relevantes"}
+                      </div>
+                    </div>
+                    <div className="w-28">
+                      <div className="relative h-2 overflow-hidden rounded bg-muted">
+                        <div
+                          className={
+                            "h-full " +
+                            (d.threat.level === "alta"
+                              ? "bg-rose-500/70"
+                              : d.threat.level === "media"
+                                ? "bg-amber-500/70"
+                                : "bg-emerald-500/70")
+                          }
+                          style={{ width: `${d.threat.score}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span
+                      className={
+                        "inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 " +
+                        THREAT_STYLE[d.threat.level]
+                      }
+                    >
+                      {THREAT_LABEL[d.threat.level]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Sem custo do produto cadastrado, não é possível afirmar com segurança quanto você pode
+              reduzir. Valide margem antes de qualquer ajuste de preço. Campos como reputação e
+              vendas aparecem como “não informado” quando o concorrente não foi enriquecido.
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {/* Comparison table */}
       <Card>
         <CardHeader>
@@ -978,7 +1462,8 @@ function ConcorrenciaInner() {
                     <TableHead className="text-right">Preço concorrente</TableHead>
                     <TableHead className="text-right">Diferença</TableHead>
                     <TableHead>Situação</TableHead>
-                    <TableHead>Ação sugerida</TableHead>
+                    <TableHead>Ameaça</TableHead>
+                    <TableHead>Ações sugeridas</TableHead>
                     <TableHead>Envio</TableHead>
                     <TableHead>Reputação</TableHead>
                     <TableHead>Frete</TableHead>
@@ -992,7 +1477,7 @@ function ConcorrenciaInner() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {diagnosedList.map(({ item: it, verdict }) => {
+                  {diagnosedList.map(({ item: it, verdict, threat, recs }) => {
                     const basePrice = selectedBase.price;
                     const diff =
                       basePrice != null && it.price != null ? basePrice - it.price : null;
@@ -1045,10 +1530,23 @@ function ConcorrenciaInner() {
                             "—"
                           )}
                         </TableCell>
-                        <TableCell className="max-w-[220px]">
-                          <div className="text-xs text-muted-foreground" title={verdict?.action}>
-                            {verdict?.action ?? "—"}
-                          </div>
+                        <TableCell>
+                          <span
+                            className={
+                              "inline-flex items-center rounded-md border px-2 py-0.5 text-xs " +
+                              THREAT_STYLE[threat.level]
+                            }
+                            title={threat.reasons.join(" • ") || undefined}
+                          >
+                            {THREAT_LABEL[threat.level]}
+                          </span>
+                        </TableCell>
+                        <TableCell className="max-w-[240px]">
+                          <ul className="space-y-0.5 text-xs text-muted-foreground">
+                            {recs.map((r, i) => (
+                              <li key={i}>• {r}</li>
+                            ))}
+                          </ul>
                         </TableCell>
                         <TableCell className="text-xs">
                           {SHIPPING_LABEL[it.shipping_type]}

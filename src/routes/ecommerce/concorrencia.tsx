@@ -1,6 +1,16 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Target, Loader2, ExternalLink, Trash2, Plus, Check, Search } from "lucide-react";
+import {
+  Target,
+  Loader2,
+  ExternalLink,
+  Trash2,
+  Plus,
+  Check,
+  Search,
+  Pencil,
+  UserPlus,
+} from "lucide-react";
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
@@ -10,6 +20,8 @@ import {
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -19,6 +31,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/ecommerce/concorrencia")({
   component: ConcorrenciaPage,
@@ -28,7 +48,7 @@ export const Route = createFileRoute("/ecommerce/concorrencia")({
       {
         name: "description",
         content:
-          "Selecione um produto base do Mercado Livre e monitore concorrentes por link direto.",
+          "Selecione um produto base do Mercado Livre e monitore concorrentes por link direto ou cadastro manual.",
       },
     ],
   }),
@@ -66,9 +86,13 @@ type BaseProduct = {
   url: string | null;
 };
 
+type CompetitorSource = "auto" | "manual";
+
 type CompetitorItem = {
   base_listing_id: string;
-  item_id: string;
+  key: string; // stable identity for edit/delete
+  source: CompetitorSource;
+  item_id: string | null;
   title: string;
   price: number | null;
   currency_id: string | null;
@@ -77,10 +101,12 @@ type CompetitorItem = {
   listing_type_id: string | null;
   permalink: string | null;
   seller_id: number | null;
+  seller_name: string | null;
   free_shipping: boolean | null;
   available_quantity: number | null;
   sold_quantity: number | null;
-  added_at: string;
+  note: string | null;
+  updated_at: string;
 };
 
 function formatCurrency(value: number | null | undefined, currency: string | null = "BRL"): string {
@@ -95,16 +121,28 @@ function formatCurrency(value: number | null | undefined, currency: string | nul
   }
 }
 
+function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  try {
+    return new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date(iso));
+  } catch {
+    return "—";
+  }
+}
+
 function extractItemId(input: string): string | null {
   const raw = (input || "").trim();
   if (!raw) return null;
-  // 1) Pure ID: MLB123... (reject MLBU)
   const pure = raw.match(/^MLB-?(\d{5,})$/i);
   if (pure) return `MLB${pure[1]}`;
-  // 2) item_id:MLB123 inside URL/query
   const byParam = raw.match(/item_id[:=]\s*MLB-?(\d{5,})/i);
   if (byParam) return `MLB${byParam[1]}`;
-  // 3) Any MLB-123 or MLB123 anywhere (skip MLBU)
   const matches = raw.match(/MLBU?\d+|MLB-\d+/gi);
   if (matches) {
     for (const m of matches) {
@@ -116,16 +154,28 @@ function extractItemId(input: string): string | null {
   return null;
 }
 
-function parseErrorMessage(rawMsg: string, url: string): string {
+function parseNumber(input: string): number | null {
+  const s = (input || "").trim().replace(/\s/g, "").replace(/\./g, "").replace(",", ".");
+  if (!s) return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
+
+function isForbiddenError(rawMsg: string): boolean {
   const msg = (rawMsg || "").toLowerCase();
-  const extracted = extractItemId(url);
-  const isForbidden =
+  return (
     /\b403\b/.test(msg) ||
     msg.includes("access_denied") ||
     msg.includes("access denied") ||
-    msg.includes("forbidden");
-  if (isForbidden) {
-    return "Este anúncio está restrito pela API do Mercado Livre. Isso pode acontecer com links de catálogo, anúncios patrocinados ou páginas /up/MLBU. Tente usar outro anúncio direto do vendedor.";
+    msg.includes("forbidden")
+  );
+}
+
+function parseErrorMessage(rawMsg: string, url: string): string {
+  const msg = (rawMsg || "").toLowerCase();
+  const extracted = extractItemId(url);
+  if (isForbiddenError(rawMsg)) {
+    return "O Mercado Livre bloqueou a consulta automática deste anúncio. Você pode cadastrar os dados manualmente para manter a comparação.";
   }
   const hasCatalogMarker =
     /mlbu|\/up\/|\/p\/mlb|catalog/i.test(url) || msg.includes("catalog") || msg.includes("mlbu");
@@ -135,7 +185,7 @@ function parseErrorMessage(rawMsg: string, url: string): string {
   if (!extracted && (msg.includes("item_id") || msg.includes("invalid url") || msg.includes("url"))) {
     return "Não foi possível identificar o ID do anúncio (MLB) na URL enviada.";
   }
-  return "Não foi possível consultar este anúncio.";
+  return "Não foi possível consultar este anúncio. Você pode cadastrar os dados manualmente.";
 }
 
 type Verdict = { key: "competitive" | "attention" | "critical"; label: string; className: string };
@@ -169,6 +219,30 @@ function ConcorrenciaPage() {
   );
 }
 
+type ManualFormState = {
+  title: string;
+  itemInput: string; // MLB code or link
+  price: string;
+  shipping: "free" | "paid" | "";
+  available: string;
+  sold: string;
+  seller: string;
+  status: string;
+  note: string;
+};
+
+const EMPTY_MANUAL: ManualFormState = {
+  title: "",
+  itemInput: "",
+  price: "",
+  shipping: "",
+  available: "",
+  sold: "",
+  seller: "",
+  status: "",
+  note: "",
+};
+
 function ConcorrenciaInner() {
   const { activeAccountId, activeAccount } = useEcommerceActiveAccount();
   const [loadingBase, setLoadingBase] = useState(false);
@@ -178,6 +252,12 @@ function ConcorrenciaInner() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<CompetitorItem[]>([]);
+
+  // Manual modal
+  const [manualOpen, setManualOpen] = useState(false);
+  const [manualForm, setManualForm] = useState<ManualFormState>(EMPTY_MANUAL);
+  const [editingKey, setEditingKey] = useState<string | null>(null);
+  const [manualHint, setManualHint] = useState<string | null>(null);
 
   const selectedBase = useMemo(
     () => baseProducts.find((p) => p.listing_id === selectedListingId) ?? null,
@@ -208,7 +288,7 @@ function ConcorrenciaInner() {
         const productIds = Array.from(
           new Set(ls.map((l) => l.product_id).filter(Boolean)),
         ) as string[];
-        let productsById = new Map<string, ProductRow>();
+        const productsById = new Map<string, ProductRow>();
         if (productIds.length) {
           const { data: prod } = await supabase
             .from("ecommerce_products")
@@ -254,16 +334,45 @@ function ConcorrenciaInner() {
       .slice(0, 50);
   }, [baseProducts, baseSearch]);
 
+  const openManualNew = useCallback(
+    (prefillUrl?: string, hint?: string) => {
+      if (!selectedBase) {
+        toast.error("Selecione primeiro o produto base.");
+        return;
+      }
+      setEditingKey(null);
+      setManualForm({ ...EMPTY_MANUAL, itemInput: prefillUrl ?? "" });
+      setManualHint(hint ?? null);
+      setManualOpen(true);
+    },
+    [selectedBase],
+  );
+
+  const openManualEdit = useCallback((it: CompetitorItem) => {
+    setEditingKey(it.key);
+    setManualForm({
+      title: it.title,
+      itemInput: it.permalink || it.item_id || "",
+      price: it.price != null ? String(it.price).replace(".", ",") : "",
+      shipping: it.free_shipping == null ? "" : it.free_shipping ? "free" : "paid",
+      available: it.available_quantity != null ? String(it.available_quantity) : "",
+      sold: it.sold_quantity != null ? String(it.sold_quantity) : "",
+      seller: it.seller_name || (it.seller_id != null ? String(it.seller_id) : ""),
+      status: it.status || "",
+      note: it.note || "",
+    });
+    setManualHint(null);
+    setManualOpen(true);
+  }, []);
+
   const handleAdd = useCallback(async () => {
     if (!selectedBase) {
-      toast.error(
-        "Selecione primeiro o produto do Thiago que será usado como base da comparação.",
-      );
+      toast.error("Selecione primeiro o produto base.");
       return;
     }
     const trimmed = url.trim();
     if (!trimmed) {
-      toast.error("Cole o link do concorrente.");
+      toast.error("Cole o link ou código MLB do concorrente.");
       return;
     }
     if (!activeAccountId) {
@@ -273,8 +382,9 @@ function ConcorrenciaInner() {
     const extractedId = extractItemId(trimmed);
     if (!extractedId) {
       toast.error(
-        "Não foi possível identificar o ID do anúncio (MLB) neste link. Cole o link direto do anúncio ou o ID (ex.: MLB3106845273).",
+        "Não foi possível identificar o ID do anúncio (MLB) neste link. Você pode cadastrar manualmente.",
       );
+      openManualNew(trimmed, "Não conseguimos identificar o código MLB. Preencha os dados manualmente.");
       return;
     }
     setLoading(true);
@@ -302,9 +412,12 @@ function ConcorrenciaInner() {
       }
       const payload = (data?.data ?? data) as Partial<CompetitorItem> | undefined;
       if (!payload || !payload.item_id) throw new Error("Resposta inválida");
+      const itemId = String(payload.item_id);
       const item: CompetitorItem = {
         base_listing_id: selectedBase.listing_id,
-        item_id: String(payload.item_id),
+        key: `auto:${itemId}`,
+        source: "auto",
+        item_id: itemId,
         title: String(payload.title ?? "Sem título"),
         price: typeof payload.price === "number" ? payload.price : Number(payload.price) || null,
         currency_id: payload.currency_id ?? "BRL",
@@ -316,6 +429,7 @@ function ConcorrenciaInner() {
           typeof payload.seller_id === "number"
             ? payload.seller_id
             : Number(payload.seller_id) || null,
+        seller_name: null,
         free_shipping: payload.free_shipping ?? null,
         available_quantity:
           typeof payload.available_quantity === "number"
@@ -325,27 +439,95 @@ function ConcorrenciaInner() {
           typeof payload.sold_quantity === "number"
             ? payload.sold_quantity
             : Number(payload.sold_quantity) || null,
-        added_at: new Date().toISOString(),
+        note: null,
+        updated_at: new Date().toISOString(),
       };
       setItems((prev) => {
         const filtered = prev.filter(
-          (p) => !(p.item_id === item.item_id && p.base_listing_id === item.base_listing_id),
+          (p) => !(p.key === item.key && p.base_listing_id === item.base_listing_id),
         );
         return [item, ...filtered];
       });
       setUrl("");
       toast.success(`Concorrente ${item.item_id} vinculado ao produto base.`);
     } catch (err: any) {
-      toast.error(parseErrorMessage(err?.message ?? "", trimmed));
+      const rawMsg = err?.message ?? "";
+      const friendly = parseErrorMessage(rawMsg, trimmed);
+      toast.error(friendly);
+      // For blocked/forbidden or generic errors, open manual fallback pre-filled
+      if (isForbiddenError(rawMsg) || /não foi possível consultar/i.test(friendly)) {
+        openManualNew(trimmed, friendly);
+      }
     } finally {
       setLoading(false);
     }
-  }, [url, activeAccountId, selectedBase]);
+  }, [url, activeAccountId, selectedBase, openManualNew]);
 
-  const removeItem = (id: string, baseId: string) =>
-    setItems((prev) =>
-      prev.filter((p) => !(p.item_id === id && p.base_listing_id === baseId)),
-    );
+  const handleManualSave = useCallback(() => {
+    if (!selectedBase) {
+      toast.error("Selecione primeiro o produto base.");
+      return;
+    }
+    const title = manualForm.title.trim();
+    const price = parseNumber(manualForm.price);
+    if (!title) {
+      toast.error("Informe o título do concorrente.");
+      return;
+    }
+    if (price == null || price <= 0) {
+      toast.error("Informe um preço válido para o concorrente.");
+      return;
+    }
+    const rawItem = manualForm.itemInput.trim();
+    const itemId = rawItem ? extractItemId(rawItem) : null;
+    const permalink = rawItem && /^https?:\/\//i.test(rawItem) ? rawItem : null;
+    const available = parseNumber(manualForm.available);
+    const sold = parseNumber(manualForm.sold);
+    const sellerRaw = manualForm.seller.trim();
+    const sellerNum = sellerRaw && /^\d+$/.test(sellerRaw) ? Number(sellerRaw) : null;
+    const nowIso = new Date().toISOString();
+
+    const key =
+      editingKey ??
+      (itemId ? `manual:${itemId}` : `manual:${nowIso}:${Math.random().toString(36).slice(2, 8)}`);
+
+    const next: CompetitorItem = {
+      base_listing_id: selectedBase.listing_id,
+      key,
+      source: "manual",
+      item_id: itemId,
+      title,
+      price,
+      currency_id: "BRL",
+      status: manualForm.status.trim() || null,
+      condition: null,
+      listing_type_id: null,
+      permalink,
+      seller_id: sellerNum,
+      seller_name: sellerNum == null ? sellerRaw || null : null,
+      free_shipping:
+        manualForm.shipping === "free" ? true : manualForm.shipping === "paid" ? false : null,
+      available_quantity: available != null ? Math.trunc(available) : null,
+      sold_quantity: sold != null ? Math.trunc(sold) : null,
+      note: manualForm.note.trim() || null,
+      updated_at: nowIso,
+    };
+
+    setItems((prev) => {
+      const filtered = prev.filter(
+        (p) => !(p.key === next.key && p.base_listing_id === next.base_listing_id),
+      );
+      return [next, ...filtered];
+    });
+    setManualOpen(false);
+    setManualHint(null);
+    setManualForm(EMPTY_MANUAL);
+    setEditingKey(null);
+    toast.success(editingKey ? "Concorrente atualizado." : "Concorrente cadastrado manualmente.");
+  }, [manualForm, selectedBase, editingKey]);
+
+  const removeItem = (key: string, baseId: string) =>
+    setItems((prev) => prev.filter((p) => !(p.key === key && p.base_listing_id === baseId)));
 
   const competitorsForBase = useMemo(
     () => (selectedBase ? items.filter((i) => i.base_listing_id === selectedBase.listing_id) : []),
@@ -363,10 +545,13 @@ function ConcorrenciaInner() {
           Inteligência de Concorrência
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Selecione um produto base e vincule anúncios concorrentes para comparar preço, frete e
-          vendas.
+          Selecione um produto base e vincule concorrentes automaticamente ou manualmente.
           {activeAccount?.account_name ? (
-            <> Conta ativa: <span className="font-medium text-foreground">{activeAccount.account_name}</span>.</>
+            <>
+              {" "}
+              Conta ativa:{" "}
+              <span className="font-medium text-foreground">{activeAccount.account_name}</span>.
+            </>
           ) : null}
         </p>
       </div>
@@ -385,9 +570,22 @@ function ConcorrenciaInner() {
                 </div>
                 <div className="mt-1 truncate font-medium">{selectedBase.title}</div>
                 <div className="mt-0.5 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                  {selectedBase.sku ? <span>SKU: <span className="font-mono">{selectedBase.sku}</span></span> : null}
-                  {selectedBase.ml_item_id ? <span>ID: <span className="font-mono">{selectedBase.ml_item_id}</span></span> : null}
-                  <span>Preço: <span className="font-medium text-foreground">{formatCurrency(selectedBase.price)}</span></span>
+                  {selectedBase.sku ? (
+                    <span>
+                      SKU: <span className="font-mono">{selectedBase.sku}</span>
+                    </span>
+                  ) : null}
+                  {selectedBase.ml_item_id ? (
+                    <span>
+                      ID: <span className="font-mono">{selectedBase.ml_item_id}</span>
+                    </span>
+                  ) : null}
+                  <span>
+                    Preço:{" "}
+                    <span className="font-medium text-foreground">
+                      {formatCurrency(selectedBase.price)}
+                    </span>
+                  </span>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={() => setSelectedListingId(null)}>
@@ -475,7 +673,7 @@ function ConcorrenciaInner() {
               onChange={(e) => setUrl(e.target.value)}
               placeholder={
                 selectedBase
-                  ? "Cole aqui o link do concorrente (ex.: https://produto.mercadolivre.com.br/MLB-...)"
+                  ? "Cole o link do concorrente ou digite o código MLB…"
                   : "Selecione primeiro o produto base acima"
               }
               disabled={loading || !selectedBase}
@@ -487,19 +685,25 @@ function ConcorrenciaInner() {
             <Button onClick={handleAdd} disabled={loading || !selectedBase || !activeAccountId}>
               {loading ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Consultando…
+                  <Loader2 className="h-4 w-4 animate-spin" /> Tentando automático…
                 </>
               ) : (
                 <>
-                  <Plus className="h-4 w-4" /> Adicionar concorrente
+                  <Plus className="h-4 w-4" /> Tentar automático
                 </>
               )}
             </Button>
+            <Button
+              variant="outline"
+              onClick={() => openManualNew(url.trim() || undefined)}
+              disabled={!selectedBase}
+            >
+              <UserPlus className="h-4 w-4" /> Cadastrar manualmente
+            </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Use o link direto do anúncio contendo <span className="font-mono">MLB</span> seguido de
-            números. Links de catálogo (<span className="font-mono">MLBU</span> ou{" "}
-            <span className="font-mono">/p/MLB</span>) não são suportados.
+            Se o Mercado Livre bloquear a consulta, você pode cadastrar os dados do concorrente
+            manualmente para manter a comparação.
           </p>
         </CardContent>
       </Card>
@@ -521,7 +725,8 @@ function ConcorrenciaInner() {
             </div>
           ) : competitorsForBase.length === 0 ? (
             <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-              Nenhum concorrente vinculado a este produto ainda. Cole um link acima.
+              Nenhum concorrente vinculado a este produto ainda. Cole um link acima ou cadastre
+              manualmente.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -538,6 +743,8 @@ function ConcorrenciaInner() {
                     <TableHead className="text-right">Vendidos</TableHead>
                     <TableHead>Seller</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Origem</TableHead>
+                    <TableHead>Atualizado</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -551,12 +758,13 @@ function ConcorrenciaInner() {
                         ? ((basePrice - it.price) / it.price) * 100
                         : null;
                     const verdict = getVerdict(basePrice, it.price);
+                    const sellerLabel = it.seller_name || (it.seller_id != null ? String(it.seller_id) : "—");
                     return (
-                      <TableRow key={`${it.base_listing_id}-${it.item_id}`}>
+                      <TableRow key={`${it.base_listing_id}-${it.key}`}>
                         <TableCell className="max-w-[280px]">
                           <div className="truncate font-medium">{it.title}</div>
                           <div className="mt-0.5 font-mono text-xs text-muted-foreground">
-                            {it.item_id}
+                            {it.item_id ?? "—"}
                           </div>
                         </TableCell>
                         <TableCell className="text-right tabular-nums">
@@ -592,16 +800,20 @@ function ConcorrenciaInner() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <span
-                            className={
-                              "inline-flex items-center rounded-md border px-2 py-0.5 text-xs " +
-                              (it.free_shipping
-                                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                                : "border-border bg-muted/40 text-muted-foreground")
-                            }
-                          >
-                            {it.free_shipping ? "Grátis" : "Pago"}
-                          </span>
+                          {it.free_shipping == null ? (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          ) : (
+                            <span
+                              className={
+                                "inline-flex items-center rounded-md border px-2 py-0.5 text-xs " +
+                                (it.free_shipping
+                                  ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                  : "border-border bg-muted/40 text-muted-foreground")
+                              }
+                            >
+                              {it.free_shipping ? "Grátis" : "Pago"}
+                            </span>
+                          )}
                         </TableCell>
                         <TableCell className="text-right tabular-nums">
                           {it.available_quantity ?? "—"}
@@ -609,11 +821,28 @@ function ConcorrenciaInner() {
                         <TableCell className="text-right tabular-nums">
                           {it.sold_quantity ?? "—"}
                         </TableCell>
-                        <TableCell className="font-mono text-xs">{it.seller_id ?? "—"}</TableCell>
+                        <TableCell className="max-w-[140px] truncate font-mono text-xs">
+                          {sellerLabel}
+                        </TableCell>
                         <TableCell>
                           <span className="inline-flex items-center rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs capitalize text-muted-foreground">
                             {it.status ?? "—"}
                           </span>
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={
+                              "inline-flex items-center rounded-md border px-2 py-0.5 text-xs " +
+                              (it.source === "auto"
+                                ? "border-border bg-muted/40 text-muted-foreground"
+                                : "border-border bg-background text-foreground")
+                            }
+                          >
+                            {it.source === "auto" ? "Automático" : "Manual"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {formatDateTime(it.updated_at)}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center justify-end gap-1">
@@ -632,7 +861,15 @@ function ConcorrenciaInner() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => removeItem(it.item_id, it.base_listing_id)}
+                              onClick={() => openManualEdit(it)}
+                              title="Editar"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeItem(it.key, it.base_listing_id)}
                               title="Remover"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -648,6 +885,132 @@ function ConcorrenciaInner() {
           )}
         </CardContent>
       </Card>
+
+      {/* Manual entry dialog */}
+      <Dialog
+        open={manualOpen}
+        onOpenChange={(o) => {
+          setManualOpen(o);
+          if (!o) {
+            setManualHint(null);
+            setEditingKey(null);
+            setManualForm(EMPTY_MANUAL);
+          }
+        }}
+      >
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingKey ? "Editar concorrente" : "Cadastrar concorrente manualmente"}
+            </DialogTitle>
+            <DialogDescription>
+              {manualHint ??
+                "Preencha os dados do anúncio do concorrente para manter a comparação atualizada."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="sm:col-span-2 space-y-1.5">
+              <Label htmlFor="m-title">Título do concorrente *</Label>
+              <Input
+                id="m-title"
+                value={manualForm.title}
+                onChange={(e) => setManualForm((f) => ({ ...f, title: e.target.value }))}
+                placeholder="Ex.: Sensor Fotoelétrico 12/24V PNP com Espelho"
+              />
+            </div>
+            <div className="sm:col-span-2 space-y-1.5">
+              <Label htmlFor="m-item">Código MLB ou link</Label>
+              <Input
+                id="m-item"
+                value={manualForm.itemInput}
+                onChange={(e) => setManualForm((f) => ({ ...f, itemInput: e.target.value }))}
+                placeholder="MLB3106845273 ou https://..."
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="m-price">Preço *</Label>
+              <Input
+                id="m-price"
+                inputMode="decimal"
+                value={manualForm.price}
+                onChange={(e) => setManualForm((f) => ({ ...f, price: e.target.value }))}
+                placeholder="Ex.: 199,90"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="m-shipping">Frete</Label>
+              <select
+                id="m-shipping"
+                value={manualForm.shipping}
+                onChange={(e) =>
+                  setManualForm((f) => ({ ...f, shipping: e.target.value as ManualFormState["shipping"] }))
+                }
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="">Não informado</option>
+                <option value="free">Grátis</option>
+                <option value="paid">Pago</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="m-avail">Quantidade disponível</Label>
+              <Input
+                id="m-avail"
+                inputMode="numeric"
+                value={manualForm.available}
+                onChange={(e) => setManualForm((f) => ({ ...f, available: e.target.value }))}
+                placeholder="Ex.: 50"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="m-sold">Quantidade vendida</Label>
+              <Input
+                id="m-sold"
+                inputMode="numeric"
+                value={manualForm.sold}
+                onChange={(e) => setManualForm((f) => ({ ...f, sold: e.target.value }))}
+                placeholder="Ex.: 120"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="m-seller">Seller ID ou nome do vendedor</Label>
+              <Input
+                id="m-seller"
+                value={manualForm.seller}
+                onChange={(e) => setManualForm((f) => ({ ...f, seller: e.target.value }))}
+                placeholder="Ex.: 12345678 ou Loja XYZ"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="m-status">Status do anúncio</Label>
+              <Input
+                id="m-status"
+                value={manualForm.status}
+                onChange={(e) => setManualForm((f) => ({ ...f, status: e.target.value }))}
+                placeholder="Ex.: active, paused"
+              />
+            </div>
+            <div className="sm:col-span-2 space-y-1.5">
+              <Label htmlFor="m-note">Observação</Label>
+              <Textarea
+                id="m-note"
+                value={manualForm.note}
+                onChange={(e) => setManualForm((f) => ({ ...f, note: e.target.value }))}
+                placeholder="Notas internas sobre este concorrente (opcional)"
+                rows={2}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setManualOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleManualSave}>Salvar concorrente</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

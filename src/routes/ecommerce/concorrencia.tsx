@@ -1477,7 +1477,7 @@ function ConcorrenciaInner() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {diagnosedList.map(({ item: it, verdict }) => {
+                  {diagnosedList.map(({ item: it, verdict, threat, recs }) => {
                     const basePrice = selectedBase.price;
                     const diff =
                       basePrice != null && it.price != null ? basePrice - it.price : null;

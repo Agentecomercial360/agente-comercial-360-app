@@ -342,6 +342,9 @@ function ConcorrenciaInner() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<CompetitorItem[]>([]);
+  // Base product own logistics/reputation (per listing_id, in-memory)
+  const [baseShipByListing, setBaseShipByListing] = useState<Record<string, ShippingType>>({});
+  const [baseRepByListing, setBaseRepByListing] = useState<Record<string, ReputationLevel>>({});
 
   // Manual modal
   const [manualOpen, setManualOpen] = useState(false);

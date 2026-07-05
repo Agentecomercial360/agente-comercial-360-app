@@ -450,6 +450,8 @@ function ConcorrenciaInner() {
       seller: it.seller_name || (it.seller_id != null ? String(it.seller_id) : ""),
       status: it.status || "",
       note: it.note || "",
+      shipping_type: it.shipping_type,
+      seller_reputation: it.seller_reputation,
     });
     setManualHint(null);
     setManualOpen(true);

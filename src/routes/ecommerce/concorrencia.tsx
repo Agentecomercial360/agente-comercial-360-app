@@ -315,6 +315,8 @@ type ManualFormState = {
   seller: string;
   status: string;
   note: string;
+  shipping_type: ShippingType;
+  seller_reputation: ReputationLevel;
 };
 
 const EMPTY_MANUAL: ManualFormState = {
@@ -327,6 +329,8 @@ const EMPTY_MANUAL: ManualFormState = {
   seller: "",
   status: "",
   note: "",
+  shipping_type: "unknown",
+  seller_reputation: "unknown",
 };
 
 function ConcorrenciaInner() {

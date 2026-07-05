@@ -88,6 +88,23 @@ type BaseProduct = {
 
 type CompetitorSource = "auto" | "manual";
 
+type ShippingType = "full" | "coleta" | "correios" | "unknown";
+type ReputationLevel = "platinum" | "gold" | "silver" | "new" | "unknown";
+
+const SHIPPING_LABEL: Record<ShippingType, string> = {
+  full: "Full",
+  coleta: "Coleta",
+  correios: "Correios/Próprio",
+  unknown: "Não informado",
+};
+const REPUTATION_LABEL: Record<ReputationLevel, string> = {
+  platinum: "Platinum",
+  gold: "Ouro",
+  silver: "Prata",
+  new: "Novo/Sem reputação",
+  unknown: "Não informado",
+};
+
 type CompetitorItem = {
   base_listing_id: string;
   key: string; // stable identity for edit/delete
@@ -106,6 +123,8 @@ type CompetitorItem = {
   available_quantity: number | null;
   sold_quantity: number | null;
   note: string | null;
+  shipping_type: ShippingType;
+  seller_reputation: ReputationLevel;
   updated_at: string;
 };
 
@@ -188,26 +207,93 @@ function parseErrorMessage(rawMsg: string, url: string): string {
   return "Não foi possível consultar este anúncio. Você pode cadastrar os dados manualmente.";
 }
 
-type Verdict = { key: "competitive" | "attention" | "critical"; label: string; className: string };
-function getVerdict(basePrice: number | null, compPrice: number | null): Verdict | null {
+type VerdictKey = "competitive" | "attention" | "critical";
+type Verdict = {
+  key: VerdictKey;
+  label: string;
+  reason: string | null;
+  tooltip: string;
+  className: string;
+  action: string;
+};
+
+function diagnose(
+  basePrice: number | null,
+  compPrice: number | null,
+  baseShip: ShippingType,
+  compShip: ShippingType,
+  baseRep: ReputationLevel,
+  compRep: ReputationLevel,
+  currency: string | null,
+): Verdict | null {
   if (basePrice == null || compPrice == null || compPrice <= 0) return null;
   const diffPct = ((basePrice - compPrice) / compPrice) * 100;
-  if (diffPct <= 0)
+  const compHasFull = compShip === "full";
+  const baseHasFull = baseShip === "full";
+  const compHighRep = compRep === "platinum" || compRep === "gold";
+  const baseHighRep = baseRep === "platinum" || baseRep === "gold";
+  const emerald = "border-emerald-200 bg-emerald-50 text-emerald-700";
+  const amber = "border-amber-200 bg-amber-50 text-amber-700";
+  const rose = "border-rose-200 bg-rose-50 text-rose-700";
+
+  if (diffPct <= 0) {
     return {
       key: "competitive",
       label: "Competitivo",
-      className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+      reason: null,
+      tooltip: "Seu preço está igual ou melhor que o do concorrente.",
+      className: emerald,
+      action: "Nenhuma ação necessária",
     };
-  if (diffPct <= 10)
+  }
+  if (diffPct <= 10) {
+    if (compHasFull && !baseHasFull) {
+      return {
+        key: "attention",
+        label: "Atenção",
+        reason: "Logística",
+        tooltip: "Preço próximo, mas concorrente tem vantagem logística Full.",
+        className: amber,
+        action: "Monitorar; considerar Full a médio prazo",
+      };
+    }
     return {
       key: "attention",
       label: "Atenção",
-      className: "border-amber-200 bg-amber-50 text-amber-700",
+      reason: "Preço",
+      tooltip: "Ajuste fino de preço pode equalizar.",
+      className: amber,
+      action: "Pequeno ajuste de preço resolve",
     };
+  }
+  if (compHighRep && !baseHighRep) {
+    return {
+      key: "critical",
+      label: "Crítico",
+      reason: "Reputação",
+      tooltip:
+        "Diferença de preço alta, mas concorrente também tem vantagem de reputação; ajuste de preço sozinho pode não resolver.",
+      className: rose,
+      action: "Focar em avaliações; preço não é o problema principal",
+    };
+  }
+  if (compHasFull && !baseHasFull) {
+    return {
+      key: "critical",
+      label: "Crítico",
+      reason: "Logística",
+      tooltip: "Diferença de preço alta e concorrente ainda tem vantagem logística Full.",
+      className: rose,
+      action: "Avaliar migração para Full ou frete grátis",
+    };
+  }
   return {
     key: "critical",
     label: "Crítico",
-    className: "border-rose-200 bg-rose-50 text-rose-700",
+    reason: "Preço",
+    tooltip: "Preço muito acima do concorrente.",
+    className: rose,
+    action: `Reduzir para ${formatCurrency(compPrice, currency)} para virar competitivo`,
   };
 }
 
@@ -229,6 +315,8 @@ type ManualFormState = {
   seller: string;
   status: string;
   note: string;
+  shipping_type: ShippingType;
+  seller_reputation: ReputationLevel;
 };
 
 const EMPTY_MANUAL: ManualFormState = {
@@ -241,6 +329,8 @@ const EMPTY_MANUAL: ManualFormState = {
   seller: "",
   status: "",
   note: "",
+  shipping_type: "unknown",
+  seller_reputation: "unknown",
 };
 
 function ConcorrenciaInner() {
@@ -252,6 +342,9 @@ function ConcorrenciaInner() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<CompetitorItem[]>([]);
+  // Base product own logistics/reputation (per listing_id, in-memory)
+  const [baseShipByListing, setBaseShipByListing] = useState<Record<string, ShippingType>>({});
+  const [baseRepByListing, setBaseRepByListing] = useState<Record<string, ReputationLevel>>({});
 
   // Manual modal
   const [manualOpen, setManualOpen] = useState(false);
@@ -360,6 +453,8 @@ function ConcorrenciaInner() {
       seller: it.seller_name || (it.seller_id != null ? String(it.seller_id) : ""),
       status: it.status || "",
       note: it.note || "",
+      shipping_type: it.shipping_type,
+      seller_reputation: it.seller_reputation,
     });
     setManualHint(null);
     setManualOpen(true);
@@ -440,6 +535,8 @@ function ConcorrenciaInner() {
             ? payload.sold_quantity
             : Number(payload.sold_quantity) || null,
         note: null,
+        shipping_type: "unknown",
+        seller_reputation: "unknown",
         updated_at: new Date().toISOString(),
       };
       setItems((prev) => {
@@ -510,6 +607,8 @@ function ConcorrenciaInner() {
       available_quantity: available != null ? Math.trunc(available) : null,
       sold_quantity: sold != null ? Math.trunc(sold) : null,
       note: manualForm.note.trim() || null,
+      shipping_type: manualForm.shipping_type,
+      seller_reputation: manualForm.seller_reputation,
       updated_at: nowIso,
     };
 
@@ -533,6 +632,42 @@ function ConcorrenciaInner() {
     () => (selectedBase ? items.filter((i) => i.base_listing_id === selectedBase.listing_id) : []),
     [items, selectedBase],
   );
+
+  const baseShipping: ShippingType = selectedBase
+    ? baseShipByListing[selectedBase.listing_id] ?? "unknown"
+    : "unknown";
+  const baseReputation: ReputationLevel = selectedBase
+    ? baseRepByListing[selectedBase.listing_id] ?? "unknown"
+    : "unknown";
+
+  const diagnosedList = useMemo(() => {
+    if (!selectedBase) return [] as { item: CompetitorItem; verdict: Verdict | null }[];
+    return competitorsForBase.map((it) => ({
+      item: it,
+      verdict: diagnose(
+        selectedBase.price,
+        it.price,
+        baseShipping,
+        it.shipping_type,
+        baseReputation,
+        it.seller_reputation,
+        it.currency_id,
+      ),
+    }));
+  }, [competitorsForBase, selectedBase, baseShipping, baseReputation]);
+
+  const summary = useMemo(() => {
+    let critical = 0;
+    let attention = 0;
+    let competitive = 0;
+    for (const { verdict } of diagnosedList) {
+      if (!verdict) continue;
+      if (verdict.key === "critical") critical++;
+      else if (verdict.key === "attention") attention++;
+      else if (verdict.key === "competitive") competitive++;
+    }
+    return { critical, attention, competitive, total: diagnosedList.length };
+  }, [diagnosedList]);
 
   return (
     <div className="space-y-6">
@@ -598,6 +733,48 @@ function ConcorrenciaInner() {
               >
                 Trocar produto base
               </Button>
+            </div>
+          ) : null}
+
+          {selectedBase ? (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Seu tipo de envio</Label>
+                <select
+                  value={baseShipping}
+                  onChange={(e) =>
+                    setBaseShipByListing((prev) => ({
+                      ...prev,
+                      [selectedBase.listing_id]: e.target.value as ShippingType,
+                    }))
+                  }
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="unknown">Não informado</option>
+                  <option value="full">Full</option>
+                  <option value="coleta">Coleta</option>
+                  <option value="correios">Correios/Próprio</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Sua reputação</Label>
+                <select
+                  value={baseReputation}
+                  onChange={(e) =>
+                    setBaseRepByListing((prev) => ({
+                      ...prev,
+                      [selectedBase.listing_id]: e.target.value as ReputationLevel,
+                    }))
+                  }
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="unknown">Não informado</option>
+                  <option value="platinum">Platinum</option>
+                  <option value="gold">Ouro</option>
+                  <option value="silver">Prata</option>
+                  <option value="new">Novo/Sem reputação</option>
+                </select>
+              </div>
             </div>
           ) : (
             <>
@@ -734,6 +911,43 @@ function ConcorrenciaInner() {
       </Card>
 
 
+      {/* Summary panel */}
+      {selectedBase ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+          <div className="rounded-lg border bg-card p-4">
+            <div className="text-xs text-muted-foreground">Concorrentes monitorados</div>
+            <div className="mt-1 text-2xl font-semibold tabular-nums">{summary.total}</div>
+          </div>
+          <div className="rounded-lg border border-rose-200 bg-rose-50/40 p-4">
+            <div className="text-xs text-rose-700">Críticos</div>
+            <div className="mt-1 text-2xl font-semibold tabular-nums text-rose-700">
+              {summary.critical}
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              Onde você está perdendo agora
+            </div>
+          </div>
+          <div className="rounded-lg border border-amber-200 bg-amber-50/40 p-4">
+            <div className="text-xs text-amber-700">Atenção</div>
+            <div className="mt-1 text-2xl font-semibold tabular-nums text-amber-700">
+              {summary.attention}
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              Ajustes finos podem virar o jogo
+            </div>
+          </div>
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50/40 p-4">
+            <div className="text-xs text-emerald-700">Competitivos</div>
+            <div className="mt-1 text-2xl font-semibold tabular-nums text-emerald-700">
+              {summary.competitive}
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              Seu preço está no páreo
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {/* Comparison table */}
       <Card>
         <CardHeader>
@@ -764,6 +978,9 @@ function ConcorrenciaInner() {
                     <TableHead className="text-right">Preço concorrente</TableHead>
                     <TableHead className="text-right">Diferença</TableHead>
                     <TableHead>Situação</TableHead>
+                    <TableHead>Ação sugerida</TableHead>
+                    <TableHead>Envio</TableHead>
+                    <TableHead>Reputação</TableHead>
                     <TableHead>Frete</TableHead>
                     <TableHead className="text-right">Disponível</TableHead>
                     <TableHead className="text-right">Vendidos</TableHead>
@@ -775,7 +992,7 @@ function ConcorrenciaInner() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {competitorsForBase.map((it) => {
+                  {diagnosedList.map(({ item: it, verdict }) => {
                     const basePrice = selectedBase.price;
                     const diff =
                       basePrice != null && it.price != null ? basePrice - it.price : null;
@@ -783,7 +1000,6 @@ function ConcorrenciaInner() {
                       basePrice != null && it.price != null && it.price > 0
                         ? ((basePrice - it.price) / it.price) * 100
                         : null;
-                    const verdict = getVerdict(basePrice, it.price);
                     const sellerLabel = it.seller_name || (it.seller_id != null ? String(it.seller_id) : "—");
                     return (
                       <TableRow key={`${it.base_listing_id}-${it.key}`}>
@@ -818,12 +1034,27 @@ function ConcorrenciaInner() {
                           {verdict ? (
                             <span
                               className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs ${verdict.className}`}
+                              title={verdict.tooltip}
                             >
                               {verdict.label}
+                              {verdict.reason ? (
+                                <span className="ml-1 opacity-80">— {verdict.reason}</span>
+                              ) : null}
                             </span>
                           ) : (
                             "—"
                           )}
+                        </TableCell>
+                        <TableCell className="max-w-[220px]">
+                          <div className="text-xs text-muted-foreground" title={verdict?.action}>
+                            {verdict?.action ?? "—"}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {SHIPPING_LABEL[it.shipping_type]}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {REPUTATION_LABEL[it.seller_reputation]}
                         </TableCell>
                         <TableCell>
                           {it.free_shipping == null ? (
@@ -977,6 +1208,39 @@ function ConcorrenciaInner() {
                 <option value="">Não informado</option>
                 <option value="free">Grátis</option>
                 <option value="paid">Pago</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="m-shiptype">Tipo de envio</Label>
+              <select
+                id="m-shiptype"
+                value={manualForm.shipping_type}
+                onChange={(e) =>
+                  setManualForm((f) => ({ ...f, shipping_type: e.target.value as ShippingType }))
+                }
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="unknown">Não informado</option>
+                <option value="full">Full</option>
+                <option value="coleta">Coleta</option>
+                <option value="correios">Correios/Próprio</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="m-rep">Reputação do seller</Label>
+              <select
+                id="m-rep"
+                value={manualForm.seller_reputation}
+                onChange={(e) =>
+                  setManualForm((f) => ({ ...f, seller_reputation: e.target.value as ReputationLevel }))
+                }
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="unknown">Não informado</option>
+                <option value="platinum">Platinum</option>
+                <option value="gold">Ouro</option>
+                <option value="silver">Prata</option>
+                <option value="new">Novo/Sem reputação</option>
               </select>
             </div>
             <div className="space-y-1.5">

@@ -738,7 +738,13 @@ function ConcorrenciaInner() {
     : "unknown";
 
   const diagnosedList = useMemo(() => {
-    if (!selectedBase) return [] as { item: CompetitorItem; verdict: Verdict | null }[];
+    if (!selectedBase)
+      return [] as {
+        item: CompetitorItem;
+        verdict: Verdict | null;
+        threat: Threat;
+        recs: string[];
+      }[];
     return competitorsForBase.map((it) => ({
       item: it,
       verdict: diagnose(
@@ -750,6 +756,8 @@ function ConcorrenciaInner() {
         it.seller_reputation,
         it.currency_id,
       ),
+      threat: threatFor(it, selectedBase.price, baseShipping, baseReputation),
+      recs: recommendationsFor(it, selectedBase.price, baseShipping, baseReputation),
     }));
   }, [competitorsForBase, selectedBase, baseShipping, baseReputation]);
 
@@ -765,6 +773,128 @@ function ConcorrenciaInner() {
     }
     return { critical, attention, competitive, total: diagnosedList.length };
   }, [diagnosedList]);
+
+  const strategy = useMemo(() => {
+    if (!selectedBase || diagnosedList.length === 0) return null;
+    const basePrice = selectedBase.price;
+    const prices = diagnosedList
+      .map((d) => d.item.price)
+      .filter((p): p is number => typeof p === "number" && p > 0);
+    const minPrice = prices.length ? Math.min(...prices) : null;
+    const maxPrice = prices.length ? Math.max(...prices) : null;
+    const avgPrice = prices.length ? prices.reduce((a, b) => a + b, 0) / prices.length : null;
+    const diffToMin =
+      basePrice != null && minPrice != null ? basePrice - minPrice : null;
+    const diffToMinPct =
+      basePrice != null && minPrice != null && minPrice > 0
+        ? ((basePrice - minPrice) / minPrice) * 100
+        : null;
+
+    const freeShipCount = diagnosedList.filter((d) => d.item.free_shipping === true).length;
+    const fullCount = diagnosedList.filter((d) => d.item.shipping_type === "full").length;
+    const baseHasFull = baseShipping === "full";
+    const losingLogistics = !baseHasFull && fullCount > 0;
+
+    const priceStatus: "competitivo" | "atencao" | "critico" =
+      diffToMinPct == null
+        ? "competitivo"
+        : diffToMinPct <= 0
+          ? "competitivo"
+          : diffToMinPct <= 10
+            ? "atencao"
+            : "critico";
+
+    const sorted = [...diagnosedList].sort((a, b) => b.threat.score - a.threat.score);
+    const topThreat = sorted[0] ?? null;
+
+    // Risk factor tallies
+    const riskFactors = {
+      preco: diagnosedList.filter(
+        (d) => basePrice != null && d.item.price != null && d.item.price < basePrice,
+      ).length,
+      frete: diagnosedList.filter((d) => d.item.free_shipping === true).length,
+      envio: diagnosedList.filter(
+        (d) => d.item.shipping_type === "full" && !baseHasFull,
+      ).length,
+      vendas: diagnosedList.filter((d) => (d.item.sold_quantity ?? 0) > 50).length,
+      reputacao: diagnosedList.filter(
+        (d) =>
+          (d.item.seller_reputation === "platinum" || d.item.seller_reputation === "gold") &&
+          !(baseReputation === "platinum" || baseReputation === "gold"),
+      ).length,
+    };
+
+    // Main risk driver
+    const mainRiskEntry = Object.entries(riskFactors).sort((a, b) => b[1] - a[1])[0];
+    const mainRisk = mainRiskEntry && mainRiskEntry[1] > 0 ? mainRiskEntry[0] : null;
+    const mainRiskLabel: Record<string, string> = {
+      preco: "Preço",
+      frete: "Frete grátis dos concorrentes",
+      envio: "Vantagem logística (Full)",
+      vendas: "Volume de vendas dos concorrentes",
+      reputacao: "Reputação dos concorrentes",
+    };
+
+    // Best action
+    let bestAction = "Monitorar sem agir agora";
+    if (priceStatus === "critico") bestAction = "Rever preço — mas valide margem antes de reduzir";
+    else if (losingLogistics) bestAction = "Avaliar migração para Full ou frete grátis";
+    else if (priceStatus === "atencao" && freeShipCount > 0) bestAction = "Testar cupom ou frete grátis pontual";
+    else if (riskFactors.vendas > 0) bestAction = "Testar campanha de Ads para ganhar visibilidade";
+
+    // Executive text
+    const parts: string[] = [];
+    if (mainRisk === "preco" && topThreat && topThreat.item.price != null && basePrice != null) {
+      const gap = basePrice - topThreat.item.price;
+      parts.push(
+        `O produto está em risco principalmente por preço. O concorrente mais agressivo está ${formatCurrency(gap)} abaixo`,
+      );
+      if (topThreat.item.free_shipping) parts.push("com frete grátis");
+      if ((topThreat.item.sold_quantity ?? 0) > 50)
+        parts.push(`e ${topThreat.item.sold_quantity} vendas registradas`);
+      parts.push(". Antes de reduzir preço, valide margem e considere cupom, frete grátis ou Ads.");
+    } else if (mainRisk === "envio") {
+      parts.push(
+        `${fullCount} concorrente(s) usam Full enquanto você não. A vantagem logística pesa mais do que preço em muitos casos — avalie migrar para Full ou oferecer frete grátis.`,
+      );
+    } else if (mainRisk === "frete") {
+      parts.push(
+        `${freeShipCount} concorrente(s) oferecem frete grátis. Considere um cupom ou uma promoção pontual de frete antes de mexer no preço.`,
+      );
+    } else if (mainRisk === "reputacao") {
+      parts.push(
+        "Concorrentes com reputação superior podem estar convertendo melhor. Foque em avaliações e pós-venda; reduzir preço sozinho pode não resolver.",
+      );
+    } else if (mainRisk === "vendas") {
+      parts.push(
+        "Concorrentes com volume alto de vendas ganham posição no ranking. Considere Ads para acelerar visibilidade.",
+      );
+    } else {
+      parts.push("Seu produto está bem posicionado nos fatores monitorados. Mantenha a vigilância e reavalie ao surgirem novos concorrentes.");
+    }
+    const executive = parts.join(" ").replace(/\s+\./g, ".");
+
+    return {
+      basePrice,
+      minPrice,
+      maxPrice,
+      avgPrice,
+      diffToMin,
+      diffToMinPct,
+      priceStatus,
+      freeShipCount,
+      fullCount,
+      baseHasFull,
+      losingLogistics,
+      topThreat,
+      riskFactors,
+      mainRisk,
+      mainRiskLabel: mainRisk ? mainRiskLabel[mainRisk] : "Nenhum risco relevante",
+      bestAction,
+      executive,
+      sorted,
+    };
+  }, [diagnosedList, selectedBase, baseShipping, baseReputation]);
 
   return (
     <div className="space-y-6">

@@ -1462,7 +1462,8 @@ function ConcorrenciaInner() {
                     <TableHead className="text-right">Preço concorrente</TableHead>
                     <TableHead className="text-right">Diferença</TableHead>
                     <TableHead>Situação</TableHead>
-                    <TableHead>Ação sugerida</TableHead>
+                    <TableHead>Ameaça</TableHead>
+                    <TableHead>Ações sugeridas</TableHead>
                     <TableHead>Envio</TableHead>
                     <TableHead>Reputação</TableHead>
                     <TableHead>Frete</TableHead>

@@ -633,6 +633,42 @@ function ConcorrenciaInner() {
     [items, selectedBase],
   );
 
+  const baseShipping: ShippingType = selectedBase
+    ? baseShipByListing[selectedBase.listing_id] ?? "unknown"
+    : "unknown";
+  const baseReputation: ReputationLevel = selectedBase
+    ? baseRepByListing[selectedBase.listing_id] ?? "unknown"
+    : "unknown";
+
+  const diagnosedList = useMemo(() => {
+    if (!selectedBase) return [] as { item: CompetitorItem; verdict: Verdict | null }[];
+    return competitorsForBase.map((it) => ({
+      item: it,
+      verdict: diagnose(
+        selectedBase.price,
+        it.price,
+        baseShipping,
+        it.shipping_type,
+        baseReputation,
+        it.seller_reputation,
+        it.currency_id,
+      ),
+    }));
+  }, [competitorsForBase, selectedBase, baseShipping, baseReputation]);
+
+  const summary = useMemo(() => {
+    let critical = 0;
+    let attention = 0;
+    let competitive = 0;
+    for (const { verdict } of diagnosedList) {
+      if (!verdict) continue;
+      if (verdict.key === "critical") critical++;
+      else if (verdict.key === "attention") attention++;
+      else if (verdict.key === "competitive") competitive++;
+    }
+    return { critical, attention, competitive, total: diagnosedList.length };
+  }, [diagnosedList]);
+
   return (
     <div className="space-y-6">
       <div>

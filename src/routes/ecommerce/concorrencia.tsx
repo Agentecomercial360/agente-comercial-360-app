@@ -88,6 +88,23 @@ type BaseProduct = {
 
 type CompetitorSource = "auto" | "manual";
 
+type ShippingType = "full" | "coleta" | "correios" | "unknown";
+type ReputationLevel = "platinum" | "gold" | "silver" | "new" | "unknown";
+
+const SHIPPING_LABEL: Record<ShippingType, string> = {
+  full: "Full",
+  coleta: "Coleta",
+  correios: "Correios/Próprio",
+  unknown: "Não informado",
+};
+const REPUTATION_LABEL: Record<ReputationLevel, string> = {
+  platinum: "Platinum",
+  gold: "Ouro",
+  silver: "Prata",
+  new: "Novo/Sem reputação",
+  unknown: "Não informado",
+};
+
 type CompetitorItem = {
   base_listing_id: string;
   key: string; // stable identity for edit/delete
@@ -106,6 +123,8 @@ type CompetitorItem = {
   available_quantity: number | null;
   sold_quantity: number | null;
   note: string | null;
+  shipping_type: ShippingType;
+  seller_reputation: ReputationLevel;
   updated_at: string;
 };
 

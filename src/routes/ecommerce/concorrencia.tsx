@@ -207,26 +207,93 @@ function parseErrorMessage(rawMsg: string, url: string): string {
   return "Não foi possível consultar este anúncio. Você pode cadastrar os dados manualmente.";
 }
 
-type Verdict = { key: "competitive" | "attention" | "critical"; label: string; className: string };
-function getVerdict(basePrice: number | null, compPrice: number | null): Verdict | null {
+type VerdictKey = "competitive" | "attention" | "critical";
+type Verdict = {
+  key: VerdictKey;
+  label: string;
+  reason: string | null;
+  tooltip: string;
+  className: string;
+  action: string;
+};
+
+function diagnose(
+  basePrice: number | null,
+  compPrice: number | null,
+  baseShip: ShippingType,
+  compShip: ShippingType,
+  baseRep: ReputationLevel,
+  compRep: ReputationLevel,
+  currency: string | null,
+): Verdict | null {
   if (basePrice == null || compPrice == null || compPrice <= 0) return null;
   const diffPct = ((basePrice - compPrice) / compPrice) * 100;
-  if (diffPct <= 0)
+  const compHasFull = compShip === "full";
+  const baseHasFull = baseShip === "full";
+  const compHighRep = compRep === "platinum" || compRep === "gold";
+  const baseHighRep = baseRep === "platinum" || baseRep === "gold";
+  const emerald = "border-emerald-200 bg-emerald-50 text-emerald-700";
+  const amber = "border-amber-200 bg-amber-50 text-amber-700";
+  const rose = "border-rose-200 bg-rose-50 text-rose-700";
+
+  if (diffPct <= 0) {
     return {
       key: "competitive",
       label: "Competitivo",
-      className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+      reason: null,
+      tooltip: "Seu preço está igual ou melhor que o do concorrente.",
+      className: emerald,
+      action: "Nenhuma ação necessária",
     };
-  if (diffPct <= 10)
+  }
+  if (diffPct <= 10) {
+    if (compHasFull && !baseHasFull) {
+      return {
+        key: "attention",
+        label: "Atenção",
+        reason: "Logística",
+        tooltip: "Preço próximo, mas concorrente tem vantagem logística Full.",
+        className: amber,
+        action: "Monitorar; considerar Full a médio prazo",
+      };
+    }
     return {
       key: "attention",
       label: "Atenção",
-      className: "border-amber-200 bg-amber-50 text-amber-700",
+      reason: "Preço",
+      tooltip: "Ajuste fino de preço pode equalizar.",
+      className: amber,
+      action: "Pequeno ajuste de preço resolve",
     };
+  }
+  if (compHighRep && !baseHighRep) {
+    return {
+      key: "critical",
+      label: "Crítico",
+      reason: "Reputação",
+      tooltip:
+        "Diferença de preço alta, mas concorrente também tem vantagem de reputação; ajuste de preço sozinho pode não resolver.",
+      className: rose,
+      action: "Focar em avaliações; preço não é o problema principal",
+    };
+  }
+  if (compHasFull && !baseHasFull) {
+    return {
+      key: "critical",
+      label: "Crítico",
+      reason: "Logística",
+      tooltip: "Diferença de preço alta e concorrente ainda tem vantagem logística Full.",
+      className: rose,
+      action: "Avaliar migração para Full ou frete grátis",
+    };
+  }
   return {
     key: "critical",
     label: "Crítico",
-    className: "border-rose-200 bg-rose-50 text-rose-700",
+    reason: "Preço",
+    tooltip: "Preço muito acima do concorrente.",
+    className: rose,
+    action: `Reduzir para ${formatCurrency(compPrice, currency)} para virar competitivo`,
   };
 }
 

@@ -563,7 +563,7 @@ function ConcorrenciaInner() {
         </CardHeader>
         <CardContent className="space-y-3">
           {selectedBase ? (
-            <div className="flex flex-col gap-3 rounded-md border bg-muted/20 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 rounded-md border border-emerald-200 bg-emerald-50/40 p-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Check className="h-3.5 w-3.5 text-emerald-600" /> Produto base selecionado
@@ -588,7 +588,14 @@ function ConcorrenciaInner() {
                   </span>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setSelectedListingId(null)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setSelectedListingId(null);
+                  setUrl("");
+                }}
+              >
                 Trocar produto base
               </Button>
             </div>
@@ -631,27 +638,42 @@ function ConcorrenciaInner() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredBase.map((p) => (
-                        <TableRow key={p.listing_id}>
-                          <TableCell className="max-w-[360px]">
-                            <div className="truncate font-medium">{p.title}</div>
-                          </TableCell>
-                          <TableCell className="font-mono text-xs">{p.sku ?? "—"}</TableCell>
-                          <TableCell className="font-mono text-xs">{p.ml_item_id ?? "—"}</TableCell>
-                          <TableCell className="text-right tabular-nums">
-                            {formatCurrency(p.price)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedListingId(p.listing_id)}
-                            >
-                              Selecionar
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      filteredBase.map((p) => {
+                        const isSelected = selectedListingId === p.listing_id;
+                        return (
+                          <TableRow
+                            key={p.listing_id}
+                            className={isSelected ? "bg-emerald-50/60" : undefined}
+                          >
+                            <TableCell className="max-w-[360px]">
+                              <div className="truncate font-medium">{p.title}</div>
+                            </TableCell>
+                            <TableCell className="font-mono text-xs">{p.sku ?? "—"}</TableCell>
+                            <TableCell className="font-mono text-xs">{p.ml_item_id ?? "—"}</TableCell>
+                            <TableCell className="text-right tabular-nums">
+                              {formatCurrency(p.price)}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button
+                                size="sm"
+                                variant={isSelected ? "default" : "outline"}
+                                onClick={() => {
+                                  setSelectedListingId(p.listing_id);
+                                  setUrl("");
+                                }}
+                              >
+                                {isSelected ? (
+                                  <>
+                                    <Check className="h-4 w-4" /> Selecionado
+                                  </>
+                                ) : (
+                                  "Selecionar"
+                                )}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     )}
                   </TableBody>
                 </Table>
@@ -673,16 +695,19 @@ function ConcorrenciaInner() {
               onChange={(e) => setUrl(e.target.value)}
               placeholder={
                 selectedBase
-                  ? "Cole o link do concorrente ou digite o código MLB…"
+                  ? "Cole o link ou código MLB do concorrente"
                   : "Selecione primeiro o produto base acima"
               }
               disabled={loading || !selectedBase}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && !loading && selectedBase) handleAdd();
+                if (e.key === "Enter" && !loading && selectedBase && url.trim()) handleAdd();
               }}
               className="flex-1"
             />
-            <Button onClick={handleAdd} disabled={loading || !selectedBase || !activeAccountId}>
+            <Button
+              onClick={handleAdd}
+              disabled={loading || !selectedBase || !activeAccountId || !url.trim()}
+            >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" /> Tentando automático…
@@ -707,6 +732,7 @@ function ConcorrenciaInner() {
           </p>
         </CardContent>
       </Card>
+
 
       {/* Comparison table */}
       <Card>

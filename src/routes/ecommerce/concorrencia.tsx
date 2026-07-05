@@ -532,6 +532,8 @@ function ConcorrenciaInner() {
             ? payload.sold_quantity
             : Number(payload.sold_quantity) || null,
         note: null,
+        shipping_type: payload.free_shipping ? "full" : "unknown",
+        seller_reputation: "unknown",
         updated_at: new Date().toISOString(),
       };
       setItems((prev) => {

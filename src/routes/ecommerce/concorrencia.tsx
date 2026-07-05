@@ -734,6 +734,48 @@ function ConcorrenciaInner() {
                 Trocar produto base
               </Button>
             </div>
+          ) : null}
+
+          {selectedBase ? (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Seu tipo de envio</Label>
+                <select
+                  value={baseShipping}
+                  onChange={(e) =>
+                    setBaseShipByListing((prev) => ({
+                      ...prev,
+                      [selectedBase.listing_id]: e.target.value as ShippingType,
+                    }))
+                  }
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="unknown">Não informado</option>
+                  <option value="full">Full</option>
+                  <option value="coleta">Coleta</option>
+                  <option value="correios">Correios/Próprio</option>
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Sua reputação</Label>
+                <select
+                  value={baseReputation}
+                  onChange={(e) =>
+                    setBaseRepByListing((prev) => ({
+                      ...prev,
+                      [selectedBase.listing_id]: e.target.value as ReputationLevel,
+                    }))
+                  }
+                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="unknown">Não informado</option>
+                  <option value="platinum">Platinum</option>
+                  <option value="gold">Ouro</option>
+                  <option value="silver">Prata</option>
+                  <option value="new">Novo/Sem reputação</option>
+                </select>
+              </div>
+            </div>
           ) : (
             <>
               <div className="relative">

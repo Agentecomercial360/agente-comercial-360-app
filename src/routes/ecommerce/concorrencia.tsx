@@ -911,6 +911,43 @@ function ConcorrenciaInner() {
       </Card>
 
 
+      {/* Summary panel */}
+      {selectedBase ? (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+          <div className="rounded-lg border bg-card p-4">
+            <div className="text-xs text-muted-foreground">Concorrentes monitorados</div>
+            <div className="mt-1 text-2xl font-semibold tabular-nums">{summary.total}</div>
+          </div>
+          <div className="rounded-lg border border-rose-200 bg-rose-50/40 p-4">
+            <div className="text-xs text-rose-700">Críticos</div>
+            <div className="mt-1 text-2xl font-semibold tabular-nums text-rose-700">
+              {summary.critical}
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              Onde você está perdendo agora
+            </div>
+          </div>
+          <div className="rounded-lg border border-amber-200 bg-amber-50/40 p-4">
+            <div className="text-xs text-amber-700">Atenção</div>
+            <div className="mt-1 text-2xl font-semibold tabular-nums text-amber-700">
+              {summary.attention}
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              Ajustes finos podem virar o jogo
+            </div>
+          </div>
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50/40 p-4">
+            <div className="text-xs text-emerald-700">Competitivos</div>
+            <div className="mt-1 text-2xl font-semibold tabular-nums text-emerald-700">
+              {summary.competitive}
+            </div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              Seu preço está no páreo
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {/* Comparison table */}
       <Card>
         <CardHeader>
@@ -941,6 +978,9 @@ function ConcorrenciaInner() {
                     <TableHead className="text-right">Preço concorrente</TableHead>
                     <TableHead className="text-right">Diferença</TableHead>
                     <TableHead>Situação</TableHead>
+                    <TableHead>Ação sugerida</TableHead>
+                    <TableHead>Envio</TableHead>
+                    <TableHead>Reputação</TableHead>
                     <TableHead>Frete</TableHead>
                     <TableHead className="text-right">Disponível</TableHead>
                     <TableHead className="text-right">Vendidos</TableHead>
@@ -952,7 +992,7 @@ function ConcorrenciaInner() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {competitorsForBase.map((it) => {
+                  {diagnosedList.map(({ item: it, verdict }) => {
                     const basePrice = selectedBase.price;
                     const diff =
                       basePrice != null && it.price != null ? basePrice - it.price : null;
@@ -960,7 +1000,6 @@ function ConcorrenciaInner() {
                       basePrice != null && it.price != null && it.price > 0
                         ? ((basePrice - it.price) / it.price) * 100
                         : null;
-                    const verdict = getVerdict(basePrice, it.price);
                     const sellerLabel = it.seller_name || (it.seller_id != null ? String(it.seller_id) : "—");
                     return (
                       <TableRow key={`${it.base_listing_id}-${it.key}`}>
@@ -995,12 +1034,27 @@ function ConcorrenciaInner() {
                           {verdict ? (
                             <span
                               className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs ${verdict.className}`}
+                              title={verdict.tooltip}
                             >
                               {verdict.label}
+                              {verdict.reason ? (
+                                <span className="ml-1 opacity-80">— {verdict.reason}</span>
+                              ) : null}
                             </span>
                           ) : (
                             "—"
                           )}
+                        </TableCell>
+                        <TableCell className="max-w-[220px]">
+                          <div className="text-xs text-muted-foreground" title={verdict?.action}>
+                            {verdict?.action ?? "—"}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {SHIPPING_LABEL[it.shipping_type]}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {REPUTATION_LABEL[it.seller_reputation]}
                         </TableCell>
                         <TableCell>
                           {it.free_shipping == null ? (

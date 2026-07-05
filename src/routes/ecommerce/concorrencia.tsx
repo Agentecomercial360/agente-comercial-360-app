@@ -1211,6 +1211,39 @@ function ConcorrenciaInner() {
               </select>
             </div>
             <div className="space-y-1.5">
+              <Label htmlFor="m-shiptype">Tipo de envio</Label>
+              <select
+                id="m-shiptype"
+                value={manualForm.shipping_type}
+                onChange={(e) =>
+                  setManualForm((f) => ({ ...f, shipping_type: e.target.value as ShippingType }))
+                }
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="unknown">Não informado</option>
+                <option value="full">Full</option>
+                <option value="coleta">Coleta</option>
+                <option value="correios">Correios/Próprio</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="m-rep">Reputação do seller</Label>
+              <select
+                id="m-rep"
+                value={manualForm.seller_reputation}
+                onChange={(e) =>
+                  setManualForm((f) => ({ ...f, seller_reputation: e.target.value as ReputationLevel }))
+                }
+                className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              >
+                <option value="unknown">Não informado</option>
+                <option value="platinum">Platinum</option>
+                <option value="gold">Ouro</option>
+                <option value="silver">Prata</option>
+                <option value="new">Novo/Sem reputação</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
               <Label htmlFor="m-avail">Quantidade disponível</Label>
               <Input
                 id="m-avail"

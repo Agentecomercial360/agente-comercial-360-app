@@ -1175,6 +1175,263 @@ function ConcorrenciaInner() {
         </div>
       ) : null}
 
+      {/* Strategic reading */}
+      {selectedBase && strategy ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Leitura estratégica do produto</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Executive text */}
+            <div className="rounded-md border bg-muted/30 p-4 text-sm leading-relaxed text-foreground">
+              {strategy.executive}
+            </div>
+
+            {/* Decision cards */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="rounded-lg border bg-card p-4">
+                <div className="text-xs text-muted-foreground">Situação geral</div>
+                <div
+                  className={
+                    "mt-1 text-sm font-semibold " +
+                    (strategy.priceStatus === "critico"
+                      ? "text-rose-700"
+                      : strategy.priceStatus === "atencao"
+                        ? "text-amber-700"
+                        : "text-emerald-700")
+                  }
+                >
+                  {strategy.priceStatus === "critico"
+                    ? "Crítico"
+                    : strategy.priceStatus === "atencao"
+                      ? "Atenção"
+                      : "Competitivo"}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {summary.total} concorrente(s) monitorados
+                </div>
+              </div>
+              <div className="rounded-lg border bg-card p-4">
+                <div className="text-xs text-muted-foreground">Principal risco</div>
+                <div className="mt-1 text-sm font-semibold">{strategy.mainRiskLabel}</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {strategy.freeShipCount} c/ frete grátis • {strategy.fullCount} c/ Full
+                </div>
+              </div>
+              <div className="rounded-lg border bg-card p-4">
+                <div className="text-xs text-muted-foreground">Melhor ação sugerida</div>
+                <div className="mt-1 text-sm font-semibold">{strategy.bestAction}</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  Considere margem antes de reduzir preço.
+                </div>
+              </div>
+              <div className="rounded-lg border bg-card p-4">
+                <div className="text-xs text-muted-foreground">Concorrente mais agressivo</div>
+                <div className="mt-1 truncate text-sm font-semibold" title={strategy.topThreat?.item.title}>
+                  {strategy.topThreat?.item.title ?? "—"}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {strategy.topThreat
+                    ? `${THREAT_LABEL[strategy.topThreat.threat.level]} • ${formatCurrency(strategy.topThreat.item.price, strategy.topThreat.item.currency_id)}`
+                    : "—"}
+                </div>
+              </div>
+            </div>
+
+            {/* Price analysis + shipping */}
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="rounded-lg border p-4">
+                <div className="text-sm font-medium">Preço</div>
+                <div className="mt-3 space-y-2 text-xs">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Menor preço concorrente</span>
+                    <span className="tabular-nums">{formatCurrency(strategy.minPrice)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Preço médio concorrentes</span>
+                    <span className="tabular-nums">{formatCurrency(strategy.avgPrice)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Seu preço</span>
+                    <span className="tabular-nums font-medium">
+                      {formatCurrency(strategy.basePrice)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-t pt-2">
+                    <span className="text-muted-foreground">Diferença vs menor</span>
+                    <span
+                      className={
+                        "tabular-nums font-medium " +
+                        (strategy.diffToMinPct != null && strategy.diffToMinPct > 10
+                          ? "text-rose-700"
+                          : strategy.diffToMinPct != null && strategy.diffToMinPct > 0
+                            ? "text-amber-700"
+                            : "text-emerald-700")
+                      }
+                    >
+                      {strategy.diffToMin != null ? formatCurrency(strategy.diffToMin) : "—"}
+                      {strategy.diffToMinPct != null
+                        ? ` (${strategy.diffToMinPct > 0 ? "+" : ""}${strategy.diffToMinPct.toFixed(1)}%)`
+                        : ""}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Price bars */}
+                <div className="mt-4 space-y-1.5">
+                  {(() => {
+                    const rows: { label: string; price: number | null; self?: boolean }[] = [
+                      { label: "Você", price: strategy.basePrice, self: true },
+                      ...strategy.sorted.slice(0, 6).map((d) => ({
+                        label: d.item.title,
+                        price: d.item.price,
+                      })),
+                    ];
+                    const max = Math.max(
+                      ...rows.map((r) => r.price ?? 0),
+                      strategy.maxPrice ?? 0,
+                      1,
+                    );
+                    return rows.map((r, i) => (
+                      <div key={i} className="flex items-center gap-2 text-xs">
+                        <div className="w-24 shrink-0 truncate text-muted-foreground" title={r.label}>
+                          {r.label}
+                        </div>
+                        <div className="relative h-2 flex-1 overflow-hidden rounded bg-muted">
+                          <div
+                            className={
+                              "h-full " + (r.self ? "bg-foreground/70" : "bg-muted-foreground/50")
+                            }
+                            style={{ width: `${((r.price ?? 0) / max) * 100}%` }}
+                          />
+                        </div>
+                        <div className="w-20 shrink-0 text-right tabular-nums">
+                          {formatCurrency(r.price)}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              <div className="rounded-lg border p-4">
+                <div className="text-sm font-medium">Frete e envio</div>
+                <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
+                  <div className="rounded border bg-muted/20 p-3">
+                    <div className="text-muted-foreground">Concorrentes com frete grátis</div>
+                    <div className="mt-1 text-xl font-semibold tabular-nums">
+                      {strategy.freeShipCount}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        {" "}
+                        / {summary.total}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="rounded border bg-muted/20 p-3">
+                    <div className="text-muted-foreground">Concorrentes com Full</div>
+                    <div className="mt-1 text-xl font-semibold tabular-nums">
+                      {strategy.fullCount}
+                      <span className="text-xs font-normal text-muted-foreground">
+                        {" "}
+                        / {summary.total}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-3 text-xs text-muted-foreground">
+                  {strategy.losingLogistics
+                    ? "Você não usa Full e há concorrentes que usam — desvantagem logística."
+                    : strategy.baseHasFull
+                      ? "Você usa Full — vantagem logística mantida."
+                      : "Nenhum concorrente com Full identificado até aqui."}
+                </div>
+
+                {/* Risk factors */}
+                <div className="mt-4">
+                  <div className="text-sm font-medium">Motivos de risco</div>
+                  <div className="mt-2 space-y-1.5">
+                    {(
+                      [
+                        ["preco", "Preço", strategy.riskFactors.preco],
+                        ["frete", "Frete grátis", strategy.riskFactors.frete],
+                        ["envio", "Envio Full", strategy.riskFactors.envio],
+                        ["vendas", "Volume de vendas", strategy.riskFactors.vendas],
+                        ["reputacao", "Reputação", strategy.riskFactors.reputacao],
+                      ] as const
+                    ).map(([k, label, v]) => {
+                      const pct = summary.total > 0 ? (v / summary.total) * 100 : 0;
+                      return (
+                        <div key={k} className="flex items-center gap-2 text-xs">
+                          <div className="w-32 shrink-0 text-muted-foreground">{label}</div>
+                          <div className="relative h-2 flex-1 overflow-hidden rounded bg-muted">
+                            <div
+                              className="h-full bg-muted-foreground/50"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <div className="w-14 shrink-0 text-right tabular-nums">
+                            {v} / {summary.total}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Threat ranking */}
+            <div className="rounded-lg border p-4">
+              <div className="text-sm font-medium">Ranking de ameaça</div>
+              <div className="mt-3 space-y-2">
+                {strategy.sorted.slice(0, 5).map((d) => (
+                  <div
+                    key={d.item.key}
+                    className="flex items-center gap-3 rounded border bg-card p-2 text-xs"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{d.item.title}</div>
+                      <div className="mt-0.5 text-muted-foreground">
+                        {d.threat.reasons.length ? d.threat.reasons.join(" • ") : "Sem fatores relevantes"}
+                      </div>
+                    </div>
+                    <div className="w-28">
+                      <div className="relative h-2 overflow-hidden rounded bg-muted">
+                        <div
+                          className={
+                            "h-full " +
+                            (d.threat.level === "alta"
+                              ? "bg-rose-500/70"
+                              : d.threat.level === "media"
+                                ? "bg-amber-500/70"
+                                : "bg-emerald-500/70")
+                          }
+                          style={{ width: `${d.threat.score}%` }}
+                        />
+                      </div>
+                    </div>
+                    <span
+                      className={
+                        "inline-flex shrink-0 items-center rounded-md border px-2 py-0.5 " +
+                        THREAT_STYLE[d.threat.level]
+                      }
+                    >
+                      {THREAT_LABEL[d.threat.level]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Sem custo do produto cadastrado, não é possível afirmar com segurança quanto você pode
+              reduzir. Valide margem antes de qualquer ajuste de preço. Campos como reputação e
+              vendas aparecem como “não informado” quando o concorrente não foi enriquecido.
+            </p>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {/* Comparison table */}
       <Card>
         <CardHeader>

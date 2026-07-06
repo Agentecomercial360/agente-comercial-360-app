@@ -138,7 +138,11 @@ export function AccountsSyncStatus({
       if (!r.account_id) continue;
       if (!latestByAccount.has(r.account_id)) latestByAccount.set(r.account_id, r);
     }
-    const list: Row[] = accounts.map((a) => {
+    const source =
+      scope === "active" && activeAccountId
+        ? accounts.filter((a) => a.id === activeAccountId)
+        : accounts;
+    const list: Row[] = source.map((a) => {
       const run = latestByAccount.get(a.id) ?? null;
       return {
         accountId: a.id,
@@ -153,7 +157,9 @@ export function AccountsSyncStatus({
       return a.name.localeCompare(b.name, "pt-BR");
     });
     return list;
-  }, [accounts, runs]);
+  }, [accounts, runs, scope, activeAccountId]);
+
+  const isActiveScope = scope === "active" && !!activeAccountId;
 
   return (
     <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">

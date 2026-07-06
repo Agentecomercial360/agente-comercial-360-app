@@ -399,7 +399,10 @@ function DashboardContent() {
         </section>
 
         {/* Status das Contas */}
-        <AccountsSyncStatus />
+        <AccountsSyncStatus
+          scope={scope}
+          activeAccountId={activeAccountId}
+        />
 
 
 

@@ -86,7 +86,13 @@ const SITUATION_META: Record<Situation, { label: string; badge: string; icon: Re
   },
 };
 
-export function AccountsSyncStatus() {
+export function AccountsSyncStatus({
+  scope = "all",
+  activeAccountId = null,
+}: {
+  scope?: "active" | "all";
+  activeAccountId?: string | null;
+} = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<AccountRow[]>([]);

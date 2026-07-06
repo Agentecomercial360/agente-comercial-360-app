@@ -27,20 +27,35 @@ import {
 export type RankEntry = {
   id: string;
   listingId: string;
+  sku?: string | null;
   keyword: string;
   position: number;
+  previousManual?: number | null;
   note?: string;
+  checkedAt: string; // ISO — data da verificação
   createdAt: string; // ISO
 };
 
-const STORAGE_KEY = "ac360:ranking-radar:v1";
+const STORAGE_KEY = "ac360:ranking-radar:v2";
+const LEGACY_KEY = "ac360:ranking-radar:v1";
 
 function loadAll(): Record<string, RankEntry[]> {
   if (typeof window === "undefined") return {};
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
-    return JSON.parse(raw) as Record<string, RankEntry[]>;
+    if (raw) return JSON.parse(raw) as Record<string, RankEntry[]>;
+    // migrate from v1
+    const legacy = window.localStorage.getItem(LEGACY_KEY);
+    if (legacy) {
+      const parsed = JSON.parse(legacy) as Record<string, Array<Omit<RankEntry, "checkedAt"> & { checkedAt?: string }>>;
+      const migrated: Record<string, RankEntry[]> = {};
+      for (const [k, list] of Object.entries(parsed)) {
+        migrated[k] = list.map((e) => ({ ...e, checkedAt: e.checkedAt ?? e.createdAt }));
+      }
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
+      return migrated;
+    }
+    return {};
   } catch {
     return {};
   }
@@ -73,15 +88,26 @@ function fmtDate(iso: string) {
   }
 }
 
+function todayISO(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 type Props = {
   baseListingId: string;
   baseTitle: string;
+  baseSku?: string | null;
 };
 
-export function RankingRadar({ baseListingId, baseTitle }: Props) {
+export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
   const [store, setStore] = useState<Record<string, RankEntry[]>>({});
   const [keyword, setKeyword] = useState("");
   const [position, setPosition] = useState("");
+  const [previousPos, setPreviousPos] = useState("");
+  const [checkedAt, setCheckedAt] = useState<string>(todayISO());
   const [note, setNote] = useState("");
   const [selectedKw, setSelectedKw] = useState<string>("");
 
@@ -92,7 +118,7 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
   const entries = useMemo<RankEntry[]>(() => {
     const list = store[baseListingId] ?? [];
     return [...list].sort(
-      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      (a, b) => new Date(a.checkedAt).getTime() - new Date(b.checkedAt).getTime(),
     );
   }, [store, baseListingId]);
 
@@ -117,20 +143,33 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
   const handleAdd = useCallback(() => {
     const kw = keyword.trim();
     const pos = Number.parseInt(position, 10);
+    const prev = previousPos.trim() === "" ? null : Number.parseInt(previousPos, 10);
     if (!kw) {
       toast.error("Informe a palavra-chave monitorada.");
       return;
     }
     if (!Number.isFinite(pos) || pos < 1 || pos > 9999) {
-      toast.error("Posição inválida. Use um número inteiro maior que zero.");
+      toast.error("Posição atual inválida. Use um número inteiro maior que zero.");
       return;
     }
+    if (prev != null && (!Number.isFinite(prev) || prev < 1 || prev > 9999)) {
+      toast.error("Posição anterior inválida.");
+      return;
+    }
+    if (!checkedAt) {
+      toast.error("Informe a data da verificação.");
+      return;
+    }
+    const iso = new Date(`${checkedAt}T12:00:00`).toISOString();
     const entry: RankEntry = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       listingId: baseListingId,
+      sku: baseSku ?? null,
       keyword: kw,
       position: pos,
+      previousManual: prev,
       note: note.trim() || undefined,
+      checkedAt: iso,
       createdAt: new Date().toISOString(),
     };
     setStore((prev) => {
@@ -143,9 +182,11 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
     });
     setSelectedKw(normKw(kw));
     setPosition("");
+    setPreviousPos("");
     setNote("");
+    setCheckedAt(todayISO());
     toast.success("Posição registrada.");
-  }, [keyword, position, note, baseListingId]);
+  }, [keyword, position, previousPos, checkedAt, note, baseListingId, baseSku]);
 
   const removeEntry = useCallback(
     (id: string) => {
@@ -164,7 +205,9 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
     if (kwEntries.length === 0) return null;
     const positions = kwEntries.map((e) => e.position);
     const current = positions[positions.length - 1];
-    const previous = positions.length > 1 ? positions[positions.length - 2] : null;
+    const lastEntry = kwEntries[kwEntries.length - 1];
+    const previousAuto = positions.length > 1 ? positions[positions.length - 2] : null;
+    const previous = lastEntry.previousManual ?? previousAuto;
     const best = Math.min(...positions);
     const worst = Math.max(...positions);
     const delta = previous == null ? 0 : previous - current; // positive => gained
@@ -173,11 +216,22 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
       const first = positions[0];
       if (current < first) trend = "up";
       else if (current > first) trend = "down";
+    } else if (previous != null) {
+      if (current < previous) trend = "up";
+      else if (current > previous) trend = "down";
     }
     return { current, previous, best, worst, delta, trend, count: positions.length };
   }, [kwEntries]);
 
-  // Latest movement per keyword (for "biggest losses" list)
+  const visibility = useMemo(() => {
+    if (!stats) return null;
+    if (stats.current > 20)
+      return { label: "Baixa visibilidade", tone: "warn" as const };
+    if (stats.current > 10) return { label: "Fora do Top 10", tone: "warn" as const };
+    if (stats.current <= 3) return { label: "Alta visibilidade", tone: "good" as const };
+    return { label: "Top 10", tone: "good" as const };
+  }, [stats]);
+
   const movements = useMemo(() => {
     const byKw = new Map<string, RankEntry[]>();
     for (const e of entries) {
@@ -188,15 +242,16 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
     const out: Array<{ keyword: string; current: number; previous: number | null; delta: number }> = [];
     for (const [, list] of byKw) {
       const sorted = [...list].sort(
-        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        (a, b) => new Date(a.checkedAt).getTime() - new Date(b.checkedAt).getTime(),
       );
       const current = sorted[sorted.length - 1];
-      const prev = sorted.length > 1 ? sorted[sorted.length - 2] : null;
+      const prevAuto = sorted.length > 1 ? sorted[sorted.length - 2].position : null;
+      const prev = current.previousManual ?? prevAuto;
       out.push({
         keyword: current.keyword,
         current: current.position,
-        previous: prev?.position ?? null,
-        delta: prev ? prev.position - current.position : 0,
+        previous: prev,
+        delta: prev != null ? prev - current.position : 0,
       });
     }
     return out;
@@ -211,7 +266,7 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
     () =>
       kwEntries.map((e, i) => ({
         idx: i + 1,
-        date: fmtDate(e.createdAt),
+        date: fmtDate(e.checkedAt),
         position: e.position,
       })),
     [kwEntries],
@@ -225,33 +280,24 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
 
   const executive = useMemo(() => {
     if (!stats) return null;
-    const kwLabel = keywords.find((k) => k.key === selectedKw)?.label ?? selectedKw;
-    if (stats.delta < 0) {
-      return `Este produto perdeu ${Math.abs(stats.delta)} ${
-        Math.abs(stats.delta) === 1 ? "posição" : "posições"
-      } para a palavra-chave "${kwLabel}". Antes de reduzir preço, revise concorrentes acima, frete, Full, título, fotos e campanhas de Ads.`;
-    }
     if (stats.delta > 0) {
-      return `Este produto ganhou ${stats.delta} ${
-        stats.delta === 1 ? "posição" : "posições"
-      } para "${kwLabel}". Mantenha o que está funcionando: preço, frete, título e Ads. Continue monitorando.`;
+      return "O produto melhorou sua visibilidade para esta palavra-chave. Acompanhe se o ganho se mantém nas próximas verificações.";
     }
-    if (stats.current > 10) {
-      return `Está fora do top 10 para "${kwLabel}" (posição ${stats.current}). Considere revisar título, fotos, atributos e reputação antes de mexer em preço.`;
+    if (stats.delta < 0) {
+      return "O produto perdeu visibilidade. Avalie preço, frete, título, fotos, reputação, anúncios patrocinados e estoque.";
     }
-    return `Posição estável em ${stats.current} para "${kwLabel}". Apenas monitorar, sem ação imediata necessária.`;
-  }, [stats, selectedKw, keywords]);
+    return "O produto manteve posição. Continue acompanhando concorrentes próximos.";
+  }, [stats]);
 
   const alerts = useMemo(() => {
     const out: Array<{ tone: "warn" | "good" | "info"; text: string }> = [];
     if (!stats) return out;
-    if (stats.delta < 0)
-      out.push({ tone: "warn", text: `Perdeu ${Math.abs(stats.delta)} posição(ões) desde a última medição` });
-    if (stats.delta > 0)
-      out.push({ tone: "good", text: `Ganhou ${stats.delta} posição(ões) desde a última medição` });
-    if (stats.current > 10) out.push({ tone: "warn", text: "Está fora do top 10" });
-    if (stats.delta <= -3 || stats.current > 20)
-      out.push({ tone: "warn", text: "Produto precisa de atenção" });
+    if (stats.current > 20) out.push({ tone: "warn", text: "Baixa visibilidade" });
+    else if (stats.current > 10) out.push({ tone: "warn", text: "Produto saiu do Top 10" });
+    if (stats.delta <= -5) out.push({ tone: "warn", text: "Produto perdeu mais de 5 posições" });
+    if (stats.delta >= 3) out.push({ tone: "good", text: "Produto ganhou posição relevante" });
+    if (stats.previous != null && stats.delta === 0)
+      out.push({ tone: "info", text: "Produto está estável" });
     return out;
   }, [stats]);
 
@@ -283,21 +329,39 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
             Radar de Rankeamento
           </CardTitle>
           <p className="mt-1 text-xs text-muted-foreground">
-            Registre manualmente a posição do produto <span className="font-medium">{baseTitle}</span> no
-            Mercado Livre e acompanhe a evolução por palavra-chave.
+            Acompanhe a posição dos seus produtos por palavra-chave e identifique perda ou ganho de
+            visibilidade no Mercado Livre.
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Produto monitorado: <span className="font-medium">{baseTitle}</span>
+            {baseSku ? (
+              <>
+                {" "}· SKU <span className="font-mono">{baseSku}</span>
+              </>
+            ) : null}
           </p>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Form */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
-          <div className="sm:col-span-2 space-y-1.5">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-6">
+          <div className="sm:col-span-3 space-y-1.5">
             <Label htmlFor="rr-kw">Palavra-chave monitorada</Label>
             <Input
               id="rr-kw"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               placeholder="Ex.: robô cachorro infantil"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="rr-prev">Posição anterior</Label>
+            <Input
+              id="rr-prev"
+              inputMode="numeric"
+              value={previousPos}
+              onChange={(e) => setPreviousPos(e.target.value.replace(/[^0-9]/g, ""))}
+              placeholder="Opcional"
             />
           </div>
           <div className="space-y-1.5">
@@ -311,15 +375,24 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="rr-note">Página / observação</Label>
+            <Label htmlFor="rr-date">Data da verificação</Label>
+            <Input
+              id="rr-date"
+              type="date"
+              value={checkedAt}
+              onChange={(e) => setCheckedAt(e.target.value)}
+            />
+          </div>
+          <div className="sm:col-span-6 space-y-1.5">
+            <Label htmlFor="rr-note">Observações</Label>
             <Input
               id="rr-note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Opcional"
+              placeholder="Ex.: verificação após ajuste de título"
             />
           </div>
-          <div className="sm:col-span-4 flex justify-end">
+          <div className="sm:col-span-6 flex justify-end">
             <Button onClick={handleAdd}>Registrar posição</Button>
           </div>
         </div>
@@ -327,7 +400,7 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
         {/* Keyword selector */}
         {keywords.length > 0 ? (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-muted-foreground">Ver histórico de:</span>
+            <span className="text-xs text-muted-foreground">Posição monitorada:</span>
             {keywords.map((k) => (
               <button
                 key={k.key}
@@ -353,10 +426,10 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
         {stats ? (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
             <StatCard label="Posição atual" value={String(stats.current)} />
-            <StatCard label="Melhor posição" value={String(stats.best)} />
-            <StatCard label="Pior posição" value={String(stats.worst)} />
+            <StatCard label="Melhor posição registrada" value={String(stats.best)} />
+            <StatCard label="Pior posição registrada" value={String(stats.worst)} />
             <StatCard
-              label="Variação da última"
+              label="Variação da última medição"
               value={
                 stats.previous == null
                   ? "—"
@@ -372,15 +445,9 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
               tone={stats.delta > 0 ? "good" : stats.delta < 0 ? "warn" : "neutral"}
             />
             <StatCard
-              label="Status geral"
-              value={
-                stats.trend === "up"
-                  ? "Melhorando"
-                  : stats.trend === "down"
-                    ? "Perdendo posição"
-                    : "Estável"
-              }
-              tone={stats.trend === "up" ? "good" : stats.trend === "down" ? "warn" : "neutral"}
+              label="Status de visibilidade"
+              value={visibility?.label ?? "—"}
+              tone={visibility?.tone === "warn" ? "warn" : visibility?.tone === "good" ? "good" : "neutral"}
               icon={
                 stats.trend === "up" ? (
                   <TrendingUp className="h-3.5 w-3.5" />
@@ -419,13 +486,19 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
         {/* Executive text + actions */}
         {executive ? (
           <div className="rounded-lg border bg-muted/30 p-4">
-            <p className="text-sm">{executive}</p>
+            <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Leitura do ranking
+            </div>
+            <p className="mt-2 text-sm">{executive}</p>
             {actions.length > 0 ? (
-              <ul className="mt-3 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
-                {actions.map((a, i) => (
-                  <li key={i}>{a}</li>
-                ))}
-              </ul>
+              <>
+                <div className="mt-3 text-xs font-medium text-muted-foreground">Ação sugerida</div>
+                <ul className="mt-1 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+                  {actions.map((a, i) => (
+                    <li key={i}>{a}</li>
+                  ))}
+                </ul>
+              </>
             ) : null}
           </div>
         ) : null}
@@ -440,7 +513,7 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
-                  <XAxis dataKey="idx" tick={{ fontSize: 11 }} />
+                  <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                   <YAxis
                     reversed
                     domain={yDomain}
@@ -455,9 +528,7 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
                   />
                   <Tooltip
                     formatter={(v: number) => [`Posição ${v}`, ""]}
-                    labelFormatter={(_, p) =>
-                      Array.isArray(p) && p[0]?.payload?.date ? p[0].payload.date : ""
-                    }
+                    labelFormatter={(l) => String(l)}
                   />
                   <Line
                     type="monotone"
@@ -470,7 +541,7 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
               </ResponsiveContainer>
             </div>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              Eixo invertido: quanto mais alto no gráfico, melhor a posição.
+              Quanto menor o número, melhor a posição. Eixo invertido para leitura executiva.
             </p>
           </div>
         ) : null}
@@ -479,7 +550,7 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
         {losses.length > 0 ? (
           <div className="rounded-lg border p-4">
             <div className="mb-2 text-xs font-medium text-muted-foreground">
-              Palavras-chave com maior perda de posição
+              Palavras-chave com maior perda de ranking
             </div>
             <ul className="space-y-1 text-sm">
               {losses.map((m) => (
@@ -495,67 +566,78 @@ export function RankingRadar({ baseListingId, baseTitle }: Props) {
         ) : null}
 
         {/* History table */}
-        {kwEntries.length > 0 ? (
+        {entries.length > 0 ? (
           <div className="overflow-x-auto rounded-lg border">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Data</TableHead>
+                  <TableHead>Produto</TableHead>
+                  <TableHead>SKU</TableHead>
                   <TableHead>Palavra-chave</TableHead>
-                  <TableHead className="text-right">Posição</TableHead>
-                  <TableHead className="text-right">Anterior</TableHead>
+                  <TableHead className="text-right">Posição anterior</TableHead>
+                  <TableHead className="text-right">Posição atual</TableHead>
                   <TableHead className="text-right">Variação</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Observação</TableHead>
+                  <TableHead>Observações</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {kwEntries.map((e, idx) => {
-                  const prev = idx > 0 ? kwEntries[idx - 1].position : null;
-                  const delta = prev == null ? 0 : prev - e.position;
-                  const status =
-                    prev == null
-                      ? "Primeira medição"
-                      : delta > 0
-                        ? "Ganhou posição"
-                        : delta < 0
-                          ? "Perdeu posição"
-                          : "Manteve";
-                  return (
-                    <TableRow key={e.id}>
-                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                        {fmtDate(e.createdAt)}
-                      </TableCell>
-                      <TableCell className="text-sm">{e.keyword}</TableCell>
-                      <TableCell className="text-right font-medium">{e.position}</TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        {prev ?? "—"}
-                      </TableCell>
-                      <TableCell
-                        className={`text-right ${
-                          delta > 0 ? "text-emerald-700" : delta < 0 ? "text-amber-700" : ""
-                        }`}
-                      >
-                        {prev == null ? "—" : delta > 0 ? `+${delta}` : delta}
-                      </TableCell>
-                      <TableCell className="text-xs">{status}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
-                        {e.note ?? ""}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeEntry(e.id)}
-                          title="Remover"
+                {entries
+                  .slice()
+                  .reverse()
+                  .map((e) => {
+                    // find auto previous within same keyword
+                    const sameKw = entries.filter((x) => normKw(x.keyword) === normKw(e.keyword));
+                    const idxInKw = sameKw.findIndex((x) => x.id === e.id);
+                    const autoPrev = idxInKw > 0 ? sameKw[idxInKw - 1].position : null;
+                    const prev = e.previousManual ?? autoPrev;
+                    const delta = prev == null ? 0 : prev - e.position;
+                    const status =
+                      prev == null
+                        ? "Primeira medição"
+                        : delta > 0
+                          ? "Ganho de ranking"
+                          : delta < 0
+                            ? "Perda de ranking"
+                            : "Estável";
+                    return (
+                      <TableRow key={e.id}>
+                        <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                          {fmtDate(e.checkedAt)}
+                        </TableCell>
+                        <TableCell className="text-xs">{baseTitle}</TableCell>
+                        <TableCell className="font-mono text-xs">{e.sku ?? "—"}</TableCell>
+                        <TableCell className="text-sm">{e.keyword}</TableCell>
+                        <TableCell className="text-right text-muted-foreground">
+                          {prev ?? "—"}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">{e.position}</TableCell>
+                        <TableCell
+                          className={`text-right ${
+                            delta > 0 ? "text-emerald-700" : delta < 0 ? "text-amber-700" : ""
+                          }`}
                         >
-                          Remover
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                          {prev == null ? "—" : delta > 0 ? `+${delta}` : delta}
+                        </TableCell>
+                        <TableCell className="text-xs">{status}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground">
+                          {e.note ?? ""}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeEntry(e.id)}
+                            title="Remover"
+                          >
+                            Remover
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
               </TableBody>
             </Table>
           </div>

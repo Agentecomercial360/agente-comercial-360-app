@@ -15,6 +15,7 @@ import {
   Users,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { AccountsSyncStatus } from "@/components/ecommerce/AccountsSyncStatus";
 import {
   ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
@@ -396,6 +397,11 @@ function DashboardContent() {
             </button>
           </div>
         </section>
+
+        {/* Status das Contas */}
+        <AccountsSyncStatus />
+
+
 
 
         {/* Aviso de resultado parcial */}

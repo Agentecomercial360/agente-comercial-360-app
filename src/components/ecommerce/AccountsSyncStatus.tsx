@@ -86,7 +86,13 @@ const SITUATION_META: Record<Situation, { label: string; badge: string; icon: Re
   },
 };
 
-export function AccountsSyncStatus() {
+export function AccountsSyncStatus({
+  scope = "all",
+  activeAccountId = null,
+}: {
+  scope?: "active" | "all";
+  activeAccountId?: string | null;
+} = {}) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
@@ -132,7 +138,11 @@ export function AccountsSyncStatus() {
       if (!r.account_id) continue;
       if (!latestByAccount.has(r.account_id)) latestByAccount.set(r.account_id, r);
     }
-    const list: Row[] = accounts.map((a) => {
+    const source =
+      scope === "active" && activeAccountId
+        ? accounts.filter((a) => a.id === activeAccountId)
+        : accounts;
+    const list: Row[] = source.map((a) => {
       const run = latestByAccount.get(a.id) ?? null;
       return {
         accountId: a.id,
@@ -147,7 +157,9 @@ export function AccountsSyncStatus() {
       return a.name.localeCompare(b.name, "pt-BR");
     });
     return list;
-  }, [accounts, runs]);
+  }, [accounts, runs, scope, activeAccountId]);
+
+  const isActiveScope = scope === "active" && !!activeAccountId;
 
   return (
     <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
@@ -157,7 +169,9 @@ export function AccountsSyncStatus() {
             <Activity className="h-4 w-4 text-blue-700" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-foreground">Status das Contas</h2>
+            <h2 className="text-base font-semibold text-foreground">
+              {isActiveScope ? "Status da Conta Ativa" : "Status das Contas"}
+            </h2>
             <p className="text-xs text-muted-foreground max-w-2xl mt-0.5">
               Acompanhe se cada conta foi sincronizada, se houve vendas no período e se
               existe alguma falha de integração.

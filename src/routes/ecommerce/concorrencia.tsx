@@ -1643,7 +1643,11 @@ function ConcorrenciaInner() {
       </Card>
 
       {selectedBase ? (
-        <RankingRadar baseListingId={selectedBase.listing_id} baseTitle={selectedBase.title} />
+        <RankingRadar
+          baseListingId={selectedBase.listing_id}
+          baseTitle={selectedBase.title}
+          baseSku={selectedBase.sku}
+        />
       ) : null}
 
       {/* Manual entry dialog */}

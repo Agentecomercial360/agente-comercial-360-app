@@ -169,7 +169,9 @@ export function AccountsSyncStatus({
             <Activity className="h-4 w-4 text-blue-700" />
           </div>
           <div>
-            <h2 className="text-base font-semibold text-foreground">Status das Contas</h2>
+            <h2 className="text-base font-semibold text-foreground">
+              {isActiveScope ? "Status da Conta Ativa" : "Status das Contas"}
+            </h2>
             <p className="text-xs text-muted-foreground max-w-2xl mt-0.5">
               Acompanhe se cada conta foi sincronizada, se houve vendas no período e se
               existe alguma falha de integração.

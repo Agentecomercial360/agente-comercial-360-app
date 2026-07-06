@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { RankingRadar } from "@/components/ecommerce/RankingRadar";
 import {
   ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
@@ -1640,6 +1641,10 @@ function ConcorrenciaInner() {
           )}
         </CardContent>
       </Card>
+
+      {selectedBase ? (
+        <RankingRadar baseListingId={selectedBase.listing_id} baseTitle={selectedBase.title} />
+      ) : null}
 
       {/* Manual entry dialog */}
       <Dialog

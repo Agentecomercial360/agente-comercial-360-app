@@ -1642,6 +1642,10 @@ function ConcorrenciaInner() {
         </CardContent>
       </Card>
 
+      {selectedBase ? (
+        <RankingRadar baseListingId={selectedBase.listing_id} baseTitle={selectedBase.title} />
+      ) : null}
+
       {/* Manual entry dialog */}
       <Dialog
         open={manualOpen}

@@ -38,42 +38,48 @@ import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
 
 const navGroups = [
   {
-    title: "VISÃO",
+    title: "Visão Executiva",
     items: [
       { label: "Visão Geral", to: "/ecommerce/dashboard", icon: Store },
-    ],
-  },
-  {
-    title: "INTELIGÊNCIA",
-    items: [
-      { label: "Inteligência de Produtos", to: "/ecommerce/produtos", icon: ShoppingCart },
-      { label: "Produtos Estratégicos", to: "/ecommerce/produtos-estrategicos", icon: PieChart },
-      { label: "Produtos Problema", to: "/ecommerce/produtos-travados", icon: ShieldAlert },
-      { label: "Custos e Margem", to: "/ecommerce/custos-margem", icon: DollarSign },
-      { label: "Inteligência de Concorrência", to: "/ecommerce/concorrencia", icon: Target },
-    ],
-  },
-  {
-    title: "OPERAÇÃO",
-    items: [
-      { label: "Estoque e Compras", to: "/ecommerce/estoque", icon: Boxes },
-      { label: "Anúncios e Ads", to: "/ecommerce/ads", icon: Zap },
-      { label: "Mapa de Vendas", to: "/ecommerce/mapa-vendas", icon: Map },
-    ],
-  },
-  {
-    title: "AÇÕES",
-    items: [
       { label: "Central de Ações", to: "/ecommerce/prioridades", icon: TrendingUp },
-      { label: "Tarefas dos Operadores", to: "/ecommerce/tarefas", icon: ListTodo },
       { label: "Resultados das Ações", to: "/ecommerce/resultados", icon: BarChart3 },
     ],
   },
   {
-    title: "SISTEMA",
+    title: "Operação Mercado Livre",
+    items: [
+      { label: "Contas Mercado Livre", to: "/ecommerce/contas", icon: Link2 },
+      { label: "Produtos e Anúncios", to: "/ecommerce/produtos", icon: ShoppingCart },
+      { label: "Custos e Margem", to: "/ecommerce/custos-margem", icon: DollarSign },
+      { label: "Estoque e Compras", to: "/ecommerce/estoque", icon: Boxes },
+      { label: "Mapa de Vendas", to: "/ecommerce/mapa-vendas", icon: Map },
+    ],
+  },
+  {
+    title: "Crescimento",
+    items: [
+      { label: "Anúncios e Ads", to: "/ecommerce/ads", icon: Zap },
+      { label: "Inteligência de Concorrência", to: "/ecommerce/concorrencia", icon: Target },
+      { label: "Produtos Estratégicos", to: "/ecommerce/produtos-estrategicos", icon: PieChart },
+      { label: "Produtos Problema", to: "/ecommerce/produtos-travados", icon: ShieldAlert },
+    ],
+  },
+  {
+    title: "Execução",
+    items: [
+      { label: "Tarefas dos Operadores", to: "/ecommerce/tarefas", icon: ListTodo },
+    ],
+  },
+  {
+    title: "Inteligência",
     items: [
       { label: "Radar IA", to: "/ecommerce/radar-ia", icon: Radar },
       { label: "Consultor IA", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
+    ],
+  },
+  {
+    title: "Sistema",
+    items: [
       { label: "Configurações", to: "/ecommerce/configuracoes", icon: Settings },
     ],
   },
@@ -113,10 +119,10 @@ function SidebarNav({ path, signingOut, onSignOut, onNavigate }: SidebarNavProps
           </span>
         </div>
       </div>
-      <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-5">
+      <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-7">
         {navGroups.map((group, gi) => (
           <div key={gi}>
-            <div className="px-3.5 mb-2 text-[10px] font-semibold uppercase tracking-widest text-white/40">
+            <div className="px-3.5 mb-2.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">
               {group.title}
             </div>
             <div className="space-y-0.5">

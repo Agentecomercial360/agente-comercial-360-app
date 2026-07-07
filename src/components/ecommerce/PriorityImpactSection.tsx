@@ -4,9 +4,7 @@ import {
   DollarSign,
   Flame,
   Layers,
-  Loader2,
   Package,
-  Save,
   Target,
   TrendingUp,
   Zap,
@@ -19,7 +17,8 @@ type Props = {
   selectedAccountId: string | null;
   scopeLabel: string;
   reloadKey?: number;
-  onSaved?: () => void | Promise<void>;
+  /** DOM id of the "Produtos com custo pendente" section to focus/scroll on click. */
+  pendingCostsAnchorId?: string;
 };
 
 type OrderRow = {
@@ -35,7 +34,6 @@ type ItemRow = {
   product_name: string | null;
   quantity: number | null;
   total_price: number | null;
-  cost_price_at_sale: number | null;
   profit_status: string | null;
 };
 
@@ -72,20 +70,12 @@ function formatBRL(v: number | null | undefined): string {
   return n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-function parseBRLInput(v: string): number | null {
-  const norm = v.trim().replace(/\./g, "").replace(",", ".");
-  if (!norm) return null;
-  const n = Number(norm);
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
 async function fetchAll<T>(
   build: (from: number, to: number) => any,
   pageSize = 1000,
 ): Promise<T[]> {
   const out: T[] = [];
   let from = 0;
-  // hard cap to avoid runaway loops
   for (let i = 0; i < 50; i++) {
     const to = from + pageSize - 1;
     const { data, error } = await build(from, to);
@@ -103,17 +93,14 @@ export function PriorityImpactSection({
   selectedAccountId,
   scopeLabel,
   reloadKey = 0,
-  onSaved,
+  pendingCostsAnchorId = "pending-costs-table",
 }: Props) {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Row[]>([]);
-  const [inputs, setInputs] = useState<Record<string, string>>({});
-  const [savingId, setSavingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // 1) Orders in scope (not cancelled)
       let oq = supabase
         .from("ecommerce_orders")
         .select("id,account_id,is_cancelled")
@@ -130,7 +117,6 @@ export function PriorityImpactSection({
         return;
       }
 
-      // 2) Items for these orders
       const chunks: string[][] = [];
       for (let i = 0; i < orderIds.length; i += 500) chunks.push(orderIds.slice(i, i + 500));
       const itemsAll: ItemRow[] = [];
@@ -139,7 +125,7 @@ export function PriorityImpactSection({
           supabase
             .from("ecommerce_order_items")
             .select(
-              "order_id,product_id,sku,product_name,quantity,total_price,cost_price_at_sale,profit_status",
+              "order_id,product_id,sku,product_name,quantity,total_price,profit_status",
             )
             .eq("company_id", companyId)
             .in("order_id", c)
@@ -148,7 +134,6 @@ export function PriorityImpactSection({
         itemsAll.push(...items);
       }
 
-      // 3) Products
       const productIds = Array.from(
         new Set(itemsAll.map((i) => i.product_id).filter((x): x is string => !!x)),
       );
@@ -164,7 +149,6 @@ export function PriorityImpactSection({
         (data || []).forEach((p: any) => productMap.set(p.id, p as ProductRow));
       }
 
-      // 4) Accounts
       const { data: accData } = await supabase
         .from("ecommerce_accounts")
         .select("id,account_name,nickname")
@@ -172,7 +156,6 @@ export function PriorityImpactSection({
       const accMap = new Map<string, AccountRow>();
       (accData || []).forEach((a: any) => accMap.set(a.id, a as AccountRow));
 
-      // 5) Filter blocking items and group
       type Acc = {
         product_id: string;
         sku: string | null;
@@ -189,13 +172,9 @@ export function PriorityImpactSection({
         if (!it.product_id) continue;
         const prod = productMap.get(it.product_id);
         const prodCost = Number(prod?.cost_price ?? 0);
-        const saleCost = Number(it.cost_price_at_sale ?? 0);
         const status = (it.profit_status ?? "").toLowerCase();
         const isBlocked =
-          !prod?.cost_price ||
-          prodCost === 0 ||
-          saleCost === 0 ||
-          status === "pending_calculation";
+          !prod?.cost_price || prodCost === 0 || status === "pending_calculation";
         if (!isBlocked) continue;
 
         const order = it.order_id ? orderMap.get(it.order_id) : undefined;
@@ -278,42 +257,16 @@ export function PriorityImpactSection({
     };
   }, [rows]);
 
-  async function handleSave(row: Row) {
-    const raw = inputs[row.product_id] ?? "";
-    const parsed = parseBRLInput(raw);
-    if (parsed == null) {
-      toast.error("Informe um custo válido maior que zero.");
-      return;
-    }
-    setSavingId(row.product_id);
-    try {
-      const upd = await supabase
-        .from("ecommerce_products")
-        .update({ cost_price: parsed, updated_at: new Date().toISOString() })
-        .eq("id", row.product_id)
-        .eq("company_id", companyId);
-      if (upd.error) throw upd.error;
-      const rec = await supabase.rpc("recalculate_ecommerce_profit_v1", {
-        p_company_id: companyId,
-        p_product_id: row.product_id,
-      });
-      if (rec.error) {
-        toast.success("Custo salvo. Sincronize novamente para recalcular os pedidos.");
-      } else {
-        toast.success("Custo salvo e pedidos recalculados.");
-      }
-      setInputs((prev) => {
-        const n = { ...prev };
-        delete n[row.product_id];
-        return n;
-      });
-      await load();
-      await onSaved?.();
-    } catch (e: any) {
-      toast.error(e?.message || "Erro ao salvar custo.");
-    } finally {
-      setSavingId(null);
-    }
+  function focusPendingCosts() {
+    if (typeof document === "undefined") return;
+    const el = document.getElementById(pendingCostsAnchorId);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    // Best-effort focus for keyboard/AT users.
+    const focusable = el.querySelector<HTMLElement>(
+      "input, button, [tabindex]:not([tabindex='-1'])",
+    );
+    focusable?.focus({ preventScroll: true });
   }
 
   const cards = [
@@ -360,8 +313,8 @@ export function PriorityImpactSection({
               Produtos Prioritários por Impacto
             </h2>
             <p className="text-xs md:text-[13px] text-slate-600">
-              Veja quais SKUs destravam mais faturamento, pedidos e margem quando o custo é
-              cadastrado.
+              Visão de diagnóstico: quais SKUs destravam mais faturamento, pedidos e margem
+              quando o custo é cadastrado.
               <span className="ml-1 text-slate-500">Escopo: {scopeLabel}.</span>
             </p>
           </div>
@@ -442,95 +395,66 @@ export function PriorityImpactSection({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {rows.map((r) => {
-                  const inputVal = inputs[r.product_id] ?? "";
-                  const parsed = parseBRLInput(inputVal);
-                  const isSaving = savingId === r.product_id;
-                  return (
-                    <tr key={r.product_id} className="hover:bg-slate-50/60 transition align-top">
-                      <td className="px-3 py-3">
-                        <PriorityBadge p={r.priority} />
-                      </td>
-                      <td className="px-3 py-3">
-                        <div className="font-semibold text-slate-900 leading-tight">
-                          {r.product_name ?? "Produto sem nome"}
+                {rows.map((r) => (
+                  <tr key={r.product_id} className="hover:bg-slate-50/60 transition align-top">
+                    <td className="px-3 py-3">
+                      <PriorityBadge p={r.priority} />
+                    </td>
+                    <td className="px-3 py-3">
+                      <div className="font-semibold text-slate-900 leading-tight">
+                        {r.product_name ?? "Produto sem nome"}
+                      </div>
+                    </td>
+                    <td className="px-3 py-3 font-mono text-xs text-slate-500">
+                      {r.sku ?? "—"}
+                    </td>
+                    <td className="px-3 py-3 text-xs">
+                      {r.accountNames.length === 0 ? (
+                        <span className="text-slate-400">—</span>
+                      ) : (
+                        <div className="flex flex-wrap gap-1">
+                          {r.accountNames.slice(0, 2).map((n, i) => (
+                            <span
+                              key={i}
+                              className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] text-slate-700"
+                            >
+                              {n}
+                            </span>
+                          ))}
+                          {r.accountNames.length > 2 && (
+                            <span className="text-[10px] text-slate-500">
+                              +{r.accountNames.length - 2}
+                            </span>
+                          )}
                         </div>
-                      </td>
-                      <td className="px-3 py-3 font-mono text-xs text-slate-500">
-                        {r.sku ?? "—"}
-                      </td>
-                      <td className="px-3 py-3 text-xs">
-                        {r.accountNames.length === 0 ? (
-                          <span className="text-slate-400">—</span>
-                        ) : (
-                          <div className="flex flex-wrap gap-1">
-                            {r.accountNames.slice(0, 2).map((n, i) => (
-                              <span
-                                key={i}
-                                className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] text-slate-700"
-                              >
-                                {n}
-                              </span>
-                            ))}
-                            {r.accountNames.length > 2 && (
-                              <span className="text-[10px] text-slate-500">
-                                +{r.accountNames.length - 2}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-3 py-3 text-right tabular-nums">
-                        {r.quantity.toLocaleString("pt-BR")}
-                      </td>
-                      <td className="px-3 py-3 text-right tabular-nums">
-                        {r.orders.toLocaleString("pt-BR")}
-                      </td>
-                      <td className="px-3 py-3 text-right tabular-nums font-semibold text-rose-700 whitespace-nowrap">
-                        {formatBRL(r.blockedRevenue)}
-                      </td>
-                      <td className="px-3 py-3 text-xs text-slate-700">
-                        <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5">
-                          <Zap className="h-3 w-3 text-amber-600" />
-                          {r.reason}
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 text-right">
-                        <div className="inline-flex items-center gap-1.5">
-                          <input
-                            type="text"
-                            inputMode="decimal"
-                            value={inputVal}
-                            onChange={(e) =>
-                              setInputs((prev) => ({
-                                ...prev,
-                                [r.product_id]: e.target.value,
-                              }))
-                            }
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && parsed != null) void handleSave(r);
-                            }}
-                            placeholder="Custo R$"
-                            disabled={isSaving}
-                            className="w-24 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-right text-xs tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
-                          />
-                          <button
-                            onClick={() => handleSave(r)}
-                            disabled={isSaving || parsed == null}
-                            className="inline-flex items-center gap-1 rounded-md bg-blue-700 px-2 py-1.5 text-[11px] font-semibold text-white hover:bg-blue-800 disabled:opacity-50 transition"
-                          >
-                            {isSaving ? (
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                            ) : (
-                              <Save className="h-3 w-3" />
-                            )}
-                            Cadastrar custo
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                      )}
+                    </td>
+                    <td className="px-3 py-3 text-right tabular-nums">
+                      {r.quantity.toLocaleString("pt-BR")}
+                    </td>
+                    <td className="px-3 py-3 text-right tabular-nums">
+                      {r.orders.toLocaleString("pt-BR")}
+                    </td>
+                    <td className="px-3 py-3 text-right tabular-nums font-semibold text-rose-700 whitespace-nowrap">
+                      {formatBRL(r.blockedRevenue)}
+                    </td>
+                    <td className="px-3 py-3 text-xs text-slate-700">
+                      <span className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-0.5">
+                        <Zap className="h-3 w-3 text-amber-600" />
+                        {r.reason}
+                      </span>
+                    </td>
+                    <td className="px-3 py-3 text-right">
+                      <button
+                        type="button"
+                        onClick={focusPendingCosts}
+                        className="inline-flex items-center gap-1 rounded-md bg-blue-700 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-blue-800 transition"
+                      >
+                        Cadastrar custo
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

@@ -964,33 +964,36 @@ function CustosMargemContent() {
         </section>
 
         {/* Custos e Margem — tela operacional (inline save) */}
-        <PendingCostsTable
-          rows={soldNoCost.map<PendingCostRow>((r) => ({
-            product_id: r.product.id,
-            sku: r.product.sku,
-            product_name: r.product.product_name,
-            cost_price: r.product.cost_price,
-            orders: r.orders,
-            units: r.units,
-            revenue: r.revenue,
-            accountNames: r.accountNames,
-          }))}
-          loading={loading}
-          companyId={COMPANY_ID}
-          scopeLabel={selectedAccountName}
-          onSaved={async () => {
-            setImpactReloadKey((k) => k + 1);
-            await load();
-          }}
-        />
+        <div id="pending-costs-table">
+          <PendingCostsTable
+            rows={soldNoCost.map<PendingCostRow>((r) => ({
+              product_id: r.product.id,
+              sku: r.product.sku,
+              product_name: r.product.product_name,
+              cost_price: r.product.cost_price,
+              orders: r.orders,
+              units: r.units,
+              revenue: r.revenue,
+              accountNames: r.accountNames,
+            }))}
+            loading={loading}
+            companyId={COMPANY_ID}
+            scopeLabel={selectedAccountName}
+            onSaved={async () => {
+              setImpactReloadKey((k) => k + 1);
+              await load();
+            }}
+          />
+        </div>
 
         <PriorityImpactSection
           companyId={COMPANY_ID}
           selectedAccountId={selectedAccountId}
           scopeLabel={selectedAccountName}
           reloadKey={impactReloadKey}
-          onSaved={() => setImpactReloadKey((k) => k + 1)}
+          pendingCostsAnchorId="pending-costs-table"
         />
+
 
 
 

@@ -1752,49 +1752,26 @@ function EditCostModal({
     }
     setSaving(true);
     try {
-      const { data, error } = await supabase.rpc(
-        "update_ecommerce_product_cost_v2",
-        {
-          p_company_id: COMPANY_ID,
-          p_product_id: product.id,
-          p_cost_price: parsed,
-          p_changed_by: "AC360 painel",
-          p_notes: "Custo atualizado pela tela de Custos e Margem",
-        },
-      );
-      if (error) throw error;
+      const update = await supabase
+        .from("ecommerce_products")
+        .update({
+          cost_price: parsed,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", product.id)
+        .eq("company_id", COMPANY_ID);
+      if (update.error) throw update.error;
 
-      const result = (Array.isArray(data) ? data[0] : data) as
-        | {
-            success?: boolean;
-            message?: string;
-            sku?: string;
-            product_name?: string;
-            old_cost_price?: number | string;
-            new_cost_price?: number | string;
-            items_recalculated?: number;
-            orders_recalculated?: number;
-            orders_high_confidence?: number;
-            orders_pending_cost?: number;
-          }
-        | null;
+      const recalc = await supabase.rpc("recalculate_ecommerce_profit_v1", {
+        p_company_id: COMPANY_ID,
+        p_product_id: product.id,
+      });
 
-      if (result && result.success === false) {
-        toast.error(result.message || "Erro ao atualizar custo.");
-        return;
+      if (recalc.error) {
+        toast.success("Custo salvo. Sincronize novamente para recalcular os pedidos.");
+      } else {
+        toast.success("Custo salvo e pedidos recalculados.");
       }
-
-      const oldCost = Number(result?.old_cost_price ?? currentCost) || 0;
-      const newCost = Number(result?.new_cost_price ?? parsed) || parsed;
-      const items = result?.items_recalculated ?? 0;
-      const orders = result?.orders_recalculated ?? 0;
-
-      toast.success(
-        "Custo atualizado com sucesso. Pedidos impactados recalculados.",
-        {
-          description: `SKU ${result?.sku ?? product.sku ?? "—"} • ${formatBRL(oldCost)} → ${formatBRL(newCost)} • ${items} itens / ${orders} pedidos recalculados`,
-        },
-      );
       onSaved();
     } catch (e: any) {
       toast.error(e?.message || "Erro ao atualizar custo.");

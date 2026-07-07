@@ -450,18 +450,33 @@ function BaseConhecimentoPage() {
           <div className="relative flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
             <div className="max-w-2xl">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-300 ring-1 ring-emerald-400/30">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                  BASE ATIVA
-                </span>
-                <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
-                  CONTEÚDO ORGANIZADO
-                </span>
+                {(() => {
+                  const map: Record<KbLoadStatus, { label: string; dot: string; cls: string }> = {
+                    loading: { label: "CARREGANDO BASE", dot: "bg-blue-300 animate-pulse", cls: "bg-blue-500/15 text-blue-200 ring-blue-400/30" },
+                    loaded: { label: "CONECTADA • DADOS REAIS", dot: "bg-emerald-400", cls: "bg-emerald-500/15 text-emerald-300 ring-emerald-400/30" },
+                    empty: { label: "SEM REGISTROS", dot: "bg-amber-300", cls: "bg-amber-500/15 text-amber-200 ring-amber-400/30" },
+                    unauthenticated: { label: "SESSÃO NÃO IDENTIFICADA", dot: "bg-slate-300", cls: "bg-slate-500/20 text-slate-200 ring-slate-400/30" },
+                    error: { label: "ERRO AO CARREGAR", dot: "bg-rose-400", cls: "bg-rose-500/15 text-rose-200 ring-rose-400/30" },
+                  };
+                  const s = map[kbLoadStatus];
+                  return (
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide ring-1 ${s.cls}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
+                      {s.label}
+                    </span>
+                  );
+                })()}
+                {activeCompanyName && (
+                  <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
+                    {activeCompanyName}
+                  </span>
+                )}
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-100 ring-1 ring-white/20">
                   <Sparkles className="h-3 w-3" />
                   INTELIGÊNCIA APLICADA
                 </span>
               </div>
+
               <h1 className="mt-3 text-3xl font-bold tracking-tight text-white">
                 Base de Conhecimento
               </h1>

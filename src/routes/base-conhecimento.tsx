@@ -515,7 +515,16 @@ function BaseConhecimentoPage() {
           </div>
         </div>
 
+        {/* Aviso de conexão parcial */}
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 flex items-start gap-3">
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-amber-600" />
+          <p className="leading-relaxed">
+            Esta tela já está conectada para leitura da base de conhecimento da empresa. Cadastro e edição serão conectados na próxima etapa.
+          </p>
+        </div>
+
         {/* Summary cards */}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {summary.map((s) => {
             const Icon = s.icon;

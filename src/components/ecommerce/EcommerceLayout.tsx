@@ -59,22 +59,12 @@ const navGroups = [
     title: "Crescimento",
     items: [
       { label: "Anúncios e Ads", to: "/ecommerce/ads", icon: Zap },
-      { label: "Inteligência de Concorrência", to: "/ecommerce/concorrencia", icon: Target },
-      { label: "Produtos Estratégicos", to: "/ecommerce/produtos-estrategicos", icon: PieChart },
-      { label: "Produtos Problema", to: "/ecommerce/produtos-travados", icon: ShieldAlert },
-    ],
-  },
-  {
-    title: "Execução",
-    items: [
-      { label: "Tarefas dos Operadores", to: "/ecommerce/tarefas", icon: ListTodo },
     ],
   },
   {
     title: "Inteligência",
     items: [
       { label: "Radar IA", to: "/ecommerce/radar-ia", icon: Radar },
-      { label: "Consultor IA", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
     ],
   },
   {

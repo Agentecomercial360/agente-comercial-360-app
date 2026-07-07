@@ -962,6 +962,29 @@ function CustosMargemContent() {
           )}
         </section>
 
+        {/* Custos e Margem — tela operacional (inline save) */}
+        <PendingCostsTable
+          rows={soldNoCost.map<PendingCostRow>((r) => ({
+            product_id: r.product.id,
+            sku: r.product.sku,
+            product_name: r.product.product_name,
+            cost_price: r.product.cost_price,
+            orders: r.orders,
+            units: r.units,
+            revenue: r.revenue,
+            accountNames: r.accountNames,
+          }))}
+          loading={loading}
+          companyId={COMPANY_ID}
+          scopeLabel={selectedAccountName}
+          onSaved={async () => {
+            setImpactReloadKey((k) => k + 1);
+            await load();
+          }}
+        />
+
+
+
 
         {/* Evolução do lucro bloqueado */}
         <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/40 to-white shadow-[var(--shadow-soft)] overflow-hidden">

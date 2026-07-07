@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   Target,
   Search,
@@ -733,161 +733,160 @@ function CentralAcoesInner() {
           </section>
 
           {/* Table */}
-          <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
-                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Prioridade</th>
-                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Produto / Anúncio</th>
-                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">SKU</th>
-                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Conta ML</th>
-                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Tipo de ação</th>
-                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Motivo</th>
-                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Ação recomendada</th>
-                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Status</th>
-                    <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Faturamento afetado</th>
-                    <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Atualização</th>
-                    <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Ação</th>
+          <ScrollableTableSection>
+            <table className="w-full text-sm min-w-[1400px]">
+              <thead>
+                <tr className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <th className="sticky left-0 z-20 bg-muted/60 backdrop-blur px-4 py-3 text-left font-semibold whitespace-nowrap shadow-[1px_0_0_0_var(--color-border)]">Prioridade</th>
+                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Produto / Anúncio</th>
+                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">SKU</th>
+                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Conta ML</th>
+                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Tipo de ação</th>
+                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Motivo</th>
+                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Ação recomendada</th>
+                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Status</th>
+                  <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Faturamento afetado</th>
+                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Atualização</th>
+                  <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Ação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={11} className="px-5 py-16 text-center text-muted-foreground">
+                      <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {loading ? (
-                    <tr>
-                      <td colSpan={11} className="px-5 py-16 text-center text-muted-foreground">
-                        <Loader2 className="h-5 w-5 animate-spin mx-auto" />
-                      </td>
-                    </tr>
-                  ) : filteredActions.length === 0 ? (
-                    <tr>
-                      <td colSpan={11} className="px-5 py-16 text-center">
-                        <div className="mx-auto max-w-md space-y-2">
-                          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-                            <ListChecks className="h-6 w-6" />
-                          </div>
-                          <div className="font-display text-base font-semibold text-foreground">
-                            Nenhuma ação corresponde aos filtros atuais.
-                          </div>
+                ) : filteredActions.length === 0 ? (
+                  <tr>
+                    <td colSpan={11} className="px-5 py-16 text-center">
+                      <div className="mx-auto max-w-md space-y-2">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+                          <ListChecks className="h-6 w-6" />
                         </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredActions.map((a) => {
-                      const isCostAction =
-                        a.type === "register_cost" ||
-                        a.type === "prioritize_cost" ||
-                        a.type === "release_margin";
-                      return (
-                        <tr key={a.id} className="border-t border-border/60 hover:bg-muted/20 align-top">
-                          <td className="px-4 py-3">
-                            <PriorityBadge p={a.priority} />
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="font-semibold text-foreground line-clamp-2">
-                              {a.product?.product_name || a.listing?.title || "—"}
+                        <div className="font-display text-base font-semibold text-foreground">
+                          Nenhuma ação corresponde aos filtros atuais.
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredActions.map((a) => {
+                    const isCostAction =
+                      a.type === "register_cost" ||
+                      a.type === "prioritize_cost" ||
+                      a.type === "release_margin";
+                    return (
+                      <tr key={a.id} className="group border-t border-border/60 hover:bg-muted/20 align-top">
+                        <td className="sticky left-0 z-10 bg-card group-hover:bg-muted/40 px-4 py-3 shadow-[1px_0_0_0_var(--color-border)]">
+                          <PriorityBadge p={a.priority} />
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="font-semibold text-foreground line-clamp-2">
+                            {a.product?.product_name || a.listing?.title || "—"}
+                          </div>
+                          {a.listing?.ml_item_id && (
+                            <div className="text-[11px] text-muted-foreground mt-0.5 inline-flex items-center gap-1">
+                              <Tag className="h-3 w-3" />
+                              {a.listing.ml_item_id}
                             </div>
-                            {a.listing?.ml_item_id && (
-                              <div className="text-[11px] text-muted-foreground mt-0.5 inline-flex items-center gap-1">
-                                <Tag className="h-3 w-3" />
-                                {a.listing.ml_item_id}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-xs">
-                            {a.product?.sku ? (
-                              <span className="inline-flex items-center gap-1 font-mono text-foreground/80">
-                                <Hash className="h-3 w-3" />
-                                {a.product.sku}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-xs">
-                            {a.accountNames.length === 0 ? (
-                              <span className="text-muted-foreground">—</span>
-                            ) : (
-                              <div className="flex flex-wrap gap-1">
-                                {a.accountNames.slice(0, 2).map((n, i) => (
-                                  <span
-                                    key={i}
-                                    className="rounded-md border border-border bg-background px-1.5 py-0.5 text-[10px] text-foreground/80"
-                                  >
-                                    {n}
-                                  </span>
-                                ))}
-                                {a.accountNames.length > 2 && (
-                                  <span className="text-[10px] text-muted-foreground">
-                                    +{a.accountNames.length - 2}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                          </td>
-                          <td className="px-4 py-3">
-                            <ActionTypeBadge type={a.type} label={a.typeLabel} />
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground max-w-[240px]">
-                            {a.reason}
-                          </td>
-                          <td className="px-4 py-3 text-foreground max-w-[280px]">
-                            {a.recommendation}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            {isCostAction ? (
-                              <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
-                                <AlertTriangle className="h-3 w-3" />
-                                Sem custo
-                              </span>
-                            ) : (
-                              <StatusBadge status={a.listing?.status ?? null} />
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap">
-                            {a.affectedRevenue != null ? (
-                              <span className="font-semibold text-rose-700">
-                                {fmtBRL(a.affectedRevenue)}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                            {fmtDate(a.updatedAt)}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            {a.ctaHref ? (
-                              a.ctaExternal ? (
-                                <a
-                                  href={a.ctaHref}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted/40"
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-xs">
+                          {a.product?.sku ? (
+                            <span className="inline-flex items-center gap-1 font-mono text-foreground/80">
+                              <Hash className="h-3 w-3" />
+                              {a.product.sku}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-xs">
+                          {a.accountNames.length === 0 ? (
+                            <span className="text-muted-foreground">—</span>
+                          ) : (
+                            <div className="flex flex-wrap gap-1">
+                              {a.accountNames.slice(0, 2).map((n, i) => (
+                                <span
+                                  key={i}
+                                  className="rounded-md border border-border bg-background px-1.5 py-0.5 text-[10px] text-foreground/80"
                                 >
-                                  {a.ctaLabel}
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                </a>
-                              ) : (
-                                <Link
-                                  to="/ecommerce/custos-margem"
-                                  hash="pending-costs-table"
-                                  className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-800"
-                                >
-                                  {a.ctaLabel}
-                                </Link>
-                              )
+                                  {n}
+                                </span>
+                              ))}
+                              {a.accountNames.length > 2 && (
+                                <span className="text-[10px] text-muted-foreground">
+                                  +{a.accountNames.length - 2}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <ActionTypeBadge type={a.type} label={a.typeLabel} />
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground max-w-[240px]">
+                          {a.reason}
+                        </td>
+                        <td className="px-4 py-3 text-foreground max-w-[280px]">
+                          {a.recommendation}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          {isCostAction ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
+                              <AlertTriangle className="h-3 w-3" />
+                              Sem custo
+                            </span>
+                          ) : (
+                            <StatusBadge status={a.listing?.status ?? null} />
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap">
+                          {a.affectedRevenue != null ? (
+                            <span className="font-semibold text-rose-700">
+                              {fmtBRL(a.affectedRevenue)}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                          {fmtDate(a.updatedAt)}
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          {a.ctaHref ? (
+                            a.ctaExternal ? (
+                              <a
+                                href={a.ctaHref}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted/40"
+                              >
+                                {a.ctaLabel}
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </a>
                             ) : (
-                              <span className="text-xs text-muted-foreground">—</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </section>
+                              <Link
+                                to="/ecommerce/custos-margem"
+                                hash="pending-costs-table"
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-800"
+                              >
+                                {a.ctaLabel}
+                              </Link>
+                            )
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </ScrollableTableSection>
+
         </>
       )}
     </div>
@@ -967,3 +966,93 @@ function StatusBadge({ status }: { status: string | null }) {
     </span>
   );
 }
+
+function ScrollableTableSection({ children }: { children: React.ReactNode }) {
+  const tableWrapRef = useRef<HTMLDivElement | null>(null);
+  const topProxyRef = useRef<HTMLDivElement | null>(null);
+  const [contentWidth, setContentWidth] = useState(0);
+  const [showLeftFade, setShowLeftFade] = useState(false);
+  const [showRightFade, setShowRightFade] = useState(false);
+  const syncingRef = useRef<"top" | "bottom" | null>(null);
+
+  const updateFades = useCallback(() => {
+    const el = tableWrapRef.current;
+    if (!el) return;
+    setShowLeftFade(el.scrollLeft > 4);
+    setShowRightFade(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = tableWrapRef.current;
+    if (!el) return;
+    const measure = () => {
+      setContentWidth(el.scrollWidth);
+      updateFades();
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [updateFades, children]);
+
+  const handleBottomScroll = () => {
+    if (syncingRef.current === "top") { syncingRef.current = null; return; }
+    const bottom = tableWrapRef.current;
+    const top = topProxyRef.current;
+    if (bottom && top && top.scrollLeft !== bottom.scrollLeft) {
+      syncingRef.current = "bottom";
+      top.scrollLeft = bottom.scrollLeft;
+    }
+    updateFades();
+  };
+
+  const handleTopScroll = () => {
+    if (syncingRef.current === "bottom") { syncingRef.current = null; return; }
+    const bottom = tableWrapRef.current;
+    const top = topProxyRef.current;
+    if (bottom && top && bottom.scrollLeft !== top.scrollLeft) {
+      syncingRef.current = "top";
+      bottom.scrollLeft = top.scrollLeft;
+    }
+  };
+
+  return (
+    <section className="relative rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)]">
+      {/* Sticky top scrollbar synced with table */}
+      <div
+        ref={topProxyRef}
+        onScroll={handleTopScroll}
+        className="sticky top-[64px] z-30 overflow-x-auto overflow-y-hidden rounded-t-2xl border-b border-border/60 bg-card/95 backdrop-blur"
+        style={{ height: 14 }}
+        aria-hidden="true"
+      >
+        <div style={{ width: contentWidth, height: 1 }} />
+      </div>
+
+      <div className="relative">
+        {/* Edge fades */}
+        <div
+          className={`pointer-events-none absolute inset-y-0 left-0 w-8 z-10 bg-gradient-to-r from-card to-transparent transition-opacity ${showLeftFade ? "opacity-100" : "opacity-0"}`}
+        />
+        <div
+          className={`pointer-events-none absolute inset-y-0 right-0 w-10 z-10 bg-gradient-to-l from-card to-transparent transition-opacity ${showRightFade ? "opacity-100" : "opacity-0"}`}
+        />
+
+        <div
+          ref={tableWrapRef}
+          onScroll={handleBottomScroll}
+          className="overflow-x-auto overflow-y-visible"
+        >
+          {children}
+        </div>
+      </div>
+
+    </section>
+  );
+}
+

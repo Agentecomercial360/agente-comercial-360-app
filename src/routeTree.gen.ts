@@ -44,6 +44,7 @@ import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
 import { Route as EcommerceConsultorIaRouteImport } from './routes/ecommerce/consultor-ia'
 import { Route as EcommerceConfiguracoesRouteImport } from './routes/ecommerce/configuracoes'
 import { Route as EcommerceConcorrenciaRouteImport } from './routes/ecommerce/concorrencia'
+import { Route as EcommerceBaseIaRouteImport } from './routes/ecommerce/base-ia'
 import { Route as EcommerceAdsRouteImport } from './routes/ecommerce/ads'
 import { Route as AdminUsuariosRouteImport } from './routes/admin/usuarios'
 import { Route as AdminPlanosRouteImport } from './routes/admin/planos'
@@ -231,6 +232,11 @@ const EcommerceConcorrenciaRoute = EcommerceConcorrenciaRouteImport.update({
   path: '/ecommerce/concorrencia',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceBaseIaRoute = EcommerceBaseIaRouteImport.update({
+  id: '/ecommerce/base-ia',
+  path: '/ecommerce/base-ia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EcommerceAdsRoute = EcommerceAdsRouteImport.update({
   id: '/ecommerce/ads',
   path: '/ecommerce/ads',
@@ -304,6 +310,7 @@ export interface FileRoutesByFullPath {
   '/admin/planos': typeof AdminPlanosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
+  '/ecommerce/base-ia': typeof EcommerceBaseIaRoute
   '/ecommerce/concorrencia': typeof EcommerceConcorrenciaRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -350,6 +357,7 @@ export interface FileRoutesByTo {
   '/admin/planos': typeof AdminPlanosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
+  '/ecommerce/base-ia': typeof EcommerceBaseIaRoute
   '/ecommerce/concorrencia': typeof EcommerceConcorrenciaRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -397,6 +405,7 @@ export interface FileRoutesById {
   '/admin/planos': typeof AdminPlanosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
+  '/ecommerce/base-ia': typeof EcommerceBaseIaRoute
   '/ecommerce/concorrencia': typeof EcommerceConcorrenciaRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -445,6 +454,7 @@ export interface FileRouteTypes {
     | '/admin/planos'
     | '/admin/usuarios'
     | '/ecommerce/ads'
+    | '/ecommerce/base-ia'
     | '/ecommerce/concorrencia'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -491,6 +501,7 @@ export interface FileRouteTypes {
     | '/admin/planos'
     | '/admin/usuarios'
     | '/ecommerce/ads'
+    | '/ecommerce/base-ia'
     | '/ecommerce/concorrencia'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -537,6 +548,7 @@ export interface FileRouteTypes {
     | '/admin/planos'
     | '/admin/usuarios'
     | '/ecommerce/ads'
+    | '/ecommerce/base-ia'
     | '/ecommerce/concorrencia'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -584,6 +596,7 @@ export interface RootRouteChildren {
   AdminPlanosRoute: typeof AdminPlanosRoute
   AdminUsuariosRoute: typeof AdminUsuariosRoute
   EcommerceAdsRoute: typeof EcommerceAdsRoute
+  EcommerceBaseIaRoute: typeof EcommerceBaseIaRoute
   EcommerceConcorrenciaRoute: typeof EcommerceConcorrenciaRoute
   EcommerceConfiguracoesRoute: typeof EcommerceConfiguracoesRoute
   EcommerceConsultorIaRoute: typeof EcommerceConsultorIaRoute
@@ -851,6 +864,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommerceConcorrenciaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/base-ia': {
+      id: '/ecommerce/base-ia'
+      path: '/ecommerce/base-ia'
+      fullPath: '/ecommerce/base-ia'
+      preLoaderRoute: typeof EcommerceBaseIaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ecommerce/ads': {
       id: '/ecommerce/ads'
       path: '/ecommerce/ads'
@@ -944,6 +964,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminPlanosRoute: AdminPlanosRoute,
   AdminUsuariosRoute: AdminUsuariosRoute,
   EcommerceAdsRoute: EcommerceAdsRoute,
+  EcommerceBaseIaRoute: EcommerceBaseIaRoute,
   EcommerceConcorrenciaRoute: EcommerceConcorrenciaRoute,
   EcommerceConfiguracoesRoute: EcommerceConfiguracoesRoute,
   EcommerceConsultorIaRoute: EcommerceConsultorIaRoute,

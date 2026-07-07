@@ -119,10 +119,10 @@ function SidebarNav({ path, signingOut, onSignOut, onNavigate }: SidebarNavProps
           </span>
         </div>
       </div>
-      <nav className="flex-1 overflow-y-auto px-3 py-5 space-y-5">
+      <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-7">
         {navGroups.map((group, gi) => (
           <div key={gi}>
-            <div className="px-3.5 mb-2 text-[10px] font-semibold uppercase tracking-widest text-white/40">
+            <div className="px-3.5 mb-2.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/35">
               {group.title}
             </div>
             <div className="space-y-0.5">

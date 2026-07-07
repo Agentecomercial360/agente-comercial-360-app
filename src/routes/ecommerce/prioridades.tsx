@@ -966,3 +966,118 @@ function StatusBadge({ status }: { status: string | null }) {
     </span>
   );
 }
+
+function ScrollableTableSection({ children }: { children: React.ReactNode }) {
+  const tableWrapRef = useRef<HTMLDivElement | null>(null);
+  const topProxyRef = useRef<HTMLDivElement | null>(null);
+  const [contentWidth, setContentWidth] = useState(0);
+  const [showLeftFade, setShowLeftFade] = useState(false);
+  const [showRightFade, setShowRightFade] = useState(false);
+  const syncingRef = useRef<"top" | "bottom" | null>(null);
+
+  const updateFades = useCallback(() => {
+    const el = tableWrapRef.current;
+    if (!el) return;
+    setShowLeftFade(el.scrollLeft > 4);
+    setShowRightFade(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    const el = tableWrapRef.current;
+    if (!el) return;
+    const measure = () => {
+      setContentWidth(el.scrollWidth);
+      updateFades();
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    window.addEventListener("resize", measure);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [updateFades, children]);
+
+  const handleBottomScroll = () => {
+    if (syncingRef.current === "top") { syncingRef.current = null; return; }
+    const bottom = tableWrapRef.current;
+    const top = topProxyRef.current;
+    if (bottom && top && top.scrollLeft !== bottom.scrollLeft) {
+      syncingRef.current = "bottom";
+      top.scrollLeft = bottom.scrollLeft;
+    }
+    updateFades();
+  };
+
+  const handleTopScroll = () => {
+    if (syncingRef.current === "bottom") { syncingRef.current = null; return; }
+    const bottom = tableWrapRef.current;
+    const top = topProxyRef.current;
+    if (bottom && top && bottom.scrollLeft !== top.scrollLeft) {
+      syncingRef.current = "top";
+      bottom.scrollLeft = top.scrollLeft;
+    }
+  };
+
+  return (
+    <section className="relative rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)]">
+      {/* Sticky top scrollbar synced with table */}
+      <div
+        ref={topProxyRef}
+        onScroll={handleTopScroll}
+        className="sticky top-[64px] z-30 overflow-x-auto overflow-y-hidden rounded-t-2xl border-b border-border/60 bg-card/95 backdrop-blur"
+        style={{ height: 14 }}
+        aria-hidden="true"
+      >
+        <div style={{ width: contentWidth, height: 1 }} />
+      </div>
+
+      <div className="relative">
+        {/* Edge fades */}
+        <div
+          className={`pointer-events-none absolute inset-y-0 left-0 w-8 z-10 bg-gradient-to-r from-card to-transparent transition-opacity ${showLeftFade ? "opacity-100" : "opacity-0"}`}
+        />
+        <div
+          className={`pointer-events-none absolute inset-y-0 right-0 w-10 z-10 bg-gradient-to-l from-card to-transparent transition-opacity ${showRightFade ? "opacity-100" : "opacity-0"}`}
+        />
+
+        <div
+          ref={tableWrapRef}
+          onScroll={handleBottomScroll}
+          className="overflow-x-auto overflow-y-visible"
+        >
+          {children}
+        </div>
+      </div>
+
+      {/* Sticky bottom scrollbar (always accessible) */}
+      <div
+        ref={(el) => {
+          // secondary sticky-bottom proxy uses same width — mount as separate div
+          if (!el) return;
+        }}
+        className="sticky bottom-0 z-30 overflow-x-auto overflow-y-hidden rounded-b-2xl border-t border-border/60 bg-card/95 backdrop-blur"
+        style={{ height: 14 }}
+        aria-hidden="true"
+        onScroll={(e) => {
+          if (syncingRef.current === "top") { syncingRef.current = null; return; }
+          const bottom = tableWrapRef.current;
+          const top = topProxyRef.current;
+          const src = e.currentTarget;
+          if (bottom && bottom.scrollLeft !== src.scrollLeft) {
+            syncingRef.current = "bottom";
+            bottom.scrollLeft = src.scrollLeft;
+          }
+          if (top && top.scrollLeft !== src.scrollLeft) {
+            top.scrollLeft = src.scrollLeft;
+          }
+        }}
+      >
+        <div style={{ width: contentWidth, height: 1 }} />
+      </div>
+    </section>
+  );
+}
+

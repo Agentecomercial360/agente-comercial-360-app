@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
 import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
+import { PendingCostsTable, type PendingCostRow } from "@/components/ecommerce/PendingCostsTable";
 import {
   ResponsiveContainer,
   ComposedChart,

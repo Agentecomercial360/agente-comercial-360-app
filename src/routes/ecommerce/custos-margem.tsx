@@ -984,6 +984,17 @@ function CustosMargemContent() {
           }}
         />
 
+        <PriorityImpactSection
+          companyId={COMPANY_ID}
+          selectedAccountId={selectedAccountId}
+          scopeLabel={selectedAccountName}
+          reloadKey={impactReloadKey}
+          onSaved={() => setImpactReloadKey((k) => k + 1)}
+        />
+
+
+
+
 
 
 

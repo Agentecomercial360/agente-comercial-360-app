@@ -7,22 +7,19 @@ import {
   Store,
   Map,
   ShoppingCart,
-  ShieldAlert,
   Boxes,
   Zap,
-  ListTodo,
   TrendingUp,
   BrainCircuit,
   Radar,
   BarChart3,
+  BookOpen,
   LogOut,
   Menu,
-  PieChart,
   CheckCircle2,
   Link2,
   ChevronDown,
   DollarSign,
-  Target,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -65,6 +62,8 @@ const navGroups = [
     title: "Inteligência",
     items: [
       { label: "Radar IA", to: "/ecommerce/radar-ia", icon: Radar },
+      { label: "Consultor IA", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
+      { label: "Base da IA", to: "/ecommerce/base-ia", icon: BookOpen },
     ],
   },
   {

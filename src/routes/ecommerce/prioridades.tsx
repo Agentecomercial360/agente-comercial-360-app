@@ -1052,31 +1052,6 @@ function ScrollableTableSection({ children }: { children: React.ReactNode }) {
         </div>
       </div>
 
-      {/* Sticky bottom scrollbar (always accessible) */}
-      <div
-        ref={(el) => {
-          // secondary sticky-bottom proxy uses same width — mount as separate div
-          if (!el) return;
-        }}
-        className="sticky bottom-0 z-30 overflow-x-auto overflow-y-hidden rounded-b-2xl border-t border-border/60 bg-card/95 backdrop-blur"
-        style={{ height: 14 }}
-        aria-hidden="true"
-        onScroll={(e) => {
-          if (syncingRef.current === "top") { syncingRef.current = null; return; }
-          const bottom = tableWrapRef.current;
-          const top = topProxyRef.current;
-          const src = e.currentTarget;
-          if (bottom && bottom.scrollLeft !== src.scrollLeft) {
-            syncingRef.current = "bottom";
-            bottom.scrollLeft = src.scrollLeft;
-          }
-          if (top && top.scrollLeft !== src.scrollLeft) {
-            top.scrollLeft = src.scrollLeft;
-          }
-        }}
-      >
-        <div style={{ width: contentWidth, height: 1 }} />
-      </div>
     </section>
   );
 }

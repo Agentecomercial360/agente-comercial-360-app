@@ -56,44 +56,23 @@ export function PendingCostsTable({ rows, loading, companyId, scopeLabel, onSave
     }
     setSavingId(row.product_id);
     try {
-      // Tenta a RPC oficial (atualiza + recalcula pedidos).
-      const rpc = await supabase.rpc("update_ecommerce_product_cost_v2", {
+      const upd = await supabase
+        .from("ecommerce_products")
+        .update({ cost_price: parsed, updated_at: new Date().toISOString() })
+        .eq("id", row.product_id)
+        .eq("company_id", companyId);
+      if (upd.error) throw upd.error;
+
+      const recalc = await supabase.rpc("recalculate_ecommerce_profit_v1", {
         p_company_id: companyId,
         p_product_id: row.product_id,
-        p_cost_price: parsed,
-        p_changed_by: "AC360 painel",
-        p_notes: "Custo preenchido em Custos e Margem",
       });
-
-      if (rpc.error) {
-        // Fallback: update direto + tenta recalculate_ecommerce_profit_v1.
-        const upd = await supabase
-          .from("ecommerce_products")
-          .update({ cost_price: parsed, updated_at: new Date().toISOString() })
-          .eq("id", row.product_id)
-          .eq("company_id", companyId);
-        if (upd.error) throw upd.error;
-        const recalc = await supabase.rpc("recalculate_ecommerce_profit_v1", {
-          p_company_id: companyId,
-          p_product_id: row.product_id,
-        });
-        if (recalc.error) {
-          toast.success("Custo salvo. Sincronize novamente para recalcular os pedidos.");
-        } else {
-          toast.success("Custo salvo e pedidos recalculados.");
-        }
+      if (recalc.error) {
+        toast.success("Custo salvo. Sincronize novamente para recalcular os pedidos.");
       } else {
-        const result = (Array.isArray(rpc.data) ? rpc.data[0] : rpc.data) as
-          | { success?: boolean; message?: string; items_recalculated?: number; orders_recalculated?: number }
-          | null;
-        if (result && result.success === false) {
-          toast.error(result.message || "Erro ao salvar custo.");
-          return;
-        }
-        toast.success("Custo salvo com sucesso.", {
-          description: `${result?.items_recalculated ?? 0} itens • ${result?.orders_recalculated ?? 0} pedidos recalculados`,
-        });
+        toast.success("Custo salvo e pedidos recalculados.");
       }
+
       setReleasedRevenue((v) => v + (row.revenue || 0));
       setReleasedCount((c) => c + 1);
       setInputs((prev) => {

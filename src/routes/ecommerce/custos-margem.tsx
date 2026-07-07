@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
 import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
+import { PendingCostsTable, type PendingCostRow } from "@/components/ecommerce/PendingCostsTable";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -960,6 +961,29 @@ function CustosMargemContent() {
             </div>
           )}
         </section>
+
+        {/* Custos e Margem — tela operacional (inline save) */}
+        <PendingCostsTable
+          rows={soldNoCost.map<PendingCostRow>((r) => ({
+            product_id: r.product.id,
+            sku: r.product.sku,
+            product_name: r.product.product_name,
+            cost_price: r.product.cost_price,
+            orders: r.orders,
+            units: r.units,
+            revenue: r.revenue,
+            accountNames: r.accountNames,
+          }))}
+          loading={loading}
+          companyId={COMPANY_ID}
+          scopeLabel={selectedAccountName}
+          onSaved={async () => {
+            setImpactReloadKey((k) => k + 1);
+            await load();
+          }}
+        />
+
+
 
 
         {/* Evolução do lucro bloqueado */}

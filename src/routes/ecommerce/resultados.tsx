@@ -196,6 +196,7 @@ function ResultadosAcoes() {
     useEcommerceActiveAccount();
 
   const [tasks, setTasks] = useState<CompletedTask[]>([]);
+  const [completedCount, setCompletedCount] = useState<number>(0);
   const [results, setResults] = useState<ActionResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [resultsAvailable, setResultsAvailable] = useState<boolean>(true);
@@ -206,12 +207,29 @@ function ResultadosAcoes() {
     if (!activeAccountId) {
       setTasks([]);
       setResults([]);
+      setCompletedCount(0);
       setLoading(false);
       return;
     }
     setLoading(true);
     try {
-      // Concluded tasks
+      // Dedicated count of completed tasks — independent of the full select
+      // and of the results view. This guarantees the "Ações concluídas" KPI
+      // reflects the real number in ecommerce_tasks.
+      const { count: cCount, error: cErr } = await supabase
+        .from("ecommerce_tasks")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("account_id", activeAccountId)
+        .eq("status", "completed");
+      if (cErr) {
+        console.error("[resultados] completed count error", cErr);
+        setCompletedCount(0);
+      } else {
+        setCompletedCount(cCount ?? 0);
+      }
+
+      // Concluded tasks (full rows for listing)
       const { data: tData, error: tErr } = await supabase
         .from("ecommerce_tasks")
         .select(
@@ -229,7 +247,8 @@ function ResultadosAcoes() {
         setTasks((tData as CompletedTask[]) ?? []);
       }
 
-      // Action results (view). If view/table not accessible, degrade gracefully.
+      // Action results (view — has account_id via join).
+      // ecommerce_action_results direto NÃO tem account_id, por isso usamos a view.
       const { data: rData, error: rErr } = await supabase
         .from("vw_ecommerce_action_results")
         .select("*")

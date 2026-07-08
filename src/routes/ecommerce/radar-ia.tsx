@@ -1000,26 +1000,26 @@ function RadarIAContent() {
             ) : (
               <>
                 <Play className="mr-2 h-4 w-4" />
-                Rodar análise agora
+                Rodar diagnóstico
               </>
             )}
           </Button>
         </div>
       </div>
 
-      {/* Como o Radar IA funciona */}
+      {/* Como o Diagnóstico Inteligente funciona */}
       <div className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
         <div className="flex items-start gap-2">
           <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
           <div className="min-w-0">
             <div className="text-xs font-semibold text-foreground">
-              Como o Radar IA funciona
+              Como o Diagnóstico Inteligente funciona
             </div>
             <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
-              O Radar IA cruza dados da conta Mercado Livre, produtos, anúncios, estoque,
-              métricas, Ads e regras da Base da IA para identificar riscos, oportunidades
-              e ações recomendadas. As recomendações não alteram a conta automaticamente;
-              elas orientam a Central de Ações e as tarefas dos operadores.
+              O Diagnóstico Inteligente cruza dados da conta Mercado Livre, produtos, anúncios,
+              estoque, métricas, Ads, pedidos e regras da Base da IA para identificar riscos,
+              oportunidades e ações recomendadas. As recomendações operam em modo assistido:
+              o sistema sugere e prepara a ação, mas alterações sensíveis exigem aprovação operacional.
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <span

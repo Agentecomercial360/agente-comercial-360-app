@@ -16,7 +16,7 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/ecommerce/consultor-ia")({
   component: ConsultorIA,
   head: () => ({
-    meta: [{ title: "Consultor IA E-commerce | Agente Comercial 360" }],
+    meta: [{ title: "Assistente Estratégico | Agente Comercial 360" }],
   }),
 });
 

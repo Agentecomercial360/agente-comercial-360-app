@@ -762,18 +762,25 @@ function RadarIAContent() {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm">
               <Radar className="h-5 w-5" />
             </div>
             <h1 className="font-display text-2xl font-bold text-foreground">
               Radar IA
             </h1>
+            {kbAvailable && kbRules.length > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Contexto estratégico ativo
+              </span>
+            )}
           </div>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Sinais de oportunidade, alertas e recomendações inteligentes da conta ativa.
           </p>
         </div>
+
         <Button
           onClick={runAnalysis}
           disabled={running}

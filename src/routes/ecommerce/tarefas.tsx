@@ -12,6 +12,10 @@ import {
   Calendar,
   ExternalLink,
   Eye,
+  CheckCircle,
+  Lightbulb,
+  Store,
+  Package,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -319,6 +323,35 @@ function TarefasOperadoresContent() {
     void loadTasks();
   }, [loadTasks]);
 
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+
+  // Auto-open task if navigated from Plano de Ação ("Ver tarefa")
+  useEffect(() => {
+    if (loading || tasks.length === 0) return;
+    let selectedId: string | null = null;
+    try {
+      selectedId = localStorage.getItem("ac360_selected_task_id");
+    } catch {
+      /* ignore */
+    }
+    if (!selectedId) return;
+    const found = tasks.find((t) => t.id === selectedId);
+    if (found) {
+      setDetailId(found.id);
+      setDraftStatus(((found.status ?? "pending") as TaskStatus));
+      setDraftResponsible(found.responsible_name ?? NO_OPERATOR_VALUE);
+      setDraftResult(found.result_summary ?? "");
+      setHighlightId(found.id);
+      setTimeout(() => setHighlightId(null), 4000);
+    }
+    try {
+      localStorage.removeItem("ac360_selected_task_id");
+      localStorage.removeItem("ac360_selected_insight_id");
+    } catch {
+      /* ignore */
+    }
+  }, [loading, tasks]);
+
   const currentDetail = useMemo(
     () => tasks.find((t) => t.id === detailId) ?? null,
     [tasks, detailId],
@@ -451,6 +484,35 @@ function TarefasOperadoresContent() {
       setSaving(false);
     }
   }, [currentDetail, draftStatus, draftResponsible, draftResult, loadTasks, operators]);
+
+  const [completingId, setCompletingId] = useState<string | null>(null);
+  const handleQuickComplete = useCallback(
+    async (task: EcommerceTask) => {
+      setCompletingId(task.id);
+      const now = new Date().toISOString();
+      try {
+        const { error } = await supabase
+          .from("ecommerce_tasks")
+          .update({
+            status: "completed",
+            completed_at: now,
+            updated_at: now,
+          })
+          .eq("id", task.id)
+          .eq("company_id", ECOMMERCE_COMPANY_ID);
+        if (error) {
+          console.error("[tarefas] quick complete error", error);
+          toast.error("Não foi possível concluir a tarefa.");
+          return;
+        }
+        toast.success("Tarefa marcada como concluída.");
+        await loadTasks();
+      } finally {
+        setCompletingId(null);
+      }
+    },
+    [loadTasks],
+  );
 
 
   const sorted = useMemo(() => {
@@ -704,7 +766,11 @@ function TarefasOperadoresContent() {
                         return (
                           <tr
                             key={t.id}
-                            className="border-t border-border/60 hover:bg-muted/30"
+                            className={`border-t border-border/60 transition-colors ${
+                              highlightId === t.id
+                                ? "bg-blue-50/70 ring-2 ring-blue-300"
+                                : "hover:bg-muted/30"
+                            }`}
                           >
                             <td className="px-4 py-3 align-top">
                               <span
@@ -725,6 +791,26 @@ function TarefasOperadoresContent() {
                                   {t.task_description}
                                 </div>
                               )}
+                              <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                                {t.insight_id && (
+                                  <span className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-1.5 py-0.5 font-semibold text-blue-700">
+                                    <Lightbulb className="h-3 w-3" />
+                                    Insight vinculado
+                                  </span>
+                                )}
+                                {t.listing_id && (
+                                  <span className="inline-flex items-center gap-1">
+                                    <Package className="h-3 w-3" />
+                                    {t.listing_id}
+                                  </span>
+                                )}
+                                {activeAccount && (
+                                  <span className="inline-flex items-center gap-1">
+                                    <Store className="h-3 w-3" />
+                                    {accountName}
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-4 py-3 align-top whitespace-nowrap text-xs text-foreground/80">
                               {TYPE_LABEL[type] ?? type}
@@ -763,15 +849,33 @@ function TarefasOperadoresContent() {
                               </span>
                             </td>
                             <td className="px-4 py-3 align-top">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-8 gap-1.5 text-xs"
-                                onClick={() => openDetails(t)}
-                              >
-                                <Eye className="h-3.5 w-3.5" />
-                                Ver detalhes
-                              </Button>
+                              <div className="flex flex-col gap-1.5">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8 gap-1.5 text-xs"
+                                  onClick={() => openDetails(t)}
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                  Ver detalhe
+                                </Button>
+                                {t.status !== "completed" && t.status !== "cancelled" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-8 gap-1.5 text-xs border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                    disabled={completingId === t.id}
+                                    onClick={() => handleQuickComplete(t)}
+                                  >
+                                    {completingId === t.id ? (
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                      <CheckCircle className="h-3.5 w-3.5" />
+                                    )}
+                                    Concluir
+                                  </Button>
+                                )}
+                              </div>
                             </td>
 
                           </tr>

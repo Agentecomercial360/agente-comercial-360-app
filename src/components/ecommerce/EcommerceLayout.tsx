@@ -61,8 +61,8 @@ const navGroups = [
     title: "Inteligência",
     items: [
       { label: "Diagnóstico Inteligente", to: "/ecommerce/radar-ia", icon: Radar },
-      { label: "Consultor IA", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
-      { label: "Base da IA", to: "/ecommerce/base-ia", icon: BookOpen },
+      { label: "Assistente Estratégico", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
+      { label: "Regras da Operação", to: "/ecommerce/base-ia", icon: BookOpen },
     ],
   },
 ] as const;

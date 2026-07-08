@@ -93,6 +93,7 @@ type Insight = {
   recommended_action: string | null;
   status: string | null;
   generated_by: string | null;
+  model: string | null;
   confidence_score: number | null;
   created_at: string | null;
   updated_at: string | null;
@@ -179,17 +180,62 @@ const INSIGHT_TO_KB: Record<string, KbCategory[]> = {
   stock_stopped: ["estoque", "prioritarios", "preco"],
   visits_no_sales: ["preco", "ads"],
   no_visits: ["ads"],
-  kit_opportunity: ["preco", "prioritarios"],
+  kit_opportunity: ["preco", "prioritarios", "margem"],
 };
+
+// Palavras-chave por categoria da Base da IA — usadas para inferir contexto
+// quando o insight não estiver mapeado explicitamente em INSIGHT_TO_KB.
+const KB_KEYWORDS: Record<KbCategory, RegExp> = {
+  margem:
+    /\b(margem|marge|preço|preco|promoç|promoc|desconto|ads?|escala|escalar|kit|venda|vendas|faturamento|receita|conversão|conversao|roas)\b/i,
+  preco: /\b(preço|preco|desconto|promoç|promoc|concorrên|concorrenc)\b/i,
+  estoque:
+    /\b(estoque|estoq|reposi[cç][aã]o|cobertura|ruptur|parado|baixo|inventário|inventario)\b/i,
+  ads: /\b(ads?|campanha|orçamento|orcamento|roas|tráfego|trafego|impress[oõ]es|cpc|cpa)\b/i,
+  prioritarios:
+    /\b(estratég|estrateg|priorit|protegid|campe[aã]o|top|hero|não\s*pausar|nao\s*pausar)\b/i,
+  observacoes: /$^/, // não inferimos observações por palavra-chave
+};
+
+function insightText(insight: {
+  insight_type: string | null;
+  title: string | null;
+  recommended_action: string | null;
+  probable_cause: string | null;
+  suggested_ads_action?: string | null;
+  suggested_price_action?: string | null;
+  suggested_kit_action?: string | null;
+}): string {
+  return [
+    insight.insight_type,
+    insight.title,
+    insight.recommended_action,
+    insight.probable_cause,
+    insight.suggested_ads_action,
+    insight.suggested_price_action,
+    insight.suggested_kit_action,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
 
 function rulesForInsight(
   insightType: string | null,
   rules: KbRule[],
+  insight?: Insight,
 ): KbRule[] {
-  if (!insightType) return [];
-  const cats = INSIGHT_TO_KB[insightType];
-  if (!cats?.length) return [];
-  return rules.filter((r) => cats.includes(r.category));
+  const cats = new Set<KbCategory>(
+    insightType ? (INSIGHT_TO_KB[insightType] ?? []) : [],
+  );
+  if (insight) {
+    const text = insightText(insight);
+    (Object.keys(KB_KEYWORDS) as KbCategory[]).forEach((cat) => {
+      if (KB_KEYWORDS[cat].test(text)) cats.add(cat);
+    });
+  }
+  if (cats.size === 0) return [];
+  return rules.filter((r) => cats.has(r.category));
 }
 
 
@@ -384,19 +430,37 @@ function RadarIAContent() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("ecommerce_ai_insights")
-        .select(
-          "id, company_id, account_id, product_id, listing_id, insight_type, priority, title, diagnosis, probable_cause, recommended_action, status, generated_by, confidence_score, created_at, updated_at, suggested_title, suggested_description, suggested_image_idea, suggested_ads_action, suggested_price_action, suggested_kit_action",
-        )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
-        .eq("account_id", accountId)
-        .order("created_at", { ascending: false });
+      const baseCols =
+        "id, company_id, account_id, product_id, listing_id, insight_type, priority, title, diagnosis, probable_cause, recommended_action, status, generated_by, confidence_score, created_at, updated_at, suggested_title, suggested_description, suggested_image_idea, suggested_ads_action, suggested_price_action, suggested_kit_action";
+      // Tenta incluir a coluna `model` (opcional). Se não existir no banco,
+      // faz fallback para o select sem `model` para não quebrar a página.
+      let data: unknown[] | null = null;
+      let error: { message?: string } | null = null;
+      {
+        const res = await supabase
+          .from("ecommerce_ai_insights")
+          .select(`${baseCols}, model`)
+          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("account_id", accountId)
+          .order("created_at", { ascending: false });
+        data = res.data as unknown[] | null;
+        error = res.error;
+      }
+      if (error && /model/i.test(error.message ?? "")) {
+        const res = await supabase
+          .from("ecommerce_ai_insights")
+          .select(baseCols)
+          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("account_id", accountId)
+          .order("created_at", { ascending: false });
+        data = res.data as unknown[] | null;
+        error = res.error;
+      }
       if (error) {
         console.error("Erro ao carregar insights:", error);
         setInsights([]);
       } else {
-        setInsights((data as Insight[]) ?? []);
+        setInsights(((data as Insight[]) ?? []).map((i) => ({ ...i, model: i.model ?? null })));
       }
     } finally {
       setLoading(false);
@@ -841,6 +905,13 @@ function RadarIAContent() {
                 Contexto estratégico ativo
               </span>
             )}
+            <span
+              className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-700"
+              title="O sistema recomenda ações e pode convertê-las em tarefa. Alterações em anúncios, preços ou Ads exigem aprovação operacional."
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Modo assistido
+            </span>
             {!loading && (
               <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
                 {insights.length} insight{insights.length === 1 ? "" : "s"} · {accountLabel}
@@ -873,6 +944,24 @@ function RadarIAContent() {
             </>
           )}
         </Button>
+      </div>
+
+      {/* Como o Radar IA funciona */}
+      <div className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
+        <div className="flex items-start gap-2">
+          <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+          <div className="min-w-0">
+            <div className="text-xs font-semibold text-foreground">
+              Como o Radar IA funciona
+            </div>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+              O Radar IA cruza dados da conta Mercado Livre, produtos, anúncios, estoque,
+              métricas, Ads e regras da Base da IA para identificar riscos, oportunidades
+              e ações recomendadas. As recomendações não alteram a conta automaticamente;
+              elas orientam a Central de Ações e as tarefas dos operadores.
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Base da IA aplicada */}
@@ -1055,7 +1144,7 @@ function RadarIAContent() {
               }}
               creating={creatingId === insight.id}
               opening={openingId === insight.id}
-              appliedRules={rulesForInsight(insight.insight_type, kbRules)}
+              appliedRules={rulesForInsight(insight.insight_type, kbRules, insight)}
             />
 
 
@@ -1338,7 +1427,7 @@ function RadarIAContent() {
 
                 <AppliedRulesPanel
                   insight={selected}
-                  rules={rulesForInsight(selected.insight_type, kbRules)}
+                  rules={rulesForInsight(selected.insight_type, kbRules, selected)}
                 />
 
 
@@ -1381,8 +1470,16 @@ function RadarIAContent() {
                   <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                     <dt className="text-muted-foreground">Origem</dt>
                     <dd className="text-foreground font-mono">ecommerce_ai_insights</dd>
+                    <dt className="text-muted-foreground">Gerado por</dt>
+                    <dd className="text-foreground">
+                      {selected.generated_by === "ai"
+                        ? "IA"
+                        : (selected.generated_by ?? "—")}
+                    </dd>
                     <dt className="text-muted-foreground">Modelo</dt>
-                    <dd className="text-foreground">{selected.generated_by ?? "—"}</dd>
+                    <dd className="text-foreground font-mono">
+                      {selected.model?.trim() ? selected.model : "—"}
+                    </dd>
                     <dt className="text-muted-foreground">Confiança</dt>
                     <dd className="text-foreground">
                       {selected.confidence_score != null
@@ -1408,6 +1505,7 @@ function RadarIAContent() {
                   </dl>
                 </div>
 
+
                 {(selected.product_id || selected.listing_id) && (() => {
                   const product = selected.product_id
                     ? productMap[selected.product_id]
@@ -1415,27 +1513,49 @@ function RadarIAContent() {
                   const listing = selected.listing_id
                     ? listingMap[selected.listing_id]
                     : undefined;
-                  const missing =
-                    (selected.product_id && !product) ||
-                    (selected.listing_id && !listing);
+                  const productMissing = !!selected.product_id && !product;
+                  const listingMissing = !!selected.listing_id && !listing;
+                  const displayName =
+                    product?.name?.trim() ||
+                    listing?.title?.trim() ||
+                    (listing?.ml_item_id ? `Anúncio ${listing.ml_item_id}` : null);
+                  const displaySku = product?.sku?.trim() || "Não informado";
+                  let notice: string | null = null;
+                  if (productMissing && listingMissing) {
+                    notice =
+                      "Produto e anúncio vinculados não encontrados ou ainda não sincronizados.";
+                  } else if (productMissing && listing) {
+                    notice = "Anúncio encontrado, mas produto/SKU ainda não sincronizado.";
+                  } else if (listingMissing && product) {
+                    notice = "Produto encontrado, mas anúncio vinculado não localizado.";
+                  }
                   return (
                     <div className="rounded-xl border border-border/60 bg-card p-4">
                       <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                         Produto / Anúncio vinculado
                       </div>
                       <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs">
-                        {selected.product_id && (
+                        {(selected.product_id || listing) && (
                           <>
                             <dt className="text-muted-foreground">Nome</dt>
-                            <dd className="text-foreground">{product?.name ?? "—"}</dd>
+                            <dd className="text-foreground">
+                              {displayName ?? "—"}
+                              {!product?.name && listing?.title ? (
+                                <span className="ml-1 text-[10px] text-muted-foreground">
+                                  (título do anúncio)
+                                </span>
+                              ) : null}
+                            </dd>
                             <dt className="text-muted-foreground">SKU</dt>
-                            <dd className="text-foreground font-mono">
-                              {product?.sku ?? "—"}
-                            </dd>
-                            <dt className="text-muted-foreground">product_id</dt>
-                            <dd className="text-foreground font-mono break-all">
-                              {selected.product_id}
-                            </dd>
+                            <dd className="text-foreground font-mono">{displaySku}</dd>
+                            {selected.product_id && (
+                              <>
+                                <dt className="text-muted-foreground">product_id</dt>
+                                <dd className="text-foreground font-mono break-all">
+                                  {selected.product_id}
+                                </dd>
+                              </>
+                            )}
                           </>
                         )}
                         {selected.listing_id && (
@@ -1453,9 +1573,9 @@ function RadarIAContent() {
                           </>
                         )}
                       </dl>
-                      {missing && (
+                      {notice && (
                         <div className="mt-2 rounded-md border border-dashed border-amber-200 bg-amber-50/60 px-2.5 py-1.5 text-[11px] text-amber-800">
-                          Produto/anúncio vinculado não encontrado ou não sincronizado.
+                          {notice}
                         </div>
                       )}
                     </div>
@@ -1561,7 +1681,7 @@ function RadarIAContent() {
 
                 <AppliedRulesPanel
                   insight={plan}
-                  rules={rulesForInsight(plan.insight_type, kbRules)}
+                  rules={rulesForInsight(plan.insight_type, kbRules, plan)}
                 />
 
 

@@ -1091,7 +1091,7 @@ function RadarIAContent() {
                   onClick={() => navigate({ to: "/ecommerce/base-ia" })}
                   className="font-semibold text-indigo-700 hover:underline"
                 >
-                  Base da IA
+                  Regras da Operação
                 </button>{" "}
                 orientam a leitura do diagnóstico sobre margem, preço, estoque, Ads e produtos prioritários.
               </p>

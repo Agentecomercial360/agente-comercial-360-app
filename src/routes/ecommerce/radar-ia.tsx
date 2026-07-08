@@ -77,7 +77,7 @@ function computeDueDate(): string {
 export const Route = createFileRoute("/ecommerce/radar-ia")({
   component: RadarIAPage,
   head: () => ({
-    meta: [{ title: "Radar IA | Agente Comercial 360" }],
+    meta: [{ title: "Diagnóstico Inteligente | Agente Comercial 360" }],
   }),
 });
 

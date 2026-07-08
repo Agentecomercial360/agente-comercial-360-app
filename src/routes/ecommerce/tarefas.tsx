@@ -427,10 +427,15 @@ function TarefasOperadoresContent() {
       "blocked",
     ];
     if (!VALID_STATUSES.includes(draftStatus)) {
-      // eslint-disable-next-line no-console
       console.error("[tarefas] invalid status value", draftStatus);
       toast.error("Status inválido.");
       return;
+    }
+    if (draftStatus === "completed" && !draftResult.trim()) {
+      const ok = window.confirm(
+        "Recomendamos registrar o resultado antes de concluir a tarefa, pois isso será usado em Resultados das Ações.\n\nDeseja concluir mesmo assim?",
+      );
+      if (!ok) return;
     }
     setSaving(true);
     const now = new Date().toISOString();
@@ -451,10 +456,11 @@ function TarefasOperadoresContent() {
       responsible_email: responsibleEmail,
       result_summary: draftResult.trim() || null,
       updated_at: now,
-      completed_at: draftStatus === "completed" ? now : null,
+      completed_at:
+        draftStatus === "completed"
+          ? currentDetail.completed_at ?? now
+          : null,
     };
-    // eslint-disable-next-line no-console
-    console.debug("[tarefas] saving task", { id: currentDetail.id, patch });
     try {
       const { error } = await supabase
         .from("ecommerce_tasks")
@@ -462,22 +468,31 @@ function TarefasOperadoresContent() {
         .eq("id", currentDetail.id)
         .eq("company_id", ECOMMERCE_COMPANY_ID);
       if (error) {
-        // eslint-disable-next-line no-console
-        console.error("[tarefas] save error", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-        });
+        console.error("[tarefas] save error", error);
         toast.error("Não foi possível salvar. Tente novamente.");
         return;
       }
-
-      toast.success("Tarefa atualizada.");
+      if (draftStatus === "completed" && currentDetail.insight_id) {
+        try {
+          await supabase
+            .from("ecommerce_ai_insights")
+            .update({ status: "monitoring", updated_at: now })
+            .eq("id", currentDetail.insight_id)
+            .eq("company_id", ECOMMERCE_COMPANY_ID);
+        } catch (e) {
+          console.debug("[tarefas] insight status update skipped", e);
+        }
+      }
+      if (draftStatus === "completed") {
+        toast.success(
+          "Tarefa concluída. Nenhuma alteração foi feita automaticamente no Mercado Livre.",
+        );
+      } else {
+        toast.success("Tarefa atualizada.");
+      }
       setDetailId(null);
       await loadTasks();
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error("[tarefas] save exception", err);
       toast.error("Não foi possível salvar. Tente novamente.");
     } finally {
@@ -486,32 +501,65 @@ function TarefasOperadoresContent() {
   }, [currentDetail, draftStatus, draftResponsible, draftResult, loadTasks, operators]);
 
   const [completingId, setCompletingId] = useState<string | null>(null);
+
+  const completeTask = useCallback(
+    async (task: EcommerceTask, resultNote?: string | null) => {
+      const now = new Date().toISOString();
+      const patch: Record<string, unknown> = {
+        status: "completed",
+        completed_at: now,
+        updated_at: now,
+      };
+      if (typeof resultNote === "string" && resultNote.trim()) {
+        patch.result_summary = resultNote.trim();
+      }
+      const { error } = await supabase
+        .from("ecommerce_tasks")
+        .update(patch)
+        .eq("id", task.id)
+        .eq("company_id", ECOMMERCE_COMPANY_ID);
+      if (error) {
+        console.error("[tarefas] complete error", error);
+        toast.error("Não foi possível concluir a tarefa.");
+        return false;
+      }
+      // Best-effort: se vinculada a insight, marca como monitoring.
+      if (task.insight_id) {
+        try {
+          await supabase
+            .from("ecommerce_ai_insights")
+            .update({ status: "monitoring", updated_at: now })
+            .eq("id", task.insight_id)
+            .eq("company_id", ECOMMERCE_COMPANY_ID);
+        } catch (e) {
+          console.debug("[tarefas] insight status update skipped", e);
+        }
+      }
+      toast.success(
+        "Tarefa concluída. Nenhuma alteração foi feita automaticamente no Mercado Livre.",
+      );
+      return true;
+    },
+    [],
+  );
+
   const handleQuickComplete = useCallback(
     async (task: EcommerceTask) => {
+      if (!task.result_summary || !task.result_summary.trim()) {
+        const ok = window.confirm(
+          "Recomendamos registrar o resultado antes de concluir a tarefa, pois isso será usado em Resultados das Ações.\n\nDeseja concluir mesmo assim?",
+        );
+        if (!ok) return;
+      }
       setCompletingId(task.id);
-      const now = new Date().toISOString();
       try {
-        const { error } = await supabase
-          .from("ecommerce_tasks")
-          .update({
-            status: "completed",
-            completed_at: now,
-            updated_at: now,
-          })
-          .eq("id", task.id)
-          .eq("company_id", ECOMMERCE_COMPANY_ID);
-        if (error) {
-          console.error("[tarefas] quick complete error", error);
-          toast.error("Não foi possível concluir a tarefa.");
-          return;
-        }
-        toast.success("Tarefa marcada como concluída.");
-        await loadTasks();
+        const ok = await completeTask(task);
+        if (ok) await loadTasks();
       } finally {
         setCompletingId(null);
       }
     },
-    [loadTasks],
+    [completeTask, loadTasks],
   );
 
 
@@ -538,7 +586,7 @@ function TarefasOperadoresContent() {
       if (filter === "high" && !(t.priority === "high" || t.priority === "critical"))
         return false;
       if (filter === "central_acoes" && t.created_by !== "central_acoes") return false;
-      if (filter === "ai" && t.created_by !== "ai") return false;
+      if (filter === "ai" && !(t.created_by === "ai" || !!t.insight_id)) return false;
       if (!q) return true;
       const hay = [
         t.task_title,
@@ -946,38 +994,65 @@ function TarefasOperadoresContent() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div className="rounded-lg border border-border/60 bg-muted/30 p-3 grid grid-cols-2 gap-3 text-xs">
                     <div>
-                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                        Prazo
-                      </div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Origem</div>
                       <div className="text-foreground/90">
-                        {formatDate(currentDetail.due_date)}
+                        {currentDetail.insight_id
+                          ? "Diagnóstico Inteligente"
+                          : ORIGIN_LABEL[currentDetail.created_by ?? "manual"] ?? "Manual"}
                       </div>
                     </div>
                     <div>
-                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                        Criada em
-                      </div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Conta Mercado Livre</div>
+                      <div className="text-foreground/90">{accountName}</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Produto / Anúncio</div>
                       <div className="text-foreground/90">
-                        {formatDateTime(currentDetail.created_at)}
+                        {currentDetail.listing_id || currentDetail.product_id || "—"}
                       </div>
                     </div>
                     <div>
-                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                        Concluída em
-                      </div>
-                      <div className="text-foreground/90">
-                        {formatDateTime(currentDetail.completed_at)}
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Insight vinculado</div>
+                      <div className="text-foreground/90 truncate" title={currentDetail.insight_id ?? ""}>
+                        {currentDetail.insight_id ? (
+                          <span className="inline-flex items-center gap-1 text-blue-700">
+                            <Lightbulb className="h-3 w-3" />
+                            {currentDetail.insight_id.slice(0, 8)}…
+                          </span>
+                        ) : (
+                          "—"
+                        )}
                       </div>
                     </div>
                     <div>
-                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                        Atualizada em
-                      </div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Responsável atual</div>
                       <div className="text-foreground/90">
-                        {formatDateTime(currentDetail.updated_at)}
+                        {currentDetail.responsible_name || "Sem responsável"}
                       </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Status atual</div>
+                      <div className="text-foreground/90">
+                        {STATUS_LABEL[currentDetail.status ?? "pending"] ?? currentDetail.status}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Prazo</div>
+                      <div className="text-foreground/90">{formatDate(currentDetail.due_date)}</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Criada em</div>
+                      <div className="text-foreground/90">{formatDateTime(currentDetail.created_at)}</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Atualizada em</div>
+                      <div className="text-foreground/90">{formatDateTime(currentDetail.updated_at)}</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Concluída em</div>
+                      <div className="text-foreground/90">{formatDateTime(currentDetail.completed_at)}</div>
                     </div>
                   </div>
 

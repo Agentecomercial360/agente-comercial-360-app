@@ -1603,6 +1603,7 @@ function InsightCard({
   onPlan,
   creating,
   opening,
+  appliedRules,
 }: {
   insight: Insight;
   onOpen: () => void;
@@ -1611,6 +1612,7 @@ function InsightCard({
   onPlan: () => void;
   creating: boolean;
   opening: boolean;
+  appliedRules: KbRule[];
 }) {
   const alreadyTask = insight.status === "converted_to_task";
   const confidencePct =

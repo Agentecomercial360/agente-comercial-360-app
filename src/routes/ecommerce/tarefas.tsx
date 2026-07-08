@@ -994,38 +994,65 @@ function TarefasOperadoresContent() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div className="rounded-lg border border-border/60 bg-muted/30 p-3 grid grid-cols-2 gap-3 text-xs">
                     <div>
-                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                        Prazo
-                      </div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Origem</div>
                       <div className="text-foreground/90">
-                        {formatDate(currentDetail.due_date)}
+                        {currentDetail.insight_id
+                          ? "Diagnóstico Inteligente"
+                          : ORIGIN_LABEL[currentDetail.created_by ?? "manual"] ?? "Manual"}
                       </div>
                     </div>
                     <div>
-                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                        Criada em
-                      </div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Conta Mercado Livre</div>
+                      <div className="text-foreground/90">{accountName}</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Produto / Anúncio</div>
                       <div className="text-foreground/90">
-                        {formatDateTime(currentDetail.created_at)}
+                        {currentDetail.listing_id || currentDetail.product_id || "—"}
                       </div>
                     </div>
                     <div>
-                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                        Concluída em
-                      </div>
-                      <div className="text-foreground/90">
-                        {formatDateTime(currentDetail.completed_at)}
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Insight vinculado</div>
+                      <div className="text-foreground/90 truncate" title={currentDetail.insight_id ?? ""}>
+                        {currentDetail.insight_id ? (
+                          <span className="inline-flex items-center gap-1 text-blue-700">
+                            <Lightbulb className="h-3 w-3" />
+                            {currentDetail.insight_id.slice(0, 8)}…
+                          </span>
+                        ) : (
+                          "—"
+                        )}
                       </div>
                     </div>
                     <div>
-                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">
-                        Atualizada em
-                      </div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Responsável atual</div>
                       <div className="text-foreground/90">
-                        {formatDateTime(currentDetail.updated_at)}
+                        {currentDetail.responsible_name || "Sem responsável"}
                       </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Status atual</div>
+                      <div className="text-foreground/90">
+                        {STATUS_LABEL[currentDetail.status ?? "pending"] ?? currentDetail.status}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Prazo</div>
+                      <div className="text-foreground/90">{formatDate(currentDetail.due_date)}</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Criada em</div>
+                      <div className="text-foreground/90">{formatDateTime(currentDetail.created_at)}</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Atualizada em</div>
+                      <div className="text-foreground/90">{formatDateTime(currentDetail.updated_at)}</div>
+                    </div>
+                    <div>
+                      <div className="font-semibold uppercase tracking-wider text-muted-foreground mb-1">Concluída em</div>
+                      <div className="text-foreground/90">{formatDateTime(currentDetail.completed_at)}</div>
                     </div>
                   </div>
 

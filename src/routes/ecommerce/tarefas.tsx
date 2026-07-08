@@ -571,7 +571,7 @@ function TarefasOperadoresContent() {
       if (filter === "high" && !(t.priority === "high" || t.priority === "critical"))
         return false;
       if (filter === "central_acoes" && t.created_by !== "central_acoes") return false;
-      if (filter === "ai" && t.created_by !== "ai") return false;
+      if (filter === "ai" && !(t.created_by === "ai" || !!t.insight_id)) return false;
       if (!q) return true;
       const hay = [
         t.task_title,

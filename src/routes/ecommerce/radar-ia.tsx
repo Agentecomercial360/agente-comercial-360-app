@@ -1035,10 +1035,22 @@ function RadarIAContent() {
                 Motor SQL v1 conectado
               </span>
               <span
+                className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700"
+                title="Estrutura inicial disponível em modo prévia (dry-run). Ainda não gera insights."
+              >
+                Motor IA assistido: em preparação
+              </span>
+              <span
                 className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600"
                 title="Nenhuma integração com LLM/OpenAI está conectada ao motor de insights neste projeto."
               >
                 IA generativa ainda não conectada
+              </span>
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600"
+                title="O sistema não altera preço, anúncio, Ads, imagem ou qualquer dado no Mercado Livre automaticamente."
+              >
+                Execução automática no Mercado Livre: não habilitada
               </span>
             </div>
           </div>

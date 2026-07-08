@@ -20,6 +20,8 @@ import {
   BarChart3,
   HelpCircle,
   Activity,
+  BookOpen,
+  ShieldCheck,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
@@ -131,6 +133,65 @@ type ActionResult = {
   created_at: string | null;
   evaluated_at: string | null;
 };
+
+type KbCategory =
+  | "margem"
+  | "preco"
+  | "estoque"
+  | "ads"
+  | "prioritarios"
+  | "observacoes";
+
+type KbRule = {
+  id: string;
+  company_id: string;
+  account_id: string | null;
+  category: KbCategory;
+  title: string;
+  description: string | null;
+  priority: string | null;
+  status: string | null;
+  updated_at: string | null;
+};
+
+const KB_CATEGORY_LABEL: Record<KbCategory, string> = {
+  margem: "Margem",
+  preco: "Preço",
+  estoque: "Estoque",
+  ads: "Ads",
+  prioritarios: "Produtos prioritários",
+  observacoes: "Observações",
+};
+
+const KB_CATEGORY_STYLE: Record<KbCategory, string> = {
+  margem: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  preco: "border-blue-200 bg-blue-50 text-blue-700",
+  estoque: "border-amber-200 bg-amber-50 text-amber-700",
+  ads: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700",
+  prioritarios: "border-violet-200 bg-violet-50 text-violet-700",
+  observacoes: "border-slate-200 bg-slate-50 text-slate-700",
+};
+
+// Mapeia tipo de insight -> categorias da Base da IA que podem influenciar
+const INSIGHT_TO_KB: Record<string, KbCategory[]> = {
+  ads_scale_opportunity: ["ads", "margem"],
+  low_conversion: ["preco", "margem", "ads"],
+  stock_stopped: ["estoque", "prioritarios", "preco"],
+  visits_no_sales: ["preco", "ads"],
+  no_visits: ["ads"],
+  kit_opportunity: ["preco", "prioritarios"],
+};
+
+function rulesForInsight(
+  insightType: string | null,
+  rules: KbRule[],
+): KbRule[] {
+  if (!insightType) return [];
+  const cats = INSIGHT_TO_KB[insightType];
+  if (!cats?.length) return [];
+  return rules.filter((r) => cats.includes(r.category));
+}
+
 
 const RESULT_STATUS_LABEL: Record<string, string> = {
   improved: "Melhorou",
@@ -381,11 +442,64 @@ function RadarIAContent() {
     return { total, improved, noChange, declined };
   }, [actionResults]);
 
+  // Base da IA (contexto estratégico)
+  const [kbRules, setKbRules] = useState<KbRule[]>([]);
+  const [kbLoading, setKbLoading] = useState(true);
+  const [kbAvailable, setKbAvailable] = useState(true);
+
+  const loadKb = useCallback(async () => {
+    setKbLoading(true);
+    try {
+      let q = supabase
+        .from("ecommerce_ai_knowledge_base")
+        .select(
+          "id, company_id, account_id, category, title, description, priority, status, updated_at",
+        )
+        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("status", "active");
+      // Regras da conta ativa OU regras globais (account_id null)
+      q = q.or(`account_id.is.null,account_id.eq.${accountId}`);
+      const { data, error } = await q.order("updated_at", { ascending: false });
+      if (error) {
+        // Tabela pode não existir ainda ou RLS bloquear — degradar silenciosamente
+        console.warn("[Radar IA] Base da IA indisponível:", error.message);
+        setKbAvailable(false);
+        setKbRules([]);
+      } else {
+        setKbAvailable(true);
+        setKbRules((data as KbRule[]) ?? []);
+      }
+    } finally {
+      setKbLoading(false);
+    }
+  }, [accountId]);
+
+  useEffect(() => {
+    void loadKb();
+  }, [loadKb]);
+
+  const kbSummary = useMemo(() => {
+    const byCat: Record<KbCategory, number> = {
+      margem: 0,
+      preco: 0,
+      estoque: 0,
+      ads: 0,
+      prioritarios: 0,
+      observacoes: 0,
+    };
+    let last: string | null = null;
+    for (const r of kbRules) {
+      byCat[r.category] = (byCat[r.category] ?? 0) + 1;
+      if (r.updated_at && (!last || r.updated_at > last)) last = r.updated_at;
+    }
+    return { total: kbRules.length, byCat, last };
+  }, [kbRules]);
 
   const [creatingId, setCreatingId] = useState<string | null>(null);
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const navigate = useNavigate();
+
 
   const runAnalysis = useCallback(async () => {
     setRunning(true);
@@ -409,16 +523,21 @@ function RadarIAContent() {
       }
       const result = Array.isArray(data) ? data[0] : data;
       const inserted = Number(result?.inserted_count ?? 0);
+      const kbNote =
+        kbRules.length > 0
+          ? ` · Base da IA aplicada (${kbRules.length} regra${kbRules.length === 1 ? "" : "s"})`
+          : "";
       if (inserted > 0) {
-        toast.success(`Análise concluída. Novos insights gerados: ${inserted}`);
+        toast.success(`Análise concluída. Novos insights gerados: ${inserted}${kbNote}`);
       } else {
-        toast.success("Análise concluída. Nenhum novo insight encontrado.");
+        toast.success(`Análise concluída. Nenhum novo insight encontrado.${kbNote}`);
       }
       await load();
     } finally {
       setRunning(false);
     }
-  }, [accountId, load]);
+  }, [accountId, load, kbRules]);
+
 
   const openTaskForInsight = useCallback(
     async (insight: Insight) => {
@@ -643,18 +762,25 @@ function RadarIAContent() {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm">
               <Radar className="h-5 w-5" />
             </div>
             <h1 className="font-display text-2xl font-bold text-foreground">
               Radar IA
             </h1>
+            {kbAvailable && kbRules.length > 0 && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                Contexto estratégico ativo
+              </span>
+            )}
           </div>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Sinais de oportunidade, alertas e recomendações inteligentes da conta ativa.
           </p>
         </div>
+
         <Button
           onClick={runAnalysis}
           disabled={running}
@@ -674,8 +800,89 @@ function RadarIAContent() {
         </Button>
       </div>
 
+      {/* Base da IA aplicada */}
+      <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-indigo-50/60 via-card to-card p-4 shadow-[var(--shadow-soft)]">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm">
+              <BookOpen className="h-4.5 w-4.5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="font-display text-base font-bold text-foreground">
+                  Base da IA aplicada
+                </h2>
+                {kbLoading ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Carregando
+                  </span>
+                ) : !kbAvailable ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                    Indisponível
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
+                    {kbSummary.total} regra{kbSummary.total === 1 ? "" : "s"} ativa{kbSummary.total === 1 ? "" : "s"}
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground max-w-2xl">
+                Regras estratégicas cadastradas em{" "}
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: "/ecommerce/base-ia" })}
+                  className="font-semibold text-indigo-700 hover:underline"
+                >
+                  Base da IA
+                </button>{" "}
+                orientam a leitura do Radar sobre margem, preço, estoque, Ads e produtos prioritários.
+              </p>
+            </div>
+          </div>
+          <div className="text-right text-[11px] text-muted-foreground">
+            <div className="font-semibold uppercase tracking-wider text-muted-foreground/70">
+              Última atualização
+            </div>
+            <div className="mt-0.5 text-foreground">
+              {kbSummary.last ? formatDate(kbSummary.last) : "—"}
+            </div>
+          </div>
+        </div>
+
+        {kbAvailable && kbSummary.total > 0 ? (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {(Object.keys(kbSummary.byCat) as KbCategory[])
+              .filter((k) => kbSummary.byCat[k] > 0)
+              .map((k) => (
+                <span
+                  key={k}
+                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${KB_CATEGORY_STYLE[k]}`}
+                >
+                  {KB_CATEGORY_LABEL[k]}
+                  <span className="rounded-full bg-white/70 px-1 text-[10px]">
+                    {kbSummary.byCat[k]}
+                  </span>
+                </span>
+              ))}
+          </div>
+        ) : !kbLoading && kbAvailable ? (
+          <div className="mt-3 rounded-lg border border-dashed border-amber-200 bg-amber-50/60 px-3 py-2 text-xs text-amber-800">
+            Nenhuma regra estratégica ativa encontrada. Cadastre regras na{" "}
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/ecommerce/base-ia" })}
+              className="font-semibold underline"
+            >
+              Base da IA
+            </button>{" "}
+            para melhorar a análise.
+          </div>
+        ) : null}
+      </div>
 
       {/* Summary cards */}
+
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <SummaryCard
           icon={<Sparkles className="h-4 w-4" />}
@@ -773,7 +980,9 @@ function RadarIAContent() {
               }}
               creating={creatingId === insight.id}
               opening={openingId === insight.id}
+              appliedRules={rulesForInsight(insight.insight_type, kbRules)}
             />
+
 
           ))}
         </div>
@@ -1052,6 +1261,12 @@ function RadarIAContent() {
                 <Block label="Causa provável" text={selected.probable_cause} />
                 <Block label="Ação recomendada" text={selected.recommended_action} />
 
+                <AppliedRulesPanel
+                  insight={selected}
+                  rules={rulesForInsight(selected.insight_type, kbRules)}
+                />
+
+
                 {(selected.suggested_title ||
                   selected.suggested_description ||
                   selected.suggested_image_idea ||
@@ -1220,6 +1435,12 @@ function RadarIAContent() {
                 <Block label="Diagnóstico" text={plan.diagnosis} />
                 <Block label="Causa provável" text={plan.probable_cause} />
                 <Block label="Ação recomendada" text={plan.recommended_action} />
+
+                <AppliedRulesPanel
+                  insight={plan}
+                  rules={rulesForInsight(plan.insight_type, kbRules)}
+                />
+
 
                 {(plan.suggested_title ||
                   plan.suggested_description ||
@@ -1394,6 +1615,7 @@ function InsightCard({
   onPlan,
   creating,
   opening,
+  appliedRules,
 }: {
   insight: Insight;
   onOpen: () => void;
@@ -1402,6 +1624,7 @@ function InsightCard({
   onPlan: () => void;
   creating: boolean;
   opening: boolean;
+  appliedRules: KbRule[];
 }) {
   const alreadyTask = insight.status === "converted_to_task";
   const confidencePct =
@@ -1458,10 +1681,36 @@ function InsightCard({
               {insight.recommended_action}
             </p>
           )}
+          {appliedRules.length > 0 && (
+            <div className="mt-3 rounded-lg border border-indigo-100 bg-indigo-50/40 px-3 py-2">
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-700">
+                <BookOpen className="h-3 w-3" />
+                Regras consideradas
+              </div>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {appliedRules.slice(0, 4).map((r) => (
+                  <span
+                    key={r.id}
+                    title={r.description ?? undefined}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-medium ${KB_CATEGORY_STYLE[r.category]}`}
+                  >
+                    <span className="opacity-70">{KB_CATEGORY_LABEL[r.category]}:</span>
+                    <span className="truncate max-w-[220px]">{r.title}</span>
+                  </span>
+                ))}
+                {appliedRules.length > 4 && (
+                  <span className="inline-flex items-center rounded-full border border-border/60 bg-muted px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
+                    +{appliedRules.length - 4}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
           <div className="mt-2 text-[11px] text-muted-foreground">
             Criado em {formatDate(insight.created_at)}
           </div>
         </div>
+
         <div className="flex shrink-0 flex-col gap-2">
           <Button size="sm" variant="outline" onClick={onOpen}>
             <Eye className="mr-1.5 h-4 w-4" />
@@ -1616,6 +1865,81 @@ function ActionResultCard({
             Ver análise completa
           </Button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function AppliedRulesPanel({
+  insight,
+  rules,
+}: {
+  insight: Insight;
+  rules: KbRule[];
+}) {
+  const originLabel = insight.generated_by
+    ? `Motor de insights (${insight.generated_by})`
+    : "Motor de insights";
+  const typeLabel = insight.insight_type
+    ? (TYPE_LABEL[insight.insight_type] ?? insight.insight_type)
+    : "—";
+  const statusLabel = insight.status
+    ? (STATUS_LABEL[insight.status] ?? insight.status)
+    : "—";
+  return (
+    <div className="rounded-xl border border-indigo-100 bg-indigo-50/30 p-4 space-y-3">
+      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-indigo-700">
+        <BookOpen className="h-3.5 w-3.5" />
+        Contexto estratégico
+      </div>
+
+      <dl className="grid grid-cols-1 gap-x-4 gap-y-1.5 text-xs sm:grid-cols-2">
+        <dt className="text-muted-foreground">Origem do insight</dt>
+        <dd className="text-foreground">{originLabel}</dd>
+        <dt className="text-muted-foreground">Dados considerados</dt>
+        <dd className="text-foreground">{typeLabel}</dd>
+        <dt className="text-muted-foreground">Próxima ação recomendada</dt>
+        <dd className="text-foreground">
+          {insight.recommended_action?.trim() ? insight.recommended_action : "—"}
+        </dd>
+        <dt className="text-muted-foreground">Status da ação</dt>
+        <dd className="text-foreground">{statusLabel}</dd>
+      </dl>
+
+      <div>
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Regras da Base da IA aplicadas
+        </div>
+        {rules.length === 0 ? (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Nenhuma regra estratégica ativa aplicável a este tipo de insight.
+          </p>
+        ) : (
+          <ul className="mt-2 space-y-1.5">
+            {rules.map((r) => (
+              <li
+                key={r.id}
+                className="rounded-lg border border-border/60 bg-card px-2.5 py-1.5 text-xs"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${KB_CATEGORY_STYLE[r.category]}`}
+                  >
+                    {KB_CATEGORY_LABEL[r.category]}
+                  </span>
+                  <span className="font-semibold text-foreground truncate">
+                    {r.title}
+                  </span>
+                </div>
+                {r.description && (
+                  <p className="mt-1 line-clamp-2 text-muted-foreground">
+                    {r.description}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

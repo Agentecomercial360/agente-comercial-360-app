@@ -345,7 +345,7 @@ function ResultadosAcoesContent() {
   const detailResult = detailTask ? resultsByTask.get(detailTask.id) ?? null : null;
 
   return (
-    <EcommerceLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <header className="space-y-2">

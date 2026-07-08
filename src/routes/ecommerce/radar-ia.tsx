@@ -1625,7 +1625,7 @@ function RadarIAContent() {
 
                 <AppliedRulesPanel
                   insight={plan}
-                  rules={rulesForInsight(plan.insight_type, kbRules)}
+                  rules={rulesForInsight(plan.insight_type, kbRules, plan)}
                 />
 
 

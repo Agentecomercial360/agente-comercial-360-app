@@ -282,29 +282,29 @@ function ResultadosAcoes() {
 
   // KPIs
   const kpis = useMemo(() => {
-    const completed = tasks.length;
+    // Ações concluídas: contagem real em ecommerce_tasks (não depende da view).
+    const completed = Math.max(completedCount, tasks.length);
     let positive = 0;
     let neutral = 0;
+    let negative = 0;
     let revenue = 0;
     let stockCount = 0;
     let adsCount = 0;
-    for (const t of tasks) {
-      const r = resultsByTask.get(t.id);
-      const b = bucketOf(r?.result_status);
+    for (const r of results) {
+      const b = bucketOf(r.result_status);
       if (b === "positive") positive += 1;
-      if (b === "neutral") neutral += 1;
-      if (r?.revenue_difference && r.revenue_difference > 0) {
+      else if (b === "neutral") neutral += 1;
+      else if (b === "negative") negative += 1;
+      if (r.revenue_difference && r.revenue_difference > 0) {
         revenue += r.revenue_difference;
       }
-      if (isStockRelated(t)) stockCount += 1;
-      if (isAdsRelated(t) && (b === "positive" || b === "neutral" || b === "negative")) {
-        adsCount += 1;
-      } else if (isAdsRelated(t)) {
-        adsCount += 1;
-      }
     }
-    return { completed, positive, neutral, revenue, stockCount, adsCount };
-  }, [tasks, resultsByTask]);
+    for (const t of tasks) {
+      if (isStockRelated(t)) stockCount += 1;
+      if (isAdsRelated(t)) adsCount += 1;
+    }
+    return { completed, positive, neutral, negative, revenue, stockCount, adsCount };
+  }, [tasks, results, completedCount]);
 
   const hasCompleted = tasks.length > 0;
   const hasResults = results.length > 0;

@@ -1212,7 +1212,7 @@ function RadarIAContent() {
         <div className="rounded-2xl border border-dashed border-border/60 bg-card px-6 py-16 text-center">
           <Radar className="mx-auto h-10 w-10 text-muted-foreground/60" />
           <p className="mt-3 text-sm text-muted-foreground max-w-md mx-auto">
-            Nenhum insight encontrado para esta conta. O Radar IA exibirá oportunidades assim que o motor de inteligência analisar os dados.
+            Nenhum insight encontrado para esta conta. O Diagnóstico Inteligente exibirá oportunidades assim que o motor de inteligência analisar os dados.
           </p>
         </div>
       ) : filteredInsights.length === 0 ? (

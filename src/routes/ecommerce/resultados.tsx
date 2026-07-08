@@ -87,6 +87,7 @@ type ActionResult = {
   account_id: string | null;
   task_id: string | null;
   task_title: string | null;
+  task_status: string | null;
   product_id: string | null;
   product_name: string | null;
   listing_id: string | null;

@@ -2630,6 +2630,35 @@ function ActionResultCard({
   );
 }
 
+function CopyBtn({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success(`${label} copiado`);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error("Não foi possível copiar");
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={onCopy}
+      className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-card px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground transition hover:bg-muted"
+      title={`Copiar ${label.toLowerCase()}`}
+    >
+      {copied ? (
+        <CheckCheck className="h-3 w-3 text-emerald-600" />
+      ) : (
+        <Copy className="h-3 w-3" />
+      )}
+      {copied ? "Copiado" : "Copiar"}
+    </button>
+  );
+}
+
 function AppliedRulesPanel({
   insight,
   rules,

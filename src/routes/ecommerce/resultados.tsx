@@ -1282,7 +1282,7 @@ function RegistrarResultadoDialog({
               Cancelar
             </Button>
           </DialogClose>
-          <Button type="button" onClick={onSubmit} disabled={saving || !form.taskId}>
+          <Button type="button" onClick={onSubmit} disabled={saving || !form.taskId || measuredTaskIds.has(form.taskId)}>
             {saving && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
             Registrar
           </Button>

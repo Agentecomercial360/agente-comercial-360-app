@@ -199,10 +199,10 @@ function ConsultorIA() {
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              Consultor IA E-commerce
+              Assistente Estratégico
             </h1>
             <p className="text-slate-500">
-              Diagnóstico avançado e resultados medidos das ações executadas.
+              Converse com a inteligência do sistema para interpretar dados, entender oportunidades e apoiar decisões da operação Mercado Livre.
             </p>
           </div>
         </div>

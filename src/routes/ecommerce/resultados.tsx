@@ -899,15 +899,16 @@ function RegistrarResultadoDialog({
       ? new Date(form.date + "T12:00:00").toISOString()
       : new Date().toISOString();
 
+    // NOTE: ecommerce_action_results does NOT have account_id.
+    // account_id é resolvido via view vw_ecommerce_action_results (join por task_id).
     const payload: Record<string, unknown> = {
       company_id: ECOMMERCE_COMPANY_ID,
-      account_id: activeAccountId,
       task_id: t.id,
       product_id: t.product_id,
       listing_id: t.listing_id,
       result_status: form.impact,
       result_summary: form.note.trim() || null,
-      evaluated_at: evaluatedAt,
+      evaluation_date: evaluatedAt.slice(0, 10),
     };
 
     // Map metric to before/after columns when applicable

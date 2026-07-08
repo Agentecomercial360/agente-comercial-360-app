@@ -192,6 +192,17 @@ const IMPACT_ICON: Record<ImpactBucket, typeof TrendingUp> = {
 // ---------------- Component ----------------
 
 function ResultadosAcoes() {
+  // Renderiza o Layout (que expõe o provider de conta ativa) e o conteúdo
+  // real como filho para que useEcommerceActiveAccount leia o MESMO context
+  // usado pelo header/topbar (fonte única da conta ativa).
+  return (
+    <EcommerceLayout>
+      <ResultadosAcoesContent />
+    </EcommerceLayout>
+  );
+}
+
+function ResultadosAcoesContent() {
   const { activeAccountId, activeAccount, loading: accLoading } =
     useEcommerceActiveAccount();
 
@@ -334,7 +345,7 @@ function ResultadosAcoes() {
   const detailResult = detailTask ? resultsByTask.get(detailTask.id) ?? null : null;
 
   return (
-    <EcommerceLayout>
+    <>
       <div className="space-y-6">
         {/* Header */}
         <header className="space-y-2">
@@ -376,6 +387,13 @@ function ResultadosAcoes() {
             Atualizar
           </Button>
         </div>
+
+        {!accLoading && !activeAccountId && (
+          <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50/60 p-3 text-xs text-rose-900">
+            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>Conta ativa não identificada para medição de resultados.</span>
+          </div>
+        )}
 
         {/* Aviso de contexto */}
         {hasCompleted && !hasResults && (
@@ -796,7 +814,7 @@ function ResultadosAcoes() {
           )}
         </SheetContent>
       </Sheet>
-    </EcommerceLayout>
+    </>
   );
 }
 

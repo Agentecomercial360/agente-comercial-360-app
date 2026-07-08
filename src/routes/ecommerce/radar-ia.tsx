@@ -325,8 +325,11 @@ const STATUS_LABEL: Record<string, string> = {
   pending_review: "Pendente de revisão",
   converted_to_task: "Convertido em tarefa",
   approved: "Aprovado",
+  needs_review: "Revisão solicitada",
   in_progress: "Em acompanhamento",
   in_review: "Em acompanhamento",
+  monitoring: "Em acompanhamento",
+  discarded: "Descartado",
   dismissed: "Descartado",
   resolved: "Em acompanhamento",
 };
@@ -337,8 +340,11 @@ const STATUS_STYLE: Record<string, string> = {
   pending_review: "border-blue-200 bg-blue-50 text-blue-700",
   converted_to_task: "border-emerald-200 bg-emerald-50 text-emerald-700",
   approved: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  needs_review: "border-amber-200 bg-amber-50 text-amber-700",
   in_progress: "border-violet-200 bg-violet-50 text-violet-700",
   in_review: "border-violet-200 bg-violet-50 text-violet-700",
+  monitoring: "border-violet-200 bg-violet-50 text-violet-700",
+  discarded: "border-slate-200 bg-slate-50 text-slate-600",
   dismissed: "border-slate-200 bg-slate-50 text-slate-600",
   resolved: "border-violet-200 bg-violet-50 text-violet-700",
 };
@@ -919,62 +925,106 @@ function RadarIAContent() {
 
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [dismissingId, setDismissingId] = useState<string | null>(null);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
 
+  // Aceito hoje pelo banco (fallback caso o check constraint recuse os novos valores):
+  //   open, pending, pending_review, in_progress, in_review, resolved,
+  //   dismissed, converted_to_task
+  // Se o CHECK constraint bloquear approved / needs_review / discarded,
+  // a UI mostra toast claro e não quebra.
   const updateInsightStatus = useCallback(
-    async (insight: Insight, next: string, successMsg: string, fallbackMsg: string) => {
-      const { error } = await supabase
+    async (insight: Insight, next: string): Promise<{ ok: boolean; error?: string; code?: string }> => {
+      let q = supabase
         .from("ecommerce_ai_insights")
         .update({ status: next, updated_at: new Date().toISOString() })
-        .eq("id", insight.id);
+        .eq("id", insight.id)
+        .eq("company_id", ECOMMERCE_COMPANY_ID);
+      if (insight.account_id) q = q.eq("account_id", insight.account_id);
+      const { error } = await q;
       if (error) {
-        console.warn("[Plano de Ação] status update falhou:", error.message);
-        toast.message(fallbackMsg);
-        return false;
+        console.warn("[Plano de Ação] status update falhou:", error);
+        return { ok: false, error: error.message, code: error.code };
       }
-      toast.success(successMsg);
       setInsights((prev) =>
         prev.map((i) => (i.id === insight.id ? { ...i, status: next } : i)),
       );
       setPlan((prev) => (prev && prev.id === insight.id ? { ...prev, status: next } : prev));
       setSelected((prev) => (prev && prev.id === insight.id ? { ...prev, status: next } : prev));
-      return true;
+      return { ok: true };
     },
     [],
   );
+
+  const isCheckConstraintError = (code?: string, msg?: string) => {
+    if (code === "23514") return true;
+    const m = (msg ?? "").toLowerCase();
+    return m.includes("check constraint") || m.includes("violates check") || m.includes("invalid input value for enum");
+  };
 
   const approvePlan = useCallback(
     async (insight: Insight) => {
       setApprovingId(insight.id);
       try {
-        await updateInsightStatus(
-          insight,
-          "approved",
-          "Plano aprovado. Nenhuma alteração foi feita no Mercado Livre.",
-          "Plano aprovado localmente. A persistência do status será conectada na próxima etapa.",
-        );
+        const res = await updateInsightStatus(insight, "approved");
+        if (res.ok) {
+          toast.success("Plano aprovado. Nenhuma alteração foi feita automaticamente no Mercado Livre.");
+          await load();
+        } else if (isCheckConstraintError(res.code, res.error)) {
+          toast.error("Não foi possível aprovar: status não permitido no banco. (esperado: 'approved')");
+        } else {
+          toast.error(`Não foi possível aprovar: ${res.error ?? "erro desconhecido"}`);
+        }
       } finally {
         setApprovingId(null);
       }
     },
-    [updateInsightStatus],
+    [updateInsightStatus, load],
   );
 
   const dismissPlan = useCallback(
     async (insight: Insight) => {
       setDismissingId(insight.id);
       try {
-        await updateInsightStatus(
-          insight,
-          "dismissed",
-          "Plano descartado. O insight foi mantido no histórico.",
-          "Plano marcado como descartado localmente. Persistência será conectada na próxima etapa.",
-        );
+        let res = await updateInsightStatus(insight, "discarded");
+        // Fallback para bases que ainda só aceitam 'dismissed'
+        if (!res.ok && isCheckConstraintError(res.code, res.error)) {
+          res = await updateInsightStatus(insight, "dismissed");
+        }
+        if (res.ok) {
+          toast.success("Plano descartado. O histórico foi preservado.");
+          await load();
+        } else if (isCheckConstraintError(res.code, res.error)) {
+          toast.error("Não foi possível descartar: status não permitido no banco. (esperado: 'discarded')");
+        } else {
+          toast.error(`Não foi possível descartar: ${res.error ?? "erro desconhecido"}`);
+        }
       } finally {
         setDismissingId(null);
       }
     },
-    [updateInsightStatus],
+    [updateInsightStatus, load],
   );
+
+  const reviewPlan = useCallback(
+    async (insight: Insight) => {
+      setReviewingId(insight.id);
+      try {
+        const res = await updateInsightStatus(insight, "needs_review");
+        if (res.ok) {
+          toast.success("Revisão solicitada. Nenhuma ação foi executada.");
+          await load();
+        } else if (isCheckConstraintError(res.code, res.error)) {
+          toast.error("Não foi possível solicitar revisão: status não permitido no banco. (esperado: 'needs_review')");
+        } else {
+          toast.error(`Não foi possível solicitar revisão: ${res.error ?? "erro desconhecido"}`);
+        }
+      } finally {
+        setReviewingId(null);
+      }
+    },
+    [updateInsightStatus, load],
+  );
+
 
 
 
@@ -1880,7 +1930,7 @@ function RadarIAContent() {
               ["Sugestão de kit / combo", plan.suggested_kit_action],
             ];
             const planRules = rulesForInsight(plan.insight_type, kbRules, plan);
-            const isDismissed = plan.status === "dismissed";
+            const isDismissed = plan.status === "dismissed" || plan.status === "discarded";
             const isApproved = plan.status === "approved";
 
             return (
@@ -2116,14 +2166,16 @@ function RadarIAContent() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() =>
-                      toast.message(
-                        "Solicitação de revisão registrada. Fluxo colaborativo será conectado na próxima etapa.",
-                      )
-                    }
+                    disabled={reviewingId === plan.id || plan.status === "needs_review"}
+                    onClick={() => reviewPlan(plan)}
+                    title="Marca o plano para revisão. Nenhuma alteração é executada no Mercado Livre."
                   >
-                    <Send className="mr-1.5 h-4 w-4" />
-                    Solicitar revisão
+                    {reviewingId === plan.id ? (
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="mr-1.5 h-4 w-4" />
+                    )}
+                    {plan.status === "needs_review" ? "Revisão solicitada" : "Solicitar revisão"}
                   </Button>
                   <Button
                     variant="outline"
@@ -2630,16 +2682,49 @@ function ActionResultCard({
   );
 }
 
+async function copyToClipboardSafe(text: string): Promise<boolean> {
+  if (!text) return false;
+  // 1) API moderna
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    /* segue para fallback */
+  }
+  // 2) Fallback: textarea temporário + execCommand
+  try {
+    if (typeof document === "undefined") return false;
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "0";
+    ta.style.left = "0";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 function CopyBtn({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false);
   const onCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
+    const ok = await copyToClipboardSafe(text);
+    if (ok) {
       setCopied(true);
-      toast.success(`${label} copiado`);
+      toast.success("Texto copiado com sucesso.");
       setTimeout(() => setCopied(false), 1500);
-    } catch {
-      toast.error("Não foi possível copiar");
+    } else {
+      toast.error("Não foi possível copiar automaticamente. Selecione o texto manualmente.");
     }
   };
   return (

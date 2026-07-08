@@ -485,6 +485,35 @@ function TarefasOperadoresContent() {
     }
   }, [currentDetail, draftStatus, draftResponsible, draftResult, loadTasks, operators]);
 
+  const [completingId, setCompletingId] = useState<string | null>(null);
+  const handleQuickComplete = useCallback(
+    async (task: EcommerceTask) => {
+      setCompletingId(task.id);
+      const now = new Date().toISOString();
+      try {
+        const { error } = await supabase
+          .from("ecommerce_tasks")
+          .update({
+            status: "completed",
+            completed_at: now,
+            updated_at: now,
+          })
+          .eq("id", task.id)
+          .eq("company_id", ECOMMERCE_COMPANY_ID);
+        if (error) {
+          console.error("[tarefas] quick complete error", error);
+          toast.error("Não foi possível concluir a tarefa.");
+          return;
+        }
+        toast.success("Tarefa marcada como concluída.");
+        await loadTasks();
+      } finally {
+        setCompletingId(null);
+      }
+    },
+    [loadTasks],
+  );
+
 
   const sorted = useMemo(() => {
     return [...tasks].sort((a, b) => {

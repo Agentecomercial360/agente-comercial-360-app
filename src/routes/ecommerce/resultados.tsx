@@ -1048,7 +1048,14 @@ function RegistrarResultadoDialog({
       toast.error("Selecione uma tarefa concluída.");
       return;
     }
+    if (measuredTaskIds.has(t.id)) {
+      toast.error(
+        "Esta tarefa já possui medição registrada. Para evitar duplicidade, visualize o resultado existente.",
+      );
+      return;
+    }
     const before = parseNum(form.before);
+
     const after = parseNum(form.after);
     const revenue = parseNum(form.revenue);
     const evaluatedAt = form.date

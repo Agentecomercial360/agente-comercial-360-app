@@ -402,8 +402,10 @@ function ResultadosAcoesContent() {
           <RegistrarResultadoDialog
             tasks={tasks}
             activeAccountId={activeAccountId}
+            measuredTaskIds={resultsByTask}
             onSaved={loadAll}
           />
+
           <Button
             variant="outline"
             size="sm"

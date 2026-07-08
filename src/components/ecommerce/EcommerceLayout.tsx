@@ -19,6 +19,7 @@ import {
   Link2,
   ChevronDown,
   DollarSign,
+  ClipboardList,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -55,6 +56,12 @@ const navGroups = [
     title: "Crescimento",
     items: [
       { label: "Anúncios e Ads", to: "/ecommerce/ads", icon: Zap },
+    ],
+  },
+  {
+    title: "Execução",
+    items: [
+      { label: "Tarefas da Operação", to: "/ecommerce/tarefas", icon: ClipboardList },
     ],
   },
   {
@@ -109,7 +116,7 @@ function SidebarNav({ path, signingOut, onSignOut, onNavigate }: SidebarNavProps
             </div>
             <div className="space-y-0.5">
               {group.items.map((item, i) => {
-                const active = path === item.to;
+                const active = path === item.to || path.startsWith(item.to + "/");
                 const Icon = item.icon;
                 return (
                   <Link

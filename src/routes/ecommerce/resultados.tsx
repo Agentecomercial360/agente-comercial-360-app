@@ -388,6 +388,13 @@ function ResultadosAcoesContent() {
           </Button>
         </div>
 
+        {!accLoading && !activeAccountId && (
+          <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50/60 p-3 text-xs text-rose-900">
+            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <span>Conta ativa não identificada para medição de resultados.</span>
+          </div>
+        )}
+
         {/* Aviso de contexto */}
         {hasCompleted && !hasResults && (
           <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-xs text-amber-900">

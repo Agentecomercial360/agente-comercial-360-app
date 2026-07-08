@@ -1379,6 +1379,10 @@ function RadarIAContent() {
                     Dados técnicos
                   </div>
                   <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                    <dt className="text-muted-foreground">Origem</dt>
+                    <dd className="text-foreground font-mono">ecommerce_ai_insights</dd>
+                    <dt className="text-muted-foreground">Modelo</dt>
+                    <dd className="text-foreground">{selected.generated_by ?? "—"}</dd>
                     <dt className="text-muted-foreground">Confiança</dt>
                     <dd className="text-foreground">
                       {selected.confidence_score != null
@@ -1388,8 +1392,15 @@ function RadarIAContent() {
                           )}%`
                         : "—"}
                     </dd>
-                    <dt className="text-muted-foreground">Gerado por</dt>
-                    <dd className="text-foreground">{selected.generated_by ?? "—"}</dd>
+                    <dt className="text-muted-foreground">Conta Mercado Livre</dt>
+                    <dd className="text-foreground">
+                      {accountLabel}
+                      {activeAccount?.ml_user_id ? (
+                        <span className="ml-1 text-muted-foreground">
+                          (ML #{activeAccount.ml_user_id})
+                        </span>
+                      ) : null}
+                    </dd>
                     <dt className="text-muted-foreground">Criado em</dt>
                     <dd className="text-foreground">{formatDate(selected.created_at)}</dd>
                     <dt className="text-muted-foreground">Atualizado em</dt>
@@ -1397,22 +1408,59 @@ function RadarIAContent() {
                   </dl>
                 </div>
 
-                {(selected.product_id || selected.listing_id) && (
-                  <div className="text-[11px] text-muted-foreground space-y-0.5">
-                    {selected.product_id && (
-                      <div>
-                        <span className="font-medium">product_id:</span>{" "}
-                        <span className="font-mono">{selected.product_id}</span>
+                {(selected.product_id || selected.listing_id) && (() => {
+                  const product = selected.product_id
+                    ? productMap[selected.product_id]
+                    : undefined;
+                  const listing = selected.listing_id
+                    ? listingMap[selected.listing_id]
+                    : undefined;
+                  const missing =
+                    (selected.product_id && !product) ||
+                    (selected.listing_id && !listing);
+                  return (
+                    <div className="rounded-xl border border-border/60 bg-card p-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Produto / Anúncio vinculado
                       </div>
-                    )}
-                    {selected.listing_id && (
-                      <div>
-                        <span className="font-medium">listing_id:</span>{" "}
-                        <span className="font-mono">{selected.listing_id}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs">
+                        {selected.product_id && (
+                          <>
+                            <dt className="text-muted-foreground">Nome</dt>
+                            <dd className="text-foreground">{product?.name ?? "—"}</dd>
+                            <dt className="text-muted-foreground">SKU</dt>
+                            <dd className="text-foreground font-mono">
+                              {product?.sku ?? "—"}
+                            </dd>
+                            <dt className="text-muted-foreground">product_id</dt>
+                            <dd className="text-foreground font-mono break-all">
+                              {selected.product_id}
+                            </dd>
+                          </>
+                        )}
+                        {selected.listing_id && (
+                          <>
+                            <dt className="text-muted-foreground">ML Item ID</dt>
+                            <dd className="text-foreground font-mono">
+                              {listing?.ml_item_id ?? "—"}
+                            </dd>
+                            <dt className="text-muted-foreground">Status anúncio</dt>
+                            <dd className="text-foreground">{listing?.status ?? "—"}</dd>
+                            <dt className="text-muted-foreground">listing_id</dt>
+                            <dd className="text-foreground font-mono break-all">
+                              {selected.listing_id}
+                            </dd>
+                          </>
+                        )}
+                      </dl>
+                      {missing && (
+                        <div className="mt-2 rounded-md border border-dashed border-amber-200 bg-amber-50/60 px-2.5 py-1.5 text-[11px] text-amber-800">
+                          Produto/anúncio vinculado não encontrado ou não sincronizado.
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               <div className="mt-6 flex flex-wrap items-center justify-end gap-2 border-t border-border/60 pt-4">

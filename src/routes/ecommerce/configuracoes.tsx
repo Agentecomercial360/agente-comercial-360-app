@@ -445,7 +445,7 @@ function EcommerceConfiguracoes() {
 
             <ConfigSection title="Inteligência Artificial" icon={BrainCircuit}>
               <div className="space-y-2">
-                <ToggleItem label="Consultor IA Ativo" description="Habilitar sugestões automáticas de títulos, fotos e preços." active={true} />
+                <ToggleItem label="Assistente Estratégico Ativo" description="Habilitar sugestões automáticas de títulos, fotos e preços." active={true} />
                 <ToggleItem label="Geração automática de tarefas" description="Criar tarefas operacionais baseadas em alertas críticos." active={true} />
                 <ToggleItem label="Análise de sentimento (Perguntas)" description="Classificar dúvidas de clientes e sugerir respostas otimizadas." active={true} />
                 <ToggleItem label="Modo Autônomo (Ads)" description="Permitir que a IA pause campanhas com ROAS abaixo de 1.5." active={false} />

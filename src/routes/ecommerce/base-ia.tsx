@@ -62,11 +62,11 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/ecommerce/base-ia")({
   head: () => ({
     meta: [
-      { title: "Base da IA — AC360 E-commerce Intelligence" },
+      { title: "Regras da Operação — AC360 E-commerce Intelligence" },
       {
         name: "description",
         content:
-          "Cadastre regras estratégicas de margem, preço, estoque, Ads e produtos prioritários para orientar a IA do AC360 E-commerce Intelligence.",
+          "Cadastre regras de margem, preço, estoque, Ads e produtos prioritários para orientar o Diagnóstico Inteligente e o Assistente Estratégico.",
       },
     ],
   }),
@@ -374,14 +374,13 @@ function BaseIaPage() {
                 )}
               </div>
               <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                Base da IA
+                Regras da Operação
               </h1>
               <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
-                Memória estratégica da operação Mercado Livre. Cadastre regras de{" "}
-                <strong>margem</strong>, <strong>preço</strong>,{" "}
+                Cadastre regras de <strong>margem</strong>, <strong>preço</strong>,{" "}
                 <strong>estoque</strong>, <strong>Ads</strong> e{" "}
-                <strong>produtos prioritários</strong> para orientar o Radar IA,
-                o Consultor IA e as recomendações da Central de Ações.
+                <strong>produtos prioritários</strong> para orientar o Diagnóstico
+                Inteligente e o Assistente Estratégico da operação Mercado Livre.
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -585,13 +584,13 @@ function BaseIaPage() {
         <section className="rounded-2xl border border-slate-200 bg-white p-5">
           <h3 className="font-display text-base font-bold text-foreground flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-blue-700" />
-            Como a IA usará essa base
+            Como as regras são usadas
           </h3>
           <p className="mt-1.5 text-sm text-muted-foreground">
             As regras cadastradas aqui serão usadas como contexto para
             classificar produtos críticos, oportunidades de escala, bloqueios de
-            margem, riscos de estoque e recomendações de anúncios no Radar IA,
-            Consultor IA e Central de Ações.
+            margem, riscos de estoque e recomendações de anúncios no Diagnóstico
+            Inteligente, Assistente Estratégico e Central de Ações.
           </p>
         </section>
       </div>
@@ -618,7 +617,7 @@ function BaseIaPage() {
             <AlertDialogTitle>Excluir regra?</AlertDialogTitle>
             <AlertDialogDescription>
               Essa ação não pode ser desfeita. A regra “{deleting?.title}” será
-              removida da Base da IA.
+              removida das Regras da Operação.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -722,7 +721,7 @@ function EmptyState({ onNew, disabled }: { onNew: () => void; disabled: boolean 
       </div>
       <p className="mt-3 text-sm text-muted-foreground max-w-md mx-auto">
         Nenhuma regra estratégica cadastrada ainda. Cadastre regras de margem,
-        preço, estoque e Ads para orientar o Radar IA e o Consultor IA.
+        preço, estoque e Ads para orientar o Diagnóstico Inteligente e o Assistente Estratégico.
       </p>
       <Button
         onClick={onNew}

@@ -691,7 +691,7 @@ function RadarIAContent() {
       const inserted = Number(result?.inserted_count ?? 0);
       const kbNote =
         kbRules.length > 0
-          ? ` · Base da IA aplicada (${kbRules.length} regra${kbRules.length === 1 ? "" : "s"})`
+          ? ` · Regras da Operação aplicadas (${kbRules.length} regra${kbRules.length === 1 ? "" : "s"})`
           : "";
       const engineNote = " · motor: RPC generate_ecommerce_insights_v1 (regras SQL)";
       if (inserted > 0) {
@@ -960,7 +960,7 @@ function RadarIAContent() {
             )}
           </div>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Análise inteligente da conta ativa para identificar riscos, oportunidades e ações recomendadas com base nos dados do Mercado Livre e nas regras da Base da IA.
+            Análise inteligente da conta ativa para identificar riscos, oportunidades e ações recomendadas com base nos dados do Mercado Livre e nas Regras da Operação.
           </p>
           <p className="mt-0.5 text-[11px] text-muted-foreground/80">
             Os insights exibidos são filtrados pela conta Mercado Livre ativa · origem:{" "}
@@ -1017,7 +1017,7 @@ function RadarIAContent() {
             </div>
             <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
               O Diagnóstico Inteligente cruza dados da conta Mercado Livre, produtos, anúncios,
-              estoque, métricas, Ads, pedidos e regras da Base da IA para identificar riscos,
+              estoque, métricas, Ads, pedidos e Regras da Operação para identificar riscos,
               oportunidades e ações recomendadas. As recomendações operam em modo assistido:
               o sistema sugere e prepara a ação, mas alterações sensíveis exigem aprovação operacional.
             </p>
@@ -1057,7 +1057,7 @@ function RadarIAContent() {
         </div>
       </div>
 
-      {/* Base da IA aplicada */}
+      {/* Regras da Operação aplicadas */}
       <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-indigo-50/60 via-card to-card p-4 shadow-[var(--shadow-soft)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
@@ -1067,7 +1067,7 @@ function RadarIAContent() {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="font-display text-base font-bold text-foreground">
-                  Base da IA aplicada
+                  Regras da Operação aplicadas
                 </h2>
                 {kbLoading ? (
                   <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
@@ -1091,7 +1091,7 @@ function RadarIAContent() {
                   onClick={() => navigate({ to: "/ecommerce/base-ia" })}
                   className="font-semibold text-indigo-700 hover:underline"
                 >
-                  Base da IA
+                  Regras da Operação
                 </button>{" "}
                 orientam a leitura do diagnóstico sobre margem, preço, estoque, Ads e produtos prioritários.
               </p>
@@ -1125,13 +1125,13 @@ function RadarIAContent() {
           </div>
         ) : !kbLoading && kbAvailable ? (
           <div className="mt-3 rounded-lg border border-dashed border-amber-200 bg-amber-50/60 px-3 py-2 text-xs text-amber-800">
-            Nenhuma regra estratégica ativa encontrada. Cadastre regras na{" "}
+            Nenhuma regra estratégica ativa encontrada. Cadastre regras em{" "}
             <button
               type="button"
               onClick={() => navigate({ to: "/ecommerce/base-ia" })}
               className="font-semibold underline"
             >
-              Base da IA
+              Regras da Operação
             </button>{" "}
             para melhorar a análise.
           </div>
@@ -1946,7 +1946,7 @@ function RadarIAContent() {
                       ["Métricas diárias", previewData.totals.metrics_daily],
                       ["Registros de Ads", previewData.totals.ads_metrics],
                       ["Itens de pedido", previewData.totals.order_items],
-                      ["Regras ativas da Base da IA", previewData.totals.knowledge_base_rules_active],
+                      ["Regras da Operação ativas", previewData.totals.knowledge_base_rules_active],
                       ["Insights existentes", previewData.totals.existing_insights],
                     ].map(([label, value]) => (
                       <div
@@ -2367,7 +2367,7 @@ function AppliedRulesPanel({
 
       <div>
         <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Regras da Base da IA aplicadas
+          Regras da Operação aplicadas
         </div>
         {rules.length === 0 ? (
           <p className="mt-1 text-xs text-muted-foreground">

@@ -77,7 +77,7 @@ function computeDueDate(): string {
 export const Route = createFileRoute("/ecommerce/radar-ia")({
   component: RadarIAPage,
   head: () => ({
-    meta: [{ title: "Radar IA | Agente Comercial 360" }],
+    meta: [{ title: "Diagnóstico Inteligente | Agente Comercial 360" }],
   }),
 });
 
@@ -938,7 +938,7 @@ function RadarIAContent() {
               <Radar className="h-5 w-5" />
             </div>
             <h1 className="font-display text-2xl font-bold text-foreground">
-              Radar IA
+              Diagnóstico Inteligente
             </h1>
             {kbAvailable && kbRules.length > 0 && (
               <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
@@ -960,7 +960,7 @@ function RadarIAContent() {
             )}
           </div>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Sinais de oportunidade, alertas e recomendações inteligentes da conta ativa.
+            Análise inteligente da conta ativa para identificar riscos, oportunidades e ações recomendadas com base nos dados do Mercado Livre e nas regras da Base da IA.
           </p>
           <p className="mt-0.5 text-[11px] text-muted-foreground/80">
             Os insights exibidos são filtrados pela conta Mercado Livre ativa · origem:{" "}
@@ -1000,26 +1000,26 @@ function RadarIAContent() {
             ) : (
               <>
                 <Play className="mr-2 h-4 w-4" />
-                Rodar análise agora
+                Rodar diagnóstico
               </>
             )}
           </Button>
         </div>
       </div>
 
-      {/* Como o Radar IA funciona */}
+      {/* Como o Diagnóstico Inteligente funciona */}
       <div className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
         <div className="flex items-start gap-2">
           <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
           <div className="min-w-0">
             <div className="text-xs font-semibold text-foreground">
-              Como o Radar IA funciona
+              Como o Diagnóstico Inteligente funciona
             </div>
             <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
-              O Radar IA cruza dados da conta Mercado Livre, produtos, anúncios, estoque,
-              métricas, Ads e regras da Base da IA para identificar riscos, oportunidades
-              e ações recomendadas. As recomendações não alteram a conta automaticamente;
-              elas orientam a Central de Ações e as tarefas dos operadores.
+              O Diagnóstico Inteligente cruza dados da conta Mercado Livre, produtos, anúncios,
+              estoque, métricas, Ads, pedidos e regras da Base da IA para identificar riscos,
+              oportunidades e ações recomendadas. As recomendações operam em modo assistido:
+              o sistema sugere e prepara a ação, mas alterações sensíveis exigem aprovação operacional.
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <span
@@ -1093,7 +1093,7 @@ function RadarIAContent() {
                 >
                   Base da IA
                 </button>{" "}
-                orientam a leitura do Radar sobre margem, preço, estoque, Ads e produtos prioritários.
+                orientam a leitura do diagnóstico sobre margem, preço, estoque, Ads e produtos prioritários.
               </p>
             </div>
           </div>
@@ -1212,7 +1212,7 @@ function RadarIAContent() {
         <div className="rounded-2xl border border-dashed border-border/60 bg-card px-6 py-16 text-center">
           <Radar className="mx-auto h-10 w-10 text-muted-foreground/60" />
           <p className="mt-3 text-sm text-muted-foreground max-w-md mx-auto">
-            Nenhum insight encontrado para esta conta. O Radar IA exibirá oportunidades assim que o motor de inteligência analisar os dados.
+            Nenhum insight encontrado para esta conta. O Diagnóstico Inteligente exibirá oportunidades assim que o motor de inteligência analisar os dados.
           </p>
         </div>
       ) : filteredInsights.length === 0 ? (

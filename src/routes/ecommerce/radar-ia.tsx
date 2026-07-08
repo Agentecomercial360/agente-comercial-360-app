@@ -1017,7 +1017,7 @@ function RadarIAContent() {
             </div>
             <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
               O Diagnóstico Inteligente cruza dados da conta Mercado Livre, produtos, anúncios,
-              estoque, métricas, Ads, pedidos e regras da Base da IA para identificar riscos,
+              estoque, métricas, Ads, pedidos e Regras da Operação para identificar riscos,
               oportunidades e ações recomendadas. As recomendações operam em modo assistido:
               o sistema sugere e prepara a ação, mas alterações sensíveis exigem aprovação operacional.
             </p>

@@ -62,11 +62,11 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/ecommerce/base-ia")({
   head: () => ({
     meta: [
-      { title: "Base da IA — AC360 E-commerce Intelligence" },
+      { title: "Regras da Operação — AC360 E-commerce Intelligence" },
       {
         name: "description",
         content:
-          "Cadastre regras estratégicas de margem, preço, estoque, Ads e produtos prioritários para orientar a IA do AC360 E-commerce Intelligence.",
+          "Cadastre regras de margem, preço, estoque, Ads e produtos prioritários para orientar o Diagnóstico Inteligente e o Assistente Estratégico.",
       },
     ],
   }),

@@ -315,18 +315,29 @@ const PRIORITY_STYLE: Record<string, string> = {
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  open: "Aberto",
+  open: "Pendente de revisão",
+  pending: "Pendente de revisão",
+  pending_review: "Pendente de revisão",
   converted_to_task: "Convertido em tarefa",
-  dismissed: "Ignorado",
-  resolved: "Resolvido",
+  approved: "Aprovado",
+  in_progress: "Em acompanhamento",
+  in_review: "Em acompanhamento",
+  dismissed: "Descartado",
+  resolved: "Em acompanhamento",
 };
 
 const STATUS_STYLE: Record<string, string> = {
   open: "border-blue-200 bg-blue-50 text-blue-700",
+  pending: "border-blue-200 bg-blue-50 text-blue-700",
+  pending_review: "border-blue-200 bg-blue-50 text-blue-700",
   converted_to_task: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  approved: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  in_progress: "border-violet-200 bg-violet-50 text-violet-700",
+  in_review: "border-violet-200 bg-violet-50 text-violet-700",
   dismissed: "border-slate-200 bg-slate-50 text-slate-600",
   resolved: "border-violet-200 bg-violet-50 text-violet-700",
 };
+
 
 const TYPE_LABEL: Record<string, string> = {
   stock_stopped: "Estoque parado",

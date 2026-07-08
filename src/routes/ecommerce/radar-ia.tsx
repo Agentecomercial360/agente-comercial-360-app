@@ -938,7 +938,7 @@ function RadarIAContent() {
               <Radar className="h-5 w-5" />
             </div>
             <h1 className="font-display text-2xl font-bold text-foreground">
-              Radar IA
+              Diagnóstico Inteligente
             </h1>
             {kbAvailable && kbRules.length > 0 && (
               <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
@@ -960,7 +960,7 @@ function RadarIAContent() {
             )}
           </div>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Sinais de oportunidade, alertas e recomendações inteligentes da conta ativa.
+            Análise inteligente da conta ativa para identificar riscos, oportunidades e ações recomendadas com base nos dados do Mercado Livre e nas regras da Base da IA.
           </p>
           <p className="mt-0.5 text-[11px] text-muted-foreground/80">
             Os insights exibidos são filtrados pela conta Mercado Livre ativa · origem:{" "}

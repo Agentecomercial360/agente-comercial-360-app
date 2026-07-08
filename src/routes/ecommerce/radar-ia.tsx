@@ -26,6 +26,7 @@ import {
   ThumbsDown,
   Send,
   CheckCheck,
+  Copy,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
@@ -438,11 +439,11 @@ const RISK_STYLE: Record<RiskLevel, string> = {
 };
 
 const APPROVAL_CHECKLIST = [
-  "Conferir margem e custo antes de alterar preço",
-  "Conferir estoque antes de escalar Ads",
-  "Validar se a imagem sugerida faz sentido para o produto",
-  "Confirmar que a alteração não prejudica produto estratégico",
-  "Aprovar execução manual ou criação de tarefa operacional",
+  "Margem e custo conferidos",
+  "Estoque conferido",
+  "Imagem, título e descrição validados",
+  "Impacto em Ads e preço avaliado",
+  "Operador aprova criação de tarefa ou execução manual",
 ];
 
 
@@ -1974,25 +1975,30 @@ function RadarIAContent() {
                     <div className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
                       B · Ação recomendada
                     </div>
-                    <Block label="O que a IA recomenda" text={plan.recommended_action} />
-                    <div className="rounded-lg border border-dashed border-border/60 bg-muted/30 p-3 text-[12px] text-muted-foreground">
-                      <span className="font-semibold text-foreground">Antes de aprovar:</span>{" "}
-                      confirme se a recomendação está alinhada com a estratégia da conta, se o
-                      produto não é intocável e se há estoque/margem suficientes para sustentar a
-                      mudança.
+                    <Block label="O que o diagnóstico recomenda" text={plan.recommended_action} />
+                    <div className="rounded-lg border border-dashed border-border/60 bg-muted/30 p-3 text-[12px] leading-relaxed text-muted-foreground">
+                      <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-foreground">
+                        Antes de aprovar
+                      </div>
+                      Esta recomendação <strong>não altera automaticamente</strong> preço, Ads,
+                      imagem ou anúncio no Mercado Livre. A aprovação apenas libera o plano para
+                      virar tarefa operacional ou execução manual pelo operador.
                     </div>
                   </section>
 
-                  {/* C) Materiais preparados pela IA */}
+                  {/* C) Materiais sugeridos pelo diagnóstico */}
                   <section className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-4 space-y-4">
                     <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-indigo-700">
                       <Sparkles className="h-3.5 w-3.5" />
-                      C · Materiais preparados pela IA
+                      C · Materiais sugeridos pelo diagnóstico
                     </div>
                     {materials.map(([label, value]) => (
                       <div key={label}>
-                        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                          {label}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            {label}
+                          </div>
+                          {value?.trim() ? <CopyBtn text={value} label={label} /> : null}
                         </div>
                         <p className="mt-1 whitespace-pre-wrap leading-relaxed text-foreground">
                           {value?.trim() ? (
@@ -2015,11 +2021,11 @@ function RadarIAContent() {
                     <AppliedRulesPanel insight={plan} rules={planRules} />
                   </section>
 
-                  {/* E) Checklist de aprovação operacional */}
+                  {/* E) Checklist de segurança antes da aprovação */}
                   <section className="rounded-xl border border-border/60 bg-card p-4">
                     <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
                       <ClipboardList className="h-3.5 w-3.5" />
-                      E · Checklist de aprovação operacional
+                      E · Checklist de segurança antes da aprovação
                     </div>
                     <ul className="mt-3 space-y-2">
                       {APPROVAL_CHECKLIST.map((item, idx) => {
@@ -2052,8 +2058,8 @@ function RadarIAContent() {
                       })}
                     </ul>
                     <p className="mt-3 text-[11px] text-muted-foreground">
-                      Checklist visual — os itens marcados servem como registro operacional
-                      antes da aprovação.
+                      Validação operacional — os itens marcados servem como registro de segurança
+                      antes de aprovar o plano ou criar tarefa.
                     </p>
                   </section>
 
@@ -2624,6 +2630,35 @@ function ActionResultCard({
   );
 }
 
+function CopyBtn({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  const onCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success(`${label} copiado`);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error("Não foi possível copiar");
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={onCopy}
+      className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-card px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground transition hover:bg-muted"
+      title={`Copiar ${label.toLowerCase()}`}
+    >
+      {copied ? (
+        <CheckCheck className="h-3 w-3 text-emerald-600" />
+      ) : (
+        <Copy className="h-3 w-3" />
+      )}
+      {copied ? "Copiado" : "Copiar"}
+    </button>
+  );
+}
+
 function AppliedRulesPanel({
   insight,
   rules,
@@ -2631,9 +2666,7 @@ function AppliedRulesPanel({
   insight: Insight;
   rules: KbRule[];
 }) {
-  const originLabel = insight.generated_by
-    ? `Motor de insights (${insight.generated_by})`
-    : "Motor de insights";
+  const originLabel = "Motor SQL v1 · ecommerce_ai_insights";
   const typeLabel = insight.insight_type
     ? (TYPE_LABEL[insight.insight_type] ?? insight.insight_type)
     : "—";

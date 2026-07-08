@@ -374,14 +374,13 @@ function BaseIaPage() {
                 )}
               </div>
               <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                Base da IA
+                Regras da Operação
               </h1>
               <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
-                Memória estratégica da operação Mercado Livre. Cadastre regras de{" "}
-                <strong>margem</strong>, <strong>preço</strong>,{" "}
+                Cadastre regras de <strong>margem</strong>, <strong>preço</strong>,{" "}
                 <strong>estoque</strong>, <strong>Ads</strong> e{" "}
-                <strong>produtos prioritários</strong> para orientar o Radar IA,
-                o Consultor IA e as recomendações da Central de Ações.
+                <strong>produtos prioritários</strong> para orientar o Diagnóstico
+                Inteligente e o Assistente Estratégico da operação Mercado Livre.
               </p>
             </div>
             <div className="flex items-center gap-2">

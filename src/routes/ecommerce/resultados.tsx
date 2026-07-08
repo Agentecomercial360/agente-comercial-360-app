@@ -115,7 +115,7 @@ type ActionResult = {
 
 const POSITIVE_STATUS = new Set(["improved", "positive", "positivo", "melhora", "melhorou"]);
 const NEUTRAL_STATUS = new Set(["no_change", "neutral", "sem_impacto", "unchanged", "same"]);
-const NEGATIVE_STATUS = new Set(["declined", "negative", "queda", "regrediu", "worsened"]);
+const NEGATIVE_STATUS = new Set(["declined", "negative", "queda", "regrediu", "worsened", "worse"]);
 
 const STOCK_KEYWORDS = ["estoque", "ruptura", "repos", "stock"];
 const ADS_KEYWORDS = ["ads", "campanha", "anúncio publicit", "publicidade", "publicit"];

@@ -93,6 +93,7 @@ type Insight = {
   recommended_action: string | null;
   status: string | null;
   generated_by: string | null;
+  model: string | null;
   confidence_score: number | null;
   created_at: string | null;
   updated_at: string | null;

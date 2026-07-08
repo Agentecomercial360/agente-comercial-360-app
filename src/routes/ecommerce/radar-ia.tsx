@@ -1669,10 +1669,36 @@ function InsightCard({
               {insight.recommended_action}
             </p>
           )}
+          {appliedRules.length > 0 && (
+            <div className="mt-3 rounded-lg border border-indigo-100 bg-indigo-50/40 px-3 py-2">
+              <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-700">
+                <BookOpen className="h-3 w-3" />
+                Regras consideradas
+              </div>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {appliedRules.slice(0, 4).map((r) => (
+                  <span
+                    key={r.id}
+                    title={r.description ?? undefined}
+                    className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-medium ${KB_CATEGORY_STYLE[r.category]}`}
+                  >
+                    <span className="opacity-70">{KB_CATEGORY_LABEL[r.category]}:</span>
+                    <span className="truncate max-w-[220px]">{r.title}</span>
+                  </span>
+                ))}
+                {appliedRules.length > 4 && (
+                  <span className="inline-flex items-center rounded-full border border-border/60 bg-muted px-2 py-0.5 text-[10.5px] font-medium text-muted-foreground">
+                    +{appliedRules.length - 4}
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
           <div className="mt-2 text-[11px] text-muted-foreground">
             Criado em {formatDate(insight.created_at)}
           </div>
         </div>
+
         <div className="flex shrink-0 flex-col gap-2">
           <Button size="sm" variant="outline" onClick={onOpen}>
             <Eye className="mr-1.5 h-4 w-4" />

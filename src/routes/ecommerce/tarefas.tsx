@@ -578,10 +578,10 @@ function TarefasOperadoresContent() {
             Execução da Operação
           </div>
           <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-            Tarefas dos Operadores
+            Tarefas da Operação
           </h1>
           <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
-            Acompanhe as ações operacionais geradas para a conta selecionada.
+            Acompanhe, priorize e execute as tarefas operacionais geradas pelo Diagnóstico Inteligente, Central de Ações e rotina da conta Mercado Livre.
           </p>
           {activeAccount && (
             <div className="text-xs text-muted-foreground">

@@ -980,7 +980,9 @@ function RadarIAContent() {
               }}
               creating={creatingId === insight.id}
               opening={openingId === insight.id}
+              appliedRules={rulesForInsight(insight.insight_type, kbRules)}
             />
+
 
           ))}
         </div>

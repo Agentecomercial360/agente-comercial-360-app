@@ -402,8 +402,10 @@ function ResultadosAcoesContent() {
           <RegistrarResultadoDialog
             tasks={tasks}
             activeAccountId={activeAccountId}
+            measuredTaskIds={resultsByTask}
             onSaved={loadAll}
           />
+
           <Button
             variant="outline"
             size="sm"
@@ -617,7 +619,14 @@ function ResultadosAcoesContent() {
                               Responsável: {t.responsible_name}
                             </div>
                           )}
+                          {r && (
+                            <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700">
+                              <ClipboardCheck className="h-3 w-3" />
+                              Medição registrada
+                            </div>
+                          )}
                         </td>
+
                         <td className="px-4 py-3 text-muted-foreground">
                           {originLabel(t)}
                         </td>
@@ -1000,12 +1009,15 @@ const METRIC_OPTIONS: { value: MetricKind; label: string }[] = [
 function RegistrarResultadoDialog({
   tasks,
   activeAccountId,
+  measuredTaskIds,
   onSaved,
 }: {
   tasks: CompletedTask[];
   activeAccountId: string | null;
+  measuredTaskIds: Map<string, ActionResult>;
   onSaved: () => void | Promise<void>;
 }) {
+
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -1043,7 +1055,14 @@ function RegistrarResultadoDialog({
       toast.error("Selecione uma tarefa concluída.");
       return;
     }
+    if (measuredTaskIds.has(t.id)) {
+      toast.error(
+        "Esta tarefa já possui medição registrada. Para evitar duplicidade, visualize o resultado existente.",
+      );
+      return;
+    }
     const before = parseNum(form.before);
+
     const after = parseNum(form.after);
     const revenue = parseNum(form.revenue);
     const evaluatedAt = form.date
@@ -1148,16 +1167,33 @@ function RegistrarResultadoDialog({
                 />
               </SelectTrigger>
               <SelectContent>
-                {completedTasks.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {(t.task_title ?? "Tarefa").slice(0, 60)}
-                    {t.completed_at
-                      ? ` · ${formatDate(t.completed_at)}`
-                      : ""}
-                  </SelectItem>
-                ))}
+                {[...completedTasks]
+                  .sort((a, b) => {
+                    const am = measuredTaskIds.has(a.id) ? 1 : 0;
+                    const bm = measuredTaskIds.has(b.id) ? 1 : 0;
+                    return am - bm;
+                  })
+                  .map((t) => {
+                    const measured = measuredTaskIds.has(t.id);
+                    return (
+                      <SelectItem key={t.id} value={t.id} disabled={measured}>
+                        {(t.task_title ?? "Tarefa").slice(0, 60)}
+                        {t.completed_at
+                          ? ` · ${formatDate(t.completed_at)}`
+                          : ""}
+                        {measured ? " · Medição já registrada" : ""}
+                      </SelectItem>
+                    );
+                  })}
               </SelectContent>
             </Select>
+            {form.taskId && measuredTaskIds.has(form.taskId) && (
+              <p className="text-[11px] text-amber-700">
+                Esta tarefa já possui medição registrada. Para evitar
+                duplicidade, visualize o resultado existente.
+              </p>
+            )}
+
           </div>
           <div className="space-y-1.5">
             <Label>Tipo de impacto</Label>
@@ -1253,7 +1289,7 @@ function RegistrarResultadoDialog({
               Cancelar
             </Button>
           </DialogClose>
-          <Button type="button" onClick={onSubmit} disabled={saving || !form.taskId}>
+          <Button type="button" onClick={onSubmit} disabled={saving || !form.taskId || measuredTaskIds.has(form.taskId)}>
             {saving && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
             Registrar
           </Button>

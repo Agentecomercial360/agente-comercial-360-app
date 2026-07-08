@@ -22,6 +22,10 @@ import {
   Activity,
   BookOpen,
   ShieldCheck,
+  ShieldAlert,
+  ThumbsDown,
+  Send,
+  CheckCheck,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {

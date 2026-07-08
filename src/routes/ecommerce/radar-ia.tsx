@@ -523,16 +523,21 @@ function RadarIAContent() {
       }
       const result = Array.isArray(data) ? data[0] : data;
       const inserted = Number(result?.inserted_count ?? 0);
+      const kbNote =
+        kbRules.length > 0
+          ? ` · Base da IA aplicada (${kbRules.length} regra${kbRules.length === 1 ? "" : "s"})`
+          : "";
       if (inserted > 0) {
-        toast.success(`Análise concluída. Novos insights gerados: ${inserted}`);
+        toast.success(`Análise concluída. Novos insights gerados: ${inserted}${kbNote}`);
       } else {
-        toast.success("Análise concluída. Nenhum novo insight encontrado.");
+        toast.success(`Análise concluída. Nenhum novo insight encontrado.${kbNote}`);
       }
       await load();
     } finally {
       setRunning(false);
     }
-  }, [accountId, load]);
+  }, [accountId, load, kbRules]);
+
 
   const openTaskForInsight = useCallback(
     async (insight: Insight) => {

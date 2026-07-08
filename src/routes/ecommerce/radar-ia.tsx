@@ -1946,7 +1946,7 @@ function RadarIAContent() {
                       ["Métricas diárias", previewData.totals.metrics_daily],
                       ["Registros de Ads", previewData.totals.ads_metrics],
                       ["Itens de pedido", previewData.totals.order_items],
-                      ["Regras ativas da Base da IA", previewData.totals.knowledge_base_rules_active],
+                      ["Regras da Operação ativas", previewData.totals.knowledge_base_rules_active],
                       ["Insights existentes", previewData.totals.existing_insights],
                     ].map(([label, value]) => (
                       <div

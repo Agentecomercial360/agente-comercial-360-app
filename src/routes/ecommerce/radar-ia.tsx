@@ -1125,13 +1125,13 @@ function RadarIAContent() {
           </div>
         ) : !kbLoading && kbAvailable ? (
           <div className="mt-3 rounded-lg border border-dashed border-amber-200 bg-amber-50/60 px-3 py-2 text-xs text-amber-800">
-            Nenhuma regra estratégica ativa encontrada. Cadastre regras na{" "}
+            Nenhuma regra estratégica ativa encontrada. Cadastre regras em{" "}
             <button
               type="button"
               onClick={() => navigate({ to: "/ecommerce/base-ia" })}
               className="font-semibold underline"
             >
-              Base da IA
+              Regras da Operação
             </button>{" "}
             para melhorar a análise.
           </div>

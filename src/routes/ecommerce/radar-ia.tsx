@@ -38,6 +38,10 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { toast } from "sonner";
+import {
+  runInsightsEnginePreview,
+  type InsightsEnginePreviewResult,
+} from "@/lib/ecommerce-insights.functions";
 
 const TASK_TYPE_MAP: Record<string, string> = {
   low_conversion: "review_description",

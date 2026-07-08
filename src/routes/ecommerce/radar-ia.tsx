@@ -1057,7 +1057,7 @@ function RadarIAContent() {
         </div>
       </div>
 
-      {/* Base da IA aplicada */}
+      {/* Regras da Operação aplicadas */}
       <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-indigo-50/60 via-card to-card p-4 shadow-[var(--shadow-soft)]">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
@@ -1067,7 +1067,7 @@ function RadarIAContent() {
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h2 className="font-display text-base font-bold text-foreground">
-                  Base da IA aplicada
+                  Regras da Operação aplicadas
                 </h2>
                 {kbLoading ? (
                   <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600">

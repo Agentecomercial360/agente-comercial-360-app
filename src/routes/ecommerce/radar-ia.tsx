@@ -393,6 +393,55 @@ function checklistFor(type: string | null): string[] {
   return CHECKLIST_BY_TYPE[type] ?? CHECKLIST_DEFAULT;
 }
 
+type RiskLevel = "low" | "medium" | "high";
+
+function computeRisk(insight: {
+  insight_type: string | null;
+  priority: string | null;
+  suggested_price_action: string | null;
+  suggested_ads_action: string | null;
+  suggested_kit_action: string | null;
+}): RiskLevel {
+  if (insight.priority === "critical") return "high";
+  const type = insight.insight_type ?? "";
+  const touchesSensitive =
+    !!insight.suggested_price_action?.trim() ||
+    !!insight.suggested_ads_action?.trim() ||
+    type === "ads_scale_opportunity" ||
+    type === "stock_stopped";
+  if (touchesSensitive) return "high";
+  const touchesModerate =
+    !!insight.suggested_kit_action?.trim() ||
+    type === "low_conversion" ||
+    type === "kit_opportunity" ||
+    type === "no_visits" ||
+    type === "visits_no_sales" ||
+    insight.priority === "high";
+  if (touchesModerate) return "medium";
+  return "low";
+}
+
+const RISK_LABEL: Record<RiskLevel, string> = {
+  low: "Risco baixo",
+  medium: "Risco médio",
+  high: "Risco alto",
+};
+
+const RISK_STYLE: Record<RiskLevel, string> = {
+  low: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  medium: "border-amber-200 bg-amber-50 text-amber-700",
+  high: "border-red-200 bg-red-50 text-red-700",
+};
+
+const APPROVAL_CHECKLIST = [
+  "Conferir margem e custo antes de alterar preço",
+  "Conferir estoque antes de escalar Ads",
+  "Validar se a imagem sugerida faz sentido para o produto",
+  "Confirmar que a alteração não prejudica produto estratégico",
+  "Aprovar execução manual ou criação de tarefa operacional",
+];
+
+
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
   try {

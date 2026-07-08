@@ -1884,7 +1884,130 @@ function RadarIAContent() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* Prévia do Motor IA assistido (dry-run) */}
+      <Sheet open={previewOpen} onOpenChange={setPreviewOpen}>
+        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              <Wand2 className="h-4 w-4 text-amber-600" />
+              Prévia do Motor IA assistido
+            </SheetTitle>
+            <SheetDescription>
+              Modo dry-run — nenhum insight foi criado, nenhum dado do Mercado Livre foi alterado.
+              Esta prévia apenas mede o contexto real disponível para o futuro motor IA assistido.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="mt-4 space-y-4">
+            {previewLoading && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Preparando contexto...
+              </div>
+            )}
+
+            {previewData && (
+              <>
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                  <div className="font-semibold">Status: preview_only</div>
+                  <div className="mt-0.5">{previewData.message}</div>
+                </div>
+
+                <div className="rounded-lg border border-border/60 bg-card p-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Escopo
+                  </div>
+                  <dl className="mt-1.5 grid grid-cols-1 gap-1 text-xs">
+                    <div className="flex justify-between gap-2">
+                      <dt className="text-muted-foreground">company_id</dt>
+                      <dd className="font-mono text-[11px] text-foreground truncate">
+                        {previewData.company_id}
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <dt className="text-muted-foreground">account_id</dt>
+                      <dd className="font-mono text-[11px] text-foreground truncate">
+                        {previewData.account_id ?? "—"}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+
+                <div className="rounded-lg border border-border/60 bg-card p-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Contexto disponível
+                  </div>
+                  <dl className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                    {[
+                      ["Produtos analisáveis", previewData.totals.products],
+                      ["Anúncios analisáveis", previewData.totals.listings],
+                      ["Estoque", previewData.totals.inventory],
+                      ["Métricas diárias", previewData.totals.metrics_daily],
+                      ["Registros de Ads", previewData.totals.ads_metrics],
+                      ["Itens de pedido", previewData.totals.order_items],
+                      ["Regras ativas da Base da IA", previewData.totals.knowledge_base_rules_active],
+                      ["Insights existentes", previewData.totals.existing_insights],
+                    ].map(([label, value]) => (
+                      <div
+                        key={String(label)}
+                        className="rounded border border-border/40 bg-muted/30 px-2 py-1.5"
+                      >
+                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                          {label}
+                        </div>
+                        <div className="mt-0.5 text-sm font-semibold text-foreground">
+                          {value === null ? "—" : value}
+                        </div>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+
+                <div className="rounded-lg border border-border/60 bg-card p-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Fontes verificadas
+                  </div>
+                  <ul className="mt-2 space-y-1 text-xs">
+                    {previewData.sources.map((s) => (
+                      <li key={s.source} className="flex items-center justify-between gap-2">
+                        <span className="font-mono text-[11px] text-foreground truncate">
+                          {s.source}
+                        </span>
+                        {s.available ? (
+                          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-700">
+                            {s.count ?? 0}
+                          </span>
+                        ) : (
+                          <span
+                            className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600"
+                            title={s.error ?? "Fonte indisponível"}
+                          >
+                            indisponível
+                          </span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-700">
+                  Esta prévia é a base para o próximo passo do Motor IA assistido, que futuramente
+                  poderá montar planos de ação (diagnóstico, causa, ação recomendada, copy, título,
+                  descrição, ideia de imagem, ações de Ads/preço/kit) — sempre com aprovação do
+                  operador antes de qualquer alteração real.
+                </div>
+
+                <div className="text-[10px] text-muted-foreground/80">
+                  Gerado em {new Date(previewData.generated_at).toLocaleString("pt-BR")}
+                </div>
+              </>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
+
   );
 }
 

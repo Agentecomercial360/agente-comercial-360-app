@@ -78,12 +78,18 @@ type CountArgs = {
   table: string;
   companyId: string;
   accountId: string | null;
+  /** Filter by account_id column strictly (table has account_id and is not global). */
   useAccountFilter: boolean;
+  /**
+   * When true, filter by `account_id = accountId OR account_id IS NULL`.
+   * Usado por tabelas de configuração/regras onde `account_id null` = global.
+   */
+  useAccountOrGlobal?: boolean;
   extraEq?: Array<[string, unknown]>;
 };
 
 async function safeCount(args: CountArgs): Promise<EngineDataSourceStatus> {
-  const { table, companyId, accountId, useAccountFilter, extraEq } = args;
+  const { table, companyId, accountId, useAccountFilter, useAccountOrGlobal, extraEq } = args;
   try {
     let q = supabase
       .from(table)
@@ -91,6 +97,9 @@ async function safeCount(args: CountArgs): Promise<EngineDataSourceStatus> {
       .select("*", { count: "exact", head: true }) as any;
     q = q.eq("company_id", companyId);
     if (useAccountFilter && accountId) q = q.eq("account_id", accountId);
+    if (useAccountOrGlobal && accountId) {
+      q = q.or(`account_id.is.null,account_id.eq.${accountId}`);
+    }
     if (extraEq) for (const [k, v] of extraEq) q = q.eq(k, v);
     const { count, error } = await q;
     if (error) {
@@ -117,6 +126,13 @@ export async function runInsightsEnginePreview(
 ): Promise<InsightsEnginePreviewResult> {
   const { companyId, accountId } = input;
 
+  // Nota de escopo:
+  //  - ecommerce_products, ecommerce_inventory, ecommerce_order_items NÃO possuem
+  //    coluna account_id — são escopados por company_id (a granularidade por conta
+  //    vem via ecommerce_listings.account_id). Filtrar por account_id aqui geraria
+  //    erro e a UI mostraria "—" mesmo com dados existentes.
+  //  - ecommerce_ai_knowledge_base usa `status = 'active'` (não `is_active`) e
+  //    aceita account_id null como regra global válida para a conta ativa.
   const [
     accounts,
     products,
@@ -129,21 +145,23 @@ export async function runInsightsEnginePreview(
     insights,
   ] = await Promise.all([
     safeCount({ table: "ecommerce_accounts", companyId, accountId, useAccountFilter: false }),
-    safeCount({ table: "ecommerce_products", companyId, accountId, useAccountFilter: true }),
+    safeCount({ table: "ecommerce_products", companyId, accountId, useAccountFilter: false }),
     safeCount({ table: "ecommerce_listings", companyId, accountId, useAccountFilter: true }),
-    safeCount({ table: "ecommerce_inventory", companyId, accountId, useAccountFilter: true }),
+    safeCount({ table: "ecommerce_inventory", companyId, accountId, useAccountFilter: false }),
     safeCount({ table: "ecommerce_metrics_daily", companyId, accountId, useAccountFilter: true }),
     safeCount({ table: "ecommerce_ads_metrics", companyId, accountId, useAccountFilter: true }),
-    safeCount({ table: "ecommerce_order_items", companyId, accountId, useAccountFilter: true }),
+    safeCount({ table: "ecommerce_order_items", companyId, accountId, useAccountFilter: false }),
     safeCount({
       table: "ecommerce_ai_knowledge_base",
       companyId,
       accountId,
       useAccountFilter: false,
-      extraEq: [["is_active", true]],
+      useAccountOrGlobal: true,
+      extraEq: [["status", "active"]],
     }),
     safeCount({ table: "ecommerce_ai_insights", companyId, accountId, useAccountFilter: true }),
   ]);
+
 
   const sources: EngineDataSourceStatus[] = [
     accounts,

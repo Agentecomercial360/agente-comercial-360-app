@@ -1939,30 +1939,41 @@ function RadarIAContent() {
                     Contexto disponível
                   </div>
                   <dl className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                    {[
-                      ["Produtos analisáveis", previewData.totals.products],
-                      ["Anúncios analisáveis", previewData.totals.listings],
-                      ["Estoque", previewData.totals.inventory],
-                      ["Métricas diárias", previewData.totals.metrics_daily],
-                      ["Registros de Ads", previewData.totals.ads_metrics],
-                      ["Itens de pedido", previewData.totals.order_items],
-                      ["Regras da Operação ativas", previewData.totals.knowledge_base_rules_active],
-                      ["Insights existentes", previewData.totals.existing_insights],
-                    ].map(([label, value]) => (
-                      <div
-                        key={String(label)}
-                        className="rounded border border-border/40 bg-muted/30 px-2 py-1.5"
-                      >
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                          {label}
+                    {([
+                      ["Produtos analisáveis", "ecommerce_products", previewData.totals.products],
+                      ["Anúncios analisáveis", "ecommerce_listings", previewData.totals.listings],
+                      ["Estoque", "ecommerce_inventory", previewData.totals.inventory],
+                      ["Métricas diárias", "ecommerce_metrics_daily", previewData.totals.metrics_daily],
+                      ["Registros de Ads", "ecommerce_ads_metrics", previewData.totals.ads_metrics],
+                      ["Itens de pedido", "ecommerce_order_items", previewData.totals.order_items],
+                      ["Regras ativas da operação", "ecommerce_ai_knowledge_base", previewData.totals.knowledge_base_rules_active],
+                      ["Insights existentes", "ecommerce_ai_insights", previewData.totals.existing_insights],
+                    ] as Array<[string, string, number | null]>).map(([label, source, value]) => {
+                      const src = previewData.sources.find((s) => s.source === source);
+                      const display =
+                        src?.available
+                          ? String(value ?? 0)
+                          : "Não disponível";
+                      return (
+                        <div
+                          key={label}
+                          className="rounded border border-border/40 bg-muted/30 px-2 py-1.5"
+                        >
+                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                            {label}
+                          </div>
+                          <div
+                            className="mt-0.5 text-sm font-semibold text-foreground"
+                            title={src?.error ?? undefined}
+                          >
+                            {display}
+                          </div>
                         </div>
-                        <div className="mt-0.5 text-sm font-semibold text-foreground">
-                          {value === null ? "—" : value}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </dl>
                 </div>
+
 
                 <div className="rounded-lg border border-border/60 bg-card p-3">
                   <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">

@@ -665,6 +665,31 @@ function ResultadosAcoes() {
             </p>
           </div>
         </div>
+
+        {/* Debug operacional da medição — diagnóstico técnico, não altera dados */}
+        <details className="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-3 text-[11px] text-slate-700">
+          <summary className="cursor-pointer font-semibold uppercase tracking-wider text-slate-600">
+            Debug operacional da medição
+          </summary>
+          <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 font-mono">
+            <div><span className="text-slate-500">company_id:</span> {ECOMMERCE_COMPANY_ID}</div>
+            <div><span className="text-slate-500">account_id:</span> {activeAccountId ?? "—"}</div>
+            <div><span className="text-slate-500">conta ativa:</span> {activeAccount?.account_name ?? activeAccount?.nickname ?? "—"}</div>
+            <div><span className="text-slate-500">total de tarefas encontradas:</span> {totalTasksCount}</div>
+            <div><span className="text-slate-500">total de tarefas completed encontradas:</span> {completedCount}</div>
+            <div><span className="text-slate-500">total de resultados medidos:</span> {results.length}</div>
+            <div><span className="text-slate-500">fonte Ações concluídas:</span> ecommerce_tasks (status=completed)</div>
+            <div><span className="text-slate-500">fonte impactos:</span> vw_ecommerce_action_results</div>
+            <div className="md:col-span-2">
+              <span className="text-slate-500">último erro Supabase:</span>{" "}
+              {lastError ? <span className="text-rose-700">{lastError}</span> : "nenhum"}
+            </div>
+          </div>
+          <p className="mt-2 text-[10px] text-slate-500">
+            Bloco de diagnóstico apenas leitura. Não altera dados, não cria registros, não envia nada ao Mercado Livre.
+          </p>
+        </details>
+      </div>
       </div>
 
       {/* Drawer de detalhes */}

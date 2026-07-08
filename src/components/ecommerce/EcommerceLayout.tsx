@@ -59,6 +59,12 @@ const navGroups = [
     ],
   },
   {
+    title: "Execução",
+    items: [
+      { label: "Tarefas da Operação", to: "/ecommerce/tarefas", icon: ClipboardList },
+    ],
+  },
+  {
     title: "Inteligência",
     items: [
       { label: "Diagnóstico Inteligente", to: "/ecommerce/radar-ia", icon: Radar },

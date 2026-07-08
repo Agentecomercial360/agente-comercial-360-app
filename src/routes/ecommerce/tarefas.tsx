@@ -42,7 +42,7 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/ecommerce/tarefas")({
   component: TarefasOperadores,
   head: () => ({
-    meta: [{ title: "Tarefas dos Operadores | Agente Comercial 360" }],
+    meta: [{ title: "Tarefas da Operação | Agente Comercial 360" }],
   }),
 });
 

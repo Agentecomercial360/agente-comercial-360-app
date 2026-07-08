@@ -721,7 +721,7 @@ function EmptyState({ onNew, disabled }: { onNew: () => void; disabled: boolean 
       </div>
       <p className="mt-3 text-sm text-muted-foreground max-w-md mx-auto">
         Nenhuma regra estratégica cadastrada ainda. Cadastre regras de margem,
-        preço, estoque e Ads para orientar o Radar IA e o Consultor IA.
+        preço, estoque e Ads para orientar o Diagnóstico Inteligente e o Assistente Estratégico.
       </p>
       <Button
         onClick={onNew}

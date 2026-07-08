@@ -617,7 +617,7 @@ function BaseIaPage() {
             <AlertDialogTitle>Excluir regra?</AlertDialogTitle>
             <AlertDialogDescription>
               Essa ação não pode ser desfeita. A regra “{deleting?.title}” será
-              removida da Base da IA.
+              removida das Regras da Operação.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

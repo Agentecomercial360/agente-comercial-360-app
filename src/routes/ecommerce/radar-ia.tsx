@@ -1863,3 +1863,78 @@ function ActionResultCard({
     </div>
   );
 }
+
+function AppliedRulesPanel({
+  insight,
+  rules,
+}: {
+  insight: Insight;
+  rules: KbRule[];
+}) {
+  const originLabel = insight.generated_by
+    ? `Motor de insights (${insight.generated_by})`
+    : "Motor de insights";
+  const typeLabel = insight.insight_type
+    ? (TYPE_LABEL[insight.insight_type] ?? insight.insight_type)
+    : "—";
+  const statusLabel = insight.status
+    ? (STATUS_LABEL[insight.status] ?? insight.status)
+    : "—";
+  return (
+    <div className="rounded-xl border border-indigo-100 bg-indigo-50/30 p-4 space-y-3">
+      <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-indigo-700">
+        <BookOpen className="h-3.5 w-3.5" />
+        Contexto estratégico
+      </div>
+
+      <dl className="grid grid-cols-1 gap-x-4 gap-y-1.5 text-xs sm:grid-cols-2">
+        <dt className="text-muted-foreground">Origem do insight</dt>
+        <dd className="text-foreground">{originLabel}</dd>
+        <dt className="text-muted-foreground">Dados considerados</dt>
+        <dd className="text-foreground">{typeLabel}</dd>
+        <dt className="text-muted-foreground">Próxima ação recomendada</dt>
+        <dd className="text-foreground">
+          {insight.recommended_action?.trim() ? insight.recommended_action : "—"}
+        </dd>
+        <dt className="text-muted-foreground">Status da ação</dt>
+        <dd className="text-foreground">{statusLabel}</dd>
+      </dl>
+
+      <div>
+        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Regras da Base da IA aplicadas
+        </div>
+        {rules.length === 0 ? (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Nenhuma regra estratégica ativa aplicável a este tipo de insight.
+          </p>
+        ) : (
+          <ul className="mt-2 space-y-1.5">
+            {rules.map((r) => (
+              <li
+                key={r.id}
+                className="rounded-lg border border-border/60 bg-card px-2.5 py-1.5 text-xs"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`inline-flex items-center rounded-full border px-1.5 py-0.5 text-[10px] font-semibold ${KB_CATEGORY_STYLE[r.category]}`}
+                  >
+                    {KB_CATEGORY_LABEL[r.category]}
+                  </span>
+                  <span className="font-semibold text-foreground truncate">
+                    {r.title}
+                  </span>
+                </div>
+                {r.description && (
+                  <p className="mt-1 line-clamp-2 text-muted-foreground">
+                    {r.description}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}

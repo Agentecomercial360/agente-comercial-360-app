@@ -619,7 +619,14 @@ function ResultadosAcoesContent() {
                               Responsável: {t.responsible_name}
                             </div>
                           )}
+                          {r && (
+                            <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700">
+                              <ClipboardCheck className="h-3 w-3" />
+                              Medição registrada
+                            </div>
+                          )}
                         </td>
+
                         <td className="px-4 py-3 text-muted-foreground">
                           {originLabel(t)}
                         </td>

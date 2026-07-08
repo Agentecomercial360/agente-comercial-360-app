@@ -800,8 +800,89 @@ function RadarIAContent() {
         </Button>
       </div>
 
+      {/* Base da IA aplicada */}
+      <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-indigo-50/60 via-card to-card p-4 shadow-[var(--shadow-soft)]">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm">
+              <BookOpen className="h-4.5 w-4.5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-2">
+                <h2 className="font-display text-base font-bold text-foreground">
+                  Base da IA aplicada
+                </h2>
+                {kbLoading ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    Carregando
+                  </span>
+                ) : !kbAvailable ? (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                    Indisponível
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-700">
+                    {kbSummary.total} regra{kbSummary.total === 1 ? "" : "s"} ativa{kbSummary.total === 1 ? "" : "s"}
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground max-w-2xl">
+                Regras estratégicas cadastradas em{" "}
+                <button
+                  type="button"
+                  onClick={() => navigate({ to: "/ecommerce/base-ia" })}
+                  className="font-semibold text-indigo-700 hover:underline"
+                >
+                  Base da IA
+                </button>{" "}
+                orientam a leitura do Radar sobre margem, preço, estoque, Ads e produtos prioritários.
+              </p>
+            </div>
+          </div>
+          <div className="text-right text-[11px] text-muted-foreground">
+            <div className="font-semibold uppercase tracking-wider text-muted-foreground/70">
+              Última atualização
+            </div>
+            <div className="mt-0.5 text-foreground">
+              {kbSummary.last ? formatDate(kbSummary.last) : "—"}
+            </div>
+          </div>
+        </div>
+
+        {kbAvailable && kbSummary.total > 0 ? (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {(Object.keys(kbSummary.byCat) as KbCategory[])
+              .filter((k) => kbSummary.byCat[k] > 0)
+              .map((k) => (
+                <span
+                  key={k}
+                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${KB_CATEGORY_STYLE[k]}`}
+                >
+                  {KB_CATEGORY_LABEL[k]}
+                  <span className="rounded-full bg-white/70 px-1 text-[10px]">
+                    {kbSummary.byCat[k]}
+                  </span>
+                </span>
+              ))}
+          </div>
+        ) : !kbLoading && kbAvailable ? (
+          <div className="mt-3 rounded-lg border border-dashed border-amber-200 bg-amber-50/60 px-3 py-2 text-xs text-amber-800">
+            Nenhuma regra estratégica ativa encontrada. Cadastre regras na{" "}
+            <button
+              type="button"
+              onClick={() => navigate({ to: "/ecommerce/base-ia" })}
+              className="font-semibold underline"
+            >
+              Base da IA
+            </button>{" "}
+            para melhorar a análise.
+          </div>
+        ) : null}
+      </div>
 
       {/* Summary cards */}
+
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <SummaryCard
           icon={<Sparkles className="h-4 w-4" />}

@@ -849,15 +849,33 @@ function TarefasOperadoresContent() {
                               </span>
                             </td>
                             <td className="px-4 py-3 align-top">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-8 gap-1.5 text-xs"
-                                onClick={() => openDetails(t)}
-                              >
-                                <Eye className="h-3.5 w-3.5" />
-                                Ver detalhes
-                              </Button>
+                              <div className="flex flex-col gap-1.5">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8 gap-1.5 text-xs"
+                                  onClick={() => openDetails(t)}
+                                >
+                                  <Eye className="h-3.5 w-3.5" />
+                                  Ver detalhe
+                                </Button>
+                                {t.status !== "completed" && t.status !== "cancelled" && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-8 gap-1.5 text-xs border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                                    disabled={completingId === t.id}
+                                    onClick={() => handleQuickComplete(t)}
+                                  >
+                                    {completingId === t.id ? (
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                      <CheckCircle className="h-3.5 w-3.5" />
+                                    )}
+                                    Concluir
+                                  </Button>
+                                )}
+                              </div>
                             </td>
 
                           </tr>

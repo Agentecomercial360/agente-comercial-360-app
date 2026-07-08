@@ -427,10 +427,15 @@ function TarefasOperadoresContent() {
       "blocked",
     ];
     if (!VALID_STATUSES.includes(draftStatus)) {
-      // eslint-disable-next-line no-console
       console.error("[tarefas] invalid status value", draftStatus);
       toast.error("Status inválido.");
       return;
+    }
+    if (draftStatus === "completed" && !draftResult.trim()) {
+      const ok = window.confirm(
+        "Recomendamos registrar o resultado antes de concluir a tarefa, pois isso será usado em Resultados das Ações.\n\nDeseja concluir mesmo assim?",
+      );
+      if (!ok) return;
     }
     setSaving(true);
     const now = new Date().toISOString();
@@ -451,10 +456,11 @@ function TarefasOperadoresContent() {
       responsible_email: responsibleEmail,
       result_summary: draftResult.trim() || null,
       updated_at: now,
-      completed_at: draftStatus === "completed" ? now : null,
+      completed_at:
+        draftStatus === "completed"
+          ? currentDetail.completed_at ?? now
+          : null,
     };
-    // eslint-disable-next-line no-console
-    console.debug("[tarefas] saving task", { id: currentDetail.id, patch });
     try {
       const { error } = await supabase
         .from("ecommerce_tasks")
@@ -462,22 +468,31 @@ function TarefasOperadoresContent() {
         .eq("id", currentDetail.id)
         .eq("company_id", ECOMMERCE_COMPANY_ID);
       if (error) {
-        // eslint-disable-next-line no-console
-        console.error("[tarefas] save error", {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code,
-        });
+        console.error("[tarefas] save error", error);
         toast.error("Não foi possível salvar. Tente novamente.");
         return;
       }
-
-      toast.success("Tarefa atualizada.");
+      if (draftStatus === "completed" && currentDetail.insight_id) {
+        try {
+          await supabase
+            .from("ecommerce_ai_insights")
+            .update({ status: "monitoring", updated_at: now })
+            .eq("id", currentDetail.insight_id)
+            .eq("company_id", ECOMMERCE_COMPANY_ID);
+        } catch (e) {
+          console.debug("[tarefas] insight status update skipped", e);
+        }
+      }
+      if (draftStatus === "completed") {
+        toast.success(
+          "Tarefa concluída. Nenhuma alteração foi feita automaticamente no Mercado Livre.",
+        );
+      } else {
+        toast.success("Tarefa atualizada.");
+      }
       setDetailId(null);
       await loadTasks();
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error("[tarefas] save exception", err);
       toast.error("Não foi possível salvar. Tente novamente.");
     } finally {

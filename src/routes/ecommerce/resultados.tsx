@@ -310,9 +310,36 @@ function ResultadosAcoesContent() {
     return m;
   }, [results]);
 
-  // KPIs
+  // Separação por vínculo com tarefa concluída (regra de negócio):
+  // KPIs principais consideram somente resultados cuja tarefa está completed.
+  // Resultados de tarefas ainda em andamento aparecem em seção separada.
+  const completedTaskIds = useMemo(
+    () => new Set(tasks.map((t) => t.id)),
+    [tasks],
+  );
+
+  const resultsCompleted = useMemo(
+    () =>
+      results.filter(
+        (r) =>
+          (r.task_status ?? "").toLowerCase() === "completed" ||
+          (r.task_id && completedTaskIds.has(r.task_id)),
+      ),
+    [results, completedTaskIds],
+  );
+
+  const resultsPending = useMemo(
+    () =>
+      results.filter((r) => {
+        const st = (r.task_status ?? "").toLowerCase();
+        const linkedCompleted = r.task_id && completedTaskIds.has(r.task_id);
+        return st !== "completed" && !linkedCompleted;
+      }),
+    [results, completedTaskIds],
+  );
+
+  // KPIs — somente resultados de tarefas concluídas.
   const kpis = useMemo(() => {
-    // Ações concluídas: contagem real em ecommerce_tasks (não depende da view).
     const completed = Math.max(completedCount, tasks.length);
     let positive = 0;
     let neutral = 0;
@@ -320,12 +347,16 @@ function ResultadosAcoesContent() {
     let revenue = 0;
     let stockCount = 0;
     let adsCount = 0;
-    for (const r of results) {
+    for (const r of resultsCompleted) {
       const b = bucketOf(r.result_status);
       if (b === "positive") positive += 1;
       else if (b === "neutral") neutral += 1;
       else if (b === "negative") negative += 1;
-      if (r.revenue_difference && r.revenue_difference > 0) {
+      if (
+        b === "positive" &&
+        r.revenue_difference &&
+        r.revenue_difference > 0
+      ) {
         revenue += r.revenue_difference;
       }
     }
@@ -334,7 +365,7 @@ function ResultadosAcoesContent() {
       if (isAdsRelated(t)) adsCount += 1;
     }
     return { completed, positive, neutral, negative, revenue, stockCount, adsCount };
-  }, [tasks, results, completedCount]);
+  }, [tasks, resultsCompleted, completedCount]);
 
   const hasCompleted = tasks.length > 0;
   const hasResults = results.length > 0;

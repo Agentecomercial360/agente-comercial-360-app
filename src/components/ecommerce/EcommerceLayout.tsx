@@ -1,6 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  Settings,
   RefreshCw,
   Bot,
   Calendar,
@@ -64,12 +63,6 @@ const navGroups = [
       { label: "Radar IA", to: "/ecommerce/radar-ia", icon: Radar },
       { label: "Consultor IA", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
       { label: "Base da IA", to: "/ecommerce/base-ia", icon: BookOpen },
-    ],
-  },
-  {
-    title: "Sistema",
-    items: [
-      { label: "Configurações", to: "/ecommerce/configuracoes", icon: Settings },
     ],
   },
 ] as const;

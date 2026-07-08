@@ -960,6 +960,26 @@ function RadarIAContent() {
               e ações recomendadas. As recomendações não alteram a conta automaticamente;
               elas orientam a Central de Ações e as tarefas dos operadores.
             </p>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700"
+                title="A tela lê registros já salvos em ecommerce_ai_insights."
+              >
+                Insights carregados do banco
+              </span>
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+                title="RPC Supabase generate_ecommerce_insights_v1 — geração determinística por regras SQL."
+              >
+                Motor SQL v1 conectado
+              </span>
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600"
+                title="Nenhuma integração com LLM/OpenAI está conectada ao motor de insights neste projeto."
+              >
+                IA generativa ainda não conectada
+              </span>
+            </div>
           </div>
         </div>
       </div>

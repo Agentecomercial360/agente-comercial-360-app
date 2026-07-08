@@ -946,6 +946,24 @@ function RadarIAContent() {
         </Button>
       </div>
 
+      {/* Como o Radar IA funciona */}
+      <div className="rounded-xl border border-border/60 bg-muted/30 px-4 py-3">
+        <div className="flex items-start gap-2">
+          <HelpCircle className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
+          <div className="min-w-0">
+            <div className="text-xs font-semibold text-foreground">
+              Como o Radar IA funciona
+            </div>
+            <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
+              O Radar IA cruza dados da conta Mercado Livre, produtos, anúncios, estoque,
+              métricas, Ads e regras da Base da IA para identificar riscos, oportunidades
+              e ações recomendadas. As recomendações não alteram a conta automaticamente;
+              elas orientam a Central de Ações e as tarefas dos operadores.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Base da IA aplicada */}
       <div className="rounded-2xl border border-border/60 bg-gradient-to-br from-indigo-50/60 via-card to-card p-4 shadow-[var(--shadow-soft)]">
         <div className="flex flex-wrap items-start justify-between gap-3">

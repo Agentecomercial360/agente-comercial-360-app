@@ -353,15 +353,29 @@ function RadarIAPage() {
   );
 }
 
+type ProductInfo = { id: string; name: string | null; sku: string | null };
+type ListingInfo = {
+  id: string;
+  ml_item_id: string | null;
+  status: string | null;
+  title: string | null;
+};
+
 function RadarIAContent() {
-  const { activeAccountId } = useEcommerceActiveAccount();
+  const { activeAccountId, activeAccount } = useEcommerceActiveAccount();
   const accountId = activeAccountId || FALLBACK_ACCOUNT_ID;
+  const accountLabel =
+    activeAccount?.account_name ||
+    activeAccount?.nickname ||
+    "Mercado Livre";
 
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Insight | null>(null);
   const [plan, setPlan] = useState<Insight | null>(null);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [productMap, setProductMap] = useState<Record<string, ProductInfo>>({});
+  const [listingMap, setListingMap] = useState<Record<string, ListingInfo>>({});
 
   const toggleCheck = useCallback((key: string) => {
     setChecked((p) => ({ ...p, [key]: !p[key] }));
@@ -392,6 +406,58 @@ function RadarIAContent() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Lookups complementares — produtos e anúncios vinculados aos insights
+  useEffect(() => {
+    const productIds = Array.from(
+      new Set(insights.map((i) => i.product_id).filter((v): v is string => !!v)),
+    );
+    const listingIds = Array.from(
+      new Set(insights.map((i) => i.listing_id).filter((v): v is string => !!v)),
+    );
+
+    if (productIds.length === 0) {
+      setProductMap({});
+    } else {
+      (async () => {
+        try {
+          const { data, error } = await supabase
+            .from("ecommerce_products")
+            .select("id, name, sku")
+            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .in("id", productIds);
+          if (error) throw error;
+          const map: Record<string, ProductInfo> = {};
+          for (const p of (data as ProductInfo[]) ?? []) map[p.id] = p;
+          setProductMap(map);
+        } catch (err) {
+          console.warn("[Radar IA] Lookup de produtos indisponível:", err);
+          setProductMap({});
+        }
+      })();
+    }
+
+    if (listingIds.length === 0) {
+      setListingMap({});
+    } else {
+      (async () => {
+        try {
+          const { data, error } = await supabase
+            .from("ecommerce_listings")
+            .select("id, ml_item_id, status, title")
+            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .in("id", listingIds);
+          if (error) throw error;
+          const map: Record<string, ListingInfo> = {};
+          for (const l of (data as ListingInfo[]) ?? []) map[l.id] = l;
+          setListingMap(map);
+        } catch (err) {
+          console.warn("[Radar IA] Lookup de anúncios indisponível:", err);
+          setListingMap({});
+        }
+      })();
+    }
+  }, [insights]);
 
   // Impacto das Ações
   const [actionResults, setActionResults] = useState<ActionResult[]>([]);
@@ -775,9 +841,18 @@ function RadarIAContent() {
                 Contexto estratégico ativo
               </span>
             )}
+            {!loading && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+                {insights.length} insight{insights.length === 1 ? "" : "s"} · {accountLabel}
+              </span>
+            )}
           </div>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Sinais de oportunidade, alertas e recomendações inteligentes da conta ativa.
+          </p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground/80">
+            Os insights exibidos são filtrados pela conta Mercado Livre ativa · origem:{" "}
+            <span className="font-mono">ecommerce_ai_insights</span>
           </p>
         </div>
 
@@ -1304,6 +1379,10 @@ function RadarIAContent() {
                     Dados técnicos
                   </div>
                   <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                    <dt className="text-muted-foreground">Origem</dt>
+                    <dd className="text-foreground font-mono">ecommerce_ai_insights</dd>
+                    <dt className="text-muted-foreground">Modelo</dt>
+                    <dd className="text-foreground">{selected.generated_by ?? "—"}</dd>
                     <dt className="text-muted-foreground">Confiança</dt>
                     <dd className="text-foreground">
                       {selected.confidence_score != null
@@ -1313,8 +1392,15 @@ function RadarIAContent() {
                           )}%`
                         : "—"}
                     </dd>
-                    <dt className="text-muted-foreground">Gerado por</dt>
-                    <dd className="text-foreground">{selected.generated_by ?? "—"}</dd>
+                    <dt className="text-muted-foreground">Conta Mercado Livre</dt>
+                    <dd className="text-foreground">
+                      {accountLabel}
+                      {activeAccount?.ml_user_id ? (
+                        <span className="ml-1 text-muted-foreground">
+                          (ML #{activeAccount.ml_user_id})
+                        </span>
+                      ) : null}
+                    </dd>
                     <dt className="text-muted-foreground">Criado em</dt>
                     <dd className="text-foreground">{formatDate(selected.created_at)}</dd>
                     <dt className="text-muted-foreground">Atualizado em</dt>
@@ -1322,22 +1408,59 @@ function RadarIAContent() {
                   </dl>
                 </div>
 
-                {(selected.product_id || selected.listing_id) && (
-                  <div className="text-[11px] text-muted-foreground space-y-0.5">
-                    {selected.product_id && (
-                      <div>
-                        <span className="font-medium">product_id:</span>{" "}
-                        <span className="font-mono">{selected.product_id}</span>
+                {(selected.product_id || selected.listing_id) && (() => {
+                  const product = selected.product_id
+                    ? productMap[selected.product_id]
+                    : undefined;
+                  const listing = selected.listing_id
+                    ? listingMap[selected.listing_id]
+                    : undefined;
+                  const missing =
+                    (selected.product_id && !product) ||
+                    (selected.listing_id && !listing);
+                  return (
+                    <div className="rounded-xl border border-border/60 bg-card p-4">
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Produto / Anúncio vinculado
                       </div>
-                    )}
-                    {selected.listing_id && (
-                      <div>
-                        <span className="font-medium">listing_id:</span>{" "}
-                        <span className="font-mono">{selected.listing_id}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs">
+                        {selected.product_id && (
+                          <>
+                            <dt className="text-muted-foreground">Nome</dt>
+                            <dd className="text-foreground">{product?.name ?? "—"}</dd>
+                            <dt className="text-muted-foreground">SKU</dt>
+                            <dd className="text-foreground font-mono">
+                              {product?.sku ?? "—"}
+                            </dd>
+                            <dt className="text-muted-foreground">product_id</dt>
+                            <dd className="text-foreground font-mono break-all">
+                              {selected.product_id}
+                            </dd>
+                          </>
+                        )}
+                        {selected.listing_id && (
+                          <>
+                            <dt className="text-muted-foreground">ML Item ID</dt>
+                            <dd className="text-foreground font-mono">
+                              {listing?.ml_item_id ?? "—"}
+                            </dd>
+                            <dt className="text-muted-foreground">Status anúncio</dt>
+                            <dd className="text-foreground">{listing?.status ?? "—"}</dd>
+                            <dt className="text-muted-foreground">listing_id</dt>
+                            <dd className="text-foreground font-mono break-all">
+                              {selected.listing_id}
+                            </dd>
+                          </>
+                        )}
+                      </dl>
+                      {missing && (
+                        <div className="mt-2 rounded-md border border-dashed border-amber-200 bg-amber-50/60 px-2.5 py-1.5 text-[11px] text-amber-800">
+                          Produto/anúncio vinculado não encontrado ou não sincronizado.
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               <div className="mt-6 flex flex-wrap items-center justify-end gap-2 border-t border-border/60 pt-4">

@@ -648,7 +648,17 @@ function RadarIAContent() {
           hint: error.hint,
           code: error.code,
         });
-        toast.error("Não foi possível rodar a análise agora.");
+        // RPC ausente/indisponível: seja honesto — nada foi gerado.
+        const missing =
+          error.code === "PGRST202" ||
+          /not\s*found|does not exist|schema cache/i.test(error.message ?? "");
+        if (missing) {
+          toast.message(
+            "Motor de análise ainda não conectado. Os insights atuais foram carregados do banco.",
+          );
+        } else {
+          toast.error("Não foi possível rodar a análise agora.");
+        }
         return;
       }
       const result = Array.isArray(data) ? data[0] : data;
@@ -657,10 +667,15 @@ function RadarIAContent() {
         kbRules.length > 0
           ? ` · Base da IA aplicada (${kbRules.length} regra${kbRules.length === 1 ? "" : "s"})`
           : "";
+      const engineNote = " · motor: RPC generate_ecommerce_insights_v1 (regras SQL)";
       if (inserted > 0) {
-        toast.success(`Análise concluída. Novos insights gerados: ${inserted}${kbNote}`);
+        toast.success(
+          `Análise concluída. Novos insights gerados: ${inserted}${kbNote}${engineNote}`,
+        );
       } else {
-        toast.success(`Análise concluída. Nenhum novo insight encontrado.${kbNote}`);
+        toast.success(
+          `Análise concluída. Nenhum novo insight encontrado.${kbNote}${engineNote}`,
+        );
       }
       await load();
     } finally {
@@ -960,6 +975,26 @@ function RadarIAContent() {
               e ações recomendadas. As recomendações não alteram a conta automaticamente;
               elas orientam a Central de Ações e as tarefas dos operadores.
             </p>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700"
+                title="A tela lê registros já salvos em ecommerce_ai_insights."
+              >
+                Insights carregados do banco
+              </span>
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+                title="RPC Supabase generate_ecommerce_insights_v1 — geração determinística por regras SQL."
+              >
+                Motor SQL v1 conectado
+              </span>
+              <span
+                className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[10px] font-semibold text-slate-600"
+                title="Nenhuma integração com LLM/OpenAI está conectada ao motor de insights neste projeto."
+              >
+                IA generativa ainda não conectada
+              </span>
+            </div>
           </div>
         </div>
       </div>

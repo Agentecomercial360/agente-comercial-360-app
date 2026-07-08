@@ -690,7 +690,6 @@ function ResultadosAcoes() {
           </p>
         </details>
       </div>
-      </div>
 
       {/* Drawer de detalhes */}
       <Sheet open={!!detailTaskId} onOpenChange={(v) => !v && setDetailTaskId(null)}>

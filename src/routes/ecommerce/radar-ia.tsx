@@ -648,7 +648,17 @@ function RadarIAContent() {
           hint: error.hint,
           code: error.code,
         });
-        toast.error("Não foi possível rodar a análise agora.");
+        // RPC ausente/indisponível: seja honesto — nada foi gerado.
+        const missing =
+          error.code === "PGRST202" ||
+          /not\s*found|does not exist|schema cache/i.test(error.message ?? "");
+        if (missing) {
+          toast.message(
+            "Motor de análise ainda não conectado. Os insights atuais foram carregados do banco.",
+          );
+        } else {
+          toast.error("Não foi possível rodar a análise agora.");
+        }
         return;
       }
       const result = Array.isArray(data) ? data[0] : data;
@@ -657,10 +667,15 @@ function RadarIAContent() {
         kbRules.length > 0
           ? ` · Base da IA aplicada (${kbRules.length} regra${kbRules.length === 1 ? "" : "s"})`
           : "";
+      const engineNote = " · motor: RPC generate_ecommerce_insights_v1 (regras SQL)";
       if (inserted > 0) {
-        toast.success(`Análise concluída. Novos insights gerados: ${inserted}${kbNote}`);
+        toast.success(
+          `Análise concluída. Novos insights gerados: ${inserted}${kbNote}${engineNote}`,
+        );
       } else {
-        toast.success(`Análise concluída. Nenhum novo insight encontrado.${kbNote}`);
+        toast.success(
+          `Análise concluída. Nenhum novo insight encontrado.${kbNote}${engineNote}`,
+        );
       }
       await load();
     } finally {

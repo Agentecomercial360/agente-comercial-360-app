@@ -1844,7 +1844,7 @@ function RadarIAContent() {
                   }}
                 >
                   <Wand2 className="mr-1.5 h-4 w-4" />
-                  Ver ação recomendada
+                  Ver plano de ação
                 </Button>
               </div>
             </>
@@ -2332,7 +2332,7 @@ function InsightCard({
           </Button>
           <Button size="sm" variant="outline" onClick={onPlan}>
             <Wand2 className="mr-1.5 h-4 w-4" />
-            Ver ação recomendada
+            Ver plano de ação
           </Button>
 
         </div>

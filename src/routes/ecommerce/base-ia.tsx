@@ -584,13 +584,13 @@ function BaseIaPage() {
         <section className="rounded-2xl border border-slate-200 bg-white p-5">
           <h3 className="font-display text-base font-bold text-foreground flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-blue-700" />
-            Como a IA usará essa base
+            Como as regras são usadas
           </h3>
           <p className="mt-1.5 text-sm text-muted-foreground">
             As regras cadastradas aqui serão usadas como contexto para
             classificar produtos críticos, oportunidades de escala, bloqueios de
-            margem, riscos de estoque e recomendações de anúncios no Radar IA,
-            Consultor IA e Central de Ações.
+            margem, riscos de estoque e recomendações de anúncios no Diagnóstico
+            Inteligente, Assistente Estratégico e Central de Ações.
           </p>
         </section>
       </div>

@@ -175,7 +175,7 @@ function ConsultorIA() {
       } catch (e) {
         if (cancelled) return;
         console.error("[ConsultorIA] erro:", e);
-        setErrorMsg("Não foi possível carregar os dados do Consultor IA.");
+        setErrorMsg("Não foi possível carregar os dados do Assistente Estratégico.");
       } finally {
         if (!cancelled) setLoading(false);
       }

@@ -197,10 +197,12 @@ function ResultadosAcoes() {
 
   const [tasks, setTasks] = useState<CompletedTask[]>([]);
   const [completedCount, setCompletedCount] = useState<number>(0);
+  const [totalTasksCount, setTotalTasksCount] = useState<number>(0);
   const [results, setResults] = useState<ActionResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [resultsAvailable, setResultsAvailable] = useState<boolean>(true);
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const loadAll = useCallback(async () => {
     if (accLoading) return;

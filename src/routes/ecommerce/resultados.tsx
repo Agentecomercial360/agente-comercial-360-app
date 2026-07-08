@@ -943,9 +943,15 @@ function MetricBlock({
   const fmt = (v: number | null) => {
     if (v == null) return "—";
     if (money) return fmtMoney(v);
-    if (pct) return `${(v * 100).toFixed(1)}%`;
+    if (pct) return `${v.toFixed(2).replace(".", ",")}%`;
     return v.toLocaleString("pt-BR");
   };
+  const diff =
+    pct && before != null && after != null ? after - before : null;
+  const diffLabel =
+    diff != null
+      ? `${diff >= 0 ? "+" : ""}${diff.toFixed(2).replace(".", ",")} p.p.`
+      : null;
   return (
     <div className="rounded-lg border border-border/50 bg-muted/30 p-2">
       <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -955,9 +961,19 @@ function MetricBlock({
         <span className="text-muted-foreground">{fmt(before)}</span>
         <span className="text-muted-foreground">→</span>
         <span className="font-semibold text-foreground">{fmt(after)}</span>
+        {diffLabel && (
+          <span
+            className={`ml-1 text-[10px] font-medium ${
+              diff! >= 0 ? "text-emerald-700" : "text-rose-700"
+            }`}
+          >
+            {diffLabel}
+          </span>
+        )}
       </div>
     </div>
   );
+
 }
 
 // ---------------- Registrar resultado manual ----------------

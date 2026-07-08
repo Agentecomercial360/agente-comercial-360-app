@@ -19,6 +19,7 @@ import {
   Link2,
   ChevronDown,
   DollarSign,
+  ClipboardList,
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";

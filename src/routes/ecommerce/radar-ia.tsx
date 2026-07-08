@@ -960,7 +960,7 @@ function RadarIAContent() {
             )}
           </div>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            Análise inteligente da conta ativa para identificar riscos, oportunidades e ações recomendadas com base nos dados do Mercado Livre e nas regras da Base da IA.
+            Análise inteligente da conta ativa para identificar riscos, oportunidades e ações recomendadas com base nos dados do Mercado Livre e nas Regras da Operação.
           </p>
           <p className="mt-0.5 text-[11px] text-muted-foreground/80">
             Os insights exibidos são filtrados pela conta Mercado Livre ativa · origem:{" "}

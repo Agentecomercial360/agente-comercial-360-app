@@ -1002,12 +1002,15 @@ const METRIC_OPTIONS: { value: MetricKind; label: string }[] = [
 function RegistrarResultadoDialog({
   tasks,
   activeAccountId,
+  measuredTaskIds,
   onSaved,
 }: {
   tasks: CompletedTask[];
   activeAccountId: string | null;
+  measuredTaskIds: Map<string, ActionResult>;
   onSaved: () => void | Promise<void>;
 }) {
+
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({

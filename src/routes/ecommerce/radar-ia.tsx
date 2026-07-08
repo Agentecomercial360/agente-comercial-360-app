@@ -2682,16 +2682,49 @@ function ActionResultCard({
   );
 }
 
+async function copyToClipboardSafe(text: string): Promise<boolean> {
+  if (!text) return false;
+  // 1) API moderna
+  try {
+    if (typeof navigator !== "undefined" && navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    /* segue para fallback */
+  }
+  // 2) Fallback: textarea temporário + execCommand
+  try {
+    if (typeof document === "undefined") return false;
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "0";
+    ta.style.left = "0";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, text.length);
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
+  }
+}
+
 function CopyBtn({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false);
   const onCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
+    const ok = await copyToClipboardSafe(text);
+    if (ok) {
       setCopied(true);
-      toast.success(`${label} copiado`);
+      toast.success("Texto copiado com sucesso.");
       setTimeout(() => setCopied(false), 1500);
-    } catch {
-      toast.error("Não foi possível copiar");
+    } else {
+      toast.error("Não foi possível copiar automaticamente. Selecione o texto manualmente.");
     }
   };
   return (

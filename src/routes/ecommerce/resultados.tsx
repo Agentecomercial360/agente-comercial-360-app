@@ -1160,16 +1160,33 @@ function RegistrarResultadoDialog({
                 />
               </SelectTrigger>
               <SelectContent>
-                {completedTasks.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>
-                    {(t.task_title ?? "Tarefa").slice(0, 60)}
-                    {t.completed_at
-                      ? ` · ${formatDate(t.completed_at)}`
-                      : ""}
-                  </SelectItem>
-                ))}
+                {[...completedTasks]
+                  .sort((a, b) => {
+                    const am = measuredTaskIds.has(a.id) ? 1 : 0;
+                    const bm = measuredTaskIds.has(b.id) ? 1 : 0;
+                    return am - bm;
+                  })
+                  .map((t) => {
+                    const measured = measuredTaskIds.has(t.id);
+                    return (
+                      <SelectItem key={t.id} value={t.id} disabled={measured}>
+                        {(t.task_title ?? "Tarefa").slice(0, 60)}
+                        {t.completed_at
+                          ? ` · ${formatDate(t.completed_at)}`
+                          : ""}
+                        {measured ? " · Medição já registrada" : ""}
+                      </SelectItem>
+                    );
+                  })}
               </SelectContent>
             </Select>
+            {form.taskId && measuredTaskIds.has(form.taskId) && (
+              <p className="text-[11px] text-amber-700">
+                Esta tarefa já possui medição registrada. Para evitar
+                duplicidade, visualize o resultado existente.
+              </p>
+            )}
+
           </div>
           <div className="space-y-1.5">
             <Label>Tipo de impacto</Label>

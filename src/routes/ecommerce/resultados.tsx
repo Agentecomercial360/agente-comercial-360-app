@@ -115,7 +115,7 @@ type ActionResult = {
 
 const POSITIVE_STATUS = new Set(["improved", "positive", "positivo", "melhora", "melhorou"]);
 const NEUTRAL_STATUS = new Set(["no_change", "neutral", "sem_impacto", "unchanged", "same"]);
-const NEGATIVE_STATUS = new Set(["declined", "negative", "queda", "regrediu", "worsened"]);
+const NEGATIVE_STATUS = new Set(["declined", "negative", "queda", "regrediu", "worsened", "worse"]);
 
 const STOCK_KEYWORDS = ["estoque", "ruptura", "repos", "stock"];
 const ADS_KEYWORDS = ["ads", "campanha", "anúncio publicit", "publicidade", "publicit"];
@@ -196,6 +196,7 @@ function ResultadosAcoes() {
     useEcommerceActiveAccount();
 
   const [tasks, setTasks] = useState<CompletedTask[]>([]);
+  const [completedCount, setCompletedCount] = useState<number>(0);
   const [results, setResults] = useState<ActionResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [resultsAvailable, setResultsAvailable] = useState<boolean>(true);
@@ -206,12 +207,29 @@ function ResultadosAcoes() {
     if (!activeAccountId) {
       setTasks([]);
       setResults([]);
+      setCompletedCount(0);
       setLoading(false);
       return;
     }
     setLoading(true);
     try {
-      // Concluded tasks
+      // Dedicated count of completed tasks — independent of the full select
+      // and of the results view. This guarantees the "Ações concluídas" KPI
+      // reflects the real number in ecommerce_tasks.
+      const { count: cCount, error: cErr } = await supabase
+        .from("ecommerce_tasks")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("account_id", activeAccountId)
+        .eq("status", "completed");
+      if (cErr) {
+        console.error("[resultados] completed count error", cErr);
+        setCompletedCount(0);
+      } else {
+        setCompletedCount(cCount ?? 0);
+      }
+
+      // Concluded tasks (full rows for listing)
       const { data: tData, error: tErr } = await supabase
         .from("ecommerce_tasks")
         .select(
@@ -229,7 +247,8 @@ function ResultadosAcoes() {
         setTasks((tData as CompletedTask[]) ?? []);
       }
 
-      // Action results (view). If view/table not accessible, degrade gracefully.
+      // Action results (view — has account_id via join).
+      // ecommerce_action_results direto NÃO tem account_id, por isso usamos a view.
       const { data: rData, error: rErr } = await supabase
         .from("vw_ecommerce_action_results")
         .select("*")
@@ -263,29 +282,29 @@ function ResultadosAcoes() {
 
   // KPIs
   const kpis = useMemo(() => {
-    const completed = tasks.length;
+    // Ações concluídas: contagem real em ecommerce_tasks (não depende da view).
+    const completed = Math.max(completedCount, tasks.length);
     let positive = 0;
     let neutral = 0;
+    let negative = 0;
     let revenue = 0;
     let stockCount = 0;
     let adsCount = 0;
-    for (const t of tasks) {
-      const r = resultsByTask.get(t.id);
-      const b = bucketOf(r?.result_status);
+    for (const r of results) {
+      const b = bucketOf(r.result_status);
       if (b === "positive") positive += 1;
-      if (b === "neutral") neutral += 1;
-      if (r?.revenue_difference && r.revenue_difference > 0) {
+      else if (b === "neutral") neutral += 1;
+      else if (b === "negative") negative += 1;
+      if (r.revenue_difference && r.revenue_difference > 0) {
         revenue += r.revenue_difference;
       }
-      if (isStockRelated(t)) stockCount += 1;
-      if (isAdsRelated(t) && (b === "positive" || b === "neutral" || b === "negative")) {
-        adsCount += 1;
-      } else if (isAdsRelated(t)) {
-        adsCount += 1;
-      }
     }
-    return { completed, positive, neutral, revenue, stockCount, adsCount };
-  }, [tasks, resultsByTask]);
+    for (const t of tasks) {
+      if (isStockRelated(t)) stockCount += 1;
+      if (isAdsRelated(t)) adsCount += 1;
+    }
+    return { completed, positive, neutral, negative, revenue, stockCount, adsCount };
+  }, [tasks, results, completedCount]);
 
   const hasCompleted = tasks.length > 0;
   const hasResults = results.length > 0;
@@ -899,15 +918,16 @@ function RegistrarResultadoDialog({
       ? new Date(form.date + "T12:00:00").toISOString()
       : new Date().toISOString();
 
+    // NOTE: ecommerce_action_results does NOT have account_id.
+    // account_id é resolvido via view vw_ecommerce_action_results (join por task_id).
     const payload: Record<string, unknown> = {
       company_id: ECOMMERCE_COMPANY_ID,
-      account_id: activeAccountId,
       task_id: t.id,
       product_id: t.product_id,
       listing_id: t.listing_id,
       result_status: form.impact,
       result_summary: form.note.trim() || null,
-      evaluated_at: evaluatedAt,
+      evaluation_date: evaluatedAt.slice(0, 10),
     };
 
     // Map metric to before/after columns when applicable

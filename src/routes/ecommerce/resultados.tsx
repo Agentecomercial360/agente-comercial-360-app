@@ -197,10 +197,12 @@ function ResultadosAcoes() {
 
   const [tasks, setTasks] = useState<CompletedTask[]>([]);
   const [completedCount, setCompletedCount] = useState<number>(0);
+  const [totalTasksCount, setTotalTasksCount] = useState<number>(0);
   const [results, setResults] = useState<ActionResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [resultsAvailable, setResultsAvailable] = useState<boolean>(true);
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const loadAll = useCallback(async () => {
     if (accLoading) return;
@@ -208,14 +210,28 @@ function ResultadosAcoes() {
       setTasks([]);
       setResults([]);
       setCompletedCount(0);
+      setTotalTasksCount(0);
       setLoading(false);
       return;
     }
     setLoading(true);
+    setLastError(null);
     try {
-      // Dedicated count of completed tasks — independent of the full select
-      // and of the results view. This guarantees the "Ações concluídas" KPI
-      // reflects the real number in ecommerce_tasks.
+      // Total de tarefas da conta (qualquer status) — para debug
+      const { count: totalCount, error: totErr } = await supabase
+        .from("ecommerce_tasks")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("account_id", activeAccountId);
+      if (totErr) {
+        console.error("[resultados] total tasks count error", totErr);
+        setLastError(`total tasks: ${totErr.message}`);
+        setTotalTasksCount(0);
+      } else {
+        setTotalTasksCount(totalCount ?? 0);
+      }
+
+      // Contagem dedicada de tarefas concluídas — fonte real do KPI.
       const { count: cCount, error: cErr } = await supabase
         .from("ecommerce_tasks")
         .select("id", { count: "exact", head: true })
@@ -224,6 +240,7 @@ function ResultadosAcoes() {
         .eq("status", "completed");
       if (cErr) {
         console.error("[resultados] completed count error", cErr);
+        setLastError(`completed count: ${cErr.message}`);
         setCompletedCount(0);
       } else {
         setCompletedCount(cCount ?? 0);
@@ -241,14 +258,14 @@ function ResultadosAcoes() {
         .order("completed_at", { ascending: false });
       if (tErr) {
         console.error("[resultados] tasks error", tErr);
+        setLastError(`tasks select: ${tErr.message}`);
         toast.error("Não foi possível carregar tarefas concluídas.");
         setTasks([]);
       } else {
         setTasks((tData as CompletedTask[]) ?? []);
       }
 
-      // Action results (view — has account_id via join).
-      // ecommerce_action_results direto NÃO tem account_id, por isso usamos a view.
+      // Action results (view — tem account_id via join).
       const { data: rData, error: rErr } = await supabase
         .from("vw_ecommerce_action_results")
         .select("*")
@@ -256,6 +273,7 @@ function ResultadosAcoes() {
         .eq("account_id", activeAccountId);
       if (rErr) {
         console.warn("[resultados] action results indisponível:", rErr.message);
+        setLastError(`vw_ecommerce_action_results: ${rErr.message}`);
         setResults([]);
         setResultsAvailable(false);
       } else {
@@ -647,6 +665,30 @@ function ResultadosAcoes() {
             </p>
           </div>
         </div>
+
+        {/* Debug operacional da medição — diagnóstico técnico, não altera dados */}
+        <details className="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-3 text-[11px] text-slate-700">
+          <summary className="cursor-pointer font-semibold uppercase tracking-wider text-slate-600">
+            Debug operacional da medição
+          </summary>
+          <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 font-mono">
+            <div><span className="text-slate-500">company_id:</span> {ECOMMERCE_COMPANY_ID}</div>
+            <div><span className="text-slate-500">account_id:</span> {activeAccountId ?? "—"}</div>
+            <div><span className="text-slate-500">conta ativa:</span> {activeAccount?.account_name ?? activeAccount?.nickname ?? "—"}</div>
+            <div><span className="text-slate-500">total de tarefas encontradas:</span> {totalTasksCount}</div>
+            <div><span className="text-slate-500">total de tarefas completed encontradas:</span> {completedCount}</div>
+            <div><span className="text-slate-500">total de resultados medidos:</span> {results.length}</div>
+            <div><span className="text-slate-500">fonte Ações concluídas:</span> ecommerce_tasks (status=completed)</div>
+            <div><span className="text-slate-500">fonte impactos:</span> vw_ecommerce_action_results</div>
+            <div className="md:col-span-2">
+              <span className="text-slate-500">último erro Supabase:</span>{" "}
+              {lastError ? <span className="text-rose-700">{lastError}</span> : "nenhum"}
+            </div>
+          </div>
+          <p className="mt-2 text-[10px] text-slate-500">
+            Bloco de diagnóstico apenas leitura. Não altera dados, não cria registros, não envia nada ao Mercado Livre.
+          </p>
+        </details>
       </div>
 
       {/* Drawer de detalhes */}

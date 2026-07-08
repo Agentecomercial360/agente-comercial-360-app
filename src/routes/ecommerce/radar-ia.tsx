@@ -968,23 +968,43 @@ function RadarIAContent() {
           </p>
         </div>
 
-        <Button
-          onClick={runAnalysis}
-          disabled={running}
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
-        >
-          {running ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Analisando...
-            </>
-          ) : (
-            <>
-              <Play className="mr-2 h-4 w-4" />
-              Rodar análise agora
-            </>
-          )}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={runEnginePreview}
+            disabled={previewLoading}
+            title="Executa apenas uma prévia do contexto (dry-run). Não cria insights."
+          >
+            {previewLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Preparando prévia...
+              </>
+            ) : (
+              <>
+                <Wand2 className="mr-2 h-4 w-4" />
+                Prévia do Motor IA
+              </>
+            )}
+          </Button>
+          <Button
+            onClick={runAnalysis}
+            disabled={running}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+          >
+            {running ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Analisando...
+              </>
+            ) : (
+              <>
+                <Play className="mr-2 h-4 w-4" />
+                Rodar análise agora
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Como o Radar IA funciona */}

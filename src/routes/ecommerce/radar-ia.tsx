@@ -2632,9 +2632,7 @@ function AppliedRulesPanel({
   insight: Insight;
   rules: KbRule[];
 }) {
-  const originLabel = insight.generated_by
-    ? `Motor de insights (${insight.generated_by})`
-    : "Motor de insights";
+  const originLabel = "Motor SQL v1 · ecommerce_ai_insights";
   const typeLabel = insight.insight_type
     ? (TYPE_LABEL[insight.insight_type] ?? insight.insight_type)
     : "—";

@@ -691,7 +691,7 @@ function RadarIAContent() {
       const inserted = Number(result?.inserted_count ?? 0);
       const kbNote =
         kbRules.length > 0
-          ? ` · Base da IA aplicada (${kbRules.length} regra${kbRules.length === 1 ? "" : "s"})`
+          ? ` · Regras da Operação aplicadas (${kbRules.length} regra${kbRules.length === 1 ? "" : "s"})`
           : "";
       const engineNote = " · motor: RPC generate_ecommerce_insights_v1 (regras SQL)";
       if (inserted > 0) {

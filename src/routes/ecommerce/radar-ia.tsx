@@ -1445,8 +1445,16 @@ function RadarIAContent() {
                   <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                     <dt className="text-muted-foreground">Origem</dt>
                     <dd className="text-foreground font-mono">ecommerce_ai_insights</dd>
+                    <dt className="text-muted-foreground">Gerado por</dt>
+                    <dd className="text-foreground">
+                      {selected.generated_by === "ai"
+                        ? "IA"
+                        : (selected.generated_by ?? "—")}
+                    </dd>
                     <dt className="text-muted-foreground">Modelo</dt>
-                    <dd className="text-foreground">{selected.generated_by ?? "—"}</dd>
+                    <dd className="text-foreground font-mono">
+                      {selected.model?.trim() ? selected.model : "—"}
+                    </dd>
                     <dt className="text-muted-foreground">Confiança</dt>
                     <dd className="text-foreground">
                       {selected.confidence_score != null
@@ -1471,6 +1479,7 @@ function RadarIAContent() {
                     <dd className="text-foreground">{formatDate(selected.updated_at)}</dd>
                   </dl>
                 </div>
+
 
                 {(selected.product_id || selected.listing_id) && (() => {
                   const product = selected.product_id

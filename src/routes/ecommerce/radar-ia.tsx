@@ -439,11 +439,11 @@ const RISK_STYLE: Record<RiskLevel, string> = {
 };
 
 const APPROVAL_CHECKLIST = [
-  "Conferir margem e custo antes de alterar preço",
-  "Conferir estoque antes de escalar Ads",
-  "Validar se a imagem sugerida faz sentido para o produto",
-  "Confirmar que a alteração não prejudica produto estratégico",
-  "Aprovar execução manual ou criação de tarefa operacional",
+  "Margem e custo conferidos",
+  "Estoque conferido",
+  "Imagem, título e descrição validados",
+  "Impacto em Ads e preço avaliado",
+  "Operador aprova criação de tarefa ou execução manual",
 ];
 
 

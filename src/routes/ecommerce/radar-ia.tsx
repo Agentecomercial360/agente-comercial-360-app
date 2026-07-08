@@ -20,6 +20,8 @@ import {
   BarChart3,
   HelpCircle,
   Activity,
+  BookOpen,
+  ShieldCheck,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {

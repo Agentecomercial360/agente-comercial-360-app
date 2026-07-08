@@ -448,6 +448,30 @@ function ResultadosAcoesContent() {
           </div>
         )}
 
+        {resultsPending.length > 0 && (
+          <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/50 p-3 text-xs text-amber-900">
+            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+            <div className="space-y-1">
+              <div>
+                Existem <strong>{resultsPending.length}</strong> resultado(s) medido(s)
+                vinculado(s) a tarefa(s) ainda não concluída(s). Esses valores
+                <strong> não entram</strong> nos KPIs principais.
+              </div>
+              <ul className="list-disc pl-4 space-y-0.5">
+                {resultsPending.slice(0, 5).map((r) => (
+                  <li key={r.id}>
+                    <span className="font-medium">{r.task_title ?? "Tarefa"}</span>
+                    {" — status: "}
+                    <span className="uppercase">{r.task_status ?? "—"}</span>
+                    {" · resultado: "}
+                    <span>{IMPACT_LABEL[bucketOf(r.result_status)]}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
         {/* KPIs */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           <KpiCard

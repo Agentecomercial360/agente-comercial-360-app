@@ -841,9 +841,18 @@ function RadarIAContent() {
                 Contexto estratégico ativo
               </span>
             )}
+            {!loading && (
+              <span className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+                {insights.length} insight{insights.length === 1 ? "" : "s"} · {accountLabel}
+              </span>
+            )}
           </div>
           <p className="mt-1.5 text-sm text-muted-foreground">
             Sinais de oportunidade, alertas e recomendações inteligentes da conta ativa.
+          </p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground/80">
+            Os insights exibidos são filtrados pela conta Mercado Livre ativa · origem:{" "}
+            <span className="font-mono">ecommerce_ai_insights</span>
           </p>
         </div>
 

@@ -460,7 +460,7 @@ function RadarIAContent() {
         console.error("Erro ao carregar insights:", error);
         setInsights([]);
       } else {
-        setInsights(((data as Insight[]) ?? []).map((i) => ({ model: null, ...i })));
+        setInsights(((data as Insight[]) ?? []).map((i) => ({ ...i, model: i.model ?? null })));
       }
     } finally {
       setLoading(false);

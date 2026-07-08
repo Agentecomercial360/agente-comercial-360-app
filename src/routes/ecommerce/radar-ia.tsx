@@ -2166,14 +2166,16 @@ function RadarIAContent() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() =>
-                      toast.message(
-                        "Solicitação de revisão registrada. Fluxo colaborativo será conectado na próxima etapa.",
-                      )
-                    }
+                    disabled={reviewingId === plan.id || plan.status === "needs_review"}
+                    onClick={() => reviewPlan(plan)}
+                    title="Marca o plano para revisão. Nenhuma alteração é executada no Mercado Livre."
                   >
-                    <Send className="mr-1.5 h-4 w-4" />
-                    Solicitar revisão
+                    {reviewingId === plan.id ? (
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Send className="mr-1.5 h-4 w-4" />
+                    )}
+                    {plan.status === "needs_review" ? "Revisão solicitada" : "Solicitar revisão"}
                   </Button>
                   <Button
                     variant="outline"

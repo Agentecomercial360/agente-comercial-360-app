@@ -430,19 +430,37 @@ function RadarIAContent() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("ecommerce_ai_insights")
-        .select(
-          "id, company_id, account_id, product_id, listing_id, insight_type, priority, title, diagnosis, probable_cause, recommended_action, status, generated_by, confidence_score, created_at, updated_at, suggested_title, suggested_description, suggested_image_idea, suggested_ads_action, suggested_price_action, suggested_kit_action",
-        )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
-        .eq("account_id", accountId)
-        .order("created_at", { ascending: false });
+      const baseCols =
+        "id, company_id, account_id, product_id, listing_id, insight_type, priority, title, diagnosis, probable_cause, recommended_action, status, generated_by, confidence_score, created_at, updated_at, suggested_title, suggested_description, suggested_image_idea, suggested_ads_action, suggested_price_action, suggested_kit_action";
+      // Tenta incluir a coluna `model` (opcional). Se não existir no banco,
+      // faz fallback para o select sem `model` para não quebrar a página.
+      let data: unknown[] | null = null;
+      let error: { message?: string } | null = null;
+      {
+        const res = await supabase
+          .from("ecommerce_ai_insights")
+          .select(`${baseCols}, model`)
+          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("account_id", accountId)
+          .order("created_at", { ascending: false });
+        data = res.data as unknown[] | null;
+        error = res.error;
+      }
+      if (error && /model/i.test(error.message ?? "")) {
+        const res = await supabase
+          .from("ecommerce_ai_insights")
+          .select(baseCols)
+          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("account_id", accountId)
+          .order("created_at", { ascending: false });
+        data = res.data as unknown[] | null;
+        error = res.error;
+      }
       if (error) {
         console.error("Erro ao carregar insights:", error);
         setInsights([]);
       } else {
-        setInsights((data as Insight[]) ?? []);
+        setInsights(((data as Insight[]) ?? []).map((i) => ({ model: null, ...i })));
       }
     } finally {
       setLoading(false);

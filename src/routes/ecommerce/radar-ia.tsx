@@ -26,6 +26,7 @@ import {
   ThumbsDown,
   Send,
   CheckCheck,
+  Copy,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {

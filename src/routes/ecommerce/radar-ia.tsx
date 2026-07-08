@@ -1261,6 +1261,12 @@ function RadarIAContent() {
                 <Block label="Causa provável" text={selected.probable_cause} />
                 <Block label="Ação recomendada" text={selected.recommended_action} />
 
+                <AppliedRulesPanel
+                  insight={selected}
+                  rules={rulesForInsight(selected.insight_type, kbRules)}
+                />
+
+
                 {(selected.suggested_title ||
                   selected.suggested_description ||
                   selected.suggested_image_idea ||

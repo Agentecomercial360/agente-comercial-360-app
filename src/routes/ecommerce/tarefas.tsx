@@ -766,7 +766,11 @@ function TarefasOperadoresContent() {
                         return (
                           <tr
                             key={t.id}
-                            className="border-t border-border/60 hover:bg-muted/30"
+                            className={`border-t border-border/60 transition-colors ${
+                              highlightId === t.id
+                                ? "bg-blue-50/70 ring-2 ring-blue-300"
+                                : "hover:bg-muted/30"
+                            }`}
                           >
                             <td className="px-4 py-3 align-top">
                               <span
@@ -787,6 +791,26 @@ function TarefasOperadoresContent() {
                                   {t.task_description}
                                 </div>
                               )}
+                              <div className="mt-1 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                                {t.insight_id && (
+                                  <span className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-blue-50 px-1.5 py-0.5 font-semibold text-blue-700">
+                                    <Lightbulb className="h-3 w-3" />
+                                    Insight vinculado
+                                  </span>
+                                )}
+                                {t.listing_id && (
+                                  <span className="inline-flex items-center gap-1">
+                                    <Package className="h-3 w-3" />
+                                    {t.listing_id}
+                                  </span>
+                                )}
+                                {activeAccount && (
+                                  <span className="inline-flex items-center gap-1">
+                                    <Store className="h-3 w-3" />
+                                    {accountName}
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-4 py-3 align-top whitespace-nowrap text-xs text-foreground/80">
                               {TYPE_LABEL[type] ?? type}

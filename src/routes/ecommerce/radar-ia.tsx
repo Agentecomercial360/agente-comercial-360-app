@@ -1093,7 +1093,7 @@ function RadarIAContent() {
                 >
                   Base da IA
                 </button>{" "}
-                orientam a leitura do Radar sobre margem, preço, estoque, Ads e produtos prioritários.
+                orientam a leitura do diagnóstico sobre margem, preço, estoque, Ads e produtos prioritários.
               </p>
             </div>
           </div>

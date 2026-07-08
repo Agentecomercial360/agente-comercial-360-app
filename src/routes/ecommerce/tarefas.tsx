@@ -486,32 +486,65 @@ function TarefasOperadoresContent() {
   }, [currentDetail, draftStatus, draftResponsible, draftResult, loadTasks, operators]);
 
   const [completingId, setCompletingId] = useState<string | null>(null);
+
+  const completeTask = useCallback(
+    async (task: EcommerceTask, resultNote?: string | null) => {
+      const now = new Date().toISOString();
+      const patch: Record<string, unknown> = {
+        status: "completed",
+        completed_at: now,
+        updated_at: now,
+      };
+      if (typeof resultNote === "string" && resultNote.trim()) {
+        patch.result_summary = resultNote.trim();
+      }
+      const { error } = await supabase
+        .from("ecommerce_tasks")
+        .update(patch)
+        .eq("id", task.id)
+        .eq("company_id", ECOMMERCE_COMPANY_ID);
+      if (error) {
+        console.error("[tarefas] complete error", error);
+        toast.error("Não foi possível concluir a tarefa.");
+        return false;
+      }
+      // Best-effort: se vinculada a insight, marca como monitoring.
+      if (task.insight_id) {
+        try {
+          await supabase
+            .from("ecommerce_ai_insights")
+            .update({ status: "monitoring", updated_at: now })
+            .eq("id", task.insight_id)
+            .eq("company_id", ECOMMERCE_COMPANY_ID);
+        } catch (e) {
+          console.debug("[tarefas] insight status update skipped", e);
+        }
+      }
+      toast.success(
+        "Tarefa concluída. Nenhuma alteração foi feita automaticamente no Mercado Livre.",
+      );
+      return true;
+    },
+    [],
+  );
+
   const handleQuickComplete = useCallback(
     async (task: EcommerceTask) => {
+      if (!task.result_summary || !task.result_summary.trim()) {
+        const ok = window.confirm(
+          "Recomendamos registrar o resultado antes de concluir a tarefa, pois isso será usado em Resultados das Ações.\n\nDeseja concluir mesmo assim?",
+        );
+        if (!ok) return;
+      }
       setCompletingId(task.id);
-      const now = new Date().toISOString();
       try {
-        const { error } = await supabase
-          .from("ecommerce_tasks")
-          .update({
-            status: "completed",
-            completed_at: now,
-            updated_at: now,
-          })
-          .eq("id", task.id)
-          .eq("company_id", ECOMMERCE_COMPANY_ID);
-        if (error) {
-          console.error("[tarefas] quick complete error", error);
-          toast.error("Não foi possível concluir a tarefa.");
-          return;
-        }
-        toast.success("Tarefa marcada como concluída.");
-        await loadTasks();
+        const ok = await completeTask(task);
+        if (ok) await loadTasks();
       } finally {
         setCompletingId(null);
       }
     },
-    [loadTasks],
+    [completeTask, loadTasks],
   );
 
 

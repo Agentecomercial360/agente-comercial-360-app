@@ -210,14 +210,28 @@ function ResultadosAcoes() {
       setTasks([]);
       setResults([]);
       setCompletedCount(0);
+      setTotalTasksCount(0);
       setLoading(false);
       return;
     }
     setLoading(true);
+    setLastError(null);
     try {
-      // Dedicated count of completed tasks — independent of the full select
-      // and of the results view. This guarantees the "Ações concluídas" KPI
-      // reflects the real number in ecommerce_tasks.
+      // Total de tarefas da conta (qualquer status) — para debug
+      const { count: totalCount, error: totErr } = await supabase
+        .from("ecommerce_tasks")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("account_id", activeAccountId);
+      if (totErr) {
+        console.error("[resultados] total tasks count error", totErr);
+        setLastError(`total tasks: ${totErr.message}`);
+        setTotalTasksCount(0);
+      } else {
+        setTotalTasksCount(totalCount ?? 0);
+      }
+
+      // Contagem dedicada de tarefas concluídas — fonte real do KPI.
       const { count: cCount, error: cErr } = await supabase
         .from("ecommerce_tasks")
         .select("id", { count: "exact", head: true })
@@ -226,6 +240,7 @@ function ResultadosAcoes() {
         .eq("status", "completed");
       if (cErr) {
         console.error("[resultados] completed count error", cErr);
+        setLastError(`completed count: ${cErr.message}`);
         setCompletedCount(0);
       } else {
         setCompletedCount(cCount ?? 0);
@@ -243,14 +258,14 @@ function ResultadosAcoes() {
         .order("completed_at", { ascending: false });
       if (tErr) {
         console.error("[resultados] tasks error", tErr);
+        setLastError(`tasks select: ${tErr.message}`);
         toast.error("Não foi possível carregar tarefas concluídas.");
         setTasks([]);
       } else {
         setTasks((tData as CompletedTask[]) ?? []);
       }
 
-      // Action results (view — has account_id via join).
-      // ecommerce_action_results direto NÃO tem account_id, por isso usamos a view.
+      // Action results (view — tem account_id via join).
       const { data: rData, error: rErr } = await supabase
         .from("vw_ecommerce_action_results")
         .select("*")
@@ -258,6 +273,7 @@ function ResultadosAcoes() {
         .eq("account_id", activeAccountId);
       if (rErr) {
         console.warn("[resultados] action results indisponível:", rErr.message);
+        setLastError(`vw_ecommerce_action_results: ${rErr.message}`);
         setResults([]);
         setResultsAvailable(false);
       } else {

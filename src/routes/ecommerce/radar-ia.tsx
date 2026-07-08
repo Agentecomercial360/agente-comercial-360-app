@@ -2367,7 +2367,7 @@ function AppliedRulesPanel({
 
       <div>
         <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Regras da Base da IA aplicadas
+          Regras da Operação aplicadas
         </div>
         {rules.length === 0 ? (
           <p className="mt-1 text-xs text-muted-foreground">

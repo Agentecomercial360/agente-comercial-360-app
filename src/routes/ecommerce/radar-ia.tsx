@@ -325,8 +325,11 @@ const STATUS_LABEL: Record<string, string> = {
   pending_review: "Pendente de revisão",
   converted_to_task: "Convertido em tarefa",
   approved: "Aprovado",
+  needs_review: "Revisão solicitada",
   in_progress: "Em acompanhamento",
   in_review: "Em acompanhamento",
+  monitoring: "Em acompanhamento",
+  discarded: "Descartado",
   dismissed: "Descartado",
   resolved: "Em acompanhamento",
 };
@@ -337,8 +340,11 @@ const STATUS_STYLE: Record<string, string> = {
   pending_review: "border-blue-200 bg-blue-50 text-blue-700",
   converted_to_task: "border-emerald-200 bg-emerald-50 text-emerald-700",
   approved: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  needs_review: "border-amber-200 bg-amber-50 text-amber-700",
   in_progress: "border-violet-200 bg-violet-50 text-violet-700",
   in_review: "border-violet-200 bg-violet-50 text-violet-700",
+  monitoring: "border-violet-200 bg-violet-50 text-violet-700",
+  discarded: "border-slate-200 bg-slate-50 text-slate-600",
   dismissed: "border-slate-200 bg-slate-50 text-slate-600",
   resolved: "border-violet-200 bg-violet-50 text-violet-700",
 };

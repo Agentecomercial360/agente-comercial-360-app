@@ -442,11 +442,64 @@ function RadarIAContent() {
     return { total, improved, noChange, declined };
   }, [actionResults]);
 
+  // Base da IA (contexto estratégico)
+  const [kbRules, setKbRules] = useState<KbRule[]>([]);
+  const [kbLoading, setKbLoading] = useState(true);
+  const [kbAvailable, setKbAvailable] = useState(true);
+
+  const loadKb = useCallback(async () => {
+    setKbLoading(true);
+    try {
+      let q = supabase
+        .from("ecommerce_ai_knowledge_base")
+        .select(
+          "id, company_id, account_id, category, title, description, priority, status, updated_at",
+        )
+        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("status", "active");
+      // Regras da conta ativa OU regras globais (account_id null)
+      q = q.or(`account_id.is.null,account_id.eq.${accountId}`);
+      const { data, error } = await q.order("updated_at", { ascending: false });
+      if (error) {
+        // Tabela pode não existir ainda ou RLS bloquear — degradar silenciosamente
+        console.warn("[Radar IA] Base da IA indisponível:", error.message);
+        setKbAvailable(false);
+        setKbRules([]);
+      } else {
+        setKbAvailable(true);
+        setKbRules((data as KbRule[]) ?? []);
+      }
+    } finally {
+      setKbLoading(false);
+    }
+  }, [accountId]);
+
+  useEffect(() => {
+    void loadKb();
+  }, [loadKb]);
+
+  const kbSummary = useMemo(() => {
+    const byCat: Record<KbCategory, number> = {
+      margem: 0,
+      preco: 0,
+      estoque: 0,
+      ads: 0,
+      prioritarios: 0,
+      observacoes: 0,
+    };
+    let last: string | null = null;
+    for (const r of kbRules) {
+      byCat[r.category] = (byCat[r.category] ?? 0) + 1;
+      if (r.updated_at && (!last || r.updated_at > last)) last = r.updated_at;
+    }
+    return { total: kbRules.length, byCat, last };
+  }, [kbRules]);
 
   const [creatingId, setCreatingId] = useState<string | null>(null);
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const navigate = useNavigate();
+
 
   const runAnalysis = useCallback(async () => {
     setRunning(true);

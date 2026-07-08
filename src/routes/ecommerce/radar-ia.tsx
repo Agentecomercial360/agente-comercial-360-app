@@ -353,15 +353,29 @@ function RadarIAPage() {
   );
 }
 
+type ProductInfo = { id: string; name: string | null; sku: string | null };
+type ListingInfo = {
+  id: string;
+  ml_item_id: string | null;
+  status: string | null;
+  title: string | null;
+};
+
 function RadarIAContent() {
-  const { activeAccountId } = useEcommerceActiveAccount();
+  const { activeAccountId, activeAccount } = useEcommerceActiveAccount();
   const accountId = activeAccountId || FALLBACK_ACCOUNT_ID;
+  const accountLabel =
+    activeAccount?.account_name ||
+    activeAccount?.nickname ||
+    "Mercado Livre";
 
   const [insights, setInsights] = useState<Insight[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Insight | null>(null);
   const [plan, setPlan] = useState<Insight | null>(null);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [productMap, setProductMap] = useState<Record<string, ProductInfo>>({});
+  const [listingMap, setListingMap] = useState<Record<string, ListingInfo>>({});
 
   const toggleCheck = useCallback((key: string) => {
     setChecked((p) => ({ ...p, [key]: !p[key] }));
@@ -392,6 +406,58 @@ function RadarIAContent() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  // Lookups complementares — produtos e anúncios vinculados aos insights
+  useEffect(() => {
+    const productIds = Array.from(
+      new Set(insights.map((i) => i.product_id).filter((v): v is string => !!v)),
+    );
+    const listingIds = Array.from(
+      new Set(insights.map((i) => i.listing_id).filter((v): v is string => !!v)),
+    );
+
+    if (productIds.length === 0) {
+      setProductMap({});
+    } else {
+      (async () => {
+        try {
+          const { data, error } = await supabase
+            .from("ecommerce_products")
+            .select("id, name, sku")
+            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .in("id", productIds);
+          if (error) throw error;
+          const map: Record<string, ProductInfo> = {};
+          for (const p of (data as ProductInfo[]) ?? []) map[p.id] = p;
+          setProductMap(map);
+        } catch (err) {
+          console.warn("[Radar IA] Lookup de produtos indisponível:", err);
+          setProductMap({});
+        }
+      })();
+    }
+
+    if (listingIds.length === 0) {
+      setListingMap({});
+    } else {
+      (async () => {
+        try {
+          const { data, error } = await supabase
+            .from("ecommerce_listings")
+            .select("id, ml_item_id, status, title")
+            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .in("id", listingIds);
+          if (error) throw error;
+          const map: Record<string, ListingInfo> = {};
+          for (const l of (data as ListingInfo[]) ?? []) map[l.id] = l;
+          setListingMap(map);
+        } catch (err) {
+          console.warn("[Radar IA] Lookup de anúncios indisponível:", err);
+          setListingMap({});
+        }
+      })();
+    }
+  }, [insights]);
 
   // Impacto das Ações
   const [actionResults, setActionResults] = useState<ActionResult[]>([]);

@@ -323,6 +323,35 @@ function TarefasOperadoresContent() {
     void loadTasks();
   }, [loadTasks]);
 
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+
+  // Auto-open task if navigated from Plano de Ação ("Ver tarefa")
+  useEffect(() => {
+    if (loading || tasks.length === 0) return;
+    let selectedId: string | null = null;
+    try {
+      selectedId = localStorage.getItem("ac360_selected_task_id");
+    } catch {
+      /* ignore */
+    }
+    if (!selectedId) return;
+    const found = tasks.find((t) => t.id === selectedId);
+    if (found) {
+      setDetailId(found.id);
+      setDraftStatus(((found.status ?? "pending") as TaskStatus));
+      setDraftResponsible(found.responsible_name ?? NO_OPERATOR_VALUE);
+      setDraftResult(found.result_summary ?? "");
+      setHighlightId(found.id);
+      setTimeout(() => setHighlightId(null), 4000);
+    }
+    try {
+      localStorage.removeItem("ac360_selected_task_id");
+      localStorage.removeItem("ac360_selected_insight_id");
+    } catch {
+      /* ignore */
+    }
+  }, [loading, tasks]);
+
   const currentDetail = useMemo(
     () => tasks.find((t) => t.id === detailId) ?? null,
     [tasks, detailId],

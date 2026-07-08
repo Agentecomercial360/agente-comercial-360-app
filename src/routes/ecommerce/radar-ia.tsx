@@ -134,6 +134,65 @@ type ActionResult = {
   evaluated_at: string | null;
 };
 
+type KbCategory =
+  | "margem"
+  | "preco"
+  | "estoque"
+  | "ads"
+  | "prioritarios"
+  | "observacoes";
+
+type KbRule = {
+  id: string;
+  company_id: string;
+  account_id: string | null;
+  category: KbCategory;
+  title: string;
+  description: string | null;
+  priority: string | null;
+  status: string | null;
+  updated_at: string | null;
+};
+
+const KB_CATEGORY_LABEL: Record<KbCategory, string> = {
+  margem: "Margem",
+  preco: "Preço",
+  estoque: "Estoque",
+  ads: "Ads",
+  prioritarios: "Produtos prioritários",
+  observacoes: "Observações",
+};
+
+const KB_CATEGORY_STYLE: Record<KbCategory, string> = {
+  margem: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  preco: "border-blue-200 bg-blue-50 text-blue-700",
+  estoque: "border-amber-200 bg-amber-50 text-amber-700",
+  ads: "border-fuchsia-200 bg-fuchsia-50 text-fuchsia-700",
+  prioritarios: "border-violet-200 bg-violet-50 text-violet-700",
+  observacoes: "border-slate-200 bg-slate-50 text-slate-700",
+};
+
+// Mapeia tipo de insight -> categorias da Base da IA que podem influenciar
+const INSIGHT_TO_KB: Record<string, KbCategory[]> = {
+  ads_scale_opportunity: ["ads", "margem"],
+  low_conversion: ["preco", "margem", "ads"],
+  stock_stopped: ["estoque", "prioritarios", "preco"],
+  visits_no_sales: ["preco", "ads"],
+  no_visits: ["ads"],
+  kit_opportunity: ["preco", "prioritarios"],
+};
+
+function rulesForInsight(
+  insightType: string | null,
+  rules: KbRule[],
+): KbRule[] {
+  if (!insightType) return [];
+  const cats = INSIGHT_TO_KB[insightType];
+  if (!cats?.length) return [];
+  return rules.filter((r) => cats.includes(r.category));
+}
+
+
 const RESULT_STATUS_LABEL: Record<string, string> = {
   improved: "Melhorou",
   declined: "Caiu",

@@ -912,6 +912,67 @@ function RadarIAContent() {
     [load],
   );
 
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [dismissingId, setDismissingId] = useState<string | null>(null);
+
+  const updateInsightStatus = useCallback(
+    async (insight: Insight, next: string, successMsg: string, fallbackMsg: string) => {
+      const { error } = await supabase
+        .from("ecommerce_ai_insights")
+        .update({ status: next, updated_at: new Date().toISOString() })
+        .eq("id", insight.id);
+      if (error) {
+        console.warn("[Plano de Ação] status update falhou:", error.message);
+        toast.message(fallbackMsg);
+        return false;
+      }
+      toast.success(successMsg);
+      setInsights((prev) =>
+        prev.map((i) => (i.id === insight.id ? { ...i, status: next } : i)),
+      );
+      setPlan((prev) => (prev && prev.id === insight.id ? { ...prev, status: next } : prev));
+      setSelected((prev) => (prev && prev.id === insight.id ? { ...prev, status: next } : prev));
+      return true;
+    },
+    [],
+  );
+
+  const approvePlan = useCallback(
+    async (insight: Insight) => {
+      setApprovingId(insight.id);
+      try {
+        await updateInsightStatus(
+          insight,
+          "approved",
+          "Plano aprovado. Nenhuma alteração foi feita no Mercado Livre.",
+          "Plano aprovado localmente. A persistência do status será conectada na próxima etapa.",
+        );
+      } finally {
+        setApprovingId(null);
+      }
+    },
+    [updateInsightStatus],
+  );
+
+  const dismissPlan = useCallback(
+    async (insight: Insight) => {
+      setDismissingId(insight.id);
+      try {
+        await updateInsightStatus(
+          insight,
+          "dismissed",
+          "Plano descartado. O insight foi mantido no histórico.",
+          "Plano marcado como descartado localmente. Persistência será conectada na próxima etapa.",
+        );
+      } finally {
+        setDismissingId(null);
+      }
+    },
+    [updateInsightStatus],
+  );
+
+
+
   const summary = useMemo(() => {
     const total = insights.length;
     const high = insights.filter((i) => i.priority === "high").length;

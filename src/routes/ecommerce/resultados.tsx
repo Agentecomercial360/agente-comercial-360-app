@@ -807,7 +807,7 @@ function ResultadosAcoesContent() {
           )}
         </SheetContent>
       </Sheet>
-    </EcommerceLayout>
+    </>
   );
 }
 

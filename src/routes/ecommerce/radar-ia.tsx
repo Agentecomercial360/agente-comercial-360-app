@@ -1930,7 +1930,7 @@ function RadarIAContent() {
               ["Sugestão de kit / combo", plan.suggested_kit_action],
             ];
             const planRules = rulesForInsight(plan.insight_type, kbRules, plan);
-            const isDismissed = plan.status === "dismissed";
+            const isDismissed = plan.status === "dismissed" || plan.status === "discarded";
             const isApproved = plan.status === "approved";
 
             return (

@@ -1488,27 +1488,49 @@ function RadarIAContent() {
                   const listing = selected.listing_id
                     ? listingMap[selected.listing_id]
                     : undefined;
-                  const missing =
-                    (selected.product_id && !product) ||
-                    (selected.listing_id && !listing);
+                  const productMissing = !!selected.product_id && !product;
+                  const listingMissing = !!selected.listing_id && !listing;
+                  const displayName =
+                    product?.name?.trim() ||
+                    listing?.title?.trim() ||
+                    (listing?.ml_item_id ? `Anúncio ${listing.ml_item_id}` : null);
+                  const displaySku = product?.sku?.trim() || "Não informado";
+                  let notice: string | null = null;
+                  if (productMissing && listingMissing) {
+                    notice =
+                      "Produto e anúncio vinculados não encontrados ou ainda não sincronizados.";
+                  } else if (productMissing && listing) {
+                    notice = "Anúncio encontrado, mas produto/SKU ainda não sincronizado.";
+                  } else if (listingMissing && product) {
+                    notice = "Produto encontrado, mas anúncio vinculado não localizado.";
+                  }
                   return (
                     <div className="rounded-xl border border-border/60 bg-card p-4">
                       <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                         Produto / Anúncio vinculado
                       </div>
                       <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-xs">
-                        {selected.product_id && (
+                        {(selected.product_id || listing) && (
                           <>
                             <dt className="text-muted-foreground">Nome</dt>
-                            <dd className="text-foreground">{product?.name ?? "—"}</dd>
+                            <dd className="text-foreground">
+                              {displayName ?? "—"}
+                              {!product?.name && listing?.title ? (
+                                <span className="ml-1 text-[10px] text-muted-foreground">
+                                  (título do anúncio)
+                                </span>
+                              ) : null}
+                            </dd>
                             <dt className="text-muted-foreground">SKU</dt>
-                            <dd className="text-foreground font-mono">
-                              {product?.sku ?? "—"}
-                            </dd>
-                            <dt className="text-muted-foreground">product_id</dt>
-                            <dd className="text-foreground font-mono break-all">
-                              {selected.product_id}
-                            </dd>
+                            <dd className="text-foreground font-mono">{displaySku}</dd>
+                            {selected.product_id && (
+                              <>
+                                <dt className="text-muted-foreground">product_id</dt>
+                                <dd className="text-foreground font-mono break-all">
+                                  {selected.product_id}
+                                </dd>
+                              </>
+                            )}
                           </>
                         )}
                         {selected.listing_id && (
@@ -1526,9 +1548,9 @@ function RadarIAContent() {
                           </>
                         )}
                       </dl>
-                      {missing && (
+                      {notice && (
                         <div className="mt-2 rounded-md border border-dashed border-amber-200 bg-amber-50/60 px-2.5 py-1.5 text-[11px] text-amber-800">
-                          Produto/anúncio vinculado não encontrado ou não sincronizado.
+                          {notice}
                         </div>
                       )}
                     </div>

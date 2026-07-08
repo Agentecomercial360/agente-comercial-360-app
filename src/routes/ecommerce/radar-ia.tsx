@@ -22,6 +22,10 @@ import {
   Activity,
   BookOpen,
   ShieldCheck,
+  ShieldAlert,
+  ThumbsDown,
+  Send,
+  CheckCheck,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
@@ -315,18 +319,29 @@ const PRIORITY_STYLE: Record<string, string> = {
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  open: "Aberto",
+  open: "Pendente de revisão",
+  pending: "Pendente de revisão",
+  pending_review: "Pendente de revisão",
   converted_to_task: "Convertido em tarefa",
-  dismissed: "Ignorado",
-  resolved: "Resolvido",
+  approved: "Aprovado",
+  in_progress: "Em acompanhamento",
+  in_review: "Em acompanhamento",
+  dismissed: "Descartado",
+  resolved: "Em acompanhamento",
 };
 
 const STATUS_STYLE: Record<string, string> = {
   open: "border-blue-200 bg-blue-50 text-blue-700",
+  pending: "border-blue-200 bg-blue-50 text-blue-700",
+  pending_review: "border-blue-200 bg-blue-50 text-blue-700",
   converted_to_task: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  approved: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  in_progress: "border-violet-200 bg-violet-50 text-violet-700",
+  in_review: "border-violet-200 bg-violet-50 text-violet-700",
   dismissed: "border-slate-200 bg-slate-50 text-slate-600",
   resolved: "border-violet-200 bg-violet-50 text-violet-700",
 };
+
 
 const TYPE_LABEL: Record<string, string> = {
   stock_stopped: "Estoque parado",
@@ -381,6 +396,55 @@ function checklistFor(type: string | null): string[] {
   if (!type) return CHECKLIST_DEFAULT;
   return CHECKLIST_BY_TYPE[type] ?? CHECKLIST_DEFAULT;
 }
+
+type RiskLevel = "low" | "medium" | "high";
+
+function computeRisk(insight: {
+  insight_type: string | null;
+  priority: string | null;
+  suggested_price_action: string | null;
+  suggested_ads_action: string | null;
+  suggested_kit_action: string | null;
+}): RiskLevel {
+  if (insight.priority === "critical") return "high";
+  const type = insight.insight_type ?? "";
+  const touchesSensitive =
+    !!insight.suggested_price_action?.trim() ||
+    !!insight.suggested_ads_action?.trim() ||
+    type === "ads_scale_opportunity" ||
+    type === "stock_stopped";
+  if (touchesSensitive) return "high";
+  const touchesModerate =
+    !!insight.suggested_kit_action?.trim() ||
+    type === "low_conversion" ||
+    type === "kit_opportunity" ||
+    type === "no_visits" ||
+    type === "visits_no_sales" ||
+    insight.priority === "high";
+  if (touchesModerate) return "medium";
+  return "low";
+}
+
+const RISK_LABEL: Record<RiskLevel, string> = {
+  low: "Risco baixo",
+  medium: "Risco médio",
+  high: "Risco alto",
+};
+
+const RISK_STYLE: Record<RiskLevel, string> = {
+  low: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  medium: "border-amber-200 bg-amber-50 text-amber-700",
+  high: "border-red-200 bg-red-50 text-red-700",
+};
+
+const APPROVAL_CHECKLIST = [
+  "Conferir margem e custo antes de alterar preço",
+  "Conferir estoque antes de escalar Ads",
+  "Validar se a imagem sugerida faz sentido para o produto",
+  "Confirmar que a alteração não prejudica produto estratégico",
+  "Aprovar execução manual ou criação de tarefa operacional",
+];
+
 
 function formatDate(iso: string | null): string {
   if (!iso) return "—";
@@ -851,6 +915,67 @@ function RadarIAContent() {
     },
     [load],
   );
+
+  const [approvingId, setApprovingId] = useState<string | null>(null);
+  const [dismissingId, setDismissingId] = useState<string | null>(null);
+
+  const updateInsightStatus = useCallback(
+    async (insight: Insight, next: string, successMsg: string, fallbackMsg: string) => {
+      const { error } = await supabase
+        .from("ecommerce_ai_insights")
+        .update({ status: next, updated_at: new Date().toISOString() })
+        .eq("id", insight.id);
+      if (error) {
+        console.warn("[Plano de Ação] status update falhou:", error.message);
+        toast.message(fallbackMsg);
+        return false;
+      }
+      toast.success(successMsg);
+      setInsights((prev) =>
+        prev.map((i) => (i.id === insight.id ? { ...i, status: next } : i)),
+      );
+      setPlan((prev) => (prev && prev.id === insight.id ? { ...prev, status: next } : prev));
+      setSelected((prev) => (prev && prev.id === insight.id ? { ...prev, status: next } : prev));
+      return true;
+    },
+    [],
+  );
+
+  const approvePlan = useCallback(
+    async (insight: Insight) => {
+      setApprovingId(insight.id);
+      try {
+        await updateInsightStatus(
+          insight,
+          "approved",
+          "Plano aprovado. Nenhuma alteração foi feita no Mercado Livre.",
+          "Plano aprovado localmente. A persistência do status será conectada na próxima etapa.",
+        );
+      } finally {
+        setApprovingId(null);
+      }
+    },
+    [updateInsightStatus],
+  );
+
+  const dismissPlan = useCallback(
+    async (insight: Insight) => {
+      setDismissingId(insight.id);
+      try {
+        await updateInsightStatus(
+          insight,
+          "dismissed",
+          "Plano descartado. O insight foi mantido no histórico.",
+          "Plano marcado como descartado localmente. Persistência será conectada na próxima etapa.",
+        );
+      } finally {
+        setDismissingId(null);
+      }
+    },
+    [updateInsightStatus],
+  );
+
+
 
   const summary = useMemo(() => {
     const total = insights.length;
@@ -1719,7 +1844,7 @@ function RadarIAContent() {
                   }}
                 >
                   <Wand2 className="mr-1.5 h-4 w-4" />
-                  Ver ação recomendada
+                  Ver plano de ação
                 </Button>
               </div>
             </>
@@ -1727,163 +1852,322 @@ function RadarIAContent() {
         </SheetContent>
       </Sheet>
 
-      {/* Plano de ação IA */}
+      {/* Plano de Ação da IA */}
       <Sheet open={plan !== null} onOpenChange={(o) => !o && setPlan(null)}>
-        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
-          {plan && (
-            <>
-              <SheetHeader>
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-600 to-violet-600 text-white shadow-sm">
-                    <Wand2 className="h-4 w-4" />
+        <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+          {plan && (() => {
+            const risk = computeRisk(plan);
+            const product = plan.product_id ? productMap[plan.product_id] : undefined;
+            const listing = plan.listing_id ? listingMap[plan.listing_id] : undefined;
+            const productLabel =
+              product?.name?.trim() ||
+              listing?.title?.trim() ||
+              (listing?.ml_item_id ? `Anúncio ${listing.ml_item_id}` : null);
+            const confidencePct =
+              plan.confidence_score == null
+                ? null
+                : Math.round(
+                    Number(plan.confidence_score) *
+                      (Number(plan.confidence_score) <= 1 ? 100 : 1),
+                  );
+            const materials: Array<[string, string | null]> = [
+              ["Título sugerido", plan.suggested_title],
+              ["Descrição sugerida", plan.suggested_description],
+              ["Ideia de imagem principal", plan.suggested_image_idea],
+              ["Ação em Ads", plan.suggested_ads_action],
+              ["Ação de preço", plan.suggested_price_action],
+              ["Sugestão de kit / combo", plan.suggested_kit_action],
+            ];
+            const planRules = rulesForInsight(plan.insight_type, kbRules, plan);
+            const isDismissed = plan.status === "dismissed";
+            const isApproved = plan.status === "approved";
+
+            return (
+              <>
+                <SheetHeader>
+                  <div className="flex items-center gap-2">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 text-white shadow-sm">
+                      <Wand2 className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <SheetTitle className="text-left">Plano de Ação da IA</SheetTitle>
+                      <SheetDescription className="text-left">
+                        Organize, valide e aprove a próxima ação recomendada com segurança.
+                      </SheetDescription>
+                    </div>
                   </div>
-                  <SheetTitle className="text-left">Plano de ação IA</SheetTitle>
-                </div>
-                <SheetDescription className="text-left">
-                  {plan.title ?? "Insight"}
-                </SheetDescription>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <Pill
-                    className={
-                      PRIORITY_STYLE[plan.priority ?? ""] ??
-                      "border-slate-200 bg-slate-50 text-slate-700"
-                    }
-                  >
-                    {PRIORITY_LABEL[plan.priority ?? ""] ?? plan.priority ?? "—"}
-                  </Pill>
-                  {plan.insight_type && (
-                    <Pill className="border-border bg-muted text-foreground">
-                      {TYPE_LABEL[plan.insight_type] ?? plan.insight_type}
-                    </Pill>
-                  )}
-                  {plan.confidence_score != null && (
-                    <Pill className="border-indigo-200 bg-indigo-50 text-indigo-700">
-                      Confiança {Math.round(
-                        Number(plan.confidence_score) *
-                          (Number(plan.confidence_score) <= 1 ? 100 : 1),
-                      )}%
-                    </Pill>
-                  )}
-                </div>
-              </SheetHeader>
 
-              <div className="mt-5 space-y-5 text-sm">
-                <Block label="Diagnóstico" text={plan.diagnosis} />
-                <Block label="Causa provável" text={plan.probable_cause} />
-                <Block label="Ação recomendada" text={plan.recommended_action} />
+                  <div className="mt-3 rounded-xl border border-border/60 bg-card p-3">
+                    <div className="text-[13px] font-semibold text-foreground">
+                      {plan.title ?? "Insight"}
+                    </div>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <Pill
+                        className={
+                          PRIORITY_STYLE[plan.priority ?? ""] ??
+                          "border-slate-200 bg-slate-50 text-slate-700"
+                        }
+                      >
+                        {PRIORITY_LABEL[plan.priority ?? ""] ?? plan.priority ?? "—"}
+                      </Pill>
+                      <Pill
+                        className={
+                          STATUS_STYLE[plan.status ?? ""] ??
+                          "border-slate-200 bg-slate-50 text-slate-700"
+                        }
+                      >
+                        {STATUS_LABEL[plan.status ?? ""] ?? plan.status ?? "Pendente de revisão"}
+                      </Pill>
+                      {plan.insight_type && (
+                        <Pill className="border-border bg-muted text-foreground">
+                          {TYPE_LABEL[plan.insight_type] ?? plan.insight_type}
+                        </Pill>
+                      )}
+                      {confidencePct != null && (
+                        <Pill className="border-indigo-200 bg-indigo-50 text-indigo-700">
+                          Confiança {confidencePct}%
+                        </Pill>
+                      )}
+                      <Pill className={RISK_STYLE[risk]}>
+                        <ShieldAlert className="h-3 w-3" />
+                        {RISK_LABEL[risk]}
+                      </Pill>
+                    </div>
+                    <div className="mt-2 grid grid-cols-1 gap-x-4 gap-y-1 text-[11px] text-muted-foreground sm:grid-cols-2">
+                      <div>
+                        <span className="font-medium">Conta ML:</span> {accountLabel}
+                      </div>
+                      {productLabel && (
+                        <div className="truncate">
+                          <span className="font-medium">Produto/anúncio:</span> {productLabel}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </SheetHeader>
 
-                <AppliedRulesPanel
-                  insight={plan}
-                  rules={rulesForInsight(plan.insight_type, kbRules, plan)}
-                />
+                <div className="mt-5 space-y-5 text-sm">
+                  {/* A) Diagnóstico */}
+                  <section className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                      A · Diagnóstico
+                    </div>
+                    <Block label="Diagnóstico" text={plan.diagnosis} />
+                    <Block label="Causa provável" text={plan.probable_cause} />
+                    <div>
+                      <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Impacto esperado / risco percebido
+                      </div>
+                      <p className="mt-1 text-foreground">
+                        Ação classificada como <strong>{RISK_LABEL[risk].toLowerCase()}</strong>{" "}
+                        {risk === "high"
+                          ? "— envolve preço, Ads, estoque ou prioridade crítica. Requer validação cuidadosa antes de executar."
+                          : risk === "medium"
+                            ? "— alterações moderadas em anúncio, kit ou tráfego. Revisar contexto antes de aprovar."
+                            : "— revisão de cadastro/copy sem impacto direto em preço ou Ads."}
+                      </p>
+                    </div>
+                  </section>
 
+                  {/* B) Ação recomendada */}
+                  <section className="rounded-xl border border-border/60 bg-card p-4 space-y-3">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                      B · Ação recomendada
+                    </div>
+                    <Block label="O que a IA recomenda" text={plan.recommended_action} />
+                    <div className="rounded-lg border border-dashed border-border/60 bg-muted/30 p-3 text-[12px] text-muted-foreground">
+                      <span className="font-semibold text-foreground">Antes de aprovar:</span>{" "}
+                      confirme se a recomendação está alinhada com a estratégia da conta, se o
+                      produto não é intocável e se há estoque/margem suficientes para sustentar a
+                      mudança.
+                    </div>
+                  </section>
 
-                {(plan.suggested_title ||
-                  plan.suggested_description ||
-                  plan.suggested_image_idea ||
-                  plan.suggested_ads_action ||
-                  plan.suggested_price_action ||
-                  plan.suggested_kit_action) && (
-                  <div className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-4 space-y-4">
+                  {/* C) Materiais preparados pela IA */}
+                  <section className="rounded-xl border border-indigo-100 bg-indigo-50/40 p-4 space-y-4">
                     <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-indigo-700">
                       <Sparkles className="h-3.5 w-3.5" />
-                      Sugestões da IA
+                      C · Materiais preparados pela IA
                     </div>
-                    {plan.suggested_title && (
-                      <Block label="Título sugerido" text={plan.suggested_title} />
-                    )}
-                    {plan.suggested_description && (
-                      <Block label="Descrição sugerida" text={plan.suggested_description} />
-                    )}
-                    {plan.suggested_image_idea && (
-                      <Block label="Ideia de imagem" text={plan.suggested_image_idea} />
-                    )}
-                    {plan.suggested_ads_action && (
-                      <Block label="Ação em Ads" text={plan.suggested_ads_action} />
-                    )}
-                    {plan.suggested_price_action && (
-                      <Block label="Ação de preço" text={plan.suggested_price_action} />
-                    )}
-                    {plan.suggested_kit_action && (
-                      <Block label="Sugestão de kit" text={plan.suggested_kit_action} />
-                    )}
-                  </div>
-                )}
-
-                <div className="rounded-xl border border-border/60 bg-card p-4">
-                  <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    <ClipboardList className="h-3.5 w-3.5" />
-                    Checklist de execução
-                  </div>
-                  <ul className="mt-3 space-y-2">
-                    {checklistFor(plan.insight_type).map((item, idx) => {
-                      const key = `${plan.id}:${idx}`;
-                      const done = !!checked[key];
-                      return (
-                        <li key={key}>
-                          <button
-                            type="button"
-                            onClick={() => toggleCheck(key)}
-                            className="flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition hover:bg-muted/60"
-                          >
-                            <CheckSquare
-                              className={`mt-0.5 h-4 w-4 shrink-0 ${
-                                done ? "text-emerald-600" : "text-muted-foreground"
-                              }`}
-                            />
-                            <span
-                              className={
-                                done
-                                  ? "text-muted-foreground line-through"
-                                  : "text-foreground"
-                              }
-                            >
-                              {item}
+                    {materials.map(([label, value]) => (
+                      <div key={label}>
+                        <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          {label}
+                        </div>
+                        <p className="mt-1 whitespace-pre-wrap leading-relaxed text-foreground">
+                          {value?.trim() ? (
+                            value
+                          ) : (
+                            <span className="italic text-muted-foreground">
+                              Não informado para este insight
                             </span>
-                          </button>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              </div>
+                          )}
+                        </p>
+                      </div>
+                    ))}
+                  </section>
 
-              <div className="mt-6 flex flex-wrap items-center justify-end gap-2 border-t border-border/60 pt-4">
-                <Button variant="ghost" size="sm" onClick={() => setPlan(null)}>
-                  Fechar
-                </Button>
-                <Button
-                  variant="default"
-                  size="sm"
-                  disabled={
-                    plan.status === "converted_to_task"
-                      ? openingId === plan.id
-                      : creatingId === plan.id
-                  }
-                  onClick={() =>
-                    plan.status === "converted_to_task"
-                      ? openTaskForInsight(plan)
-                      : createTaskFromInsight(plan)
-                  }
-                >
-                  {plan.status === "converted_to_task" ? (
-                    openingId === plan.id ? (
+                  {/* D) Regras da Operação consideradas */}
+                  <section>
+                    <div className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                      D · Regras da Operação consideradas
+                    </div>
+                    <AppliedRulesPanel insight={plan} rules={planRules} />
+                  </section>
+
+                  {/* E) Checklist de aprovação operacional */}
+                  <section className="rounded-xl border border-border/60 bg-card p-4">
+                    <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                      <ClipboardList className="h-3.5 w-3.5" />
+                      E · Checklist de aprovação operacional
+                    </div>
+                    <ul className="mt-3 space-y-2">
+                      {APPROVAL_CHECKLIST.map((item, idx) => {
+                        const key = `${plan.id}:approval:${idx}`;
+                        const done = !!checked[key];
+                        return (
+                          <li key={key}>
+                            <button
+                              type="button"
+                              onClick={() => toggleCheck(key)}
+                              className="flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition hover:bg-muted/60"
+                            >
+                              <CheckSquare
+                                className={`mt-0.5 h-4 w-4 shrink-0 ${
+                                  done ? "text-emerald-600" : "text-muted-foreground"
+                                }`}
+                              />
+                              <span
+                                className={
+                                  done
+                                    ? "text-muted-foreground line-through"
+                                    : "text-foreground"
+                                }
+                              >
+                                {item}
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <p className="mt-3 text-[11px] text-muted-foreground">
+                      Checklist visual — os itens marcados servem como registro operacional
+                      antes da aprovação.
+                    </p>
+                  </section>
+
+                  {/* F) Risco da ação */}
+                  <section className="rounded-xl border border-border/60 bg-card p-4">
+                    <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                      <ShieldAlert className="h-3.5 w-3.5" />
+                      F · Risco da ação
+                    </div>
+                    <div className="mt-3 flex items-center gap-3">
+                      <Pill className={RISK_STYLE[risk]}>
+                        <ShieldAlert className="h-3 w-3" />
+                        {RISK_LABEL[risk]}
+                      </Pill>
+                      <p className="text-[12px] text-muted-foreground">
+                        Nenhuma alteração é feita automaticamente no Mercado Livre. Toda ação
+                        sensível exige aprovação humana explícita.
+                      </p>
+                    </div>
+                  </section>
+
+                  {/* Integração futura */}
+                  <div className="space-y-1 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3 text-[11px] leading-relaxed text-slate-700">
+                    <p>
+                      Após aprovado, este plano poderá virar tarefa operacional ou ação
+                      priorizada na Central de Ações.
+                    </p>
+                    <p>
+                      Depois da execução, os resultados poderão ser acompanhados em
+                      Resultados das Ações.
+                    </p>
+                  </div>
+                </div>
+
+                {/* G) Aprovação */}
+                <div className="mt-6 flex flex-wrap items-center justify-end gap-2 border-t border-border/60 pt-4">
+                  <Button variant="ghost" size="sm" onClick={() => setPlan(null)}>
+                    Fechar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={dismissingId === plan.id || isDismissed}
+                    onClick={() => dismissPlan(plan)}
+                    title="Marca o plano como descartado. O insight é mantido no histórico."
+                  >
+                    {dismissingId === plan.id ? (
                       <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
                     ) : (
-                      <ExternalLink className="mr-1.5 h-4 w-4" />
-                    )
-                  ) : creatingId === plan.id ? (
-                    <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
-                  ) : (
-                    <ListPlus className="mr-1.5 h-4 w-4" />
-                  )}
-                  {plan.status === "converted_to_task" ? "Ver tarefa" : "Criar tarefa"}
-                </Button>
-              </div>
-            </>
-          )}
+                      <ThumbsDown className="mr-1.5 h-4 w-4" />
+                    )}
+                    {isDismissed ? "Descartado" : "Descartar plano"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      toast.message(
+                        "Solicitação de revisão registrada. Fluxo colaborativo será conectado na próxima etapa.",
+                      )
+                    }
+                  >
+                    <Send className="mr-1.5 h-4 w-4" />
+                    Solicitar revisão
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={
+                      plan.status === "converted_to_task"
+                        ? openingId === plan.id
+                        : creatingId === plan.id
+                    }
+                    onClick={() =>
+                      plan.status === "converted_to_task"
+                        ? openTaskForInsight(plan)
+                        : createTaskFromInsight(plan)
+                    }
+                  >
+                    {plan.status === "converted_to_task" ? (
+                      openingId === plan.id ? (
+                        <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                      ) : (
+                        <ExternalLink className="mr-1.5 h-4 w-4" />
+                      )
+                    ) : creatingId === plan.id ? (
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    ) : (
+                      <ListPlus className="mr-1.5 h-4 w-4" />
+                    )}
+                    {plan.status === "converted_to_task" ? "Ver tarefa" : "Criar tarefa"}
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+                    disabled={approvingId === plan.id || isApproved}
+                    onClick={() => approvePlan(plan)}
+                    title="Aprova o plano. Nenhuma alteração é feita no Mercado Livre automaticamente."
+                  >
+                    {approvingId === plan.id ? (
+                      <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                    ) : (
+                      <CheckCheck className="mr-1.5 h-4 w-4" />
+                    )}
+                    {isApproved ? "Plano aprovado" : "Aprovar plano"}
+                  </Button>
+                </div>
+              </>
+            );
+          })()}
         </SheetContent>
       </Sheet>
+
 
       {/* Prévia do Motor IA assistido (dry-run) */}
       <Sheet open={previewOpen} onOpenChange={setPreviewOpen}>
@@ -2207,7 +2491,7 @@ function InsightCard({
           </Button>
           <Button size="sm" variant="outline" onClick={onPlan}>
             <Wand2 className="mr-1.5 h-4 w-4" />
-            Ver ação recomendada
+            Ver plano de ação
           </Button>
 
         </div>

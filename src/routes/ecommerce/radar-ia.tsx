@@ -632,7 +632,29 @@ function RadarIAContent() {
   const [creatingId, setCreatingId] = useState<string | null>(null);
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewData, setPreviewData] = useState<InsightsEnginePreviewResult | null>(null);
   const navigate = useNavigate();
+
+  const runEnginePreview = useCallback(async () => {
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    setPreviewData(null);
+    try {
+      const result = await runInsightsEnginePreview({
+        companyId: ECOMMERCE_COMPANY_ID,
+        accountId: accountId,
+      });
+      setPreviewData(result);
+      toast.message("Prévia do Motor IA gerada — nenhum insight foi criado.");
+    } catch (e) {
+      console.error("Erro na prévia do Motor IA:", e);
+      toast.error("Não foi possível gerar a prévia do Motor IA.");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [accountId]);
 
 
   const runAnalysis = useCallback(async () => {

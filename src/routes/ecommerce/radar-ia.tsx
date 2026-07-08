@@ -180,17 +180,62 @@ const INSIGHT_TO_KB: Record<string, KbCategory[]> = {
   stock_stopped: ["estoque", "prioritarios", "preco"],
   visits_no_sales: ["preco", "ads"],
   no_visits: ["ads"],
-  kit_opportunity: ["preco", "prioritarios"],
+  kit_opportunity: ["preco", "prioritarios", "margem"],
 };
+
+// Palavras-chave por categoria da Base da IA — usadas para inferir contexto
+// quando o insight não estiver mapeado explicitamente em INSIGHT_TO_KB.
+const KB_KEYWORDS: Record<KbCategory, RegExp> = {
+  margem:
+    /\b(margem|marge|preço|preco|promoç|promoc|desconto|ads?|escala|escalar|kit|venda|vendas|faturamento|receita|conversão|conversao|roas)\b/i,
+  preco: /\b(preço|preco|desconto|promoç|promoc|concorrên|concorrenc)\b/i,
+  estoque:
+    /\b(estoque|estoq|reposi[cç][aã]o|cobertura|ruptur|parado|baixo|inventário|inventario)\b/i,
+  ads: /\b(ads?|campanha|orçamento|orcamento|roas|tráfego|trafego|impress[oõ]es|cpc|cpa)\b/i,
+  prioritarios:
+    /\b(estratég|estrateg|priorit|protegid|campe[aã]o|top|hero|não\s*pausar|nao\s*pausar)\b/i,
+  observacoes: /$^/, // não inferimos observações por palavra-chave
+};
+
+function insightText(insight: {
+  insight_type: string | null;
+  title: string | null;
+  recommended_action: string | null;
+  probable_cause: string | null;
+  suggested_ads_action?: string | null;
+  suggested_price_action?: string | null;
+  suggested_kit_action?: string | null;
+}): string {
+  return [
+    insight.insight_type,
+    insight.title,
+    insight.recommended_action,
+    insight.probable_cause,
+    insight.suggested_ads_action,
+    insight.suggested_price_action,
+    insight.suggested_kit_action,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
 
 function rulesForInsight(
   insightType: string | null,
   rules: KbRule[],
+  insight?: Insight,
 ): KbRule[] {
-  if (!insightType) return [];
-  const cats = INSIGHT_TO_KB[insightType];
-  if (!cats?.length) return [];
-  return rules.filter((r) => cats.includes(r.category));
+  const cats = new Set<KbCategory>(
+    insightType ? (INSIGHT_TO_KB[insightType] ?? []) : [],
+  );
+  if (insight) {
+    const text = insightText(insight);
+    (Object.keys(KB_KEYWORDS) as KbCategory[]).forEach((cat) => {
+      if (KB_KEYWORDS[cat].test(text)) cats.add(cat);
+    });
+  }
+  if (cats.size === 0) return [];
+  return rules.filter((r) => cats.has(r.category));
 }
 
 

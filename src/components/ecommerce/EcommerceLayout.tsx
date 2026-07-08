@@ -66,12 +66,6 @@ const navGroups = [
       { label: "Base da IA", to: "/ecommerce/base-ia", icon: BookOpen },
     ],
   },
-  {
-    title: "Sistema",
-    items: [
-      { label: "Configurações", to: "/ecommerce/configuracoes", icon: Settings },
-    ],
-  },
 ] as const;
 
 type SidebarNavProps = {

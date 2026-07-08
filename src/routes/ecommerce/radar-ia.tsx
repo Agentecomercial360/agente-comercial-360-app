@@ -925,62 +925,106 @@ function RadarIAContent() {
 
   const [approvingId, setApprovingId] = useState<string | null>(null);
   const [dismissingId, setDismissingId] = useState<string | null>(null);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
 
+  // Aceito hoje pelo banco (fallback caso o check constraint recuse os novos valores):
+  //   open, pending, pending_review, in_progress, in_review, resolved,
+  //   dismissed, converted_to_task
+  // Se o CHECK constraint bloquear approved / needs_review / discarded,
+  // a UI mostra toast claro e não quebra.
   const updateInsightStatus = useCallback(
-    async (insight: Insight, next: string, successMsg: string, fallbackMsg: string) => {
-      const { error } = await supabase
+    async (insight: Insight, next: string): Promise<{ ok: boolean; error?: string; code?: string }> => {
+      let q = supabase
         .from("ecommerce_ai_insights")
         .update({ status: next, updated_at: new Date().toISOString() })
-        .eq("id", insight.id);
+        .eq("id", insight.id)
+        .eq("company_id", ECOMMERCE_COMPANY_ID);
+      if (insight.account_id) q = q.eq("account_id", insight.account_id);
+      const { error } = await q;
       if (error) {
-        console.warn("[Plano de Ação] status update falhou:", error.message);
-        toast.message(fallbackMsg);
-        return false;
+        console.warn("[Plano de Ação] status update falhou:", error);
+        return { ok: false, error: error.message, code: error.code };
       }
-      toast.success(successMsg);
       setInsights((prev) =>
         prev.map((i) => (i.id === insight.id ? { ...i, status: next } : i)),
       );
       setPlan((prev) => (prev && prev.id === insight.id ? { ...prev, status: next } : prev));
       setSelected((prev) => (prev && prev.id === insight.id ? { ...prev, status: next } : prev));
-      return true;
+      return { ok: true };
     },
     [],
   );
+
+  const isCheckConstraintError = (code?: string, msg?: string) => {
+    if (code === "23514") return true;
+    const m = (msg ?? "").toLowerCase();
+    return m.includes("check constraint") || m.includes("violates check") || m.includes("invalid input value for enum");
+  };
 
   const approvePlan = useCallback(
     async (insight: Insight) => {
       setApprovingId(insight.id);
       try {
-        await updateInsightStatus(
-          insight,
-          "approved",
-          "Plano aprovado. Nenhuma alteração foi feita no Mercado Livre.",
-          "Plano aprovado localmente. A persistência do status será conectada na próxima etapa.",
-        );
+        const res = await updateInsightStatus(insight, "approved");
+        if (res.ok) {
+          toast.success("Plano aprovado. Nenhuma alteração foi feita automaticamente no Mercado Livre.");
+          await load();
+        } else if (isCheckConstraintError(res.code, res.error)) {
+          toast.error("Não foi possível aprovar: status não permitido no banco. (esperado: 'approved')");
+        } else {
+          toast.error(`Não foi possível aprovar: ${res.error ?? "erro desconhecido"}`);
+        }
       } finally {
         setApprovingId(null);
       }
     },
-    [updateInsightStatus],
+    [updateInsightStatus, load],
   );
 
   const dismissPlan = useCallback(
     async (insight: Insight) => {
       setDismissingId(insight.id);
       try {
-        await updateInsightStatus(
-          insight,
-          "dismissed",
-          "Plano descartado. O insight foi mantido no histórico.",
-          "Plano marcado como descartado localmente. Persistência será conectada na próxima etapa.",
-        );
+        let res = await updateInsightStatus(insight, "discarded");
+        // Fallback para bases que ainda só aceitam 'dismissed'
+        if (!res.ok && isCheckConstraintError(res.code, res.error)) {
+          res = await updateInsightStatus(insight, "dismissed");
+        }
+        if (res.ok) {
+          toast.success("Plano descartado. O histórico foi preservado.");
+          await load();
+        } else if (isCheckConstraintError(res.code, res.error)) {
+          toast.error("Não foi possível descartar: status não permitido no banco. (esperado: 'discarded')");
+        } else {
+          toast.error(`Não foi possível descartar: ${res.error ?? "erro desconhecido"}`);
+        }
       } finally {
         setDismissingId(null);
       }
     },
-    [updateInsightStatus],
+    [updateInsightStatus, load],
   );
+
+  const reviewPlan = useCallback(
+    async (insight: Insight) => {
+      setReviewingId(insight.id);
+      try {
+        const res = await updateInsightStatus(insight, "needs_review");
+        if (res.ok) {
+          toast.success("Revisão solicitada. Nenhuma ação foi executada.");
+          await load();
+        } else if (isCheckConstraintError(res.code, res.error)) {
+          toast.error("Não foi possível solicitar revisão: status não permitido no banco. (esperado: 'needs_review')");
+        } else {
+          toast.error(`Não foi possível solicitar revisão: ${res.error ?? "erro desconhecido"}`);
+        }
+      } finally {
+        setReviewingId(null);
+      }
+    },
+    [updateInsightStatus, load],
+  );
+
 
 
 

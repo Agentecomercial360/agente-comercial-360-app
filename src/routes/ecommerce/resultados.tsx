@@ -1190,8 +1190,16 @@ function RegistrarResultadoDialog({
                 duplicidade, visualize o resultado existente.
               </p>
             )}
-
           </div>
+          {!hasPending && (
+            <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-3 text-xs text-amber-900">
+              <p className="font-semibold">Nenhuma tarefa concluída pendente de medição.</p>
+              <p className="mt-1 text-amber-900/80">
+                Todas as tarefas concluídas desta conta já possuem resultado registrado.
+              </p>
+            </div>
+          )}
+          {hasPending && (<>
           <div className="space-y-1.5">
             <Label>Tipo de impacto</Label>
             <Select

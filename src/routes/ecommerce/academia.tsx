@@ -1354,112 +1354,31 @@ function AcademiaPage() {
           </section>
         )}
 
-        {/* ============================ TRILHAS ============================ */}
-        <section className="space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-                Trilhas oficiais
+        {/* ============================ GUIAS POR MENU (destaque) ============================ */}
+        <section className="space-y-5 rounded-3xl border border-blue-200/70 bg-gradient-to-br from-blue-50/60 via-white to-white p-6 md:p-8 shadow-[var(--shadow-soft)]">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+            <div className="max-w-3xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                <BookOpen className="h-3.5 w-3.5" />
+                Coração da Academia
               </div>
-              <h2 className="font-display text-xl md:text-2xl font-bold text-foreground">
-                Formação por perfil
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Cada trilha foi desenhada para um público-alvo específico, com conteúdo e ritmo próprios.
-              </p>
-            </div>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            {TRACKS.map((t) => {
-              const p = trackProgress(t);
-              const Icon = t.icon;
-              return (
-                <div
-                  key={t.id}
-                  className="group flex flex-col rounded-2xl border border-border/60 bg-white p-6 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-premium)] hover:border-blue-300 transition"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div
-                      className={`inline-flex h-12 w-12 items-center justify-center rounded-xl text-white bg-gradient-to-br ${t.accent} shadow-md`}
-                    >
-                      <Icon className="h-6 w-6" />
-                    </div>
-                    <TrackStatusPill status={p.status} />
-                  </div>
-                  <div className="mt-5">
-                    <div className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${t.tone}`}>
-                      Trilha {t.title}
-                    </div>
-                    <h3 className="font-display text-xl font-bold text-foreground mt-2">
-                      {t.audience}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                      {t.description}
-                    </p>
-                  </div>
-                  <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
-                    <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
-                      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Aulas</div>
-                      <div className="text-sm font-bold text-foreground mt-0.5">{p.total}</div>
-                    </div>
-                    <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
-                      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Duração</div>
-                      <div className="text-sm font-bold text-foreground mt-0.5">{p.minutes} min</div>
-                    </div>
-                  </div>
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Progresso</span>
-                      <span className="font-semibold text-foreground">{p.pct}%</span>
-                    </div>
-                    <ProgressBar pct={p.pct} />
-                    <div className="text-[11px] text-muted-foreground">
-                      {p.completed} de {p.total} aulas concluídas
-                    </div>
-                  </div>
-                  <div className="mt-6 flex flex-col sm:flex-row gap-2">
-                    <Button
-                      onClick={() => setOpenTrackId(t.id)}
-                      className="flex-1 text-white"
-                      style={{ background: "var(--gradient-brand)" }}
-                    >
-                      Acessar trilha
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => setOpenTrackId(t.id)}
-                      className="flex-1"
-                    >
-                      Ver aulas
-                    </Button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* ============================ GUIAS POR MENU ============================ */}
-        <section className="space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-                Manual operacional
-              </div>
-              <h2 className="font-display text-xl md:text-2xl font-bold text-foreground">
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mt-3">
                 Guias por Menu do Sistema
               </h2>
-              <p className="text-sm text-muted-foreground max-w-2xl">
-                Aprenda de forma concreta o que cada menu faz, quando usar, como interpretar os dados
-                e qual ação tomar. Cada guia é um passo a passo prático do AC360 E-commerce.
+              <p className="text-base text-foreground/80 mt-2 font-medium">
+                Aprenda, passo a passo, como usar cada área do AC360 E-commerce na rotina operacional.
+              </p>
+              <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                Cada guia explica o objetivo do menu, quando usar, como interpretar os dados, quais ações
+                tomar e quais cuidados validar antes de executar decisões na operação Mercado Livre.
               </p>
             </div>
-            <div className="shrink-0 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-2.5">
+            <div className="shrink-0 rounded-xl border border-blue-200 bg-white px-4 py-3 shadow-sm">
               <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-700">
                 Guias concluídos
               </div>
-              <div className="mt-0.5 font-display text-lg font-bold text-foreground">
-                {totals.guidesCompleted}/{totals.guidesTotal}
+              <div className="mt-0.5 font-display text-2xl font-bold text-foreground">
+                {totals.guidesCompleted}<span className="text-base text-muted-foreground font-semibold">/{totals.guidesTotal}</span>
               </div>
             </div>
           </div>
@@ -1527,6 +1446,96 @@ function AcademiaPage() {
                         </div>
                       );
                     })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* ============================ TRILHAS ============================ */}
+        <section className="space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
+            <div>
+              <div className="inline-flex items-center gap-2">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                  Trilhas oficiais
+                </span>
+                <span className="inline-flex items-center rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  Complementar
+                </span>
+              </div>
+              <h2 className="font-display text-xl md:text-2xl font-bold text-foreground">
+                Formação por perfil
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Complementa os Guias por Menu com trilhas desenhadas para Cliente, Time Interno e Comercial.
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {TRACKS.map((t) => {
+              const p = trackProgress(t);
+              const Icon = t.icon;
+              return (
+                <div
+                  key={t.id}
+                  className="group flex flex-col rounded-2xl border border-border/60 bg-white p-6 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-premium)] hover:border-blue-300 transition"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div
+                      className={`inline-flex h-12 w-12 items-center justify-center rounded-xl text-white bg-gradient-to-br ${t.accent} shadow-md`}
+                    >
+                      <Icon className="h-6 w-6" />
+                    </div>
+                    <TrackStatusPill status={p.status} />
+                  </div>
+                  <div className="mt-5">
+                    <div className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${t.tone}`}>
+                      Trilha {t.title}
+                    </div>
+                    <h3 className="font-display text-xl font-bold text-foreground mt-2">
+                      {t.audience}
+                    </h3>
+                    <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+                      {t.description}
+                    </p>
+                  </div>
+                  <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+                    <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+                      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Aulas</div>
+                      <div className="text-sm font-bold text-foreground mt-0.5">{p.total}</div>
+                    </div>
+                    <div className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2">
+                      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Duração</div>
+                      <div className="text-sm font-bold text-foreground mt-0.5">{p.minutes} min</div>
+                    </div>
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Progresso</span>
+                      <span className="font-semibold text-foreground">{p.pct}%</span>
+                    </div>
+                    <ProgressBar pct={p.pct} />
+                    <div className="text-[11px] text-muted-foreground">
+                      {p.completed} de {p.total} aulas concluídas
+                    </div>
+                  </div>
+                  <div className="mt-6 flex flex-col sm:flex-row gap-2">
+                    <Button
+                      onClick={() => setOpenTrackId(t.id)}
+                      className="flex-1 text-white"
+                      style={{ background: "var(--gradient-brand)" }}
+                    >
+                      Acessar trilha
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => setOpenTrackId(t.id)}
+                      className="flex-1"
+                    >
+                      Ver aulas
+                    </Button>
                   </div>
                 </div>
               );

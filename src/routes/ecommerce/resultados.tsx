@@ -1051,14 +1051,8 @@ function RegistrarResultadoDialog({
 
   const onSubmit = async () => {
     const t = tasks.find((x) => x.id === form.taskId);
-    if (!t) {
-      toast.error("Selecione uma tarefa concluída.");
-      return;
-    }
-    if (measuredTaskIds.has(t.id)) {
-      toast.error(
-        "Esta tarefa já possui medição registrada. Para evitar duplicidade, visualize o resultado existente.",
-      );
+    if (!t || measuredTaskIds.has(t.id)) {
+      toast.error("Selecione uma tarefa concluída sem medição registrada.");
       return;
     }
     const before = parseNum(form.before);
@@ -1130,6 +1124,9 @@ function RegistrarResultadoDialog({
   };
 
   const completedTasks = tasks;
+  const pendingTasks = completedTasks.filter((t) => !measuredTaskIds.has(t.id));
+  const hasPending = pendingTasks.length > 0;
+  const fieldsDisabled = !form.taskId || measuredTaskIds.has(form.taskId);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -1193,8 +1190,16 @@ function RegistrarResultadoDialog({
                 duplicidade, visualize o resultado existente.
               </p>
             )}
-
           </div>
+          {!hasPending && (
+            <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-3 text-xs text-amber-900">
+              <p className="font-semibold">Nenhuma tarefa concluída pendente de medição.</p>
+              <p className="mt-1 text-amber-900/80">
+                Todas as tarefas concluídas desta conta já possuem resultado registrado.
+              </p>
+            </div>
+          )}
+          {hasPending && (<>
           <div className="space-y-1.5">
             <Label>Tipo de impacto</Label>
             <Select
@@ -1282,6 +1287,7 @@ function RegistrarResultadoDialog({
               onChange={(e) => setForm({ ...form, note: e.target.value })}
             />
           </div>
+          </>)}
         </div>
         <DialogFooter>
           <DialogClose asChild>
@@ -1289,7 +1295,7 @@ function RegistrarResultadoDialog({
               Cancelar
             </Button>
           </DialogClose>
-          <Button type="button" onClick={onSubmit} disabled={saving || !form.taskId || measuredTaskIds.has(form.taskId)}>
+          <Button type="button" onClick={onSubmit} disabled={saving || fieldsDisabled || !hasPending}>
             {saving && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
             Registrar
           </Button>

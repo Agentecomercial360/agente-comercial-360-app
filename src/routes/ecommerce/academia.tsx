@@ -1847,6 +1847,130 @@ function AcademiaPage() {
           )}
         </SheetContent>
       </Sheet>
+
+      {/* ============================ GUIDE DRAWER ============================ */}
+      <Sheet
+        open={!!openGuide}
+        onOpenChange={(o) => {
+          if (!o) setOpenGuideId(null);
+        }}
+      >
+        <SheetContent className="sm:max-w-2xl w-full overflow-y-auto p-0">
+          {openGuide && (
+            <div className="flex flex-col h-full">
+              <SheetHeader className="px-6 pt-6 pb-5 border-b bg-gradient-to-b from-blue-50/60 to-white">
+                <div className="flex items-start gap-3">
+                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-md shrink-0" style={{ background: "var(--gradient-brand)" }}>
+                    <openGuide.icon className="h-6 w-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700">
+                      {openGuide.group}
+                    </div>
+                    <SheetTitle className="text-left text-xl mt-1.5">
+                      Guia do menu {openGuide.menu}
+                    </SheetTitle>
+                    <SheetDescription className="text-left mt-1">
+                      {openGuide.description}
+                    </SheetDescription>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-3">
+                  <StatusBadge status={progress[openGuide.id] ?? "not_started"} />
+                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    {openGuide.estimatedMinutes} min estimados
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Compass className="h-3 w-3" />
+                    {openGuide.route}
+                  </span>
+                </div>
+              </SheetHeader>
+
+              <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+                <LessonSection icon={Target} eyebrow="A" title="O que este menu faz">
+                  <p className="text-sm text-foreground leading-relaxed">{openGuide.whatItDoes}</p>
+                </LessonSection>
+
+                <LessonSection icon={Compass} eyebrow="B" title="Quando usar">
+                  <p className="text-sm text-foreground leading-relaxed">{openGuide.whenToUse}</p>
+                </LessonSection>
+
+                <LessonSection icon={BarChart3} eyebrow="C" title="Como interpretar">
+                  <p className="text-sm text-foreground leading-relaxed">{openGuide.howToRead}</p>
+                </LessonSection>
+
+                <LessonSection icon={ClipboardCheck} eyebrow="D" title="Passo a passo de uso">
+                  <ol className="space-y-2">
+                    {openGuide.steps.map((s, i) => (
+                      <li key={i} className="flex items-start gap-3 text-sm text-foreground">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-700 text-white text-[11px] font-bold shrink-0 mt-0.5">
+                          {i + 1}
+                        </span>
+                        <span className="leading-relaxed">{s}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </LessonSection>
+
+                <LessonSection icon={Lightbulb} eyebrow="E" title="Exemplo prático">
+                  <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+                    <p className="text-sm text-foreground leading-relaxed">{openGuide.example}</p>
+                  </div>
+                </LessonSection>
+
+                <LessonSection icon={AlertTriangle} eyebrow="F" title="Cuidados importantes">
+                  <ul className="space-y-2">
+                    {openGuide.caveats.map((c, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-sm text-foreground">
+                        <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
+                        <span className="leading-relaxed">{c}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </LessonSection>
+
+                <LessonSection icon={CheckCircle2} eyebrow="G" title="Checklist de domínio">
+                  <ul className="space-y-2">
+                    {openGuide.checklist.map((c, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-sm text-foreground">
+                        <CheckCircle2 className="h-4 w-4 mt-0.5 text-blue-700 shrink-0" />
+                        <span className="leading-relaxed">{c}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </LessonSection>
+              </div>
+
+              <div className="border-t px-6 py-4 flex flex-col sm:flex-row gap-2 bg-white">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setLessonStatus(openGuide.id, "in_progress");
+                    setOpenGuideId(null);
+                  }}
+                >
+                  <PlayCircle className="h-4 w-4 mr-2" />
+                  Continuar depois
+                </Button>
+                <Button
+                  className="flex-1 text-white"
+                  style={{ background: "var(--gradient-brand)" }}
+                  onClick={() => {
+                    setLessonStatus(openGuide.id, "completed");
+                    setOpenGuideId(null);
+                  }}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Marcar guia como concluído
+                </Button>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
     </EcommerceLayout>
   );
 }

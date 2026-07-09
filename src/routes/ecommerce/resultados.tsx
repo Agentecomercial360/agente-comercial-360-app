@@ -1124,6 +1124,9 @@ function RegistrarResultadoDialog({
   };
 
   const completedTasks = tasks;
+  const pendingTasks = completedTasks.filter((t) => !measuredTaskIds.has(t.id));
+  const hasPending = pendingTasks.length > 0;
+  const fieldsDisabled = !form.taskId || measuredTaskIds.has(form.taskId);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

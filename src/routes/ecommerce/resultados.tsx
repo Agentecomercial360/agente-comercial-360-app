@@ -1192,10 +1192,10 @@ function RegistrarResultadoDialog({
             )}
           </div>
           {!hasPending && (
-            <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-3 text-xs text-amber-900">
-              <p className="font-semibold">Nenhuma tarefa concluída pendente de medição.</p>
-              <p className="mt-1 text-amber-900/80">
-                Todas as tarefas concluídas desta conta já possuem resultado registrado.
+            <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-4 text-sm text-amber-900">
+              <p className="font-semibold">Nenhuma medição pendente</p>
+              <p className="mt-1 text-xs text-amber-900/80">
+                Todas as tarefas concluídas desta conta já possuem resultado registrado. Para registrar uma nova medição, conclua uma nova tarefa primeiro.
               </p>
             </div>
           )}
@@ -1295,7 +1295,7 @@ function RegistrarResultadoDialog({
               Cancelar
             </Button>
           </DialogClose>
-          <Button type="button" onClick={onSubmit} disabled={saving || fieldsDisabled || !hasPending}>
+          <Button type="button" onClick={onSubmit} disabled={saving || fieldsDisabled || !hasPending} className="disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none disabled:hover:bg-muted">
             {saving && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
             Registrar
           </Button>

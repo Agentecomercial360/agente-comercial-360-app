@@ -22,6 +22,20 @@ import {
   ShieldCheck,
   Layers,
   Lightbulb,
+  Store,
+  TrendingUp,
+  Link2,
+  ShoppingCart,
+  DollarSign,
+  Boxes,
+  Map as MapIcon,
+  Zap,
+  ClipboardList,
+  Radar,
+  BrainCircuit,
+  AlertTriangle,
+  BookMarked,
+  type LucideIcon,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { Button } from "@/components/ui/button";
@@ -495,6 +509,557 @@ const JOURNEY = [
   },
 ];
 
+// ---------------------------------------------------------------------------
+// Guias por Menu do Sistema
+// ---------------------------------------------------------------------------
+
+type MenuGuideGroup =
+  | "Visão Executiva"
+  | "Operação Mercado Livre"
+  | "Crescimento"
+  | "Execução"
+  | "Inteligência"
+  | "Implantação";
+
+type MenuGuide = {
+  id: string;
+  menu: string;
+  group: MenuGuideGroup;
+  route: string;
+  icon: LucideIcon;
+  shortDescription: string;
+  description: string;
+  estimatedMinutes: number;
+  whatItDoes: string;
+  whenToUse: string;
+  howToRead: string;
+  steps: string[];
+  example: string;
+  caveats: string[];
+  checklist: string[];
+};
+
+const MENU_GUIDES: MenuGuide[] = [
+  {
+    id: "guide-visao-geral",
+    menu: "Visão Geral",
+    group: "Visão Executiva",
+    route: "/ecommerce/dashboard",
+    icon: Store,
+    shortDescription: "Panorama executivo da operação Mercado Livre.",
+    description:
+      "Visão consolidada da operação: contas, produtos, vendas, ações e resultados em uma única tela.",
+    estimatedMinutes: 6,
+    whatItDoes:
+      "Reúne os principais indicadores da operação Mercado Livre em uma única tela, para leitura rápida do estado geral do negócio.",
+    whenToUse:
+      "Use no início do dia para checar o pulso da operação: se algo mudou, se algo está fora do padrão e por onde começar.",
+    howToRead:
+      "Foque primeiro nos indicadores que estão fora da tendência esperada. Números estáveis não pedem ação; variações fortes sim.",
+    steps: [
+      "Acesse Visão Geral no menu",
+      "Confirme a conta ativa no topo",
+      "Leia os cards principais sem se perder em detalhes",
+      "Identifique 1 ou 2 pontos que exigem atenção",
+      "Vá direto para o módulo correspondente ao ponto de atenção",
+    ],
+    example:
+      "Se a Visão Geral mostra queda de vendas em um período em que costumava vender bem, abra Produtos e Anúncios e cruze com Central de Ações para descobrir a causa antes de agir.",
+    caveats: [
+      "Não tire conclusões apenas por um dia isolado; compare com a tendência.",
+      "Números só fazem sentido com a conta ativa correta selecionada.",
+    ],
+    checklist: [
+      "Sei localizar Visão Geral no menu",
+      "Sei confirmar a conta ativa antes de ler os dados",
+      "Sei identificar 1 ponto de atenção principal",
+      "Sei em qual módulo aprofundar a análise",
+    ],
+  },
+  {
+    id: "guide-central-acoes",
+    menu: "Central de Ações",
+    group: "Visão Executiva",
+    route: "/ecommerce/prioridades",
+    icon: TrendingUp,
+    shortDescription: "Ações priorizadas por impacto real na operação.",
+    description:
+      "Lista o que precisa ser feito primeiro, com motivo, impacto esperado e nível de esforço.",
+    estimatedMinutes: 8,
+    whatItDoes:
+      "A Central de Ações mostra o que precisa ser priorizado na operação. Ela consolida produtos, anúncios, custos, estoque e oportunidades para ajudar o operador a decidir o que fazer primeiro.",
+    whenToUse:
+      "Use diariamente para entender quais ações exigem atenção imediata e para planejar o foco do dia e da semana.",
+    howToRead:
+      "Cada ação traz motivo, impacto esperado e esforço. Ações críticas vêm no topo. Leia o motivo antes de agir — nunca execute só pelo título.",
+    steps: [
+      "Confira se a conta ativa está correta",
+      "Veja os cards de prioridade",
+      "Analise ações críticas primeiro",
+      "Use filtros para separar custo, estoque, anúncios e cadastro",
+      "Abra o detalhe da ação",
+      "Transforme a ação em tarefa operacional quando necessário",
+      "Acompanhe a execução em Tarefas da Operação",
+    ],
+    example:
+      "Se a Central sugere reduzir preço de um produto para destravar vendas, valide margem em Custos e Margem e estoque em Estoque e Compras antes de aplicar qualquer mudança no Mercado Livre.",
+    caveats: [
+      "Não execute ações sensíveis sem validar margem, estoque e impacto comercial.",
+      "Evite abrir várias frentes ao mesmo tempo; feche uma ação por vez.",
+    ],
+    checklist: [
+      "Entendi o que é uma ação crítica",
+      "Sei filtrar por prioridade",
+      "Sei abrir detalhe da ação",
+      "Sei transformar ação em tarefa",
+      "Sei acompanhar a tarefa depois",
+    ],
+  },
+  {
+    id: "guide-resultados-acoes",
+    menu: "Resultados das Ações",
+    group: "Visão Executiva",
+    route: "/ecommerce/resultados",
+    icon: BarChart3,
+    shortDescription: "Medição real do impacto das ações executadas.",
+    description:
+      "Consolida receita, impacto e evolução das tarefas concluídas e serve como prova do valor da operação.",
+    estimatedMinutes: 7,
+    whatItDoes:
+      "Consolida os resultados das ações concluídas: quantas foram feitas, quantas tiveram impacto positivo e receita estimada gerada.",
+    whenToUse:
+      "Use no fechamento semanal para medir o que foi feito e a cada nova tarefa concluída para registrar o resultado real.",
+    howToRead:
+      "KPIs consideram apenas tarefas concluídas com medição registrada. Se algum aviso discreto aparecer, há medição vinculada a uma tarefa ainda não concluída.",
+    steps: [
+      "Acesse Resultados das Ações",
+      "Confira a conta ativa",
+      "Analise os KPIs principais no topo",
+      "Revise as medições listadas",
+      "Registre resultado manual de uma tarefa concluída sem medição",
+      "Confirme que os KPIs se atualizam após o registro",
+    ],
+    example:
+      "Ao concluir uma ação de reprecificação em Central de Ações, registre em Resultados das Ações o antes/depois de conversão e a receita adicional gerada.",
+    caveats: [
+      "Não registre resultado sem que a tarefa esteja realmente concluída.",
+      "Não existe registro duplicado por tarefa; se aparecer bloqueado, já há medição.",
+    ],
+    checklist: [
+      "Sei ler os KPIs de ações concluídas e impacto positivo",
+      "Sei registrar uma medição manual",
+      "Sei que tarefas em andamento não entram nos KPIs principais",
+      "Sei identificar quando existe medição pendente",
+    ],
+  },
+  {
+    id: "guide-contas-ml",
+    menu: "Contas Mercado Livre",
+    group: "Operação Mercado Livre",
+    route: "/ecommerce/contas",
+    icon: Link2,
+    shortDescription: "Conexão e sincronização das contas Mercado Livre.",
+    description:
+      "Onde a operação conecta contas, valida o status e aciona a sincronização inteligente.",
+    estimatedMinutes: 6,
+    whatItDoes:
+      "Mostra todas as contas do Mercado Livre vinculadas à operação, o status de cada uma e permite acionar a sincronização de leitura.",
+    whenToUse:
+      "Use ao entrar em uma nova conta, ao suspeitar de dados desatualizados ou quando o cliente conectar uma nova loja.",
+    howToRead:
+      "Cada conta pode estar Conectada ou Aguardando conexão. O AC360 lê dados do Mercado Livre — nunca altera anúncios, preços ou estoque no ML.",
+    steps: [
+      "Acesse Contas Mercado Livre",
+      "Identifique contas conectadas e aguardando",
+      "Selecione a conta ativa desejada no topo",
+      "Execute a sincronização quando necessário",
+      "Confira se os módulos passam a refletir os dados atualizados",
+    ],
+    example:
+      "Se o cliente reporta que uma venda recente não aparece na Visão Geral, acesse Contas Mercado Livre, valide o status e rode a sincronização antes de investigar outros módulos.",
+    caveats: [
+      "Sincronização não altera nada no Mercado Livre.",
+      "Só troque a conta ativa quando tiver certeza de qual loja quer analisar.",
+    ],
+    checklist: [
+      "Sei diferenciar conta conectada de aguardando",
+      "Sei trocar a conta ativa com segurança",
+      "Sei acionar a sincronização",
+      "Entendi que o AC360 nunca altera o Mercado Livre",
+    ],
+  },
+  {
+    id: "guide-produtos",
+    menu: "Produtos e Anúncios",
+    group: "Operação Mercado Livre",
+    route: "/ecommerce/produtos",
+    icon: ShoppingCart,
+    shortDescription: "Leitura de produtos, anúncios e sinais de atenção.",
+    description:
+      "Lista dos anúncios da conta ativa com preço, estoque, status e sinais para intervenção.",
+    estimatedMinutes: 8,
+    whatItDoes:
+      "Mostra os produtos e anúncios da conta ativa, com preço, estoque, status e sinais que indicam risco de queda de vendas.",
+    whenToUse:
+      "Use para investigar produtos travados, revisar catálogo antes de campanhas e cruzar dados com Central de Ações.",
+    howToRead:
+      "Priorize produtos com sinais de atenção: sem giro, estoque crítico, anúncio pausado ou preço fora do mercado.",
+    steps: [
+      "Acesse Produtos e Anúncios",
+      "Confirme a conta ativa",
+      "Aplique filtros por status ou sinal de atenção",
+      "Abra o detalhe do produto para leitura completa",
+      "Registre próxima ação em Tarefas da Operação, se necessário",
+    ],
+    example:
+      "Se identificar 3 anúncios travados sem giro, abra Central de Ações para ver se há recomendação de reprecificação antes de qualquer alteração manual no Mercado Livre.",
+    caveats: [
+      "Não altere anúncios direto no Mercado Livre sem validar impacto de margem e estoque.",
+      "Filtros aplicam-se sempre à conta ativa selecionada.",
+    ],
+    checklist: [
+      "Sei filtrar produtos por sinal de atenção",
+      "Sei ler status e estoque",
+      "Sei ligar produtos a ações da Central",
+      "Sei registrar uma próxima ação",
+    ],
+  },
+  {
+    id: "guide-custos-margem",
+    menu: "Custos e Margem",
+    group: "Operação Mercado Livre",
+    route: "/ecommerce/custos-margem",
+    icon: DollarSign,
+    shortDescription: "Custos operacionais e margem real por produto.",
+    description:
+      "Centraliza custos e mostra a margem real, evitando decisão de preço sem base.",
+    estimatedMinutes: 7,
+    whatItDoes:
+      "Centraliza custos e mostra a margem real por produto, evitando decisão de preço baseada em suposição.",
+    whenToUse:
+      "Use antes de qualquer ação de reprecificação, campanha de ads ou promoção.",
+    howToRead:
+      "Foque em produtos com margem apertada ou negativa; eles são os mais sensíveis a qualquer mudança de preço.",
+    steps: [
+      "Acesse Custos e Margem",
+      "Confirme a conta ativa",
+      "Revise custos pendentes de preenchimento",
+      "Analise a margem real dos produtos principais",
+      "Priorize correção dos produtos com margem crítica",
+    ],
+    example:
+      "Antes de aplicar desconto em um produto sugerido pela Central de Ações, confira em Custos e Margem se o desconto ainda preserva margem positiva.",
+    caveats: [
+      "Custos incompletos geram margem incorreta.",
+      "Nunca decida preço apenas pela sugestão da Central sem validar aqui.",
+    ],
+    checklist: [
+      "Sei identificar custos pendentes",
+      "Sei ler margem real por produto",
+      "Sei relacionar margem com decisões de preço",
+      "Sei priorizar produtos de margem crítica",
+    ],
+  },
+  {
+    id: "guide-estoque",
+    menu: "Estoque e Compras",
+    group: "Operação Mercado Livre",
+    route: "/ecommerce/estoque",
+    icon: Boxes,
+    shortDescription: "Estoque disponível e planejamento de compras.",
+    description:
+      "Mostra saldo, ruptura próxima e produtos que exigem reposição.",
+    estimatedMinutes: 7,
+    whatItDoes:
+      "Mostra o estoque disponível por produto, alertas de ruptura próxima e apoio ao planejamento de compras.",
+    whenToUse:
+      "Use ao planejar compras, antes de escalar ads e ao investigar quedas de venda por falta de produto.",
+    howToRead:
+      "Priorize produtos em ruptura ou próximos disso, especialmente aqueles com bom giro histórico.",
+    steps: [
+      "Acesse Estoque e Compras",
+      "Confirme a conta ativa",
+      "Identifique produtos em ruptura ou risco",
+      "Cruze com Produtos e Anúncios para entender giro",
+      "Registre plano de compra como tarefa",
+    ],
+    example:
+      "Antes de escalar ads de um produto lareira, confira em Estoque e Compras se o saldo aguenta o aumento de tráfego pedido pela Central de Ações.",
+    caveats: [
+      "Não escale ads sem estoque suficiente.",
+      "Estoque desatualizado gera decisão errada; garanta sincronização recente.",
+    ],
+    checklist: [
+      "Sei ler saldo por produto",
+      "Sei identificar risco de ruptura",
+      "Sei relacionar estoque com decisão de ads",
+      "Sei registrar plano de compra",
+    ],
+  },
+  {
+    id: "guide-mapa-vendas",
+    menu: "Mapa de Vendas",
+    group: "Operação Mercado Livre",
+    route: "/ecommerce/mapa-vendas",
+    icon: MapIcon,
+    shortDescription: "Distribuição geográfica das vendas.",
+    description:
+      "Mostra onde as vendas acontecem no Brasil e apoia decisão de logística e marketing regional.",
+    estimatedMinutes: 6,
+    whatItDoes:
+      "Mostra a distribuição geográfica das vendas da conta ativa, com concentração por região e estado.",
+    whenToUse:
+      "Use para orientar decisões de frete, campanhas regionais e priorização logística.",
+    howToRead:
+      "Foque nas regiões de maior concentração e em regiões emergentes com crescimento consistente.",
+    steps: [
+      "Acesse Mapa de Vendas",
+      "Confirme a conta ativa",
+      "Observe as regiões de maior volume",
+      "Identifique regiões com queda ou crescimento incomum",
+      "Relacione o padrão com estratégias de frete ou campanha",
+    ],
+    example:
+      "Se o Mapa de Vendas mostra alta concentração em uma região, avalie campanhas específicas antes de generalizar promoções nacionais.",
+    caveats: [
+      "Não confunda concentração com potencial; regiões pequenas podem crescer com o estímulo certo.",
+      "Padrões geográficos precisam de janela mínima para não gerar decisão precipitada.",
+    ],
+    checklist: [
+      "Sei ler concentração por região",
+      "Sei identificar regiões emergentes",
+      "Sei conectar dado geográfico com decisão",
+      "Sei quando o padrão ainda é insuficiente",
+    ],
+  },
+  {
+    id: "guide-ads",
+    menu: "Anúncios e Ads",
+    group: "Crescimento",
+    route: "/ecommerce/ads",
+    icon: Zap,
+    shortDescription: "Investimento em ads e leitura de performance.",
+    description:
+      "Consolida investimento e performance de ads para decidir onde escalar e onde recuar.",
+    estimatedMinutes: 8,
+    whatItDoes:
+      "Consolida dados de investimento e performance de anúncios pagos para decidir onde escalar, manter ou recuar.",
+    whenToUse:
+      "Use semanalmente para revisar performance e sempre que a Central de Ações sugerir mudança de investimento.",
+    howToRead:
+      "Compare investimento contra retorno. Ads com retorno baixo devem ser revistos; ads eficientes podem ser escalados com estoque garantido.",
+    steps: [
+      "Acesse Anúncios e Ads",
+      "Confirme a conta ativa",
+      "Revise performance por produto ou campanha",
+      "Valide margem em Custos e Margem",
+      "Valide estoque em Estoque e Compras",
+      "Ajuste ou registre tarefa de otimização",
+    ],
+    example:
+      "Antes de aumentar investimento em ads de um produto, valide margem em Custos e Margem e estoque em Estoque e Compras para não escalar prejuízo.",
+    caveats: [
+      "Não escale ads de produto com margem apertada.",
+      "Não escale ads sem estoque suficiente para atender demanda.",
+    ],
+    checklist: [
+      "Sei ler retorno por produto ou campanha",
+      "Sei quando escalar e quando recuar",
+      "Sei conectar decisão de ads com margem",
+      "Sei conectar decisão de ads com estoque",
+    ],
+  },
+  {
+    id: "guide-tarefas",
+    menu: "Tarefas da Operação",
+    group: "Execução",
+    route: "/ecommerce/tarefas",
+    icon: ClipboardList,
+    shortDescription: "Execução das ações no dia a dia da operação.",
+    description:
+      "Lista das tarefas em aberto, em andamento e concluídas para acompanhar a execução real.",
+    estimatedMinutes: 7,
+    whatItDoes:
+      "Lista as tarefas operacionais em aberto, em andamento e concluídas, permitindo acompanhar a execução real das ações recomendadas.",
+    whenToUse:
+      "Use diariamente para saber o que executar hoje e para dar baixa nas tarefas concluídas.",
+    howToRead:
+      "Priorize tarefas críticas e antigas em aberto. Tarefas concluídas alimentam Resultados das Ações.",
+    steps: [
+      "Acesse Tarefas da Operação",
+      "Confirme a conta ativa",
+      "Selecione a próxima tarefa a executar",
+      "Atualize o status conforme executa",
+      "Ao concluir, registre resultado em Resultados das Ações",
+    ],
+    example:
+      "Uma ação da Central sobre reprecificação vira uma tarefa aqui. Após executar no Mercado Livre, marque como concluída e registre a medição em Resultados das Ações.",
+    caveats: [
+      "Não deixe tarefas paradas por semanas sem revisão.",
+      "Só conclua uma tarefa quando o resultado for real, não apenas planejado.",
+    ],
+    checklist: [
+      "Sei ler o status de uma tarefa",
+      "Sei priorizar por criticidade e prazo",
+      "Sei conectar tarefa concluída a Resultados das Ações",
+      "Sei revisar tarefas paradas",
+    ],
+  },
+  {
+    id: "guide-diagnostico",
+    menu: "Diagnóstico Inteligente",
+    group: "Inteligência",
+    route: "/ecommerce/radar-ia",
+    icon: Radar,
+    shortDescription: "Radar automático dos pontos críticos da operação.",
+    description:
+      "Análise automática que identifica riscos, oportunidades e pontos cegos com base nos dados atuais.",
+    estimatedMinutes: 7,
+    whatItDoes:
+      "Faz uma análise automática da operação e destaca riscos, oportunidades e pontos cegos com base nos dados sincronizados.",
+    whenToUse:
+      "Use semanalmente para revisão estratégica e ao entrar em uma operação nova para orientação inicial.",
+    howToRead:
+      "Cada ponto do diagnóstico traz contexto e sugestão. Leia como leitura estratégica, não como comando automático.",
+    steps: [
+      "Acesse Diagnóstico Inteligente",
+      "Confirme a conta ativa",
+      "Leia os principais pontos identificados",
+      "Priorize os pontos com maior impacto potencial",
+      "Transforme insight em tarefa quando aplicável",
+    ],
+    example:
+      "Se o diagnóstico apontar risco em uma categoria com margem baixa, cruze com Custos e Margem antes de decidir uma ação corretiva.",
+    caveats: [
+      "Diagnóstico apoia decisão; nunca substitui validação humana.",
+      "Sem sincronização recente, o diagnóstico perde precisão.",
+    ],
+    checklist: [
+      "Sei interpretar riscos e oportunidades",
+      "Sei priorizar pontos por impacto",
+      "Sei transformar insight em tarefa",
+      "Entendi que a decisão continua sendo humana",
+    ],
+  },
+  {
+    id: "guide-consultor",
+    menu: "Assistente Estratégico",
+    group: "Inteligência",
+    route: "/ecommerce/consultor-ia",
+    icon: BrainCircuit,
+    shortDescription: "Consulta estratégica assistida por IA.",
+    description:
+      "Espaço para explorar cenários, tirar dúvidas estratégicas e apoiar a tomada de decisão.",
+    estimatedMinutes: 6,
+    whatItDoes:
+      "Permite explorar cenários e tirar dúvidas estratégicas com apoio de IA, sempre respeitando o contexto da operação.",
+    whenToUse:
+      "Use para pensar antes de agir, revisar hipóteses e obter perspectivas complementares ao diagnóstico.",
+    howToRead:
+      "Trate as respostas como apoio consultivo. Confirme os dados antes de transformar recomendações em ações.",
+    steps: [
+      "Acesse Assistente Estratégico",
+      "Confirme a conta ativa",
+      "Descreva o cenário ou dúvida com clareza",
+      "Analise a resposta com senso crítico",
+      "Valide com os módulos operacionais antes de agir",
+    ],
+    example:
+      "Antes de definir a estratégia de campanha para uma categoria, use o Assistente para explorar cenários e depois valide com dados reais em Ads, Custos e Estoque.",
+    caveats: [
+      "Nunca aja apenas na sugestão da IA sem validar dado real.",
+      "Contexto pobre gera resposta pobre; descreva o cenário com detalhes.",
+    ],
+    checklist: [
+      "Sei formular uma boa pergunta estratégica",
+      "Sei validar a resposta com dados reais",
+      "Sei usar como apoio consultivo, não como comando",
+      "Sei quando o contexto informado é insuficiente",
+    ],
+  },
+  {
+    id: "guide-regras",
+    menu: "Regras da Operação",
+    group: "Inteligência",
+    route: "/ecommerce/base-ia",
+    icon: BookMarked,
+    shortDescription: "Regras que sustentam recomendações e diagnóstico.",
+    description:
+      "Base das regras operacionais que orientam recomendações, priorização e diagnóstico.",
+    estimatedMinutes: 6,
+    whatItDoes:
+      "Reúne as regras da operação que sustentam recomendações da Central de Ações, priorização e diagnóstico.",
+    whenToUse:
+      "Use para entender o porquê de uma recomendação e para alinhar time interno sobre critérios de decisão.",
+    howToRead:
+      "Cada regra descreve situação, critério e ação sugerida. Regra bem entendida evita decisão contraditória.",
+    steps: [
+      "Acesse Regras da Operação",
+      "Leia as regras aplicáveis ao seu momento",
+      "Relacione cada regra a uma ação prática",
+      "Compartilhe as regras com o time interno",
+      "Reveja periodicamente as regras críticas",
+    ],
+    example:
+      "Se a Central sugerir reduzir preço de um produto, procure em Regras da Operação a regra que fundamenta essa recomendação antes de aplicar.",
+    caveats: [
+      "Não altere aplicação de regras sem alinhamento do time.",
+      "Ignorar regras cria decisões contraditórias na operação.",
+    ],
+    checklist: [
+      "Sei localizar as regras principais",
+      "Sei relacionar regra a recomendação",
+      "Sei explicar uma regra ao time interno",
+      "Sei quando revisar uma regra crítica",
+    ],
+  },
+  {
+    id: "guide-academia",
+    menu: "Academia",
+    group: "Implantação",
+    route: "/ecommerce/academia",
+    icon: GraduationCap,
+    shortDescription: "Central de implantação, treinamento e capacitação.",
+    description:
+      "Reúne trilhas de formação e guias por menu para dominar o AC360 E-commerce na prática.",
+    estimatedMinutes: 5,
+    whatItDoes:
+      "Reúne trilhas de formação por perfil e guias por menu do sistema, com progresso acompanhado para o operador.",
+    whenToUse:
+      "Use na implantação inicial, no onboarding de novos operadores e sempre que precisar revisar como usar um módulo.",
+    howToRead:
+      "Combine trilhas (por perfil) com guias (por menu). Trilhas dão método; guias dão profundidade operacional.",
+    steps: [
+      "Acesse Academia",
+      "Leia o header e a jornada de implantação",
+      "Escolha uma trilha do seu perfil",
+      "Use os guias por menu quando precisar de detalhe operacional",
+      "Marque aulas e guias concluídos para acompanhar progresso",
+    ],
+    example:
+      "Ao entrar em uma nova conta, use o guia de Contas Mercado Livre para conectar e sincronizar; depois volte à trilha Cliente para aprender rituais diários.",
+    caveats: [
+      "Progresso fica salvo apenas neste navegador enquanto não houver persistência no backend.",
+      "Concluir um guia significa que você entendeu, não que a operação está resolvida.",
+    ],
+    checklist: [
+      "Sei diferenciar trilha de guia",
+      "Sei acompanhar meu progresso",
+      "Sei escolher por onde começar",
+      "Sei revisitar um guia quando precisar",
+    ],
+  },
+];
+
+const GUIDE_GROUPS: MenuGuideGroup[] = [
+  "Visão Executiva",
+  "Operação Mercado Livre",
+  "Crescimento",
+  "Execução",
+  "Inteligência",
+  "Implantação",
+];
+
 const STORAGE_KEY = "ac360.academia.progress.v1";
 
 function loadProgress(): Record<string, LessonStatus> {
@@ -521,6 +1086,7 @@ function AcademiaPage() {
   const [progress, setProgress] = useState<Record<string, LessonStatus>>({});
   const [openTrackId, setOpenTrackId] = useState<Track["id"] | null>(null);
   const [openLesson, setOpenLesson] = useState<{ trackId: Track["id"]; lessonId: string } | null>(null);
+  const [openGuideId, setOpenGuideId] = useState<string | null>(null);
 
   useEffect(() => {
     setProgress(loadProgress());
@@ -535,13 +1101,28 @@ function AcademiaPage() {
   }, []);
 
   const totals = useMemo(() => {
-    const all = TRACKS.flatMap((t) => t.lessons);
-    const completed = all.filter((l) => progress[l.id] === "completed").length;
-    const total = all.length;
-    const totalMinutes = all.reduce((acc, l) => acc + l.estimatedMinutes, 0);
+    const lessons = TRACKS.flatMap((t) => t.lessons);
+    const lessonsCompleted = lessons.filter((l) => progress[l.id] === "completed").length;
+    const guidesCompleted = MENU_GUIDES.filter((g) => progress[g.id] === "completed").length;
+    const total = lessons.length + MENU_GUIDES.length;
+    const completed = lessonsCompleted + guidesCompleted;
+    const totalMinutes =
+      lessons.reduce((acc, l) => acc + l.estimatedMinutes, 0) +
+      MENU_GUIDES.reduce((acc, g) => acc + g.estimatedMinutes, 0);
     const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-    return { total, completed, pct, totalMinutes };
+    return {
+      total,
+      completed,
+      pct,
+      totalMinutes,
+      lessonsTotal: lessons.length,
+      lessonsCompleted,
+      guidesTotal: MENU_GUIDES.length,
+      guidesCompleted,
+    };
   }, [progress]);
+
+  const openGuide = openGuideId ? MENU_GUIDES.find((g) => g.id === openGuideId) ?? null : null;
 
   const trackProgress = useCallback(
     (t: Track) => {
@@ -858,6 +1439,101 @@ function AcademiaPage() {
           </div>
         </section>
 
+        {/* ============================ GUIAS POR MENU ============================ */}
+        <section className="space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+            <div>
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                Manual operacional
+              </div>
+              <h2 className="font-display text-xl md:text-2xl font-bold text-foreground">
+                Guias por Menu do Sistema
+              </h2>
+              <p className="text-sm text-muted-foreground max-w-2xl">
+                Aprenda de forma concreta o que cada menu faz, quando usar, como interpretar os dados
+                e qual ação tomar. Cada guia é um passo a passo prático do AC360 E-commerce.
+              </p>
+            </div>
+            <div className="shrink-0 rounded-xl border border-blue-100 bg-blue-50/60 px-4 py-2.5">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-blue-700">
+                Guias concluídos
+              </div>
+              <div className="mt-0.5 font-display text-lg font-bold text-foreground">
+                {totals.guidesCompleted}/{totals.guidesTotal}
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {GUIDE_GROUPS.map((group) => {
+              const guides = MENU_GUIDES.filter((g) => g.group === group);
+              if (guides.length === 0) return null;
+              const groupCompleted = guides.filter(
+                (g) => progress[g.id] === "completed",
+              ).length;
+              return (
+                <div key={group}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="h-1.5 w-6 rounded-full bg-blue-700" />
+                      <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
+                        {group}
+                      </h3>
+                    </div>
+                    <span className="text-[11px] font-semibold text-muted-foreground">
+                      {groupCompleted}/{guides.length} concluídos
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {guides.map((g) => {
+                      const status = progress[g.id] ?? "not_started";
+                      const Icon = g.icon;
+                      return (
+                        <div
+                          key={g.id}
+                          className="flex flex-col rounded-2xl border border-border/60 bg-white p-5 shadow-[var(--shadow-soft)] hover:shadow-md hover:border-blue-300 transition"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-100 shrink-0">
+                              <Icon className="h-5 w-5" />
+                            </div>
+                            <StatusBadge status={status} />
+                          </div>
+                          <div className="mt-4 flex-1">
+                            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                              {g.group}
+                            </div>
+                            <h4 className="font-display text-base font-bold text-foreground mt-0.5">
+                              {g.menu}
+                            </h4>
+                            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                              {g.shortDescription}
+                            </p>
+                          </div>
+                          <div className="mt-4 flex items-center justify-between gap-2">
+                            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                              <Clock className="h-3 w-3" />
+                              {g.estimatedMinutes} min
+                            </span>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setOpenGuideId(g.id)}
+                            >
+                              Ver guia
+                              <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
         {/* ============================ COMO AJUDA ============================ */}
         <section className="space-y-4">
           <div>
@@ -1165,6 +1841,130 @@ function AcademiaPage() {
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2" />
                   Marcar como concluída
+                </Button>
+              </div>
+            </div>
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* ============================ GUIDE DRAWER ============================ */}
+      <Sheet
+        open={!!openGuide}
+        onOpenChange={(o) => {
+          if (!o) setOpenGuideId(null);
+        }}
+      >
+        <SheetContent className="sm:max-w-2xl w-full overflow-y-auto p-0">
+          {openGuide && (
+            <div className="flex flex-col h-full">
+              <SheetHeader className="px-6 pt-6 pb-5 border-b bg-gradient-to-b from-blue-50/60 to-white">
+                <div className="flex items-start gap-3">
+                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl text-white shadow-md shrink-0" style={{ background: "var(--gradient-brand)" }}>
+                    <openGuide.icon className="h-6 w-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700">
+                      {openGuide.group}
+                    </div>
+                    <SheetTitle className="text-left text-xl mt-1.5">
+                      Guia do menu {openGuide.menu}
+                    </SheetTitle>
+                    <SheetDescription className="text-left mt-1">
+                      {openGuide.description}
+                    </SheetDescription>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-3">
+                  <StatusBadge status={progress[openGuide.id] ?? "not_started"} />
+                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    {openGuide.estimatedMinutes} min estimados
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                    <Compass className="h-3 w-3" />
+                    {openGuide.route}
+                  </span>
+                </div>
+              </SheetHeader>
+
+              <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+                <LessonSection icon={Target} eyebrow="A" title="O que este menu faz">
+                  <p className="text-sm text-foreground leading-relaxed">{openGuide.whatItDoes}</p>
+                </LessonSection>
+
+                <LessonSection icon={Compass} eyebrow="B" title="Quando usar">
+                  <p className="text-sm text-foreground leading-relaxed">{openGuide.whenToUse}</p>
+                </LessonSection>
+
+                <LessonSection icon={BarChart3} eyebrow="C" title="Como interpretar">
+                  <p className="text-sm text-foreground leading-relaxed">{openGuide.howToRead}</p>
+                </LessonSection>
+
+                <LessonSection icon={ClipboardCheck} eyebrow="D" title="Passo a passo de uso">
+                  <ol className="space-y-2">
+                    {openGuide.steps.map((s, i) => (
+                      <li key={i} className="flex items-start gap-3 text-sm text-foreground">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-md bg-blue-700 text-white text-[11px] font-bold shrink-0 mt-0.5">
+                          {i + 1}
+                        </span>
+                        <span className="leading-relaxed">{s}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </LessonSection>
+
+                <LessonSection icon={Lightbulb} eyebrow="E" title="Exemplo prático">
+                  <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
+                    <p className="text-sm text-foreground leading-relaxed">{openGuide.example}</p>
+                  </div>
+                </LessonSection>
+
+                <LessonSection icon={AlertTriangle} eyebrow="F" title="Cuidados importantes">
+                  <ul className="space-y-2">
+                    {openGuide.caveats.map((c, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-sm text-foreground">
+                        <AlertTriangle className="h-4 w-4 mt-0.5 text-amber-600 shrink-0" />
+                        <span className="leading-relaxed">{c}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </LessonSection>
+
+                <LessonSection icon={CheckCircle2} eyebrow="G" title="Checklist de domínio">
+                  <ul className="space-y-2">
+                    {openGuide.checklist.map((c, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-sm text-foreground">
+                        <CheckCircle2 className="h-4 w-4 mt-0.5 text-blue-700 shrink-0" />
+                        <span className="leading-relaxed">{c}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </LessonSection>
+              </div>
+
+              <div className="border-t px-6 py-4 flex flex-col sm:flex-row gap-2 bg-white">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setLessonStatus(openGuide.id, "in_progress");
+                    setOpenGuideId(null);
+                  }}
+                >
+                  <PlayCircle className="h-4 w-4 mr-2" />
+                  Continuar depois
+                </Button>
+                <Button
+                  className="flex-1 text-white"
+                  style={{ background: "var(--gradient-brand)" }}
+                  onClick={() => {
+                    setLessonStatus(openGuide.id, "completed");
+                    setOpenGuideId(null);
+                  }}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Marcar guia como concluído
                 </Button>
               </div>
             </div>

@@ -46,6 +46,7 @@ import { Route as EcommerceConfiguracoesRouteImport } from './routes/ecommerce/c
 import { Route as EcommerceConcorrenciaRouteImport } from './routes/ecommerce/concorrencia'
 import { Route as EcommerceBaseIaRouteImport } from './routes/ecommerce/base-ia'
 import { Route as EcommerceAdsRouteImport } from './routes/ecommerce/ads'
+import { Route as EcommerceAcademiaRouteImport } from './routes/ecommerce/academia'
 import { Route as AdminUsuariosRouteImport } from './routes/admin/usuarios'
 import { Route as AdminPlanosRouteImport } from './routes/admin/planos'
 import { Route as AdminModulosRouteImport } from './routes/admin/modulos'
@@ -242,6 +243,11 @@ const EcommerceAdsRoute = EcommerceAdsRouteImport.update({
   path: '/ecommerce/ads',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceAcademiaRoute = EcommerceAcademiaRouteImport.update({
+  id: '/ecommerce/academia',
+  path: '/ecommerce/academia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
   id: '/admin/usuarios',
   path: '/admin/usuarios',
@@ -309,6 +315,7 @@ export interface FileRoutesByFullPath {
   '/admin/modulos': typeof AdminModulosRoute
   '/admin/planos': typeof AdminPlanosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
+  '/ecommerce/academia': typeof EcommerceAcademiaRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/base-ia': typeof EcommerceBaseIaRoute
   '/ecommerce/concorrencia': typeof EcommerceConcorrenciaRoute
@@ -356,6 +363,7 @@ export interface FileRoutesByTo {
   '/admin/modulos': typeof AdminModulosRoute
   '/admin/planos': typeof AdminPlanosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
+  '/ecommerce/academia': typeof EcommerceAcademiaRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/base-ia': typeof EcommerceBaseIaRoute
   '/ecommerce/concorrencia': typeof EcommerceConcorrenciaRoute
@@ -404,6 +412,7 @@ export interface FileRoutesById {
   '/admin/modulos': typeof AdminModulosRoute
   '/admin/planos': typeof AdminPlanosRoute
   '/admin/usuarios': typeof AdminUsuariosRoute
+  '/ecommerce/academia': typeof EcommerceAcademiaRoute
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/base-ia': typeof EcommerceBaseIaRoute
   '/ecommerce/concorrencia': typeof EcommerceConcorrenciaRoute
@@ -453,6 +462,7 @@ export interface FileRouteTypes {
     | '/admin/modulos'
     | '/admin/planos'
     | '/admin/usuarios'
+    | '/ecommerce/academia'
     | '/ecommerce/ads'
     | '/ecommerce/base-ia'
     | '/ecommerce/concorrencia'
@@ -500,6 +510,7 @@ export interface FileRouteTypes {
     | '/admin/modulos'
     | '/admin/planos'
     | '/admin/usuarios'
+    | '/ecommerce/academia'
     | '/ecommerce/ads'
     | '/ecommerce/base-ia'
     | '/ecommerce/concorrencia'
@@ -547,6 +558,7 @@ export interface FileRouteTypes {
     | '/admin/modulos'
     | '/admin/planos'
     | '/admin/usuarios'
+    | '/ecommerce/academia'
     | '/ecommerce/ads'
     | '/ecommerce/base-ia'
     | '/ecommerce/concorrencia'
@@ -595,6 +607,7 @@ export interface RootRouteChildren {
   AdminModulosRoute: typeof AdminModulosRoute
   AdminPlanosRoute: typeof AdminPlanosRoute
   AdminUsuariosRoute: typeof AdminUsuariosRoute
+  EcommerceAcademiaRoute: typeof EcommerceAcademiaRoute
   EcommerceAdsRoute: typeof EcommerceAdsRoute
   EcommerceBaseIaRoute: typeof EcommerceBaseIaRoute
   EcommerceConcorrenciaRoute: typeof EcommerceConcorrenciaRoute
@@ -878,6 +891,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommerceAdsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/academia': {
+      id: '/ecommerce/academia'
+      path: '/ecommerce/academia'
+      fullPath: '/ecommerce/academia'
+      preLoaderRoute: typeof EcommerceAcademiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/usuarios': {
       id: '/admin/usuarios'
       path: '/admin/usuarios'
@@ -963,6 +983,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminModulosRoute: AdminModulosRoute,
   AdminPlanosRoute: AdminPlanosRoute,
   AdminUsuariosRoute: AdminUsuariosRoute,
+  EcommerceAcademiaRoute: EcommerceAcademiaRoute,
   EcommerceAdsRoute: EcommerceAdsRoute,
   EcommerceBaseIaRoute: EcommerceBaseIaRoute,
   EcommerceConcorrenciaRoute: EcommerceConcorrenciaRoute,

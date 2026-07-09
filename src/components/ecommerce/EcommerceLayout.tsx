@@ -20,6 +20,8 @@ import {
   ChevronDown,
   DollarSign,
   ClipboardList,
+  GraduationCap,
+
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
@@ -72,6 +74,13 @@ const navGroups = [
       { label: "Regras da Operação", to: "/ecommerce/base-ia", icon: BookOpen },
     ],
   },
+  {
+    title: "Implantação",
+    items: [
+      { label: "Academia", to: "/ecommerce/academia", icon: GraduationCap },
+    ],
+  },
+
 ] as const;
 
 type SidebarNavProps = {

@@ -1086,6 +1086,7 @@ function AcademiaPage() {
   const [progress, setProgress] = useState<Record<string, LessonStatus>>({});
   const [openTrackId, setOpenTrackId] = useState<Track["id"] | null>(null);
   const [openLesson, setOpenLesson] = useState<{ trackId: Track["id"]; lessonId: string } | null>(null);
+  const [openGuideId, setOpenGuideId] = useState<string | null>(null);
 
   useEffect(() => {
     setProgress(loadProgress());
@@ -1100,13 +1101,28 @@ function AcademiaPage() {
   }, []);
 
   const totals = useMemo(() => {
-    const all = TRACKS.flatMap((t) => t.lessons);
-    const completed = all.filter((l) => progress[l.id] === "completed").length;
-    const total = all.length;
-    const totalMinutes = all.reduce((acc, l) => acc + l.estimatedMinutes, 0);
+    const lessons = TRACKS.flatMap((t) => t.lessons);
+    const lessonsCompleted = lessons.filter((l) => progress[l.id] === "completed").length;
+    const guidesCompleted = MENU_GUIDES.filter((g) => progress[g.id] === "completed").length;
+    const total = lessons.length + MENU_GUIDES.length;
+    const completed = lessonsCompleted + guidesCompleted;
+    const totalMinutes =
+      lessons.reduce((acc, l) => acc + l.estimatedMinutes, 0) +
+      MENU_GUIDES.reduce((acc, g) => acc + g.estimatedMinutes, 0);
     const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-    return { total, completed, pct, totalMinutes };
+    return {
+      total,
+      completed,
+      pct,
+      totalMinutes,
+      lessonsTotal: lessons.length,
+      lessonsCompleted,
+      guidesTotal: MENU_GUIDES.length,
+      guidesCompleted,
+    };
   }, [progress]);
+
+  const openGuide = openGuideId ? MENU_GUIDES.find((g) => g.id === openGuideId) ?? null : null;
 
   const trackProgress = useCallback(
     (t: Track) => {

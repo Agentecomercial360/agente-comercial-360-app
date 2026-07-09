@@ -1295,7 +1295,7 @@ function RegistrarResultadoDialog({
               Cancelar
             </Button>
           </DialogClose>
-          <Button type="button" onClick={onSubmit} disabled={saving || fieldsDisabled || !hasPending}>
+          <Button type="button" onClick={onSubmit} disabled={saving || fieldsDisabled || !hasPending} className="disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 disabled:shadow-none disabled:hover:bg-muted">
             {saving && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
             Registrar
           </Button>

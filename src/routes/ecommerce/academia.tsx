@@ -22,6 +22,20 @@ import {
   ShieldCheck,
   Layers,
   Lightbulb,
+  Store,
+  TrendingUp,
+  Link2,
+  ShoppingCart,
+  DollarSign,
+  Boxes,
+  Map as MapIcon,
+  Zap,
+  ClipboardList,
+  Radar,
+  BrainCircuit,
+  AlertTriangle,
+  BookMarked,
+  type LucideIcon,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { Button } from "@/components/ui/button";

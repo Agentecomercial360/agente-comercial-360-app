@@ -1051,14 +1051,8 @@ function RegistrarResultadoDialog({
 
   const onSubmit = async () => {
     const t = tasks.find((x) => x.id === form.taskId);
-    if (!t) {
-      toast.error("Selecione uma tarefa concluída.");
-      return;
-    }
-    if (measuredTaskIds.has(t.id)) {
-      toast.error(
-        "Esta tarefa já possui medição registrada. Para evitar duplicidade, visualize o resultado existente.",
-      );
+    if (!t || measuredTaskIds.has(t.id)) {
+      toast.error("Selecione uma tarefa concluída sem medição registrada.");
       return;
     }
     const before = parseNum(form.before);

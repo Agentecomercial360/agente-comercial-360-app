@@ -11,7 +11,7 @@ import {
   Users,
   Briefcase,
   UserCog,
-  X,
+  
   Circle,
   Target,
   Compass,

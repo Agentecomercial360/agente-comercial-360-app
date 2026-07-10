@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   GraduationCap,
@@ -1434,14 +1434,23 @@ function AcademiaPage() {
                               <Clock className="h-3 w-3" />
                               {g.estimatedMinutes} min
                             </span>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setOpenGuideId(g.id)}
-                            >
-                              Ver guia
-                              <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-                            </Button>
+                            {g.id === "guide-visao-geral" ? (
+                              <Link to="/ecommerce/academia/guias/visao-geral">
+                                <Button variant="outline" size="sm">
+                                  Ver guia
+                                  <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                                </Button>
+                              </Link>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setOpenGuideId(g.id)}
+                              >
+                                Ver guia
+                                <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                              </Button>
+                            )}
                           </div>
                         </div>
                       );

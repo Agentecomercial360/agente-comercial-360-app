@@ -195,6 +195,39 @@ function GuiaVisaoGeralPage() {
         {/* 2. Pergunta central */}
         <CentralQuestionCard question="Como está minha operação neste momento?" />
 
+        {/* 2.1 Problema que resolve — Sem × Com */}
+        <ProblemSolutionSection
+          without={{
+            title: "Sem o menu Visão Geral",
+            points: [
+              "O operador abre vários módulos sem saber por onde começar.",
+              "Sinais críticos passam despercebidos no meio da rotina.",
+              "Decisões acontecem tarde, depois do problema já ter impacto.",
+              "Cada pessoa do time olha um recorte diferente da operação.",
+            ],
+          }}
+          with_={{
+            title: "Com o menu Visão Geral",
+            points: [
+              "Uma leitura executiva única em menos de 2 minutos.",
+              "Sinais fora do padrão aparecem no topo da tela.",
+              "Ação começa antes do problema virar prejuízo.",
+              "Time inteiro parte do mesmo diagnóstico compartilhado.",
+            ],
+          }}
+        />
+
+        {/* 2.2 Objetivos de aprendizagem */}
+        <LearningObjectivesSection
+          objectives={[
+            "Interpretar os principais indicadores da operação Mercado Livre.",
+            "Entender os alertas e reconhecer sinais de risco.",
+            "Identificar rapidamente qual é a prioridade do dia.",
+            "Navegar pela tela Visão Geral com segurança e método.",
+            "Decidir para qual módulo aprofundar dependendo do sinal.",
+          ]}
+        />
+
         {/* 3. Fluxo dentro do AC360 */}
         <ModuleFlow
           title="Fluxo dentro do AC360"

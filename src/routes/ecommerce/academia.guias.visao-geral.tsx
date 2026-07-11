@@ -590,6 +590,17 @@ function GuiaVisaoGeralPage() {
           ]}
         />
 
+        {/* 6.1 Boas práticas */}
+        <BestPracticesSection
+          items={[
+            "Abra a Visão Geral no início do turno, antes de qualquer outro módulo.",
+            "Confirme sempre a conta ativa antes de ler qualquer indicador.",
+            "Compare com a tendência dos últimos dias, nunca com um dia isolado.",
+            "Escolha no máximo 1 ou 2 pontos de atenção por rodada de análise.",
+            "Registre a ação identificada em Tarefas da Operação imediatamente.",
+          ]}
+        />
+
         {/* 7. Erros comuns */}
         <CommonErrorsSection
           items={[

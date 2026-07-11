@@ -18,6 +18,14 @@ import {
   BookOpen,
   Image as ImageIcon,
   ShieldCheck,
+  Flag,
+  HelpCircle,
+  Workflow,
+  LayoutGrid,
+  ScrollText,
+  XCircle,
+  GraduationCap,
+  Sparkles,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { Button } from "@/components/ui/button";

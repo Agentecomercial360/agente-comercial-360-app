@@ -1190,7 +1190,7 @@ function AcademiaPage() {
 
   return (
     <EcommerceLayout>
-      <div className="max-w-7xl mx-auto space-y-10">
+      <div className="max-w-7xl mx-auto space-y-7">
         {/* ============================ HEADER ============================ */}
         <section
           className="relative overflow-hidden rounded-3xl border border-border/60 bg-white p-6 md:p-10 shadow-[var(--shadow-premium)]"

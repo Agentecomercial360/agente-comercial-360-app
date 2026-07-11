@@ -1089,6 +1089,8 @@ function AcademiaPage() {
   const [openTrackId, setOpenTrackId] = useState<Track["id"] | null>(null);
   const [openLesson, setOpenLesson] = useState<{ trackId: Track["id"]; lessonId: string } | null>(null);
   const [openGuideId, setOpenGuideId] = useState<string | null>(null);
+  const [guideFilter, setGuideFilter] = useState<MenuGuideGroup | "Todos">("Todos");
+  const [guideSearch, setGuideSearch] = useState("");
 
   useEffect(() => {
     setProgress(loadProgress());

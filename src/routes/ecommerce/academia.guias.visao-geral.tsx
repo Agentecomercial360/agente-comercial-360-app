@@ -455,7 +455,6 @@ function GuiaVisaoGeralPage() {
             />
           </Section>
 
-          </Section>
 
           <Section
             icon={ClipboardCheck}

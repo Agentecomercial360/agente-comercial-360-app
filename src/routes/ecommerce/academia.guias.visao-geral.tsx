@@ -1217,3 +1217,164 @@ function NextGuideCard({
     </section>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Novos blocos reutilizáveis — padrão de treinamento corporativo
+// ---------------------------------------------------------------------------
+
+function ProblemSolutionSection({
+  without,
+  with_,
+}: {
+  without: { title: string; points: string[] };
+  with_: { title: string; points: string[] };
+}) {
+  return (
+    <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="relative overflow-hidden rounded-2xl border border-rose-100 bg-gradient-to-br from-rose-50/70 to-white p-6 shadow-[var(--shadow-soft)]">
+        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-rose-700">
+          <MinusCircle className="h-3.5 w-3.5" />
+          Cenário atual
+        </div>
+        <h2 className="font-display text-lg md:text-xl font-bold text-foreground mt-2 leading-tight">
+          {without.title}
+        </h2>
+        <ul className="mt-3 space-y-2">
+          {without.points.map((p, i) => (
+            <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
+              <MinusCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+              <span className="leading-relaxed">{p}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/70 to-white p-6 shadow-[var(--shadow-soft)]">
+        <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700">
+          <PlusCircle className="h-3.5 w-3.5" />
+          Cenário com AC360
+        </div>
+        <h2 className="font-display text-lg md:text-xl font-bold text-foreground mt-2 leading-tight">
+          {with_.title}
+        </h2>
+        <ul className="mt-3 space-y-2">
+          {with_.points.map((p, i) => (
+            <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
+              <PlusCircle className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+              <span className="leading-relaxed">{p}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  );
+}
+
+function LearningObjectivesSection({ objectives }: { objectives: string[] }) {
+  return (
+    <section className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/50 to-white p-6 md:p-7 shadow-[var(--shadow-soft)]">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-700 text-white border border-blue-700 shrink-0">
+          <Target className="h-5 w-5" />
+        </div>
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700">
+            Objetivos de aprendizagem
+          </div>
+          <h2 className="font-display text-lg md:text-xl font-bold text-foreground leading-tight">
+            Ao concluir esta aula você será capaz de:
+          </h2>
+        </div>
+      </div>
+      <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        {objectives.map((o, i) => (
+          <li
+            key={i}
+            className="flex items-start gap-3 rounded-xl border border-blue-100 bg-white p-3"
+          >
+            <CheckCircle2 className="h-5 w-5 text-blue-700 shrink-0 mt-0.5" />
+            <span className="text-sm text-foreground/90 leading-relaxed">
+              {o}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function BestPracticesSection({ items }: { items: string[] }) {
+  return (
+    <section className="rounded-2xl border border-emerald-100 bg-emerald-50/30 p-6 md:p-7 shadow-[var(--shadow-soft)]">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 border border-emerald-200 shrink-0">
+          <ThumbsUp className="h-5 w-5" />
+        </div>
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700">
+            Boas práticas
+          </div>
+          <h2 className="font-display text-lg md:text-xl font-bold text-foreground leading-tight">
+            Como grandes operadores usam este módulo
+          </h2>
+        </div>
+      </div>
+      <ul className="space-y-2">
+        {items.map((t, i) => (
+          <li
+            key={i}
+            className="flex items-start gap-3 rounded-xl border border-emerald-200/70 bg-white p-3"
+          >
+            <ThumbsUp className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+            <span className="text-sm text-foreground/90 leading-relaxed">
+              {t}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function ConsultantTipCard({
+  author,
+  role,
+  quote,
+}: {
+  author: string;
+  role: string;
+  quote: string;
+}) {
+  return (
+    <section
+      aria-label="Dica do Consultor AC360"
+      className="relative overflow-hidden rounded-3xl border border-blue-900/20 p-6 md:p-8 shadow-[var(--shadow-card)] text-white"
+      style={{ background: "var(--gradient-brand)" }}
+    >
+      <div className="absolute -top-8 -right-8 h-40 w-40 rounded-full bg-white/10 blur-2xl pointer-events-none" />
+      <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-white/5 blur-2xl pointer-events-none" />
+      <div className="relative flex flex-col md:flex-row md:items-start gap-5">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 border border-white/20 shrink-0 backdrop-blur-sm">
+          <Quote className="h-7 w-7 text-white" />
+        </div>
+        <div className="min-w-0">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em] text-white/90">
+            <Sparkles className="h-3 w-3" />
+            Dica do Consultor AC360
+          </div>
+          <blockquote className="font-display text-lg md:text-2xl font-bold text-white mt-3 leading-snug">
+            “{quote}”
+          </blockquote>
+          <div className="mt-4 flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white font-bold text-sm border border-white/25">
+              {author.charAt(0)}
+            </div>
+            <div className="leading-tight">
+              <div className="text-sm font-bold text-white">{author}</div>
+              <div className="text-[11px] text-white/80">{role}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

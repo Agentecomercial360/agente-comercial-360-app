@@ -26,6 +26,12 @@ import {
   XCircle,
   GraduationCap,
   Sparkles,
+  Gauge,
+  ListChecks,
+  ThumbsUp,
+  MinusCircle,
+  PlusCircle,
+  Quote,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { Button } from "@/components/ui/button";

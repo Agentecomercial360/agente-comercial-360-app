@@ -635,6 +635,13 @@ function GuiaVisaoGeralPage() {
           }
         />
 
+        {/* 10. Dica do Consultor AC360 — card premium destacado */}
+        <ConsultantTipCard
+          author="Consultor AC360"
+          role="Time de Implantação"
+          quote="Antes de abrir Produtos e Anúncios, passe sempre pela Visão Geral. Em menos de dois minutos você identifica onde realmente vale a pena investir seu tempo."
+        />
+
         {/* Navegação inferior */}
         <nav className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-border/60 bg-white p-5 shadow-[var(--shadow-soft)]">
           <Link to="/ecommerce/academia" className="w-full sm:w-auto">

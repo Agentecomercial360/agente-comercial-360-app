@@ -1331,22 +1331,34 @@ function AcademiaPage() {
         {/* ============================ RECOMENDADA ============================ */}
         {nextLesson && (
           <section
-            className="relative overflow-hidden rounded-2xl border border-blue-200 p-6 md:p-7 shadow-[var(--shadow-soft)]"
+            className="relative overflow-hidden rounded-2xl border-2 border-blue-300 p-6 md:p-7 shadow-[var(--shadow-premium)]"
             style={{ background: "linear-gradient(135deg, #f0f7ff 0%, #ffffff 60%)" }}
           >
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+            <div
+              className="absolute -top-16 -right-16 h-56 w-56 rounded-full opacity-20 blur-3xl pointer-events-none"
+              style={{ background: "var(--gradient-brand)" }}
+            />
+            <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-5">
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-700 px-2.5 py-1 text-[11px] font-semibold text-white">
+                    <Sparkles className="h-3 w-3" />
+                    Comece por aqui
+                  </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-blue-700">
                     <Lightbulb className="h-3 w-3" />
-                    Trilha recomendada para começar
+                    Trilha recomendada
                   </span>
                 </div>
                 <h3 className="font-display text-xl md:text-2xl font-bold text-foreground mt-3">
                   {nextLesson.lesson.title}
                 </h3>
-                <p className="text-sm text-muted-foreground mt-1.5 max-w-2xl">
+                <p className="text-sm text-muted-foreground mt-1.5 max-w-2xl leading-relaxed">
                   {nextLesson.lesson.description}
+                </p>
+                <p className="text-xs text-blue-800/80 mt-2 max-w-2xl">
+                  Sugerimos começar por esta aula porque ela estabelece a base de conhecimento
+                  para as próximas etapas da sua trilha.
                 </p>
                 <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                   <span className="inline-flex items-center gap-1.5">
@@ -1364,7 +1376,7 @@ function AcademiaPage() {
                 className="text-white shadow-md shrink-0"
                 style={{ background: "var(--gradient-brand)" }}
               >
-                Continuar aprendizado
+                Iniciar trilha
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
@@ -1373,7 +1385,7 @@ function AcademiaPage() {
 
         {/* ============================ GUIAS POR MENU (destaque) ============================ */}
         <section className="space-y-5 rounded-3xl border border-blue-200/70 bg-gradient-to-br from-blue-50/60 via-white to-white p-6 md:p-8 shadow-[var(--shadow-soft)]">
-          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+          <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
             <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
                 <BookOpen className="h-3.5 w-3.5" />
@@ -1382,12 +1394,9 @@ function AcademiaPage() {
               <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mt-3">
                 Guias por Menu do Sistema
               </h2>
-              <p className="text-base text-foreground/80 mt-2 font-medium">
-                Aprenda, passo a passo, como usar cada área do AC360 E-commerce na rotina operacional.
-              </p>
               <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-                Cada guia explica o objetivo do menu, quando usar, como interpretar os dados, quais ações
-                tomar e quais cuidados validar antes de executar decisões na operação Mercado Livre.
+                Aprenda, passo a passo, como usar cada área do AC360 E-commerce na rotina operacional.
+                Cada guia explica o objetivo do menu, como interpretar os dados e quais ações tomar.
               </p>
             </div>
             <div className="shrink-0 rounded-xl border border-blue-200 bg-white px-4 py-3 shadow-sm">
@@ -1395,89 +1404,113 @@ function AcademiaPage() {
                 Guias concluídos
               </div>
               <div className="mt-0.5 font-display text-2xl font-bold text-foreground">
-                {totals.guidesCompleted}<span className="text-base text-muted-foreground font-semibold">/{totals.guidesTotal}</span>
+                {totals.guidesCompleted}
+                <span className="text-base text-muted-foreground font-semibold">
+                  /{totals.guidesTotal}
+                </span>
+              </div>
+              <div className="text-[11px] text-muted-foreground mt-0.5">
+                {totals.guidesTotal} guias disponíveis
               </div>
             </div>
           </div>
 
-          <div className="space-y-6">
-            {GUIDE_GROUPS.map((group) => {
-              const guides = MENU_GUIDES.filter((g) => g.group === group);
-              if (guides.length === 0) return null;
-              const groupCompleted = guides.filter(
-                (g) => progress[g.id] === "completed",
-              ).length;
-              return (
-                <div key={group}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="h-1.5 w-6 rounded-full bg-blue-700" />
-                      <h3 className="font-display text-sm font-bold uppercase tracking-wider text-foreground">
-                        {group}
-                      </h3>
-                    </div>
-                    <span className="text-[11px] font-semibold text-muted-foreground">
-                      {groupCompleted}/{guides.length} concluídos
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {guides.map((g) => {
-                      const status = progress[g.id] ?? "not_started";
-                      const Icon = g.icon;
-                      return (
-                        <div
-                          key={g.id}
-                          className="flex flex-col rounded-2xl border border-border/60 bg-white p-5 shadow-[var(--shadow-soft)] hover:shadow-md hover:border-blue-300 transition"
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-100 shrink-0">
-                              <Icon className="h-5 w-5" />
-                            </div>
-                            <StatusBadge status={status} />
-                          </div>
-                          <div className="mt-4 flex-1">
-                            <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                              {g.group}
-                            </div>
-                            <h4 className="font-display text-base font-bold text-foreground mt-0.5">
-                              {g.menu}
-                            </h4>
-                            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                              {g.shortDescription}
-                            </p>
-                          </div>
-                          <div className="mt-4 flex items-center justify-between gap-2">
-                            <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                              <Clock className="h-3 w-3" />
-                              {g.estimatedMinutes} min
-                            </span>
-                            {g.id === "guide-visao-geral" ? (
-                              <Link to="/ecommerce/academia/guias/visao-geral">
-                                <Button variant="outline" size="sm">
-                                  Ver guia
-                                  <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-                                </Button>
-                              </Link>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setOpenGuideId(g.id)}
-                              >
-                                Ver guia
-                                <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
+          {/* Filtros + busca */}
+          <div className="flex flex-col gap-3 rounded-2xl border border-blue-100 bg-white/70 p-3 md:p-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                value={guideSearch}
+                onChange={(e) => setGuideSearch(e.target.value)}
+                placeholder="Buscar guia ou módulo"
+                className="pl-9 bg-white"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {(["Todos", ...GUIDE_GROUPS] as const).map((cat) => {
+                const active = guideFilter === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setGuideFilter(cat as MenuGuideGroup | "Todos")}
+                    className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                      active
+                        ? "border-blue-700 bg-blue-700 text-white shadow-sm"
+                        : "border-border/70 bg-white text-foreground hover:border-blue-300 hover:text-blue-700"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {/* Grade contínua de guias */}
+          {filteredGuides.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-blue-200 bg-white/60 p-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Nenhum guia encontrado para os filtros selecionados.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredGuides.map((g) => {
+                const status = progress[g.id] ?? "not_started";
+                const Icon = g.icon;
+                return (
+                  <div
+                    key={g.id}
+                    className="group flex h-full flex-col rounded-2xl border border-border/60 bg-white p-5 shadow-[var(--shadow-soft)] transition duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-blue-400"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-100 shrink-0">
+                        <Icon className="h-5 w-5" />
+                      </div>
+                      <StatusBadge status={status} />
+                    </div>
+                    <div className="mt-4 flex-1">
+                      <span className="inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700">
+                        {g.group}
+                      </span>
+                      <h4 className="font-display text-base font-bold text-foreground mt-2">
+                        {g.menu}
+                      </h4>
+                      <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+                        {g.shortDescription}
+                      </p>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <Clock className="h-3 w-3" />
+                        {g.estimatedMinutes} min
+                      </span>
+                      {g.id === "guide-visao-geral" ? (
+                        <Link to="/ecommerce/academia/guias/visao-geral">
+                          <Button variant="outline" size="sm">
+                            Ver guia
+                            <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setOpenGuideId(g.id)}
+                        >
+                          Ver guia
+                          <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </section>
+
 
         {/* ============================ TRILHAS ============================ */}
         <section className="space-y-5">

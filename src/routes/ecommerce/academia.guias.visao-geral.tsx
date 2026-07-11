@@ -499,6 +499,82 @@ function GuiaVisaoGeralPage() {
           </Section>
         </div>
 
+        {/* 4. Conhecendo esta tela — seção dedicada de imagens */}
+        <ScreenTourSection
+          title="Conhecendo esta tela"
+          description="Referência visual do menu Visão Geral com pontos numerados para futura documentação detalhada de cada elemento."
+          mainImage={{
+            order: 1,
+            title: "Tela Visão Geral — visão completa",
+            caption: "Captura oficial do painel Visão Geral do AC360 E-commerce.",
+            alt: "Placeholder aguardando captura real da tela Visão Geral do AC360 E-commerce.",
+          }}
+          items={[
+            { title: "Seletor de conta ativa", description: "Área onde o operador confirma qual conta Mercado Livre está sendo lida." },
+            { title: "Cards de indicadores principais", description: "Bloco central com os KPIs executivos da operação no período." },
+            { title: "Resumo de ações recomendadas", description: "Sinaliza os pontos que a inteligência do AC360 sugere revisar primeiro." },
+            { title: "Atalhos para módulos operacionais", description: "Levam direto ao módulo indicado a partir de um sinal identificado." },
+            { title: "Status de sincronização", description: "Indica se os dados estão atualizados com o Mercado Livre." },
+          ]}
+        />
+
+        {/* 5. Componentes da tela */}
+        <ComponentsInventory
+          items={[
+            { label: "Cards", icon: LayoutGrid, description: "Blocos visuais que agrupam informações executivas." },
+            { label: "KPIs", icon: BarChart3, description: "Indicadores-chave de performance do período selecionado." },
+            { label: "Filtros", icon: Compass, description: "Ajustam o recorte de período, conta e categoria." },
+            { label: "Botões", icon: PlayCircle, description: "Ações de navegação e atalhos operacionais." },
+            { label: "Tabelas", icon: ScrollText, description: "Detalhamento tabular quando aplicável no módulo." },
+            { label: "Drawer", icon: BookOpen, description: "Painel lateral para detalhamento contextual." },
+            { label: "Indicadores", icon: Sparkles, description: "Sinalizações visuais de estado, alerta e tendência." },
+          ]}
+        />
+
+        {/* 6. Regras importantes */}
+        <RulesSection
+          items={[
+            { label: "Conta ativa", description: "Todos os números refletem a conta Mercado Livre selecionada no topo." },
+            { label: "Sincronização", description: "Leitura confiável depende da última sincronização estar atualizada." },
+            { label: "Dependências", description: "Alguns cards dependem de dados vindos de Custos, Estoque e Anúncios." },
+            { label: "Restrições", description: "Visão Geral é apenas leitura — nenhuma ação é enviada ao Mercado Livre a partir desta tela." },
+          ]}
+        />
+
+        {/* 7. Erros comuns */}
+        <CommonErrorsSection
+          items={[
+            { title: "Ler dados da conta errada", description: "Analisar indicadores sem confirmar a conta ativa selecionada." },
+            { title: "Agir em cima de um dia isolado", description: "Tomar decisão sem comparar com a tendência recente." },
+            { title: "Ignorar sincronização defasada", description: "Interpretar como problema real algo que é apenas atraso de dados." },
+            { title: "Pular o módulo de aprofundamento", description: "Executar ação direto da Visão Geral sem cruzar com o módulo específico." },
+          ]}
+        />
+
+        {/* 8. O que você aprendeu */}
+        <LearningsSection
+          items={[
+            "Qual é a missão do menu Visão Geral dentro do AC360 E-commerce.",
+            "Como a Visão Geral se conecta com os demais módulos da operação.",
+            "Como interpretar cards, KPIs e sinais de tendência.",
+            "Quais cuidados tomar antes de agir sobre um indicador.",
+            "Para qual módulo aprofundar dependendo do sinal identificado.",
+          ]}
+        />
+
+        {/* 9. Próximo guia — card premium */}
+        <NextGuideCard
+          available={false}
+          category="Operação Mercado Livre"
+          title="Guia do menu Central de Ações"
+          description="Aprofunda como transformar sinais da Visão Geral em prioridades e execução real da operação."
+          onCompleteCurrent={
+            status !== "completed"
+              ? () => setStatus(GUIDE_ID, "completed")
+              : undefined
+          }
+        />
+
         {/* Navegação inferior */}
         <nav className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-border/60 bg-white p-5 shadow-[var(--shadow-soft)]">
           <Link to="/ecommerce/academia" className="w-full sm:w-auto">

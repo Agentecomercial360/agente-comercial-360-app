@@ -1513,25 +1513,27 @@ function AcademiaPage() {
 
 
         {/* ============================ TRILHAS ============================ */}
-        <section className="space-y-5">
+        <section className="space-y-5 rounded-3xl border border-slate-200 bg-slate-50/40 p-6 md:p-8">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
-            <div>
+            <div className="max-w-3xl">
               <div className="inline-flex items-center gap-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-white px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-slate-700">
+                  <Users className="h-3 w-3" />
                   Trilhas oficiais
                 </span>
-                <span className="inline-flex items-center rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <span className="inline-flex items-center rounded-full border border-border/60 bg-white px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   Complementar
                 </span>
               </div>
-              <h2 className="font-display text-xl md:text-2xl font-bold text-foreground">
+              <h2 className="font-display text-xl md:text-2xl font-bold text-foreground mt-2">
                 Formação por perfil
               </h2>
-              <p className="text-sm text-muted-foreground">
-                Complementa os Guias por Menu com trilhas desenhadas para Cliente, Time Interno e Comercial.
+              <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                Depois de aprender os módulos do sistema, escolha a formação adequada ao seu papel na operação.
               </p>
             </div>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {TRACKS.map((t) => {
               const p = trackProgress(t);

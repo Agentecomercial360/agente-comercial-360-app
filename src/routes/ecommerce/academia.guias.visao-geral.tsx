@@ -310,57 +310,59 @@ function GuiaVisaoGeralPage() {
 
         {/* Conteúdo principal */}
         <div className="space-y-6">
-          <Section
-            icon={Target}
-            eyebrow="A"
-            title="Objetivo do menu"
-          >
-            <p>
-              O menu <strong>Visão Geral</strong> é o painel executivo da
-              operação Mercado Livre no AC360 E-commerce. Ele reúne, em uma
-              única tela, os principais indicadores da conta ativa para que o
-              operador entenda rapidamente <em>como o negócio está se
-              comportando hoje</em> e <em>onde investir atenção primeiro</em>.
-            </p>
-            <p>
-              O objetivo não é analisar todos os detalhes aqui, e sim{" "}
-              <strong>identificar sinais</strong> e decidir para qual módulo
-              aprofundar (Central de Ações, Produtos e Anúncios, Custos e
-              Margem, Estoque, etc.).
-            </p>
+          <Section icon={Target} eyebrow="A" title="Objetivo do menu">
+            <CalloutGrid
+              items={[
+                {
+                  tone: "blue",
+                  icon: Compass,
+                  title: "Painel executivo único",
+                  text: "Reúne, em uma tela, os principais indicadores da conta ativa Mercado Livre.",
+                },
+                {
+                  tone: "emerald",
+                  icon: Lightbulb,
+                  title: "Leitura em segundos",
+                  text: "Mostra como o negócio está se comportando hoje sem precisar abrir cada módulo.",
+                },
+                {
+                  tone: "amber",
+                  icon: ArrowRight,
+                  title: "Ponto de partida da rotina",
+                  text: "Identifica sinais e indica para qual módulo aprofundar a análise.",
+                },
+              ]}
+            />
           </Section>
 
-          <Section
-            icon={ShieldCheck}
-            eyebrow="B"
-            title="Antes de usar"
-          >
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>
-                Confirme que a <strong>conta Mercado Livre correta</strong>{" "}
-                está selecionada no topo da tela.
-              </li>
-              <li>
-                Verifique se a última <strong>sincronização</strong> está
-                atualizada (badge “Sincronizado” no topbar).
-              </li>
-              <li>
-                Tenha em mente o <strong>período de referência</strong> que
-                você quer analisar (dia, semana, mês).
-              </li>
-            </ul>
+          <Section icon={ShieldCheck} eyebrow="B" title="Antes de usar">
+            <ChecklistCards
+              items={[
+                {
+                  title: "Conta Mercado Livre correta",
+                  text: "Confirme, no topo da tela, qual conta está selecionada antes de ler qualquer dado.",
+                },
+                {
+                  title: "Sincronização atualizada",
+                  text: "O badge Sincronizado no topbar precisa estar ativo — dados antigos geram diagnóstico errado.",
+                },
+                {
+                  title: "Período de referência definido",
+                  text: "Tenha claro se você quer analisar dia, semana ou mês antes de começar a comparar números.",
+                },
+              ]}
+            />
           </Section>
 
-          <Section
-            icon={Compass}
-            eyebrow="C"
-            title="Conhecendo a tela"
-          >
-            <p>
-              A tela Visão Geral está organizada em blocos: identificação da
-              conta ativa, cards de indicadores principais, resumo de ações
-              recomendadas e atalhos para os módulos operacionais.
-            </p>
+          <Section icon={Compass} eyebrow="C" title="Conhecendo a tela">
+            <CalloutGrid
+              items={[
+                { tone: "blue", icon: LayoutGrid, title: "Conta ativa", text: "Identificação clara de qual conta Mercado Livre está sendo lida." },
+                { tone: "blue", icon: BarChart3, title: "Cards de KPIs", text: "Bloco central com indicadores executivos do período." },
+                { tone: "blue", icon: Sparkles, title: "Ações recomendadas", text: "Resumo dos pontos que a inteligência AC360 sugere revisar." },
+                { tone: "blue", icon: ArrowRight, title: "Atalhos operacionais", text: "Levam direto ao módulo indicado a partir do sinal." },
+              ]}
+            />
             <ImagePlaceholder
               order={1}
               title="Visão Geral — layout completo do painel"
@@ -375,17 +377,14 @@ function GuiaVisaoGeralPage() {
             />
           </Section>
 
-          <Section
-            icon={BarChart3}
-            eyebrow="D"
-            title="Indicadores e cards"
-          >
-            <p>
-              Cada card representa um indicador executivo da operação. A
-              leitura correta segue sempre a mesma lógica: <strong>valor
-              atual</strong>, <strong>variação em relação ao período
-              anterior</strong> e <strong>tendência</strong>.
-            </p>
+          <Section icon={BarChart3} eyebrow="D" title="Indicadores e cards">
+            <AnatomyRow
+              items={[
+                { label: "Valor atual", text: "O número absoluto do período selecionado." },
+                { label: "Variação", text: "Percentual comparado ao período anterior." },
+                { label: "Tendência", text: "Mini gráfico indicando direção do indicador." },
+              ]}
+            />
             <ImagePlaceholder
               order={2}
               title="Cards de indicadores — anatomia"
@@ -400,105 +399,62 @@ function GuiaVisaoGeralPage() {
             />
           </Section>
 
-          <Section
-            icon={Lightbulb}
-            eyebrow="E"
-            title="Como interpretar os dados"
-          >
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>
-                Foque primeiro nos indicadores <strong>fora da tendência
-                esperada</strong>. Números estáveis não pedem ação; variações
-                fortes sim.
-              </li>
-              <li>
-                Não tire conclusões olhando apenas <strong>um dia
-                isolado</strong> — compare com a tendência recente.
-              </li>
-              <li>
-                Cruze o que ver aqui com <strong>Central de Ações</strong>{" "}
-                para entender <em>por que</em> um indicador variou.
-              </li>
-            </ul>
+          <Section icon={Lightbulb} eyebrow="E" title="Como interpretar os dados">
+            <InterpretationTable
+              rows={[
+                { signal: "Indicador estável", action: "Não pede ação — foco em outros sinais." },
+                { signal: "Variação forte fora do padrão", action: "Prioridade de análise — abrir módulo específico." },
+                { signal: "Dia isolado destoando", action: "Comparar com tendência recente antes de decidir." },
+                { signal: "Vendas caindo e lucro subindo", action: "Rever mix — pode ser preço/promoção mal calibrada." },
+                { signal: "Vendas subindo e lucro caindo", action: "Suspeita de problema de margem em Custos e Margem." },
+              ]}
+            />
           </Section>
 
-          <Section
-            icon={PlayCircle}
-            eyebrow="F"
-            title="Passo a passo operacional"
-          >
-            <ol className="list-decimal pl-5 space-y-1.5">
-              <li>Acesse Visão Geral no menu lateral.</li>
-              <li>Confirme a conta ativa no topo.</li>
-              <li>
-                Leia os cards principais sem se perder em detalhes secundários.
-              </li>
-              <li>Identifique 1 ou 2 pontos que exigem atenção.</li>
-              <li>
-                Vá direto ao módulo correspondente ao ponto de atenção (ex.
-                Central de Ações, Produtos e Anúncios, Custos e Margem,
-                Estoque).
-              </li>
-            </ol>
+          <Section icon={PlayCircle} eyebrow="F" title="Passo a passo operacional">
+            <OperationalTimeline
+              steps={[
+                { title: "Acesse Visão Geral", text: "Abra o menu lateral e selecione Visão Geral.", icon: Compass },
+                { title: "Confirme a conta ativa", text: "Verifique o seletor no topo — todos os dados dependem disso.", icon: ShieldCheck },
+                { title: "Leia os cards principais", text: "Foque no que salta aos olhos, não se prenda em detalhes secundários.", icon: BarChart3 },
+                { title: "Identifique 1 ou 2 pontos", text: "Escolha os sinais mais relevantes para agir hoje.", icon: Target },
+                { title: "Abra o módulo específico", text: "Central de Ações, Produtos, Custos ou Estoque — dependendo do sinal.", icon: ArrowRight },
+              ]}
+            />
           </Section>
 
-          <Section
-            icon={BookOpen}
-            eyebrow="G"
-            title="Exemplo prático"
-          >
-            <p>
-              Se a Visão Geral mostra <strong>queda de vendas</strong> em um
-              período em que a operação costumava vender bem, o próximo passo
-              não é agir imediatamente. Antes:
-            </p>
-            <ol className="list-decimal pl-5 space-y-1.5 mt-2">
-              <li>Abra <strong>Produtos e Anúncios</strong> para verificar performance por SKU.</li>
-              <li>Cruze com <strong>Central de Ações</strong> para ver o que já foi identificado como prioridade.</li>
-              <li>Só então decida a ação (ajuste de preço, campanha, reposição, etc.).</li>
-            </ol>
+          <Section icon={BookOpen} eyebrow="G" title="Exemplo prático">
+            <ScenarioCard
+              scenario="A Visão Geral mostra queda de vendas em um período em que a operação costumava vender bem."
+              wrong="Agir imediatamente ajustando preço, subindo campanha ou empurrando promoção sem investigar."
+              right={[
+                { title: "Abra Produtos e Anúncios", text: "Verifique performance por SKU — a queda pode estar concentrada em poucos itens." },
+                { title: "Cruze com Central de Ações", text: "Veja o que a IA já identificou como prioridade automática." },
+                { title: "Decida a ação certa", text: "Ajuste de preço, campanha, reposição ou correção de anúncio — com base em evidência." },
+              ]}
+            />
           </Section>
 
-          <Section
-            icon={ArrowRight}
-            eyebrow="H"
-            title="O que fazer depois"
-          >
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>
-                Transforme o ponto de atenção em uma <strong>tarefa</strong>{" "}
-                em <em>Tarefas da Operação</em>.
-              </li>
-              <li>
-                Acompanhe o impacto pela tela <em>Resultados das Ações</em>.
-              </li>
-              <li>
-                Retorne à Visão Geral no dia seguinte para confirmar se o
-                indicador reagiu.
-              </li>
-            </ul>
+          <Section icon={ArrowRight} eyebrow="H" title="O que fazer depois">
+            <NextActionsGrid
+              items={[
+                { step: "1", title: "Registre a ação", text: "Transforme o ponto de atenção em tarefa em Tarefas da Operação.", icon: ClipboardCheck },
+                { step: "2", title: "Acompanhe o impacto", text: "Meça o efeito da ação na tela Resultados das Ações.", icon: BarChart3 },
+                { step: "3", title: "Volte no dia seguinte", text: "Retorne à Visão Geral para confirmar se o indicador reagiu.", icon: Compass },
+              ]}
+            />
           </Section>
 
-          <Section
-            icon={AlertTriangle}
-            eyebrow="I"
-            title="Cuidados e limitações"
-          >
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>
-                Os números só fazem sentido com a <strong>conta ativa
-                correta</strong> selecionada.
-              </li>
-              <li>
-                Visão Geral é <strong>leitura</strong>, não execução — nenhuma
-                mudança é enviada ao Mercado Livre a partir desta tela.
-              </li>
-              <li>
-                Não decida ajustes de preço, estoque ou campanhas apenas com
-                base em um único card sem cruzar com o módulo específico.
-              </li>
-            </ul>
+          <Section icon={AlertTriangle} eyebrow="I" title="Cuidados e limitações">
+            <WarningCallouts
+              items={[
+                { title: "Conta ativa é obrigatória", text: "Nenhum número faz sentido sem confirmar a conta Mercado Livre selecionada." },
+                { title: "Somente leitura", text: "Nenhuma mudança é enviada ao Mercado Livre a partir desta tela." },
+                { title: "Nunca decida por 1 card só", text: "Sempre cruze com o módulo específico antes de ajustar preço, estoque ou campanha." },
+              ]}
+            />
           </Section>
+
 
           <Section
             icon={ClipboardCheck}
@@ -1376,5 +1332,240 @@ function ConsultantTipCard({
         </div>
       </div>
     </section>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Componentes visuais de aprendizado (substituem blocos de texto longo)
+// ---------------------------------------------------------------------------
+
+type Tone = "blue" | "emerald" | "amber" | "rose";
+const TONE: Record<Tone, { bg: string; border: string; icon: string; chip: string }> = {
+  blue: { bg: "bg-blue-50/60", border: "border-blue-200", icon: "bg-blue-700 text-white", chip: "text-blue-700" },
+  emerald: { bg: "bg-emerald-50/60", border: "border-emerald-200", icon: "bg-emerald-600 text-white", chip: "text-emerald-700" },
+  amber: { bg: "bg-amber-50/60", border: "border-amber-200", icon: "bg-amber-500 text-white", chip: "text-amber-700" },
+  rose: { bg: "bg-rose-50/60", border: "border-rose-200", icon: "bg-rose-600 text-white", chip: "text-rose-700" },
+};
+
+function CalloutGrid({
+  items,
+}: {
+  items: { tone: Tone; icon: React.ComponentType<{ className?: string }>; title: string; text: string }[];
+}) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 not-prose">
+      {items.map((it, i) => {
+        const t = TONE[it.tone];
+        const Icon = it.icon;
+        return (
+          <div key={i} className={`rounded-xl border ${t.border} ${t.bg} p-4`}>
+            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${t.icon} mb-3`}>
+              <Icon className="h-4 w-4" />
+            </div>
+            <div className="font-display text-sm font-bold text-foreground">{it.title}</div>
+            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{it.text}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ChecklistCards({ items }: { items: { title: string; text: string }[] }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 not-prose">
+      {items.map((it, i) => (
+        <div key={i} className="rounded-xl border border-border/60 bg-white p-4 flex items-start gap-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-700 text-white text-xs font-bold shrink-0">
+            {i + 1}
+          </div>
+          <div className="min-w-0">
+            <div className="font-display text-sm font-bold text-foreground">{it.title}</div>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{it.text}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AnatomyRow({ items }: { items: { label: string; text: string }[] }) {
+  return (
+    <div className="not-prose grid grid-cols-1 md:grid-cols-3 gap-2">
+      {items.map((it, i) => (
+        <div
+          key={i}
+          className="relative rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50/60 to-white p-4"
+        >
+          <div className="absolute top-3 right-3 text-[10px] font-mono font-bold text-blue-700/40">
+            0{i + 1}
+          </div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700">
+            Elemento
+          </div>
+          <div className="font-display text-base font-bold text-foreground mt-1">{it.label}</div>
+          <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{it.text}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function InterpretationTable({ rows }: { rows: { signal: string; action: string }[] }) {
+  return (
+    <div className="not-prose overflow-hidden rounded-xl border border-border/60 bg-white">
+      <div className="grid grid-cols-[1.2fr,1.5fr] bg-muted/40 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <div>Sinal identificado</div>
+        <div>Como interpretar</div>
+      </div>
+      <ul className="divide-y divide-border/60">
+        {rows.map((r, i) => (
+          <li key={i} className="grid grid-cols-[1.2fr,1.5fr] gap-3 px-4 py-3">
+            <div className="flex items-start gap-2 text-sm font-semibold text-foreground">
+              <Lightbulb className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+              {r.signal}
+            </div>
+            <div className="text-sm text-muted-foreground leading-relaxed">{r.action}</div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function OperationalTimeline({
+  steps,
+}: {
+  steps: { title: string; text: string; icon: React.ComponentType<{ className?: string }> }[];
+}) {
+  return (
+    <ol className="not-prose relative space-y-3">
+      {steps.map((s, i) => {
+        const Icon = s.icon;
+        const last = i === steps.length - 1;
+        return (
+          <li key={i} className="flex items-stretch gap-3">
+            <div className="flex flex-col items-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-700 text-white shadow-md shrink-0">
+                <Icon className="h-4 w-4" />
+              </div>
+              {!last && <div className="w-px flex-1 bg-blue-200 my-1" />}
+            </div>
+            <div className="flex-1 rounded-xl border border-border/60 bg-white p-4">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
+                  Etapa {i + 1}
+                </span>
+              </div>
+              <div className="font-display text-sm md:text-base font-bold text-foreground mt-0.5">
+                {s.title}
+              </div>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1 leading-relaxed">
+                {s.text}
+              </p>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function ScenarioCard({
+  scenario,
+  wrong,
+  right,
+}: {
+  scenario: string;
+  wrong: string;
+  right: { title: string; text: string }[];
+}) {
+  return (
+    <div className="not-prose space-y-3">
+      <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-5">
+        <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700 flex items-center gap-1.5">
+          <BookOpen className="h-3.5 w-3.5" />
+          Cenário
+        </div>
+        <p className="font-display text-base md:text-lg font-bold text-foreground mt-2 leading-snug">
+          {scenario}
+        </p>
+      </div>
+      <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4">
+        <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-rose-700 flex items-center gap-1.5">
+          <XCircle className="h-3.5 w-3.5" />
+          Reação errada
+        </div>
+        <p className="text-sm text-foreground/90 mt-1.5 leading-relaxed">{wrong}</p>
+      </div>
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
+        <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700 flex items-center gap-1.5">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          Caminho correto
+        </div>
+        <ol className="mt-3 space-y-2">
+          {right.map((r, i) => (
+            <li key={i} className="flex items-start gap-3 rounded-lg border border-emerald-200/70 bg-white p-3">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-white text-[10px] font-bold shrink-0">
+                {i + 1}
+              </span>
+              <div className="min-w-0">
+                <div className="font-display text-sm font-bold text-foreground">{r.title}</div>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{r.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
+
+function NextActionsGrid({
+  items,
+}: {
+  items: { step: string; title: string; text: string; icon: React.ComponentType<{ className?: string }> }[];
+}) {
+  return (
+    <div className="not-prose grid grid-cols-1 md:grid-cols-3 gap-3">
+      {items.map((it, i) => {
+        const Icon = it.icon;
+        return (
+          <div
+            key={i}
+            className="relative rounded-xl border border-border/60 bg-white p-4 overflow-hidden"
+          >
+            <div className="absolute inset-x-0 top-0 h-0.5" style={{ background: "var(--gradient-brand)" }} />
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
+                <Icon className="h-4 w-4" />
+              </div>
+              <span className="font-display text-2xl font-bold text-blue-700/30">{it.step}</span>
+            </div>
+            <div className="font-display text-sm font-bold text-foreground mt-2">{it.title}</div>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{it.text}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function WarningCallouts({ items }: { items: { title: string; text: string }[] }) {
+  return (
+    <div className="not-prose space-y-2.5">
+      {items.map((it, i) => (
+        <div
+          key={i}
+          className="flex items-start gap-3 rounded-xl border-l-4 border-amber-400 border-y border-r border-y-amber-100 border-r-amber-100 bg-amber-50/50 p-4"
+        >
+          <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <div className="font-display text-sm font-bold text-foreground">{it.title}</div>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1 leading-relaxed">{it.text}</p>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }

@@ -1334,3 +1334,238 @@ function ConsultantTipCard({
     </section>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Componentes visuais de aprendizado (substituem blocos de texto longo)
+// ---------------------------------------------------------------------------
+
+type Tone = "blue" | "emerald" | "amber" | "rose";
+const TONE: Record<Tone, { bg: string; border: string; icon: string; chip: string }> = {
+  blue: { bg: "bg-blue-50/60", border: "border-blue-200", icon: "bg-blue-700 text-white", chip: "text-blue-700" },
+  emerald: { bg: "bg-emerald-50/60", border: "border-emerald-200", icon: "bg-emerald-600 text-white", chip: "text-emerald-700" },
+  amber: { bg: "bg-amber-50/60", border: "border-amber-200", icon: "bg-amber-500 text-white", chip: "text-amber-700" },
+  rose: { bg: "bg-rose-50/60", border: "border-rose-200", icon: "bg-rose-600 text-white", chip: "text-rose-700" },
+};
+
+function CalloutGrid({
+  items,
+}: {
+  items: { tone: Tone; icon: React.ComponentType<{ className?: string }>; title: string; text: string }[];
+}) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 not-prose">
+      {items.map((it, i) => {
+        const t = TONE[it.tone];
+        const Icon = it.icon;
+        return (
+          <div key={i} className={`rounded-xl border ${t.border} ${t.bg} p-4`}>
+            <div className={`flex h-9 w-9 items-center justify-center rounded-lg ${t.icon} mb-3`}>
+              <Icon className="h-4 w-4" />
+            </div>
+            <div className="font-display text-sm font-bold text-foreground">{it.title}</div>
+            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">{it.text}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ChecklistCards({ items }: { items: { title: string; text: string }[] }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 not-prose">
+      {items.map((it, i) => (
+        <div key={i} className="rounded-xl border border-border/60 bg-white p-4 flex items-start gap-3">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-700 text-white text-xs font-bold shrink-0">
+            {i + 1}
+          </div>
+          <div className="min-w-0">
+            <div className="font-display text-sm font-bold text-foreground">{it.title}</div>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{it.text}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function AnatomyRow({ items }: { items: { label: string; text: string }[] }) {
+  return (
+    <div className="not-prose grid grid-cols-1 md:grid-cols-3 gap-2">
+      {items.map((it, i) => (
+        <div
+          key={i}
+          className="relative rounded-xl border border-blue-100 bg-gradient-to-br from-blue-50/60 to-white p-4"
+        >
+          <div className="absolute top-3 right-3 text-[10px] font-mono font-bold text-blue-700/40">
+            0{i + 1}
+          </div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700">
+            Elemento
+          </div>
+          <div className="font-display text-base font-bold text-foreground mt-1">{it.label}</div>
+          <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{it.text}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function InterpretationTable({ rows }: { rows: { signal: string; action: string }[] }) {
+  return (
+    <div className="not-prose overflow-hidden rounded-xl border border-border/60 bg-white">
+      <div className="grid grid-cols-[1.2fr,1.5fr] bg-muted/40 px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+        <div>Sinal identificado</div>
+        <div>Como interpretar</div>
+      </div>
+      <ul className="divide-y divide-border/60">
+        {rows.map((r, i) => (
+          <li key={i} className="grid grid-cols-[1.2fr,1.5fr] gap-3 px-4 py-3">
+            <div className="flex items-start gap-2 text-sm font-semibold text-foreground">
+              <Lightbulb className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+              {r.signal}
+            </div>
+            <div className="text-sm text-muted-foreground leading-relaxed">{r.action}</div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function OperationalTimeline({
+  steps,
+}: {
+  steps: { title: string; text: string; icon: React.ComponentType<{ className?: string }> }[];
+}) {
+  return (
+    <ol className="not-prose relative space-y-3">
+      {steps.map((s, i) => {
+        const Icon = s.icon;
+        const last = i === steps.length - 1;
+        return (
+          <li key={i} className="flex items-stretch gap-3">
+            <div className="flex flex-col items-center">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-700 text-white shadow-md shrink-0">
+                <Icon className="h-4 w-4" />
+              </div>
+              {!last && <div className="w-px flex-1 bg-blue-200 my-1" />}
+            </div>
+            <div className="flex-1 rounded-xl border border-border/60 bg-white p-4">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
+                  Etapa {i + 1}
+                </span>
+              </div>
+              <div className="font-display text-sm md:text-base font-bold text-foreground mt-0.5">
+                {s.title}
+              </div>
+              <p className="text-xs md:text-sm text-muted-foreground mt-1 leading-relaxed">
+                {s.text}
+              </p>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function ScenarioCard({
+  scenario,
+  wrong,
+  right,
+}: {
+  scenario: string;
+  wrong: string;
+  right: { title: string; text: string }[];
+}) {
+  return (
+    <div className="not-prose space-y-3">
+      <div className="rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-white p-5">
+        <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700 flex items-center gap-1.5">
+          <BookOpen className="h-3.5 w-3.5" />
+          Cenário
+        </div>
+        <p className="font-display text-base md:text-lg font-bold text-foreground mt-2 leading-snug">
+          {scenario}
+        </p>
+      </div>
+      <div className="rounded-xl border border-rose-200 bg-rose-50/50 p-4">
+        <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-rose-700 flex items-center gap-1.5">
+          <XCircle className="h-3.5 w-3.5" />
+          Reação errada
+        </div>
+        <p className="text-sm text-foreground/90 mt-1.5 leading-relaxed">{wrong}</p>
+      </div>
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
+        <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700 flex items-center gap-1.5">
+          <CheckCircle2 className="h-3.5 w-3.5" />
+          Caminho correto
+        </div>
+        <ol className="mt-3 space-y-2">
+          {right.map((r, i) => (
+            <li key={i} className="flex items-start gap-3 rounded-lg border border-emerald-200/70 bg-white p-3">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-white text-[10px] font-bold shrink-0">
+                {i + 1}
+              </span>
+              <div className="min-w-0">
+                <div className="font-display text-sm font-bold text-foreground">{r.title}</div>
+                <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{r.text}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
+
+function NextActionsGrid({
+  items,
+}: {
+  items: { step: string; title: string; text: string; icon: React.ComponentType<{ className?: string }> }[];
+}) {
+  return (
+    <div className="not-prose grid grid-cols-1 md:grid-cols-3 gap-3">
+      {items.map((it, i) => {
+        const Icon = it.icon;
+        return (
+          <div
+            key={i}
+            className="relative rounded-xl border border-border/60 bg-white p-4 overflow-hidden"
+          >
+            <div className="absolute inset-x-0 top-0 h-0.5" style={{ background: "var(--gradient-brand)" }} />
+            <div className="flex items-center gap-2">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
+                <Icon className="h-4 w-4" />
+              </div>
+              <span className="font-display text-2xl font-bold text-blue-700/30">{it.step}</span>
+            </div>
+            <div className="font-display text-sm font-bold text-foreground mt-2">{it.title}</div>
+            <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{it.text}</p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function WarningCallouts({ items }: { items: { title: string; text: string }[] }) {
+  return (
+    <div className="not-prose space-y-2.5">
+      {items.map((it, i) => (
+        <div
+          key={i}
+          className="flex items-start gap-3 rounded-xl border-l-4 border-amber-400 border-y border-r border-y-amber-100 border-r-amber-100 bg-amber-50/50 p-4"
+        >
+          <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="min-w-0">
+            <div className="font-display text-sm font-bold text-foreground">{it.title}</div>
+            <p className="text-xs md:text-sm text-muted-foreground mt-1 leading-relaxed">{it.text}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}

@@ -310,57 +310,59 @@ function GuiaVisaoGeralPage() {
 
         {/* Conteúdo principal */}
         <div className="space-y-6">
-          <Section
-            icon={Target}
-            eyebrow="A"
-            title="Objetivo do menu"
-          >
-            <p>
-              O menu <strong>Visão Geral</strong> é o painel executivo da
-              operação Mercado Livre no AC360 E-commerce. Ele reúne, em uma
-              única tela, os principais indicadores da conta ativa para que o
-              operador entenda rapidamente <em>como o negócio está se
-              comportando hoje</em> e <em>onde investir atenção primeiro</em>.
-            </p>
-            <p>
-              O objetivo não é analisar todos os detalhes aqui, e sim{" "}
-              <strong>identificar sinais</strong> e decidir para qual módulo
-              aprofundar (Central de Ações, Produtos e Anúncios, Custos e
-              Margem, Estoque, etc.).
-            </p>
+          <Section icon={Target} eyebrow="A" title="Objetivo do menu">
+            <CalloutGrid
+              items={[
+                {
+                  tone: "blue",
+                  icon: Compass,
+                  title: "Painel executivo único",
+                  text: "Reúne, em uma tela, os principais indicadores da conta ativa Mercado Livre.",
+                },
+                {
+                  tone: "emerald",
+                  icon: Lightbulb,
+                  title: "Leitura em segundos",
+                  text: "Mostra como o negócio está se comportando hoje sem precisar abrir cada módulo.",
+                },
+                {
+                  tone: "amber",
+                  icon: ArrowRight,
+                  title: "Ponto de partida da rotina",
+                  text: "Identifica sinais e indica para qual módulo aprofundar a análise.",
+                },
+              ]}
+            />
           </Section>
 
-          <Section
-            icon={ShieldCheck}
-            eyebrow="B"
-            title="Antes de usar"
-          >
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>
-                Confirme que a <strong>conta Mercado Livre correta</strong>{" "}
-                está selecionada no topo da tela.
-              </li>
-              <li>
-                Verifique se a última <strong>sincronização</strong> está
-                atualizada (badge “Sincronizado” no topbar).
-              </li>
-              <li>
-                Tenha em mente o <strong>período de referência</strong> que
-                você quer analisar (dia, semana, mês).
-              </li>
-            </ul>
+          <Section icon={ShieldCheck} eyebrow="B" title="Antes de usar">
+            <ChecklistCards
+              items={[
+                {
+                  title: "Conta Mercado Livre correta",
+                  text: "Confirme, no topo da tela, qual conta está selecionada antes de ler qualquer dado.",
+                },
+                {
+                  title: "Sincronização atualizada",
+                  text: "O badge Sincronizado no topbar precisa estar ativo — dados antigos geram diagnóstico errado.",
+                },
+                {
+                  title: "Período de referência definido",
+                  text: "Tenha claro se você quer analisar dia, semana ou mês antes de começar a comparar números.",
+                },
+              ]}
+            />
           </Section>
 
-          <Section
-            icon={Compass}
-            eyebrow="C"
-            title="Conhecendo a tela"
-          >
-            <p>
-              A tela Visão Geral está organizada em blocos: identificação da
-              conta ativa, cards de indicadores principais, resumo de ações
-              recomendadas e atalhos para os módulos operacionais.
-            </p>
+          <Section icon={Compass} eyebrow="C" title="Conhecendo a tela">
+            <CalloutGrid
+              items={[
+                { tone: "blue", icon: LayoutGrid, title: "Conta ativa", text: "Identificação clara de qual conta Mercado Livre está sendo lida." },
+                { tone: "blue", icon: BarChart3, title: "Cards de KPIs", text: "Bloco central com indicadores executivos do período." },
+                { tone: "blue", icon: Sparkles, title: "Ações recomendadas", text: "Resumo dos pontos que a inteligência AC360 sugere revisar." },
+                { tone: "blue", icon: ArrowRight, title: "Atalhos operacionais", text: "Levam direto ao módulo indicado a partir do sinal." },
+              ]}
+            />
             <ImagePlaceholder
               order={1}
               title="Visão Geral — layout completo do painel"
@@ -375,17 +377,14 @@ function GuiaVisaoGeralPage() {
             />
           </Section>
 
-          <Section
-            icon={BarChart3}
-            eyebrow="D"
-            title="Indicadores e cards"
-          >
-            <p>
-              Cada card representa um indicador executivo da operação. A
-              leitura correta segue sempre a mesma lógica: <strong>valor
-              atual</strong>, <strong>variação em relação ao período
-              anterior</strong> e <strong>tendência</strong>.
-            </p>
+          <Section icon={BarChart3} eyebrow="D" title="Indicadores e cards">
+            <AnatomyRow
+              items={[
+                { label: "Valor atual", text: "O número absoluto do período selecionado." },
+                { label: "Variação", text: "Percentual comparado ao período anterior." },
+                { label: "Tendência", text: "Mini gráfico indicando direção do indicador." },
+              ]}
+            />
             <ImagePlaceholder
               order={2}
               title="Cards de indicadores — anatomia"
@@ -400,104 +399,62 @@ function GuiaVisaoGeralPage() {
             />
           </Section>
 
-          <Section
-            icon={Lightbulb}
-            eyebrow="E"
-            title="Como interpretar os dados"
-          >
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>
-                Foque primeiro nos indicadores <strong>fora da tendência
-                esperada</strong>. Números estáveis não pedem ação; variações
-                fortes sim.
-              </li>
-              <li>
-                Não tire conclusões olhando apenas <strong>um dia
-                isolado</strong> — compare com a tendência recente.
-              </li>
-              <li>
-                Cruze o que ver aqui com <strong>Central de Ações</strong>{" "}
-                para entender <em>por que</em> um indicador variou.
-              </li>
-            </ul>
+          <Section icon={Lightbulb} eyebrow="E" title="Como interpretar os dados">
+            <InterpretationTable
+              rows={[
+                { signal: "Indicador estável", action: "Não pede ação — foco em outros sinais." },
+                { signal: "Variação forte fora do padrão", action: "Prioridade de análise — abrir módulo específico." },
+                { signal: "Dia isolado destoando", action: "Comparar com tendência recente antes de decidir." },
+                { signal: "Vendas caindo e lucro subindo", action: "Rever mix — pode ser preço/promoção mal calibrada." },
+                { signal: "Vendas subindo e lucro caindo", action: "Suspeita de problema de margem em Custos e Margem." },
+              ]}
+            />
           </Section>
 
-          <Section
-            icon={PlayCircle}
-            eyebrow="F"
-            title="Passo a passo operacional"
-          >
-            <ol className="list-decimal pl-5 space-y-1.5">
-              <li>Acesse Visão Geral no menu lateral.</li>
-              <li>Confirme a conta ativa no topo.</li>
-              <li>
-                Leia os cards principais sem se perder em detalhes secundários.
-              </li>
-              <li>Identifique 1 ou 2 pontos que exigem atenção.</li>
-              <li>
-                Vá direto ao módulo correspondente ao ponto de atenção (ex.
-                Central de Ações, Produtos e Anúncios, Custos e Margem,
-                Estoque).
-              </li>
-            </ol>
+          <Section icon={PlayCircle} eyebrow="F" title="Passo a passo operacional">
+            <OperationalTimeline
+              steps={[
+                { title: "Acesse Visão Geral", text: "Abra o menu lateral e selecione Visão Geral.", icon: Compass },
+                { title: "Confirme a conta ativa", text: "Verifique o seletor no topo — todos os dados dependem disso.", icon: ShieldCheck },
+                { title: "Leia os cards principais", text: "Foque no que salta aos olhos, não se prenda em detalhes secundários.", icon: BarChart3 },
+                { title: "Identifique 1 ou 2 pontos", text: "Escolha os sinais mais relevantes para agir hoje.", icon: Target },
+                { title: "Abra o módulo específico", text: "Central de Ações, Produtos, Custos ou Estoque — dependendo do sinal.", icon: ArrowRight },
+              ]}
+            />
           </Section>
 
-          <Section
-            icon={BookOpen}
-            eyebrow="G"
-            title="Exemplo prático"
-          >
-            <p>
-              Se a Visão Geral mostra <strong>queda de vendas</strong> em um
-              período em que a operação costumava vender bem, o próximo passo
-              não é agir imediatamente. Antes:
-            </p>
-            <ol className="list-decimal pl-5 space-y-1.5 mt-2">
-              <li>Abra <strong>Produtos e Anúncios</strong> para verificar performance por SKU.</li>
-              <li>Cruze com <strong>Central de Ações</strong> para ver o que já foi identificado como prioridade.</li>
-              <li>Só então decida a ação (ajuste de preço, campanha, reposição, etc.).</li>
-            </ol>
+          <Section icon={BookOpen} eyebrow="G" title="Exemplo prático">
+            <ScenarioCard
+              scenario="A Visão Geral mostra queda de vendas em um período em que a operação costumava vender bem."
+              wrong="Agir imediatamente ajustando preço, subindo campanha ou empurrando promoção sem investigar."
+              right={[
+                { title: "Abra Produtos e Anúncios", text: "Verifique performance por SKU — a queda pode estar concentrada em poucos itens." },
+                { title: "Cruze com Central de Ações", text: "Veja o que a IA já identificou como prioridade automática." },
+                { title: "Decida a ação certa", text: "Ajuste de preço, campanha, reposição ou correção de anúncio — com base em evidência." },
+              ]}
+            />
           </Section>
 
-          <Section
-            icon={ArrowRight}
-            eyebrow="H"
-            title="O que fazer depois"
-          >
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>
-                Transforme o ponto de atenção em uma <strong>tarefa</strong>{" "}
-                em <em>Tarefas da Operação</em>.
-              </li>
-              <li>
-                Acompanhe o impacto pela tela <em>Resultados das Ações</em>.
-              </li>
-              <li>
-                Retorne à Visão Geral no dia seguinte para confirmar se o
-                indicador reagiu.
-              </li>
-            </ul>
+          <Section icon={ArrowRight} eyebrow="H" title="O que fazer depois">
+            <NextActionsGrid
+              items={[
+                { step: "1", title: "Registre a ação", text: "Transforme o ponto de atenção em tarefa em Tarefas da Operação.", icon: ClipboardCheck },
+                { step: "2", title: "Acompanhe o impacto", text: "Meça o efeito da ação na tela Resultados das Ações.", icon: BarChart3 },
+                { step: "3", title: "Volte no dia seguinte", text: "Retorne à Visão Geral para confirmar se o indicador reagiu.", icon: Compass },
+              ]}
+            />
           </Section>
 
-          <Section
-            icon={AlertTriangle}
-            eyebrow="I"
-            title="Cuidados e limitações"
-          >
-            <ul className="list-disc pl-5 space-y-1.5">
-              <li>
-                Os números só fazem sentido com a <strong>conta ativa
-                correta</strong> selecionada.
-              </li>
-              <li>
-                Visão Geral é <strong>leitura</strong>, não execução — nenhuma
-                mudança é enviada ao Mercado Livre a partir desta tela.
-              </li>
-              <li>
-                Não decida ajustes de preço, estoque ou campanhas apenas com
-                base em um único card sem cruzar com o módulo específico.
-              </li>
-            </ul>
+          <Section icon={AlertTriangle} eyebrow="I" title="Cuidados e limitações">
+            <WarningCallouts
+              items={[
+                { title: "Conta ativa é obrigatória", text: "Nenhum número faz sentido sem confirmar a conta Mercado Livre selecionada." },
+                { title: "Somente leitura", text: "Nenhuma mudança é enviada ao Mercado Livre a partir desta tela." },
+                { title: "Nunca decida por 1 card só", text: "Sempre cruze com o módulo específico antes de ajustar preço, estoque ou campanha." },
+              ]}
+            />
+          </Section>
+
           </Section>
 
           <Section

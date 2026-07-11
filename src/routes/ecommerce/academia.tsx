@@ -1126,6 +1126,19 @@ function AcademiaPage() {
     };
   }, [progress]);
 
+  const filteredGuides = useMemo(() => {
+    const q = guideSearch.trim().toLowerCase();
+    return MENU_GUIDES.filter((g) => {
+      if (guideFilter !== "Todos" && g.group !== guideFilter) return false;
+      if (!q) return true;
+      return (
+        g.menu.toLowerCase().includes(q) ||
+        g.shortDescription.toLowerCase().includes(q) ||
+        g.description.toLowerCase().includes(q)
+      );
+    });
+  }, [guideFilter, guideSearch]);
+
   const openGuide = openGuideId ? MENU_GUIDES.find((g) => g.id === openGuideId) ?? null : null;
 
   const trackProgress = useCallback(

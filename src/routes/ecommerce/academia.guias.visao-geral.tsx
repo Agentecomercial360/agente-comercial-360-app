@@ -148,6 +148,51 @@ function GuiaVisaoGeralPage() {
           </div>
         </header>
 
+        {/* 1. Missão do módulo + Objetivo de negócio */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="relative overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6 shadow-[var(--shadow-soft)]">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700">
+              <Flag className="h-3.5 w-3.5" />
+              Missão do módulo
+            </div>
+            <h2 className="font-display text-lg md:text-xl font-bold text-foreground mt-2 leading-tight">
+              Dar ao operador uma leitura executiva única da operação Mercado Livre.
+            </h2>
+            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+              A Visão Geral existe para que, em segundos, o time saiba onde a operação está indo bem e onde precisa agir — sem abrir vários módulos.
+            </p>
+          </div>
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-[var(--shadow-soft)]">
+            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700">
+              <Target className="h-3.5 w-3.5" />
+              Objetivo de negócio
+            </div>
+            <h2 className="font-display text-lg md:text-xl font-bold text-foreground mt-2 leading-tight">
+              Reduzir o tempo entre perceber o problema e iniciar a ação.
+            </h2>
+            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
+              Quanto mais rápido o operador identifica um sinal e abre o módulo certo, mais rápido a operação corrige rota e protege receita e margem.
+            </p>
+          </div>
+        </section>
+
+        {/* 2. Pergunta central */}
+        <CentralQuestionCard question="Como está minha operação neste momento?" />
+
+        {/* 3. Fluxo dentro do AC360 */}
+        <ModuleFlow
+          title="Fluxo dentro do AC360"
+          description="Como a Visão Geral se conecta com os demais módulos operacionais."
+          steps={[
+            { label: "Visão Geral", hint: "Leitura executiva", highlight: true },
+            { label: "Central de Ações", hint: "Prioridades" },
+            { label: "Produtos e Anúncios", hint: "Ajuste fino" },
+            { label: "Custos e Margem", hint: "Rentabilidade" },
+            { label: "Tarefas da Operação", hint: "Execução" },
+            { label: "Resultados das Ações", hint: "Impacto" },
+          ]}
+        />
+
         {/* Progresso */}
         <section className="rounded-2xl border border-border/60 bg-white p-5 md:p-6 shadow-[var(--shadow-soft)]">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

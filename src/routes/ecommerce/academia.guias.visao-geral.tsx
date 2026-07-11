@@ -129,6 +129,10 @@ function GuiaVisaoGeralPage() {
                     <Clock className="h-3 w-3" />
                     {ESTIMATED_MINUTES} min
                   </span>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                    <Gauge className="h-3 w-3" />
+                    Nível iniciante
+                  </span>
                   <StatusPill status={status} />
                 </div>
                 <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground mt-2">
@@ -137,9 +141,15 @@ function GuiaVisaoGeralPage() {
                 <p className="text-sm md:text-base text-muted-foreground mt-2 max-w-2xl leading-relaxed">
                   {GUIDE_DESCRIPTION}
                 </p>
-                <div className="mt-3 inline-flex items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1 text-[11px] font-mono text-muted-foreground">
-                  <Compass className="h-3 w-3" />
-                  Rota: {GUIDE_ROUTE}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1 text-[11px] font-mono text-muted-foreground">
+                    <Compass className="h-3 w-3" />
+                    Rota: {GUIDE_ROUTE}
+                  </div>
+                  <div className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1 text-[11px] text-muted-foreground">
+                    <ListChecks className="h-3 w-3" />
+                    Pré-requisitos: conta Mercado Livre conectada e sincronizada
+                  </div>
                 </div>
               </div>
             </div>

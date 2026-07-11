@@ -733,3 +733,420 @@ function StatusPill({ status }: { status: AcademiaStatus }) {
     </span>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Blocos arquiteturais reutilizáveis pelos guias da Academia AC360
+// (definidos aqui como piloto; poderão ser extraídos para um módulo comum
+// assim que outros guias começarem a consumi-los).
+// ---------------------------------------------------------------------------
+
+function CentralQuestionCard({ question }: { question: string }) {
+  return (
+    <section
+      aria-label="Pergunta central do módulo"
+      className="relative overflow-hidden rounded-2xl border border-blue-200 bg-white p-6 md:p-8 shadow-[var(--shadow-card)]"
+    >
+      <div
+        className="absolute inset-y-0 left-0 w-1.5"
+        style={{ background: "var(--gradient-brand)" }}
+      />
+      <div className="flex items-start gap-4">
+        <div
+          className="flex h-12 w-12 items-center justify-center rounded-2xl text-white shrink-0 shadow-lg"
+          style={{ background: "var(--gradient-brand)" }}
+        >
+          <HelpCircle className="h-6 w-6" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700">
+            Pergunta central deste módulo
+          </div>
+          <p className="font-display text-xl md:text-2xl font-bold text-foreground mt-2 leading-snug">
+            “{question}”
+          </p>
+          <p className="text-xs md:text-sm text-muted-foreground mt-2">
+            Toda vez que abrir este módulo, é essa a pergunta que ele deve
+            responder para o operador.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+type FlowStep = { label: string; hint?: string; highlight?: boolean };
+
+function ModuleFlow({
+  title,
+  description,
+  steps,
+}: {
+  title: string;
+  description?: string;
+  steps: FlowStep[];
+}) {
+  return (
+    <section className="rounded-2xl border border-border/60 bg-white p-6 md:p-7 shadow-[var(--shadow-soft)]">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-100 shrink-0">
+          <Workflow className="h-5 w-5" />
+        </div>
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700">
+            Fluxo entre módulos
+          </div>
+          <h2 className="font-display text-lg md:text-xl font-bold text-foreground leading-tight">
+            {title}
+          </h2>
+        </div>
+      </div>
+      {description && (
+        <p className="text-sm text-muted-foreground mb-5 max-w-3xl">
+          {description}
+        </p>
+      )}
+      <ol className="flex flex-col gap-2">
+        {steps.map((s, i) => (
+          <li key={i} className="flex items-stretch gap-3">
+            <div className="flex flex-col items-center">
+              <div
+                className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold shrink-0 border ${
+                  s.highlight
+                    ? "bg-blue-700 text-white border-blue-700"
+                    : "bg-white text-blue-700 border-blue-200"
+                }`}
+              >
+                {i + 1}
+              </div>
+              {i < steps.length - 1 && (
+                <div className="w-px flex-1 bg-blue-200 my-1" />
+              )}
+            </div>
+            <div
+              className={`flex-1 rounded-xl border p-3 md:p-4 ${
+                s.highlight
+                  ? "border-blue-200 bg-blue-50/60"
+                  : "border-border/60 bg-white"
+              }`}
+            >
+              <div className="font-display text-sm md:text-base font-bold text-foreground">
+                {s.label}
+              </div>
+              {s.hint && (
+                <div className="text-xs text-muted-foreground mt-0.5">
+                  {s.hint}
+                </div>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function ScreenTourSection({
+  title,
+  description,
+  mainImage,
+  items,
+}: {
+  title: string;
+  description?: string;
+  mainImage: { order: number; title: string; caption: string; alt: string };
+  items: { title: string; description: string }[];
+}) {
+  return (
+    <section className="rounded-2xl border border-border/60 bg-white p-6 md:p-7 shadow-[var(--shadow-soft)]">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-100 shrink-0">
+          <ImageIcon className="h-5 w-5" />
+        </div>
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700">
+            Tour guiado da tela
+          </div>
+          <h2 className="font-display text-lg md:text-xl font-bold text-foreground leading-tight">
+            {title}
+          </h2>
+        </div>
+      </div>
+      {description && (
+        <p className="text-sm text-muted-foreground mb-5 max-w-3xl">
+          {description}
+        </p>
+      )}
+      <ImagePlaceholder
+        order={mainImage.order}
+        title={mainImage.title}
+        caption={mainImage.caption}
+        alt={mainImage.alt}
+        annotations={[]}
+      />
+      <ol className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-3">
+        {items.map((it, i) => (
+          <li
+            key={i}
+            className="flex items-start gap-3 rounded-xl border border-border/60 bg-muted/20 p-4"
+          >
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-700 text-white text-xs font-bold shrink-0">
+              {i + 1}
+            </span>
+            <div className="min-w-0">
+              <div className="font-display text-sm font-bold text-foreground">
+                {it.title}
+              </div>
+              <div className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                {it.description}
+              </div>
+              <div className="text-[10px] uppercase tracking-wider text-blue-700/70 font-semibold mt-2">
+                Explicação detalhada em breve
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function ComponentsInventory({
+  items,
+}: {
+  items: {
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    description: string;
+  }[];
+}) {
+  return (
+    <section className="rounded-2xl border border-border/60 bg-white p-6 md:p-7 shadow-[var(--shadow-soft)]">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-700 border border-blue-100 shrink-0">
+          <LayoutGrid className="h-5 w-5" />
+        </div>
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700">
+            Componentes da tela
+          </div>
+          <h2 className="font-display text-lg md:text-xl font-bold text-foreground leading-tight">
+            Inventário de elementos deste módulo
+          </h2>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {items.map((it, i) => {
+          const Icon = it.icon;
+          return (
+            <div
+              key={i}
+              className="rounded-xl border border-border/60 bg-white p-4 hover:border-blue-300 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-700 border border-blue-100">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="font-display text-sm font-bold text-foreground">
+                  {it.label}
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+                {it.description}
+              </p>
+              <div className="text-[10px] uppercase tracking-wider text-blue-700/70 font-semibold mt-3">
+                Documentação em breve
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function RulesSection({
+  items,
+}: {
+  items: { label: string; description: string }[];
+}) {
+  return (
+    <section className="rounded-2xl border border-amber-100 bg-amber-50/30 p-6 md:p-7 shadow-[var(--shadow-soft)]">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700 border border-amber-200 shrink-0">
+          <ScrollText className="h-5 w-5" />
+        </div>
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-700">
+            Regras importantes
+          </div>
+          <h2 className="font-display text-lg md:text-xl font-bold text-foreground leading-tight">
+            Regras de negócio deste módulo
+          </h2>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {items.map((it, i) => (
+          <div
+            key={i}
+            className="rounded-xl border border-amber-200/70 bg-white p-4"
+          >
+            <div className="font-display text-sm font-bold text-foreground">
+              {it.label}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+              {it.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CommonErrorsSection({
+  items,
+}: {
+  items: { title: string; description: string }[];
+}) {
+  return (
+    <section className="rounded-2xl border border-rose-100 bg-rose-50/30 p-6 md:p-7 shadow-[var(--shadow-soft)]">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-100 text-rose-700 border border-rose-200 shrink-0">
+          <XCircle className="h-5 w-5" />
+        </div>
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-rose-700">
+            Erros comuns
+          </div>
+          <h2 className="font-display text-lg md:text-xl font-bold text-foreground leading-tight">
+            O que evitar ao usar este módulo
+          </h2>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {items.map((it, i) => (
+          <div
+            key={i}
+            className="rounded-xl border border-rose-200/70 bg-white p-4"
+          >
+            <div className="font-display text-sm font-bold text-foreground">
+              {it.title}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
+              {it.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function LearningsSection({ items }: { items: string[] }) {
+  return (
+    <section className="rounded-2xl border border-emerald-100 bg-emerald-50/30 p-6 md:p-7 shadow-[var(--shadow-soft)]">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 border border-emerald-200 shrink-0">
+          <GraduationCap className="h-5 w-5" />
+        </div>
+        <div>
+          <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-700">
+            O que você aprendeu
+          </div>
+          <h2 className="font-display text-lg md:text-xl font-bold text-foreground leading-tight">
+            Resumo do que este guia entregou
+          </h2>
+        </div>
+      </div>
+      <ul className="space-y-2">
+        {items.map((t, i) => (
+          <li
+            key={i}
+            className="flex items-start gap-3 rounded-xl border border-emerald-200/70 bg-white p-3"
+          >
+            <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+            <span className="text-sm text-foreground/90 leading-relaxed">
+              {t}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function NextGuideCard({
+  available,
+  category,
+  title,
+  description,
+  onCompleteCurrent,
+}: {
+  available: boolean;
+  category: string;
+  title: string;
+  description: string;
+  onCompleteCurrent?: () => void;
+}) {
+  return (
+    <section
+      aria-label="Próximo guia"
+      className="relative overflow-hidden rounded-3xl border border-blue-100 bg-white p-6 md:p-8 shadow-[var(--shadow-card)]"
+    >
+      <div
+        className="absolute inset-x-0 top-0 h-1"
+        style={{ background: "var(--gradient-brand)" }}
+      />
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-blue-700">
+            <Sparkles className="h-3.5 w-3.5" />
+            Próximo guia
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue-700">
+              {category}
+            </span>
+            {!available && (
+              <span className="inline-flex items-center rounded-full border border-border/60 bg-muted/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Em breve
+              </span>
+            )}
+          </div>
+          <h3 className="font-display text-xl md:text-2xl font-bold text-foreground mt-2 leading-tight">
+            {title}
+          </h3>
+          <p className="text-sm text-muted-foreground mt-2 max-w-2xl leading-relaxed">
+            {description}
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 shrink-0 w-full md:w-auto">
+          {onCompleteCurrent && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onCompleteCurrent}
+              className="w-full md:w-auto"
+            >
+              <CheckCircle2 className="h-4 w-4 mr-1.5" />
+              Concluir guia atual
+            </Button>
+          )}
+          <Button
+            size="sm"
+            disabled={!available}
+            className="w-full md:w-auto"
+            title={
+              available
+                ? "Ir para o próximo guia"
+                : "Este guia será liberado em breve"
+            }
+          >
+            Continuar aprendizado
+            <ArrowRight className="h-4 w-4 ml-1.5" />
+          </Button>
+        </div>
+      </div>
+    </section>
+  );
+}

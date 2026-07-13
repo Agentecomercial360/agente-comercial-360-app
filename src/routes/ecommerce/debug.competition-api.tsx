@@ -408,14 +408,94 @@ function DebugCompetitionApiPage() {
     if (url) setOwnListingUrl(url);
   }, [selectedListing]);
 
-  async function withToken(): Promise<string | null> {
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token;
+  // ---------- Sessão / token helper ----------
+  // Banner: null | "renewing" | "renewed" | "failed"
+  const [sessionBanner, setSessionBanner] = useState<
+    null | "renewing" | "renewed" | "failed"
+  >(null);
+
+  /**
+   * Retorna um access_token válido no momento da execução.
+   * - lê getSession()
+   * - se ausente / expirado / <120s para expirar → refreshSession()
+   * - valida com getUser(token)
+   * - bloqueia e sinaliza banner de falha se não for possível renovar
+   * Nunca expõe o token em log, estado persistente ou UI.
+   */
+  async function getValidAccessToken(): Promise<string | null> {
+    const nowSec = Math.floor(Date.now() / 1000);
+
+    const { data: sessData } = await supabase.auth.getSession();
+    let session = sessData.session;
+    const expiresAt = session?.expires_at ?? 0;
+    const needsRefresh = !session || !session.access_token || expiresAt - nowSec < 120;
+
+    if (needsRefresh) {
+      setSessionBanner("renewing");
+      const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
+      if (refreshErr || !refreshed.session?.access_token) {
+        setSessionBanner("failed");
+        setSessionState("missing");
+        return null;
+      }
+      session = refreshed.session;
+    }
+
+    const token = session?.access_token;
     if (!token) {
+      setSessionBanner("failed");
       setSessionState("missing");
       return null;
     }
+
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData.user) {
+      setSessionBanner("failed");
+      setSessionState("missing");
+      return null;
+    }
+
+    setSessionState("authenticated");
+    if (needsRefresh) setSessionBanner("renewed");
+    else setSessionBanner(null);
     return token;
+  }
+
+  /**
+   * Wrapper autenticado. Em caso de HTTP 401, tenta renovar a sessão UMA vez
+   * e repete a mesma requisição. Nenhum retry adicional é feito.
+   * Não limpa nada do formulário em falha.
+   */
+  async function authedFetch(url: string, init: RequestInit = {}): Promise<Response | null> {
+    const token = await getValidAccessToken();
+    if (!token) return null;
+
+    const buildHeaders = (bearer: string): HeadersInit => ({
+      ...(init.headers as Record<string, string> | undefined),
+      Authorization: `Bearer ${bearer}`,
+    });
+
+    const first = await fetch(url, { ...init, headers: buildHeaders(token) });
+    if (first.status !== 401) return first;
+
+    // 401 → renovar sessão uma única vez e repetir.
+    setSessionBanner("renewing");
+    const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
+    if (refreshErr || !refreshed.session?.access_token) {
+      setSessionBanner("failed");
+      setSessionState("missing");
+      return first;
+    }
+    const newToken = refreshed.session.access_token;
+    const { data: userData } = await supabase.auth.getUser(newToken);
+    if (!userData.user) {
+      setSessionBanner("failed");
+      setSessionState("missing");
+      return first;
+    }
+    setSessionBanner("renewed");
+    setSessionState("authenticated");
+    return fetch(url, { ...init, headers: buildHeaders(newToken) });
   }
 
   async function runHistoryDiagnostic() {
@@ -424,16 +504,6 @@ function DebugCompetitionApiPage() {
     setResult(null);
     const started = performance.now();
     try {
-      const token = await withToken();
-      if (!token) {
-        setResult({
-          httpStatus: null,
-          durationMs: 0,
-          body: "",
-          interpretation: "Sessão autenticada não encontrada. Faça login novamente.",
-        });
-        return;
-      }
       if (!canRunTest || !historyUrl) {
         setResult({
           httpStatus: null,
@@ -443,10 +513,20 @@ function DebugCompetitionApiPage() {
         });
         return;
       }
-      const res = await fetch(historyUrl, {
+      const res = await authedFetch(historyUrl, {
         method: "GET",
-        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        headers: { Accept: "application/json" },
       });
+      if (!res) {
+        setResult({
+          httpStatus: null,
+          durationMs: 0,
+          body: "",
+          interpretation:
+            "Sua sessão expirou e não pôde ser renovada. Entre novamente no AC360.",
+        });
+        return;
+      }
       const durationMs = Math.round(performance.now() - started);
       const text = await res.text();
       const { pretty, parsed } = tryParseJson(text);
@@ -487,16 +567,6 @@ function DebugCompetitionApiPage() {
     setWatchlistPostResult(null);
     const started = performance.now();
     try {
-      const token = await withToken();
-      if (!token) {
-        setWatchlistPostResult({
-          httpStatus: null,
-          durationMs: 0,
-          body: "",
-          interpretation: "Sessão inválida. Faça login novamente.",
-        });
-        return;
-      }
       const payload = {
         company_id: companyId,
         account_id: accountId,
@@ -505,15 +575,24 @@ function DebugCompetitionApiPage() {
         min_margin_percent: marginNumber,
         notes: toStringOrNull(notes),
       };
-      const res = await fetch(`${API_BASE}/api/mercadolivre/competition/watchlist`, {
+      const res = await authedFetch(`${API_BASE}/api/mercadolivre/competition/watchlist`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
           Accept: "application/json",
         },
         body: JSON.stringify(payload),
       });
+      if (!res) {
+        setWatchlistPostResult({
+          httpStatus: null,
+          durationMs: 0,
+          body: "",
+          interpretation:
+            "Sua sessão não pôde ser renovada. Os dados preenchidos foram preservados. Entre novamente no AC360 antes de tentar novamente.",
+        });
+        return;
+      }
       const durationMs = Math.round(performance.now() - started);
       const text = await res.text();
       const { pretty, parsed } = tryParseJson(text);
@@ -556,21 +635,21 @@ function DebugCompetitionApiPage() {
     setWatchlistGetResult(null);
     const started = performance.now();
     try {
-      const token = await withToken();
-      if (!token) {
+      const params = new URLSearchParams({ company_id: companyId, account_id: accountId });
+      const res = await authedFetch(
+        `${API_BASE}/api/mercadolivre/competition/watchlist?${params.toString()}`,
+        { method: "GET", headers: { Accept: "application/json" } },
+      );
+      if (!res) {
         setWatchlistGetResult({
           httpStatus: null,
           durationMs: 0,
           body: "",
-          interpretation: "Sessão inválida.",
+          interpretation:
+            "Sua sessão expirou e não pôde ser renovada. Entre novamente no AC360.",
         });
         return;
       }
-      const params = new URLSearchParams({ company_id: companyId, account_id: accountId });
-      const res = await fetch(
-        `${API_BASE}/api/mercadolivre/competition/watchlist?${params.toString()}`,
-        { method: "GET", headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
-      );
       const durationMs = Math.round(performance.now() - started);
       const text = await res.text();
       const { pretty, parsed } = tryParseJson(text);
@@ -634,16 +713,6 @@ function DebugCompetitionApiPage() {
     setAnalysisResult(null);
     const started = performance.now();
     try {
-      const token = await withToken();
-      if (!token) {
-        setAnalysisResult({
-          httpStatus: null,
-          durationMs: 0,
-          body: "",
-          interpretation: "Sessão inválida.",
-        });
-        return;
-      }
       const payload = {
         company_id: companyId,
         account_id: accountId,
@@ -689,15 +758,24 @@ function DebugCompetitionApiPage() {
           },
         ],
       };
-      const res = await fetch(`${API_BASE}/api/mercadolivre/competition/manual-analysis`, {
+      const res = await authedFetch(`${API_BASE}/api/mercadolivre/competition/manual-analysis`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
           Accept: "application/json",
         },
         body: JSON.stringify(payload),
       });
+      if (!res) {
+        setAnalysisResult({
+          httpStatus: null,
+          durationMs: 0,
+          body: "",
+          interpretation:
+            "Sua sessão não pôde ser renovada. Os dados preenchidos foram preservados. Entre novamente no AC360 antes de tentar novamente.",
+        });
+        return;
+      }
       const durationMs = Math.round(performance.now() - started);
       const text = await res.text();
       const { pretty, parsed } = tryParseJson(text);
@@ -735,22 +813,22 @@ function DebugCompetitionApiPage() {
     setHistoryResult(null);
     const started = performance.now();
     try {
-      const token = await withToken();
-      if (!token) {
+      const params = new URLSearchParams({ company_id: companyId, account_id: accountId });
+      if (watchlistId) params.set("watchlist_id", watchlistId);
+      const res = await authedFetch(
+        `${API_BASE}/api/mercadolivre/competition/history?${params.toString()}`,
+        { method: "GET", headers: { Accept: "application/json" } },
+      );
+      if (!res) {
         setHistoryResult({
           httpStatus: null,
           durationMs: 0,
           body: "",
-          interpretation: "Sessão inválida.",
+          interpretation:
+            "Sua sessão expirou e não pôde ser renovada. Entre novamente no AC360.",
         });
         return;
       }
-      const params = new URLSearchParams({ company_id: companyId, account_id: accountId });
-      if (watchlistId) params.set("watchlist_id", watchlistId);
-      const res = await fetch(
-        `${API_BASE}/api/mercadolivre/competition/history?${params.toString()}`,
-        { method: "GET", headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
-      );
       const durationMs = Math.round(performance.now() - started);
       const text = await res.text();
       const { pretty, parsed } = tryParseJson(text);
@@ -794,6 +872,24 @@ function DebugCompetitionApiPage() {
           watchlist, análise manual e histórico.
         </p>
       </div>
+
+      {sessionBanner === "renewing" && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+          Renovando sessão com segurança...
+        </div>
+      )}
+      {sessionBanner === "renewed" && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+          Sessão renovada. Reexecutando a solicitação.
+        </div>
+      )}
+      {sessionBanner === "failed" && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          Sua sessão não pôde ser renovada. Os dados preenchidos foram preservados.
+          Entre novamente no AC360 antes de tentar novamente.
+        </div>
+      )}
+
 
       {/* ---------- Contexto ---------- */}
       <section className="rounded-xl border border-border bg-card p-5 space-y-3">

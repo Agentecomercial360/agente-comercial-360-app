@@ -5,7 +5,7 @@ import { LandingPage } from "./landing";
 const SITE_URL = "https://agentecomercial360.com.br";
 const TITLE = "AC360 E-commerce Intelligence — Vender melhor no Mercado Livre";
 const DESCRIPTION =
-  "Plataforma de inteligência para vendedores do Mercado Livre: multi-conta, lucro líquido real, Radar IA, curva ABC e monitoramento de concorrência em um só painel.";
+  "Inteligência para vendedores do Mercado Livre: gestão multi-conta, margens, curva ABC, concorrência e diagnósticos estratégicos em um só painel.";
 
 export const Route = createFileRoute("/")({
   component: LandingPage,

@@ -1557,12 +1557,18 @@ function DebugCompetitionApiPage() {
                 <li>Empresa: <strong>{companyName ?? "—"}</strong></li>
                 <li>Conta: <strong>{accountName}</strong></li>
                 <li>watchlist_id: <span className="font-mono">{watchlistId}</span></li>
-                <li>Termo congelado: <strong>{pendingAnalysisPayload?.search_query ?? "—"}</strong></li>
-                <li>Observação geral congelada: <strong>{pendingAnalysisPayload?.notes ?? "—"}</strong></li>
-                <li>Observação concorrente congelada: <strong>{pendingAnalysisPayload?.competitors[0]?.notes ?? "—"}</strong></li>
                 <li>Nosso preço: <strong>{ownPrice}</strong> · posição <strong>{ownRankPosition}</strong></li>
                 <li>Concorrente: <strong>{cTitle || cUrl || cItemId}</strong> — R$ {cPrice} · posição {cRank}</li>
               </ul>
+              <div className="rounded-md border border-amber-400 bg-white p-2 text-[11px] space-y-1 font-mono">
+                <div className="font-sans font-semibold text-amber-900">Comparação state ↔ payload congelado (obrigatória antes do POST)</div>
+                <div>searchQuery = {JSON.stringify(searchQuery)}</div>
+                <div>pendingAnalysisPayload.search_query = {JSON.stringify(pendingAnalysisPayload?.search_query ?? null)}</div>
+                <div>analysisNotes = {JSON.stringify(analysisNotes)}</div>
+                <div>pendingAnalysisPayload.notes = {JSON.stringify(pendingAnalysisPayload?.notes ?? null)}</div>
+                <div>cNotes = {JSON.stringify(cNotes)}</div>
+                <div>pendingAnalysisPayload.competitors[0].notes = {JSON.stringify(pendingAnalysisPayload?.competitors[0]?.notes ?? null)}</div>
+              </div>
               <div className="flex gap-2">
                 <button
                   type="button"

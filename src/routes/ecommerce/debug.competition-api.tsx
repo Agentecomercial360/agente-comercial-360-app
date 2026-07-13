@@ -758,15 +758,24 @@ function DebugCompetitionApiPage() {
           },
         ],
       };
-      const res = await fetch(`${API_BASE}/api/mercadolivre/competition/manual-analysis`, {
+      const res = await authedFetch(`${API_BASE}/api/mercadolivre/competition/manual-analysis`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
           Accept: "application/json",
         },
         body: JSON.stringify(payload),
       });
+      if (!res) {
+        setAnalysisResult({
+          httpStatus: null,
+          durationMs: 0,
+          body: "",
+          interpretation:
+            "Sua sessão não pôde ser renovada. Os dados preenchidos foram preservados. Entre novamente no AC360 antes de tentar novamente.",
+        });
+        return;
+      }
       const durationMs = Math.round(performance.now() - started);
       const text = await res.text();
       const { pretty, parsed } = tryParseJson(text);

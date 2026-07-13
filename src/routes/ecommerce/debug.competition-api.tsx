@@ -1,20 +1,37 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
-import {
-  ECOMMERCE_COMPANY_ID,
-  useEcommerceActiveAccount,
-} from "@/lib/ecommerce-active-account";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/debug/competition-api")({
-  component: DebugCompetitionApiPage,
+  component: DebugCompetitionApiRoute,
 });
 
 const API_BASE = "https://ac360-mercadolivre-api-production.up.railway.app";
-const COMPANY_NAME = "União Auto Peças";
 
 type SessionState = "checking" | "authenticated" | "missing";
+
+type EcommerceAccountContextRow = {
+  id: string;
+  company_id: string | null;
+  account_name: string | null;
+  marketplace: string | null;
+  auth_status: string | null;
+  is_active: boolean | null;
+};
+
+type AccountContextState =
+  | { status: "idle"; account: null; companyName: null; error: null }
+  | { status: "loading"; account: null; companyName: null; error: null }
+  | { status: "missing"; account: null; companyName: null; error: null }
+  | { status: "error"; account: null; companyName: null; error: string }
+  | {
+      status: "ready";
+      account: EcommerceAccountContextRow;
+      companyName: string | null;
+      error: null;
+    };
 
 type RunResult = {
   httpStatus: number | null;
@@ -34,9 +51,40 @@ function interpretStatus(status: number | null, networkError?: string): string {
   return `Resposta HTTP ${status ?? "desconhecida"}.`;
 }
 
+function formatMarketplace(value: string | null): string {
+  const normalized = (value ?? "").toLowerCase().replace(/[\s-]/g, "_");
+  if (normalized === "mercado_livre" || normalized === "mercadolivre" || normalized === "ml") {
+    return "Mercado Livre";
+  }
+  return value || "—";
+}
+
+function formatAuthStatus(value: string | null): string {
+  const normalized = (value ?? "").toLowerCase();
+  if (["connected", "conectada", "conectado", "active", "ativa", "ativo"].includes(normalized)) {
+    return "Conectada";
+  }
+  if (!value) return "—";
+  return value;
+}
+
+function DebugCompetitionApiRoute() {
+  return (
+    <EcommerceLayout>
+      <DebugCompetitionApiPage />
+    </EcommerceLayout>
+  );
+}
+
 function DebugCompetitionApiPage() {
   const { activeAccount, activeAccountId, loading } = useEcommerceActiveAccount();
   const [sessionState, setSessionState] = useState<SessionState>("checking");
+  const [accountContext, setAccountContext] = useState<AccountContextState>({
+    status: "idle",
+    account: null,
+    companyName: null,
+    error: null,
+  });
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
 
@@ -52,13 +100,117 @@ function DebugCompetitionApiPage() {
     };
   }, []);
 
-  const companyId = ECOMMERCE_COMPANY_ID;
-  const accountId = activeAccountId ?? activeAccount?.id ?? null;
-  const accountName =
-    activeAccount?.account_name || activeAccount?.nickname || "—";
-  const url = accountId
-    ? `${API_BASE}/api/mercadolivre/competition/history?company_id=${companyId}&account_id=${accountId}`
-    : `${API_BASE}/api/mercadolivre/competition/history?company_id=${companyId}&account_id=…`;
+  const accountIdFromHeader = activeAccountId ?? activeAccount?.id ?? null;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (loading) {
+      setAccountContext({ status: "loading", account: null, companyName: null, error: null });
+      setResult(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (!accountIdFromHeader) {
+      setAccountContext({ status: "missing", account: null, companyName: null, error: null });
+      setResult(null);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    setAccountContext({ status: "loading", account: null, companyName: null, error: null });
+    setResult(null);
+
+    (async () => {
+      const { data: accountData, error: accountError } = await supabase
+        .from("ecommerce_accounts")
+        .select("id, company_id, account_name, marketplace, auth_status, is_active")
+        .eq("id", accountIdFromHeader)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (accountError) {
+        setAccountContext({
+          status: "error",
+          account: null,
+          companyName: null,
+          error: accountError.message,
+        });
+        return;
+      }
+
+      if (!accountData) {
+        setAccountContext({ status: "missing", account: null, companyName: null, error: null });
+        return;
+      }
+
+      const account = accountData as EcommerceAccountContextRow;
+
+      if (!account.company_id) {
+        setAccountContext({
+          status: "ready",
+          account,
+          companyName: null,
+          error: null,
+        });
+        return;
+      }
+
+      const { data: companyData, error: companyError } = await supabase
+        .from("companies")
+        .select("name")
+        .eq("id", account.company_id)
+        .maybeSingle();
+
+      if (cancelled) return;
+
+      if (companyError) {
+        setAccountContext({
+          status: "error",
+          account: null,
+          companyName: null,
+          error: companyError.message,
+        });
+        return;
+      }
+
+      setAccountContext({
+        status: "ready",
+        account,
+        companyName: (companyData as { name?: string | null } | null)?.name ?? null,
+        error: null,
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [accountIdFromHeader, loading]);
+
+  const account = accountContext.status === "ready" ? accountContext.account : null;
+  const companyId = account?.company_id ?? null;
+  const companyName = accountContext.status === "ready" ? accountContext.companyName : null;
+  const accountId = account?.id ?? null;
+  const accountName = account?.account_name ?? "—";
+  const hasConsistentContext =
+    !!accountIdFromHeader &&
+    account?.id === accountIdFromHeader &&
+    !!accountId &&
+    !!companyId &&
+    !!companyName;
+  const url = useMemo(() => {
+    if (!hasConsistentContext) return null;
+    const params = new URLSearchParams({
+      company_id: companyId,
+      account_id: accountId,
+    });
+    return `${API_BASE}/api/mercadolivre/competition/history?${params.toString()}`;
+  }, [accountId, companyId, hasConsistentContext]);
+  const canRunTest = sessionState === "authenticated" && hasConsistentContext && !!url;
 
   async function runTest() {
     if (running) return;
@@ -78,12 +230,12 @@ function DebugCompetitionApiPage() {
         });
         return;
       }
-      if (!accountId) {
+      if (!canRunTest || !url) {
         setResult({
           httpStatus: null,
           durationMs: 0,
           body: "",
-          interpretation: "Nenhuma conta ativa selecionada.",
+          interpretation: "Contexto E-commerce incompleto. Selecione uma conta ativa conectada.",
         });
         return;
       }
@@ -124,8 +276,7 @@ function DebugCompetitionApiPage() {
   }
 
   return (
-    <EcommerceLayout>
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
             Diagnóstico da API de Concorrência
@@ -159,24 +310,48 @@ function DebugCompetitionApiPage() {
             </div>
             <div>
               <dt className="text-muted-foreground text-xs">Empresa</dt>
-              <dd className="font-medium">{COMPANY_NAME}</dd>
+              <dd className="font-medium">
+                {accountContext.status === "loading" ? "Carregando conta ativa..." : companyName ?? "—"}
+              </dd>
               <dd className="text-xs text-muted-foreground font-mono break-all">
-                {companyId}
+                {companyId ?? "—"}
               </dd>
             </div>
             <div>
               <dt className="text-muted-foreground text-xs">Conta ativa</dt>
-              <dd className="font-medium">{loading ? "Carregando…" : accountName}</dd>
+              <dd className="font-medium">
+                {accountContext.status === "loading" && "Carregando conta ativa..."}
+                {accountContext.status === "missing" && "Nenhuma conta E-commerce ativa foi identificada."}
+                {accountContext.status === "error" && "Não foi possível carregar o contexto E-commerce."}
+                {accountContext.status === "idle" && "—"}
+                {accountContext.status === "ready" && accountName}
+              </dd>
               <dd className="text-xs text-muted-foreground font-mono break-all">
                 {accountId ?? "—"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground text-xs">Marketplace</dt>
+              <dd className="font-medium">{formatMarketplace(account?.marketplace ?? null)}</dd>
+            </div>
+            <div>
+              <dt className="text-muted-foreground text-xs">Status</dt>
+              <dd className="font-medium">
+                {formatAuthStatus(account?.auth_status ?? null)}
+                {account?.is_active === false ? " · Inativa" : ""}
               </dd>
             </div>
             <div className="sm:col-span-2">
               <dt className="text-muted-foreground text-xs">URL</dt>
               <dd className="text-xs font-mono break-all bg-muted px-2 py-1.5 rounded">
-                {url}
+                {url ?? "Aguardando contexto completo da conta ativa."}
               </dd>
             </div>
+            {accountContext.status === "error" && (
+              <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+                {accountContext.error}
+              </div>
+            )}
           </dl>
         </section>
 
@@ -184,7 +359,7 @@ function DebugCompetitionApiPage() {
           <button
             type="button"
             onClick={runTest}
-            disabled={running || sessionState !== "authenticated" || !accountId}
+            disabled={running || !canRunTest}
             className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: "var(--gradient-brand)" }}
           >
@@ -231,6 +406,5 @@ function DebugCompetitionApiPage() {
           </section>
         )}
       </div>
-    </EcommerceLayout>
   );
 }

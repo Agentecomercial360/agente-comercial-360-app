@@ -471,11 +471,11 @@ function HeroMockup() {
           </div>
         </div>
 
-        {/* Radar IA */}
+        {/* Diagnóstico Inteligente */}
         <div className="relative mt-3 rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur">
           <div className="mb-2 flex items-center justify-between">
             <p className="text-[11px] font-semibold text-white/85">
-              Radar IA — diagnósticos
+              Diagnóstico Inteligente — diagnósticos
             </p>
             <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-1.5 py-0.5 text-[9px] font-semibold text-white ring-1 ring-white/15">
               <Brain className="size-2.5" /> IA ativa
@@ -826,7 +826,7 @@ export function LandingPage() {
                 {[
                   { icon: Plug, label: "API oficial" },
                   { icon: Layers, label: "Multi-conta" },
-                  { icon: Radar, label: "Radar IA" },
+                  { icon: Radar, label: "Diagnóstico Inteligente" },
                 ].map(({ icon: Ic, label }) => (
                   <span
                     key={label}
@@ -987,7 +987,7 @@ export function LandingPage() {
               },
               {
                 icon: Radar,
-                title: "Radar IA Financeiro",
+                title: "Diagnóstico Inteligente Financeiro",
                 description:
                   "Diagnósticos automáticos do Motor de Insights AC360® que identificam riscos de ruptura, queda de margem e oportunidades de kit.",
                 bullets: [
@@ -1161,7 +1161,7 @@ export function LandingPage() {
                   "Para operações multi-conta que precisam escalar com inteligência.",
                 features: [
                   "Até 10 contas Mercado Livre",
-                  "Radar IA de performance",
+                  "Diagnóstico Inteligente de performance",
                   "Lucro líquido real por anúncio",
                   "Espionagem de preço e estoque",
                   "Curva ABC financeira",
@@ -1257,7 +1257,7 @@ export function LandingPage() {
                 a: "A plataforma desconta automaticamente taxas do Mercado Livre, frete subsidiado, impostos e o custo do produto cadastrado, mostrando a margem real por anúncio.",
               },
               {
-                q: "O que o Radar IA faz na prática?",
+                q: "O que o Diagnóstico Inteligente faz na prática?",
                 a: "A IA monitora seu histórico e identifica riscos de ruptura, quedas de conversão, anúncios travados, oportunidades de kit e movimentos agressivos da concorrência.",
               },
               {
@@ -1380,7 +1380,7 @@ export function LandingPage() {
               </h4>
               <ul className="mt-5 space-y-3 text-sm text-white/75">
                 <li><a href="#solucoes" className="transition-colors hover:text-white">Inteligência Multi-conta</a></li>
-                <li><a href="#solucoes" className="transition-colors hover:text-white">Radar IA Financeiro</a></li>
+                <li><a href="#solucoes" className="transition-colors hover:text-white">Diagnóstico Inteligente Financeiro</a></li>
                 <li><a href="#solucoes" className="transition-colors hover:text-white">Controle de Margem</a></li>
                 <li><a href="#solucoes" className="transition-colors hover:text-white">Espionagem de Mercado</a></li>
               </ul>

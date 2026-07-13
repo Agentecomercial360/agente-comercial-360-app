@@ -160,6 +160,50 @@ type UrlListingIds = {
   ambiguous: boolean;
 };
 
+type ManualAnalysisPayload = {
+  company_id: string;
+  account_id: string;
+  watchlist_id: string;
+  observed_at: string;
+  search_query: string;
+  operator_name: string | null;
+  notes: string | null;
+  own: {
+    rank_position: number | null;
+    price: number | null;
+    free_shipping: boolean | null;
+    listing_url: string | null;
+    sold_quantity: number | null;
+    reviews_count: number | null;
+    rating_average: number | null;
+    delivery_text: string | null;
+    title_quality_score: number | null;
+    image_quality_score: number | null;
+    offer_quality_score: number | null;
+  };
+  competitors: Array<{
+    item_url: string | null;
+    ml_item_id: string | null;
+    title: string | null;
+    rank_position: number | null;
+    price: number | null;
+    is_primary: boolean;
+    free_shipping: boolean | null;
+    sold_quantity: number | null;
+    seller_nickname: string | null;
+    seller_reputation: string | null;
+    reviews_count: number | null;
+    rating_average: number | null;
+    delivery_text: string | null;
+    installments_text: string | null;
+    discount_percent: number | null;
+    title_quality_score: number | null;
+    image_quality_score: number | null;
+    offer_quality_score: number | null;
+    notes: string | null;
+  }>;
+};
+
 /**
  * Extrai o item_id real do anúncio a partir da URL, distinguindo-o do
  * catalog_product_id (/p/MLB...). Ordem de prioridade:
@@ -290,6 +334,7 @@ function DebugCompetitionApiPage() {
   const [listingsError, setListingsError] = useState<string | null>(null);
   const [selectedListingId, setSelectedListingId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [suggestedSearchQuery, setSuggestedSearchQuery] = useState<string>("");
   const [minMarginPercent, setMinMarginPercent] = useState<string>("10");
   const [notes, setNotes] = useState<string>("");
 
@@ -337,6 +382,7 @@ function DebugCompetitionApiPage() {
   const [cNotes, setCNotes] = useState<string>("");
 
   const [confirmingAnalysis, setConfirmingAnalysis] = useState(false);
+  const [pendingAnalysisPayload, setPendingAnalysisPayload] = useState<ManualAnalysisPayload | null>(null);
   const [postingAnalysis, setPostingAnalysis] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<RunResult | null>(null);
 
@@ -525,11 +571,11 @@ function DebugCompetitionApiPage() {
     [listings, selectedListingId],
   );
 
-  // Ao trocar anúncio, sugerir defaults SOMENTE quando o campo está vazio.
-  // Nunca sobrescrever o que o operador já digitou (ex.: termo real de busca).
+  // Ao trocar anúncio, manter a sugestão separada do termo efetivo digitado.
+  // O campo visível `searchQuery` é a única fonte do POST.
   useEffect(() => {
     if (!selectedListing) return;
-    setSearchQuery((prev) => (prev.trim() === "" ? selectedListing.title ?? "" : prev));
+    setSuggestedSearchQuery(selectedListing.title ?? "");
     if (selectedListing.price != null) {
       setOwnPrice((prev) => (prev.trim() === "" ? String(selectedListing.price) : prev));
     }
@@ -848,15 +894,14 @@ function DebugCompetitionApiPage() {
     !mlbMismatch &&
     !cUrlAmbiguous;
 
-  // Payload que será enviado. Não contém token nem cabeçalhos de autorização.
-  const analysisPayload = useMemo(() => {
+  function buildAnalysisPayload(submittedSearchQuery: string): ManualAnalysisPayload | null {
     if (!companyId || !accountId || !watchlistId) return null;
     return {
       company_id: companyId,
       account_id: accountId,
       watchlist_id: watchlistId,
       observed_at: new Date().toISOString(),
-      search_query: searchQueryTrimmed,
+      search_query: submittedSearchQuery,
       operator_name: toStringOrNull(operatorName),
       notes: analysisNotes.trim() || null,
       own: {
@@ -896,23 +941,43 @@ function DebugCompetitionApiPage() {
         },
       ],
     };
-  }, [
-    companyId, accountId, watchlistId, searchQueryTrimmed, operatorName, analysisNotes,
-    ownRankNum, ownPriceNum, ownFreeShipping, ownListingUrl, ownSoldQuantity,
-    ownReviewsCount, ownRatingAverage, ownDeliveryText, ownTitleQualityScore,
-    ownImageQualityScore, ownOfferQualityScore,
-    cUrlCleaned, cItemIdTrimmed, cUrlMlbId, cTitle, cRankNum, cPriceNum, cFreeShipping,
-    cSoldQuantity, cSellerNickname, cSellerReputation, cReviewsCount, cRatingAverage,
-    cDeliveryText, cInstallmentsText, cDiscountPercent, cTitleQualityScore,
-    cImageQualityScore, cOfferQualityScore, cNotes,
-  ]);
+  }
+
+  // Prévia do payload que será congelado no clique. Não contém token nem cabeçalhos.
+  const analysisPayload = useMemo(
+    () => buildAnalysisPayload(searchQueryTrimmed),
+    [
+      companyId, accountId, watchlistId, searchQueryTrimmed, operatorName, analysisNotes,
+      ownRankNum, ownPriceNum, ownFreeShipping, ownListingUrl, ownSoldQuantity,
+      ownReviewsCount, ownRatingAverage, ownDeliveryText, ownTitleQualityScore,
+      ownImageQualityScore, ownOfferQualityScore,
+      cUrlCleaned, cItemIdTrimmed, cUrlMlbId, cTitle, cRankNum, cPriceNum, cFreeShipping,
+      cSoldQuantity, cSellerNickname, cSellerReputation, cReviewsCount, cRatingAverage,
+      cDeliveryText, cInstallmentsText, cDiscountPercent, cTitleQualityScore,
+      cImageQualityScore, cOfferQualityScore, cNotes,
+    ],
+  );
+
+  const displayedAnalysisPayload = confirmingAnalysis && pendingAnalysisPayload ? pendingAnalysisPayload : analysisPayload;
+
+  function openAnalysisConfirm() {
+    const submittedSearchQuery = searchQuery.trim();
+    if (!canOpenAnalysisConfirm || !submittedSearchQuery || mlbMismatch || cUrlAmbiguous) return;
+    const frozenPayload = buildAnalysisPayload(submittedSearchQuery);
+    if (!frozenPayload) return;
+    setPendingAnalysisPayload(frozenPayload);
+    setConfirmingAnalysis(true);
+  }
+
+  function cancelAnalysisConfirm() {
+    setConfirmingAnalysis(false);
+    setPendingAnalysisPayload(null);
+  }
 
   async function postManualAnalysis() {
     if (postingAnalysis) return;
-    if (!canOpenAnalysisConfirm || !companyId || !accountId || !watchlistId) return;
-    if (!analysisPayload) return;
-    if (mlbMismatch || cUrlAmbiguous) return;
-    if (!searchQueryTrimmed) return;
+    if (!pendingAnalysisPayload) return;
+    if (!pendingAnalysisPayload.search_query.trim()) return;
     setPostingAnalysis(true);
     setAnalysisResult(null);
     const started = performance.now();
@@ -923,7 +988,7 @@ function DebugCompetitionApiPage() {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify(analysisPayload),
+        body: JSON.stringify(pendingAnalysisPayload),
       });
       if (!res) {
         setAnalysisResult({
@@ -946,6 +1011,7 @@ function DebugCompetitionApiPage() {
         parsed,
       });
       setConfirmingAnalysis(false);
+      if (res.status === 201) setPendingAnalysisPayload(null);
       if (res.status === 201) {
         // Etapa 4 — atualizar histórico automaticamente
         void refreshHistory();
@@ -1191,6 +1257,11 @@ function DebugCompetitionApiPage() {
                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
               />
             </label>
+            {suggestedSearchQuery && (
+              <div className="text-xs text-muted-foreground">
+                Termo sugerido pelo anúncio/watchlist: <span className="font-mono">{suggestedSearchQuery}</span>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label className="block text-sm">
@@ -1297,7 +1368,15 @@ function DebugCompetitionApiPage() {
             </div>
             <select
               value={watchlistId ?? ""}
-              onChange={(e) => setWatchlistId(e.target.value || null)}
+              onChange={(e) => {
+                const nextWatchlistId = e.target.value || null;
+                setWatchlistId(nextWatchlistId);
+                const selectedWatchlist = watchlistItems.find((w) => String(w.id ?? "") === nextWatchlistId);
+                const nextSuggested = selectedWatchlist
+                  ? String(selectedWatchlist.search_query ?? selectedWatchlist.title ?? selectedWatchlist.listing_title ?? "")
+                  : "";
+                setSuggestedSearchQuery(nextSuggested);
+              }}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
             >
               <option value="">— Selecione —</option>
@@ -1371,11 +1450,27 @@ function DebugCompetitionApiPage() {
               <TextField label="Qualidade título (0-10)" value={cTitleQualityScore} onChange={setCTitleQualityScore} type="number" step="0.1" />
               <TextField label="Qualidade imagem (0-10)" value={cImageQualityScore} onChange={setCImageQualityScore} type="number" step="0.1" />
               <TextField label="Qualidade oferta (0-10)" value={cOfferQualityScore} onChange={setCOfferQualityScore} type="number" step="0.1" />
-              <TextField className="sm:col-span-3" label="Observações" value={cNotes} onChange={setCNotes} />
+              <label className="block text-sm sm:col-span-3">
+                <span className="text-xs text-muted-foreground">Observação específica deste concorrente</span>
+                <input
+                  type="text"
+                  value={cNotes}
+                  onChange={(e) => setCNotes(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                />
+              </label>
             </div>
           </div>
 
-          <TextField label="Observação da análise" value={analysisNotes} onChange={setAnalysisNotes} />
+          <label className="block text-sm">
+            <span className="text-xs text-muted-foreground">Observação geral da medição</span>
+            <input
+              type="text"
+              value={analysisNotes}
+              onChange={(e) => setAnalysisNotes(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            />
+          </label>
 
           {cUrlAmbiguous && (
             <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-xs text-red-800">
@@ -1419,14 +1514,22 @@ function DebugCompetitionApiPage() {
             <summary className="cursor-pointer font-semibold text-foreground">
               Prévia segura do payload (sem token nem cabeçalhos)
             </summary>
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+              <div>Campo visível atual: <span className="font-mono">{searchQuery || "—"}</span></div>
+              <div>Termo congelado para envio: <span className="font-mono">{pendingAnalysisPayload?.search_query ?? "—"}</span></div>
+              <div>Observação geral atual: <span className="font-mono">{analysisNotes || "—"}</span></div>
+              <div>Observação geral congelada: <span className="font-mono">{pendingAnalysisPayload?.notes ?? "—"}</span></div>
+              <div>Observação concorrente atual: <span className="font-mono">{cNotes || "—"}</span></div>
+              <div>Observação concorrente congelada: <span className="font-mono">{pendingAnalysisPayload?.competitors[0]?.notes ?? "—"}</span></div>
+            </div>
             <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed">
-{analysisPayload ? JSON.stringify(analysisPayload, null, 2) : "Payload indisponível — complete o contexto e o watchlist_id."}
+{displayedAnalysisPayload ? JSON.stringify(displayedAnalysisPayload, null, 2) : "Payload indisponível — complete o contexto e o watchlist_id."}
             </pre>
           </details>
 
           <button
             type="button"
-            onClick={() => setConfirmingAnalysis(true)}
+            onClick={openAnalysisConfirm}
             disabled={postingAnalysis || !canOpenAnalysisConfirm}
             className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: "var(--gradient-brand)" }}
@@ -1441,6 +1544,9 @@ function DebugCompetitionApiPage() {
                 <li>Empresa: <strong>{companyName ?? "—"}</strong></li>
                 <li>Conta: <strong>{accountName}</strong></li>
                 <li>watchlist_id: <span className="font-mono">{watchlistId}</span></li>
+                <li>Termo congelado: <strong>{pendingAnalysisPayload?.search_query ?? "—"}</strong></li>
+                <li>Observação geral congelada: <strong>{pendingAnalysisPayload?.notes ?? "—"}</strong></li>
+                <li>Observação concorrente congelada: <strong>{pendingAnalysisPayload?.competitors[0]?.notes ?? "—"}</strong></li>
                 <li>Nosso preço: <strong>{ownPrice}</strong> · posição <strong>{ownRankPosition}</strong></li>
                 <li>Concorrente: <strong>{cTitle || cUrl || cItemId}</strong> — R$ {cPrice} · posição {cRank}</li>
               </ul>
@@ -1456,7 +1562,7 @@ function DebugCompetitionApiPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setConfirmingAnalysis(false)}
+                  onClick={cancelAnalysisConfirm}
                   disabled={postingAnalysis}
                   className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold"
                 >
@@ -1599,23 +1705,25 @@ function ResultBlock({ result, okStatuses }: { result: RunResult; okStatuses: nu
 }
 
 function RegisteredDataBlock({ parsed }: { parsed: Record<string, unknown> }) {
-  // Extrai valores conhecidos do retorno do backend, testando os locais mais comuns.
-  const snapshot = (parsed.snapshot as Record<string, unknown> | undefined) ?? {};
+  // Prioriza o formato real do backend: { result: { snapshot, competitors } }.
+  // Mantém fallback seguro para eventual resposta já desembrulhada.
+  const result = (parsed.result as Record<string, unknown> | undefined) ?? parsed;
+  const snapshot = (result.snapshot as Record<string, unknown> | undefined) ?? {};
   const rawSummary =
     (snapshot.raw_summary as Record<string, unknown> | undefined) ??
-    (parsed.raw_summary as Record<string, unknown> | undefined) ??
+    (result.raw_summary as Record<string, unknown> | undefined) ??
     {};
   const competitorsArr =
-    (parsed.competitors as Array<Record<string, unknown>> | undefined) ??
+    (result.competitors as Array<Record<string, unknown>> | undefined) ??
     (snapshot.competitors as Array<Record<string, unknown>> | undefined) ??
     [];
   const firstComp = competitorsArr[0] ?? {};
   const rawPayload = (firstComp.raw_payload as Record<string, unknown> | undefined) ?? {};
 
   const searchQueryOut =
-    (rawSummary.search_query as string | undefined) ??
     (snapshot.search_query as string | undefined) ??
-    (parsed.search_query as string | undefined) ??
+    (rawSummary.search_query as string | undefined) ??
+    (result.search_query as string | undefined) ??
     "—";
   const notesOut =
     (rawSummary.notes as string | null | undefined) ??
@@ -1630,8 +1738,10 @@ function RegisteredDataBlock({ parsed }: { parsed: Record<string, unknown> }) {
     (rawPayload.ml_item_id as string | undefined) ??
     "—";
   const ownRankOut =
+    (snapshot.own_estimated_rank as number | undefined) ??
+    ((rawSummary.own as Record<string, unknown> | undefined)?.rank_position as number | undefined) ??
     ((snapshot.own as Record<string, unknown> | undefined)?.rank_position as number | undefined) ??
-    (parsed.own_rank_position as number | undefined);
+    (result.own_rank_position as number | undefined);
   const compRankOut =
     (firstComp.rank_position as number | undefined) ??
     (rawPayload.rank_position as number | undefined);

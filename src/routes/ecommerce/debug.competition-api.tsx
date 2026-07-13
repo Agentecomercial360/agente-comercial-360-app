@@ -958,7 +958,7 @@ function DebugCompetitionApiPage() {
     ],
   );
 
-  const displayedAnalysisPayload = confirmingAnalysis && pendingAnalysisPayload ? pendingAnalysisPayload : analysisPayload;
+  
 
   function openAnalysisConfirm() {
     const submittedSearchQuery = searchQuery.trim();
@@ -1510,22 +1510,35 @@ function DebugCompetitionApiPage() {
             </div>
           </div>
 
-          <details className="rounded-lg border border-border bg-muted/30 p-3 text-xs">
-            <summary className="cursor-pointer font-semibold text-foreground">
-              Prévia segura do payload (sem token nem cabeçalhos)
-            </summary>
-            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-              <div>Campo visível atual: <span className="font-mono">{searchQuery || "—"}</span></div>
-              <div>Termo congelado para envio: <span className="font-mono">{pendingAnalysisPayload?.search_query ?? "—"}</span></div>
-              <div>Observação geral atual: <span className="font-mono">{analysisNotes || "—"}</span></div>
-              <div>Observação geral congelada: <span className="font-mono">{pendingAnalysisPayload?.notes ?? "—"}</span></div>
-              <div>Observação concorrente atual: <span className="font-mono">{cNotes || "—"}</span></div>
-              <div>Observação concorrente congelada: <span className="font-mono">{pendingAnalysisPayload?.competitors[0]?.notes ?? "—"}</span></div>
+          {/* Painel temporário de auditoria — sempre visível, sem token nem cabeçalhos.
+              Mostra os states React e o MESMO objeto pendingAnalysisPayload que o fetch envia. */}
+          <div className="rounded-lg border-2 border-blue-400 bg-blue-50 p-3 text-xs space-y-2">
+            <div className="font-semibold text-blue-900">
+              🔎 Painel de auditoria (temporário) — states React vs objeto enviado ao fetch
             </div>
-            <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed">
-{displayedAnalysisPayload ? JSON.stringify(displayedAnalysisPayload, null, 2) : "Payload indisponível — complete o contexto e o watchlist_id."}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-blue-950">
+              <div>State <code>searchQuery</code>: <span className="font-mono">{JSON.stringify(searchQuery)}</span></div>
+              <div>pendingAnalysisPayload.search_query: <span className="font-mono">{JSON.stringify(pendingAnalysisPayload?.search_query ?? null)}</span></div>
+              <div>State <code>analysisNotes</code>: <span className="font-mono">{JSON.stringify(analysisNotes)}</span></div>
+              <div>pendingAnalysisPayload.notes: <span className="font-mono">{JSON.stringify(pendingAnalysisPayload?.notes ?? null)}</span></div>
+              <div>State <code>cNotes</code>: <span className="font-mono">{JSON.stringify(cNotes)}</span></div>
+              <div>pendingAnalysisPayload.competitors[0].notes: <span className="font-mono">{JSON.stringify(pendingAnalysisPayload?.competitors[0]?.notes ?? null)}</span></div>
+            </div>
+            <div className="text-[11px] text-blue-900">
+              Objeto <code>pendingAnalysisPayload</code> — exatamente o mesmo passado a <code>JSON.stringify</code> em <code>postManualAnalysis</code>:
+            </div>
+            <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded bg-white/70 p-2 font-mono text-[11px] leading-relaxed text-blue-950">
+{pendingAnalysisPayload
+  ? JSON.stringify(pendingAnalysisPayload, null, 2)
+  : "pendingAnalysisPayload = null (ainda não congelado; clique em “Registrar análise manual” para gerar)"}
             </pre>
-          </details>
+            <div className="text-[11px] text-blue-900">
+              Prévia (não congelada) — reflete os states atuais, útil antes do clique:
+            </div>
+            <pre className="overflow-x-auto whitespace-pre-wrap break-all rounded bg-white/70 p-2 font-mono text-[11px] leading-relaxed text-blue-950">
+{analysisPayload ? JSON.stringify(analysisPayload, null, 2) : "Payload indisponível — complete o contexto e o watchlist_id."}
+            </pre>
+          </div>
 
           <button
             type="button"
@@ -1544,12 +1557,18 @@ function DebugCompetitionApiPage() {
                 <li>Empresa: <strong>{companyName ?? "—"}</strong></li>
                 <li>Conta: <strong>{accountName}</strong></li>
                 <li>watchlist_id: <span className="font-mono">{watchlistId}</span></li>
-                <li>Termo congelado: <strong>{pendingAnalysisPayload?.search_query ?? "—"}</strong></li>
-                <li>Observação geral congelada: <strong>{pendingAnalysisPayload?.notes ?? "—"}</strong></li>
-                <li>Observação concorrente congelada: <strong>{pendingAnalysisPayload?.competitors[0]?.notes ?? "—"}</strong></li>
                 <li>Nosso preço: <strong>{ownPrice}</strong> · posição <strong>{ownRankPosition}</strong></li>
                 <li>Concorrente: <strong>{cTitle || cUrl || cItemId}</strong> — R$ {cPrice} · posição {cRank}</li>
               </ul>
+              <div className="rounded-md border border-amber-400 bg-white p-2 text-[11px] space-y-1 font-mono">
+                <div className="font-sans font-semibold text-amber-900">Comparação state ↔ payload congelado (obrigatória antes do POST)</div>
+                <div>searchQuery = {JSON.stringify(searchQuery)}</div>
+                <div>pendingAnalysisPayload.search_query = {JSON.stringify(pendingAnalysisPayload?.search_query ?? null)}</div>
+                <div>analysisNotes = {JSON.stringify(analysisNotes)}</div>
+                <div>pendingAnalysisPayload.notes = {JSON.stringify(pendingAnalysisPayload?.notes ?? null)}</div>
+                <div>cNotes = {JSON.stringify(cNotes)}</div>
+                <div>pendingAnalysisPayload.competitors[0].notes = {JSON.stringify(pendingAnalysisPayload?.competitors[0]?.notes ?? null)}</div>
+              </div>
               <div className="flex gap-2">
                 <button
                   type="button"

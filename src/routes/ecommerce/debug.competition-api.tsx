@@ -845,7 +845,8 @@ function DebugCompetitionApiPage() {
     cRankNum !== null &&
     cPriceNum !== null &&
     competitorHasIdentity &&
-    !mlbMismatch;
+    !mlbMismatch &&
+    !cUrlAmbiguous;
 
   // Payload que será enviado. Não contém token nem cabeçalhos de autorização.
   const analysisPayload = useMemo(() => {

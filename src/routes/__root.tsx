@@ -76,6 +76,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "google", content: "notranslate" },
       { httpEquiv: "Content-Language", content: "pt-BR" },
+      { name: "robots", content: "noindex, nofollow" },
       { title: "AC360 E-commerce Intelligence" },
       { name: "description", content: "Inteligência, performance e tomada de decisão para operações no Mercado Livre." },
       { name: "author", content: "AC360" },

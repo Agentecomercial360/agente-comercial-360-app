@@ -408,14 +408,94 @@ function DebugCompetitionApiPage() {
     if (url) setOwnListingUrl(url);
   }, [selectedListing]);
 
-  async function withToken(): Promise<string | null> {
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token;
+  // ---------- Sessão / token helper ----------
+  // Banner: null | "renewing" | "renewed" | "failed"
+  const [sessionBanner, setSessionBanner] = useState<
+    null | "renewing" | "renewed" | "failed"
+  >(null);
+
+  /**
+   * Retorna um access_token válido no momento da execução.
+   * - lê getSession()
+   * - se ausente / expirado / <120s para expirar → refreshSession()
+   * - valida com getUser(token)
+   * - bloqueia e sinaliza banner de falha se não for possível renovar
+   * Nunca expõe o token em log, estado persistente ou UI.
+   */
+  async function getValidAccessToken(): Promise<string | null> {
+    const nowSec = Math.floor(Date.now() / 1000);
+
+    const { data: sessData } = await supabase.auth.getSession();
+    let session = sessData.session;
+    const expiresAt = session?.expires_at ?? 0;
+    const needsRefresh = !session || !session.access_token || expiresAt - nowSec < 120;
+
+    if (needsRefresh) {
+      setSessionBanner("renewing");
+      const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
+      if (refreshErr || !refreshed.session?.access_token) {
+        setSessionBanner("failed");
+        setSessionState("missing");
+        return null;
+      }
+      session = refreshed.session;
+    }
+
+    const token = session?.access_token;
     if (!token) {
+      setSessionBanner("failed");
       setSessionState("missing");
       return null;
     }
+
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    if (userErr || !userData.user) {
+      setSessionBanner("failed");
+      setSessionState("missing");
+      return null;
+    }
+
+    setSessionState("authenticated");
+    if (needsRefresh) setSessionBanner("renewed");
+    else setSessionBanner(null);
     return token;
+  }
+
+  /**
+   * Wrapper autenticado. Em caso de HTTP 401, tenta renovar a sessão UMA vez
+   * e repete a mesma requisição. Nenhum retry adicional é feito.
+   * Não limpa nada do formulário em falha.
+   */
+  async function authedFetch(url: string, init: RequestInit = {}): Promise<Response | null> {
+    const token = await getValidAccessToken();
+    if (!token) return null;
+
+    const buildHeaders = (bearer: string): HeadersInit => ({
+      ...(init.headers as Record<string, string> | undefined),
+      Authorization: `Bearer ${bearer}`,
+    });
+
+    const first = await fetch(url, { ...init, headers: buildHeaders(token) });
+    if (first.status !== 401) return first;
+
+    // 401 → renovar sessão uma única vez e repetir.
+    setSessionBanner("renewing");
+    const { data: refreshed, error: refreshErr } = await supabase.auth.refreshSession();
+    if (refreshErr || !refreshed.session?.access_token) {
+      setSessionBanner("failed");
+      setSessionState("missing");
+      return first;
+    }
+    const newToken = refreshed.session.access_token;
+    const { data: userData } = await supabase.auth.getUser(newToken);
+    if (!userData.user) {
+      setSessionBanner("failed");
+      setSessionState("missing");
+      return first;
+    }
+    setSessionBanner("renewed");
+    setSessionState("authenticated");
+    return fetch(url, { ...init, headers: buildHeaders(newToken) });
   }
 
   async function runHistoryDiagnostic() {

@@ -55,6 +55,7 @@ import { Route as AdminEmpresasRouteImport } from './routes/admin/empresas'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin/configuracoes'
 import { Route as AdminAcessosRouteImport } from './routes/admin/acessos'
+import { Route as EcommerceDebugCompetitionApiRouteImport } from './routes/ecommerce/debug.competition-api'
 import { Route as EcommerceAcademiaGuiasVisaoGeralRouteImport } from './routes/ecommerce/academia.guias.visao-geral'
 
 const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
@@ -289,6 +290,12 @@ const AdminAcessosRoute = AdminAcessosRouteImport.update({
   path: '/admin/acessos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceDebugCompetitionApiRoute =
+  EcommerceDebugCompetitionApiRouteImport.update({
+    id: '/ecommerce/debug/competition-api',
+    path: '/ecommerce/debug/competition-api',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const EcommerceAcademiaGuiasVisaoGeralRoute =
   EcommerceAcademiaGuiasVisaoGeralRouteImport.update({
     id: '/guias/visao-geral',
@@ -343,6 +350,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce/resultados': typeof EcommerceResultadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
   '/ecommerce/': typeof EcommerceIndexRoute
+  '/ecommerce/debug/competition-api': typeof EcommerceDebugCompetitionApiRoute
   '/ecommerce/academia/guias/visao-geral': typeof EcommerceAcademiaGuiasVisaoGeralRoute
 }
 export interface FileRoutesByTo {
@@ -392,6 +400,7 @@ export interface FileRoutesByTo {
   '/ecommerce/resultados': typeof EcommerceResultadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
   '/ecommerce': typeof EcommerceIndexRoute
+  '/ecommerce/debug/competition-api': typeof EcommerceDebugCompetitionApiRoute
   '/ecommerce/academia/guias/visao-geral': typeof EcommerceAcademiaGuiasVisaoGeralRoute
 }
 export interface FileRoutesById {
@@ -442,6 +451,7 @@ export interface FileRoutesById {
   '/ecommerce/resultados': typeof EcommerceResultadosRoute
   '/ecommerce/tarefas': typeof EcommerceTarefasRoute
   '/ecommerce/': typeof EcommerceIndexRoute
+  '/ecommerce/debug/competition-api': typeof EcommerceDebugCompetitionApiRoute
   '/ecommerce/academia/guias/visao-geral': typeof EcommerceAcademiaGuiasVisaoGeralRoute
 }
 export interface FileRouteTypes {
@@ -493,6 +503,7 @@ export interface FileRouteTypes {
     | '/ecommerce/resultados'
     | '/ecommerce/tarefas'
     | '/ecommerce/'
+    | '/ecommerce/debug/competition-api'
     | '/ecommerce/academia/guias/visao-geral'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -542,6 +553,7 @@ export interface FileRouteTypes {
     | '/ecommerce/resultados'
     | '/ecommerce/tarefas'
     | '/ecommerce'
+    | '/ecommerce/debug/competition-api'
     | '/ecommerce/academia/guias/visao-geral'
   id:
     | '__root__'
@@ -591,6 +603,7 @@ export interface FileRouteTypes {
     | '/ecommerce/resultados'
     | '/ecommerce/tarefas'
     | '/ecommerce/'
+    | '/ecommerce/debug/competition-api'
     | '/ecommerce/academia/guias/visao-geral'
   fileRoutesById: FileRoutesById
 }
@@ -641,6 +654,7 @@ export interface RootRouteChildren {
   EcommerceResultadosRoute: typeof EcommerceResultadosRoute
   EcommerceTarefasRoute: typeof EcommerceTarefasRoute
   EcommerceIndexRoute: typeof EcommerceIndexRoute
+  EcommerceDebugCompetitionApiRoute: typeof EcommerceDebugCompetitionApiRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -967,6 +981,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAcessosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/debug/competition-api': {
+      id: '/ecommerce/debug/competition-api'
+      path: '/ecommerce/debug/competition-api'
+      fullPath: '/ecommerce/debug/competition-api'
+      preLoaderRoute: typeof EcommerceDebugCompetitionApiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ecommerce/academia/guias/visao-geral': {
       id: '/ecommerce/academia/guias/visao-geral'
       path: '/guias/visao-geral'
@@ -1035,17 +1056,8 @@ const rootRouteChildren: RootRouteChildren = {
   EcommerceResultadosRoute: EcommerceResultadosRoute,
   EcommerceTarefasRoute: EcommerceTarefasRoute,
   EcommerceIndexRoute: EcommerceIndexRoute,
+  EcommerceDebugCompetitionApiRoute: EcommerceDebugCompetitionApiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

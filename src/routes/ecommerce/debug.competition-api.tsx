@@ -399,13 +399,16 @@ function DebugCompetitionApiPage() {
     [listings, selectedListingId],
   );
 
-  // Ao trocar anúncio, preencher defaults (sem sobrescrever se usuário já editou o próprio own*).
+  // Ao trocar anúncio, sugerir defaults SOMENTE quando o campo está vazio.
+  // Nunca sobrescrever o que o operador já digitou (ex.: termo real de busca).
   useEffect(() => {
     if (!selectedListing) return;
-    setSearchQuery(selectedListing.title ?? "");
-    if (selectedListing.price != null) setOwnPrice(String(selectedListing.price));
+    setSearchQuery((prev) => (prev.trim() === "" ? selectedListing.title ?? "" : prev));
+    if (selectedListing.price != null) {
+      setOwnPrice((prev) => (prev.trim() === "" ? String(selectedListing.price) : prev));
+    }
     const url = selectedListing.listing_url || selectedListing.external_url || "";
-    if (url) setOwnListingUrl(url);
+    if (url) setOwnListingUrl((prev) => (prev.trim() === "" ? url : prev));
   }, [selectedListing]);
 
   // ---------- Sessão / token helper ----------

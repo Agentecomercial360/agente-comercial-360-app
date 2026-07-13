@@ -504,16 +504,6 @@ function DebugCompetitionApiPage() {
     setResult(null);
     const started = performance.now();
     try {
-      const token = await withToken();
-      if (!token) {
-        setResult({
-          httpStatus: null,
-          durationMs: 0,
-          body: "",
-          interpretation: "Sessão autenticada não encontrada. Faça login novamente.",
-        });
-        return;
-      }
       if (!canRunTest || !historyUrl) {
         setResult({
           httpStatus: null,
@@ -523,10 +513,20 @@ function DebugCompetitionApiPage() {
         });
         return;
       }
-      const res = await fetch(historyUrl, {
+      const res = await authedFetch(historyUrl, {
         method: "GET",
-        headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+        headers: { Accept: "application/json" },
       });
+      if (!res) {
+        setResult({
+          httpStatus: null,
+          durationMs: 0,
+          body: "",
+          interpretation:
+            "Sua sessão expirou e não pôde ser renovada. Entre novamente no AC360.",
+        });
+        return;
+      }
       const durationMs = Math.round(performance.now() - started);
       const text = await res.text();
       const { pretty, parsed } = tryParseJson(text);

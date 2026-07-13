@@ -1705,23 +1705,25 @@ function ResultBlock({ result, okStatuses }: { result: RunResult; okStatuses: nu
 }
 
 function RegisteredDataBlock({ parsed }: { parsed: Record<string, unknown> }) {
-  // Extrai valores conhecidos do retorno do backend, testando os locais mais comuns.
-  const snapshot = (parsed.snapshot as Record<string, unknown> | undefined) ?? {};
+  // Prioriza o formato real do backend: { result: { snapshot, competitors } }.
+  // Mantém fallback seguro para eventual resposta já desembrulhada.
+  const result = (parsed.result as Record<string, unknown> | undefined) ?? parsed;
+  const snapshot = (result.snapshot as Record<string, unknown> | undefined) ?? {};
   const rawSummary =
     (snapshot.raw_summary as Record<string, unknown> | undefined) ??
-    (parsed.raw_summary as Record<string, unknown> | undefined) ??
+    (result.raw_summary as Record<string, unknown> | undefined) ??
     {};
   const competitorsArr =
-    (parsed.competitors as Array<Record<string, unknown>> | undefined) ??
+    (result.competitors as Array<Record<string, unknown>> | undefined) ??
     (snapshot.competitors as Array<Record<string, unknown>> | undefined) ??
     [];
   const firstComp = competitorsArr[0] ?? {};
   const rawPayload = (firstComp.raw_payload as Record<string, unknown> | undefined) ?? {};
 
   const searchQueryOut =
-    (rawSummary.search_query as string | undefined) ??
     (snapshot.search_query as string | undefined) ??
-    (parsed.search_query as string | undefined) ??
+    (rawSummary.search_query as string | undefined) ??
+    (result.search_query as string | undefined) ??
     "—";
   const notesOut =
     (rawSummary.notes as string | null | undefined) ??
@@ -1736,8 +1738,10 @@ function RegisteredDataBlock({ parsed }: { parsed: Record<string, unknown> }) {
     (rawPayload.ml_item_id as string | undefined) ??
     "—";
   const ownRankOut =
+    (snapshot.own_estimated_rank as number | undefined) ??
+    ((rawSummary.own as Record<string, unknown> | undefined)?.rank_position as number | undefined) ??
     ((snapshot.own as Record<string, unknown> | undefined)?.rank_position as number | undefined) ??
-    (parsed.own_rank_position as number | undefined);
+    (result.own_rank_position as number | undefined);
   const compRankOut =
     (firstComp.rank_position as number | undefined) ??
     (rawPayload.rank_position as number | undefined);

@@ -1259,6 +1259,11 @@ function DebugCompetitionApiPage() {
                 className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
               />
             </label>
+            {suggestedSearchQuery && (
+              <div className="text-xs text-muted-foreground">
+                Termo sugerido pelo anúncio/watchlist: <span className="font-mono">{suggestedSearchQuery}</span>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label className="block text-sm">
@@ -1365,7 +1370,15 @@ function DebugCompetitionApiPage() {
             </div>
             <select
               value={watchlistId ?? ""}
-              onChange={(e) => setWatchlistId(e.target.value || null)}
+              onChange={(e) => {
+                const nextWatchlistId = e.target.value || null;
+                setWatchlistId(nextWatchlistId);
+                const selectedWatchlist = watchlistItems.find((w) => String(w.id ?? "") === nextWatchlistId);
+                const nextSuggested = selectedWatchlist
+                  ? String(selectedWatchlist.search_query ?? selectedWatchlist.title ?? selectedWatchlist.listing_title ?? "")
+                  : "";
+                setSuggestedSearchQuery(nextSuggested);
+              }}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
             >
               <option value="">— Selecione —</option>
@@ -1439,11 +1452,27 @@ function DebugCompetitionApiPage() {
               <TextField label="Qualidade título (0-10)" value={cTitleQualityScore} onChange={setCTitleQualityScore} type="number" step="0.1" />
               <TextField label="Qualidade imagem (0-10)" value={cImageQualityScore} onChange={setCImageQualityScore} type="number" step="0.1" />
               <TextField label="Qualidade oferta (0-10)" value={cOfferQualityScore} onChange={setCOfferQualityScore} type="number" step="0.1" />
-              <TextField className="sm:col-span-3" label="Observações" value={cNotes} onChange={setCNotes} />
+              <label className="block text-sm sm:col-span-3">
+                <span className="text-xs text-muted-foreground">Observação específica deste concorrente</span>
+                <input
+                  type="text"
+                  value={cNotes}
+                  onChange={(e) => setCNotes(e.target.value)}
+                  className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+                />
+              </label>
             </div>
           </div>
 
-          <TextField label="Observação da análise" value={analysisNotes} onChange={setAnalysisNotes} />
+          <label className="block text-sm">
+            <span className="text-xs text-muted-foreground">Observação geral da medição</span>
+            <input
+              type="text"
+              value={analysisNotes}
+              onChange={(e) => setAnalysisNotes(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
+            />
+          </label>
 
           {cUrlAmbiguous && (
             <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-xs text-red-800">
@@ -1487,14 +1516,22 @@ function DebugCompetitionApiPage() {
             <summary className="cursor-pointer font-semibold text-foreground">
               Prévia segura do payload (sem token nem cabeçalhos)
             </summary>
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+              <div>Campo visível atual: <span className="font-mono">{searchQuery || "—"}</span></div>
+              <div>Termo congelado para envio: <span className="font-mono">{pendingAnalysisPayload?.search_query ?? "—"}</span></div>
+              <div>Observação geral atual: <span className="font-mono">{analysisNotes || "—"}</span></div>
+              <div>Observação geral congelada: <span className="font-mono">{pendingAnalysisPayload?.notes ?? "—"}</span></div>
+              <div>Observação concorrente atual: <span className="font-mono">{cNotes || "—"}</span></div>
+              <div>Observação concorrente congelada: <span className="font-mono">{pendingAnalysisPayload?.competitors[0]?.notes ?? "—"}</span></div>
+            </div>
             <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed">
-{analysisPayload ? JSON.stringify(analysisPayload, null, 2) : "Payload indisponível — complete o contexto e o watchlist_id."}
+{displayedAnalysisPayload ? JSON.stringify(displayedAnalysisPayload, null, 2) : "Payload indisponível — complete o contexto e o watchlist_id."}
             </pre>
           </details>
 
           <button
             type="button"
-            onClick={() => setConfirmingAnalysis(true)}
+            onClick={openAnalysisConfirm}
             disabled={postingAnalysis || !canOpenAnalysisConfirm}
             className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-primary-foreground shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: "var(--gradient-brand)" }}
@@ -1509,6 +1546,9 @@ function DebugCompetitionApiPage() {
                 <li>Empresa: <strong>{companyName ?? "—"}</strong></li>
                 <li>Conta: <strong>{accountName}</strong></li>
                 <li>watchlist_id: <span className="font-mono">{watchlistId}</span></li>
+                <li>Termo congelado: <strong>{pendingAnalysisPayload?.search_query ?? "—"}</strong></li>
+                <li>Observação geral congelada: <strong>{pendingAnalysisPayload?.notes ?? "—"}</strong></li>
+                <li>Observação concorrente congelada: <strong>{pendingAnalysisPayload?.competitors[0]?.notes ?? "—"}</strong></li>
                 <li>Nosso preço: <strong>{ownPrice}</strong> · posição <strong>{ownRankPosition}</strong></li>
                 <li>Concorrente: <strong>{cTitle || cUrl || cItemId}</strong> — R$ {cPrice} · posição {cRank}</li>
               </ul>
@@ -1524,7 +1564,7 @@ function DebugCompetitionApiPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setConfirmingAnalysis(false)}
+                  onClick={cancelAnalysisConfirm}
                   disabled={postingAnalysis}
                   className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold"
                 >

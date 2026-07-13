@@ -46,7 +46,7 @@ import {
 const SITE_URL = "https://agentecomercial360.com.br";
 const LANDING_TITLE = "AC360 — Inteligência de Vendas para Mercado Livre";
 const LANDING_DESCRIPTION =
-  "Central de inteligência para vendedores profissionais de Mercado Livre: multi-conta, margem líquida real, Radar IA e monitoramento de concorrência em um só painel.";
+  "Central de inteligência para vendedores profissionais de Mercado Livre: multi-conta, margem líquida real, Diagnóstico Inteligente e monitoramento de concorrência em um só painel.";
 
 export const Route = createFileRoute("/landing")({
   component: LandingPage,

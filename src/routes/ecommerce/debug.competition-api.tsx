@@ -567,16 +567,6 @@ function DebugCompetitionApiPage() {
     setWatchlistPostResult(null);
     const started = performance.now();
     try {
-      const token = await withToken();
-      if (!token) {
-        setWatchlistPostResult({
-          httpStatus: null,
-          durationMs: 0,
-          body: "",
-          interpretation: "Sessão inválida. Faça login novamente.",
-        });
-        return;
-      }
       const payload = {
         company_id: companyId,
         account_id: accountId,
@@ -585,15 +575,24 @@ function DebugCompetitionApiPage() {
         min_margin_percent: marginNumber,
         notes: toStringOrNull(notes),
       };
-      const res = await fetch(`${API_BASE}/api/mercadolivre/competition/watchlist`, {
+      const res = await authedFetch(`${API_BASE}/api/mercadolivre/competition/watchlist`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
           Accept: "application/json",
         },
         body: JSON.stringify(payload),
       });
+      if (!res) {
+        setWatchlistPostResult({
+          httpStatus: null,
+          durationMs: 0,
+          body: "",
+          interpretation:
+            "Sua sessão não pôde ser renovada. Os dados preenchidos foram preservados. Entre novamente no AC360 antes de tentar novamente.",
+        });
+        return;
+      }
       const durationMs = Math.round(performance.now() - started);
       const text = await res.text();
       const { pretty, parsed } = tryParseJson(text);

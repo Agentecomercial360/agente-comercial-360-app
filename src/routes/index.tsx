@@ -2,24 +2,68 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { LandingPage } from "./landing";
 
+const SITE_URL = "https://agentecomercial360.com.br";
+const TITLE = "AC360 E-commerce Intelligence — Vender melhor no Mercado Livre";
+const DESCRIPTION =
+  "Plataforma de inteligência para vendedores do Mercado Livre: multi-conta, lucro líquido real, Radar IA, curva ABC e monitoramento de concorrência em um só painel.";
+
 export const Route = createFileRoute("/")({
   component: LandingPage,
   head: () => ({
     meta: [
-      { title: "Agente Comercial 360 — Plataforma de inteligência comercial" },
+      { title: TITLE },
+      { name: "description", content: DESCRIPTION },
+      { name: "robots", content: "index, follow" },
+      { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "AC360 E-commerce Intelligence" },
+      { property: "og:title", content: TITLE },
+      { property: "og:description", content: DESCRIPTION },
+      { property: "og:url", content: `${SITE_URL}/` },
+      { property: "og:image", content: `${SITE_URL}/ac360-social-preview.png` },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: TITLE },
+      { name: "twitter:description", content: DESCRIPTION },
+      { name: "twitter:image", content: `${SITE_URL}/ac360-social-preview.png` },
+    ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/` }],
+    scripts: [
       {
-        name: "description",
-        content:
-          "Centralize WhatsApp, leads, responsáveis, IA, base de conhecimento e relatórios em uma plataforma comercial premium, escalável e pronta para automações.",
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "AC360 E-commerce Intelligence",
+          url: SITE_URL,
+          logo: `${SITE_URL}/favicon.png`,
+          sameAs: [] as string[],
+        }),
       },
       {
-        property: "og:title",
-        content: "Agente Comercial 360 — Inteligência comercial em uma só plataforma",
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          name: "AC360 E-commerce Intelligence",
+          url: SITE_URL,
+          inLanguage: "pt-BR",
+        }),
       },
       {
-        property: "og:description",
-        content:
-          "Transforme conversas em vendas com IA, automações e WhatsApp em uma operação comercial organizada.",
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "AC360 E-commerce Intelligence",
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web",
+          url: SITE_URL,
+          description: DESCRIPTION,
+          offers: {
+            "@type": "Offer",
+            price: "0",
+            priceCurrency: "BRL",
+          },
+        }),
       },
     ],
   }),

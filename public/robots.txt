@@ -1,0 +1,54 @@
+# AC360 E-commerce Intelligence — robots.txt
+# Indexação permitida somente nas páginas públicas institucionais.
+# Todas as áreas autenticadas do produto ficam bloqueadas.
+
+User-agent: *
+Allow: /$
+Allow: /landing
+
+# Áreas autenticadas do módulo E-commerce
+Disallow: /ecommerce
+Disallow: /ecommerce/
+Disallow: /ecommerce/login
+Disallow: /ecommerce/dashboard
+Disallow: /ecommerce/contas
+Disallow: /ecommerce/produtos
+Disallow: /ecommerce/produtos-estrategicos
+Disallow: /ecommerce/produtos-travados
+Disallow: /ecommerce/estoque
+Disallow: /ecommerce/ads
+Disallow: /ecommerce/prioridades
+Disallow: /ecommerce/tarefas
+Disallow: /ecommerce/resultados
+Disallow: /ecommerce/base-ia
+Disallow: /ecommerce/radar-ia
+Disallow: /ecommerce/consultor-ia
+Disallow: /ecommerce/concorrencia
+Disallow: /ecommerce/curva-abc
+Disallow: /ecommerce/custos-margem
+Disallow: /ecommerce/mapa-vendas
+Disallow: /ecommerce/configuracoes
+Disallow: /ecommerce/academia
+Disallow: /ecommerce/debug
+Disallow: /ecommerce/debug/
+
+# Áreas administrativas e internas
+Disallow: /admin
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /login
+Disallow: /atendimentos
+Disallow: /conversas
+Disallow: /leads
+Disallow: /responsaveis
+Disallow: /followups
+Disallow: /relatorios
+Disallow: /configuracoes
+Disallow: /base-conhecimento
+Disallow: /ia
+Disallow: /whatsapp-oficial
+Disallow: /modulos
+Disallow: /gestao-360
+Disallow: /produtos
+
+Sitemap: https://agentecomercial360.com.br/sitemap.xml

@@ -43,26 +43,29 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+const SITE_URL = "https://agentecomercial360.com.br";
+const LANDING_TITLE = "AC360 — Inteligência de Vendas para Mercado Livre";
+const LANDING_DESCRIPTION =
+  "Central de inteligência para vendedores profissionais de Mercado Livre: multi-conta, margem líquida real, Radar IA e monitoramento de concorrência em um só painel.";
+
 export const Route = createFileRoute("/landing")({
   component: LandingPage,
   head: () => ({
     meta: [
-      { title: "Agente Comercial 360 — Inteligência de Vendas para Mercado Livre" },
-      {
-        name: "description",
-        content:
-          "Plataforma de inteligência operacional para vendedores profissionais de marketplace. Multi-conta, lucro líquido real, Radar IA e espionagem de mercado em um único painel.",
-      },
-      {
-        property: "og:title",
-        content: "Agente Comercial 360 — Central de Inteligência para Mercado Livre",
-      },
-      {
-        property: "og:description",
-        content:
-          "Transforme dados do Mercado Livre em lucro real. Multi-conta, margem, Radar IA e monitoramento de concorrência.",
-      },
+      { title: LANDING_TITLE },
+      { name: "description", content: LANDING_DESCRIPTION },
+      { name: "robots", content: "index, follow" },
+      { property: "og:type", content: "website" },
+      { property: "og:title", content: LANDING_TITLE },
+      { property: "og:description", content: LANDING_DESCRIPTION },
+      { property: "og:url", content: `${SITE_URL}/landing` },
+      { property: "og:image", content: `${SITE_URL}/ac360-social-preview.png` },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: LANDING_TITLE },
+      { name: "twitter:description", content: LANDING_DESCRIPTION },
+      { name: "twitter:image", content: `${SITE_URL}/ac360-social-preview.png` },
     ],
+    links: [{ rel: "canonical", href: `${SITE_URL}/` }],
   }),
 });
 

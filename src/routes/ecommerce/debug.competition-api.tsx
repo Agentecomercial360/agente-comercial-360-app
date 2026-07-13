@@ -713,16 +713,6 @@ function DebugCompetitionApiPage() {
     setAnalysisResult(null);
     const started = performance.now();
     try {
-      const token = await withToken();
-      if (!token) {
-        setAnalysisResult({
-          httpStatus: null,
-          durationMs: 0,
-          body: "",
-          interpretation: "Sessão inválida.",
-        });
-        return;
-      }
       const payload = {
         company_id: companyId,
         account_id: accountId,

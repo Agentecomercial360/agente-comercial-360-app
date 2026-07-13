@@ -1377,9 +1377,14 @@ function DebugCompetitionApiPage() {
 
           <TextField label="Observação da análise" value={analysisNotes} onChange={setAnalysisNotes} />
 
+          {cUrlAmbiguous && (
+            <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-xs text-red-800">
+              O link contém mais de um identificador MLB e não foi possível determinar o anúncio do vendedor.
+            </div>
+          )}
           {mlbMismatch && (
             <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-xs text-red-800">
-              O ID MLB informado ({cItemIdTrimmed}) não corresponde ao anúncio presente no link ({cUrlMlbId}).
+              O ID MLB informado ({cItemIdTrimmed}) não corresponde ao item_id extraído do link ({cUrlMlbId}).
               Corrija antes de registrar.
             </div>
           )}
@@ -1388,6 +1393,27 @@ function DebugCompetitionApiPage() {
               Informe o termo de busca real utilizado no Mercado Livre antes de registrar.
             </div>
           )}
+
+          <div className="rounded-lg border border-border bg-muted/30 p-3 text-xs space-y-1">
+            <div className="font-semibold text-foreground">Diagnóstico do link (sem dados sensíveis)</div>
+            <div>ID informado: <span className="font-mono">{cItemIdTrimmed || "—"}</span></div>
+            <div>Item ID extraído: <span className="font-mono">{cUrlMlbId ?? "—"}</span></div>
+            {cUrlCatalogId && (
+              <div>Catálogo detectado: <span className="font-mono">{cUrlCatalogId}</span></div>
+            )}
+            <div>
+              Validação:{" "}
+              <strong>
+                {cUrlAmbiguous
+                  ? "Ambíguo — múltiplos MLB no link"
+                  : mlbMismatch
+                  ? "Divergente"
+                  : cUrlMlbId && cItemIdTrimmed
+                  ? "Correspondente"
+                  : "Aguardando dados"}
+              </strong>
+            </div>
+          </div>
 
           <details className="rounded-lg border border-border bg-muted/30 p-3 text-xs">
             <summary className="cursor-pointer font-semibold text-foreground">

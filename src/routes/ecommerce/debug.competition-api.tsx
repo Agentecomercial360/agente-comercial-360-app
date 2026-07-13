@@ -911,7 +911,7 @@ function DebugCompetitionApiPage() {
     if (postingAnalysis) return;
     if (!canOpenAnalysisConfirm || !companyId || !accountId || !watchlistId) return;
     if (!analysisPayload) return;
-    if (mlbMismatch) return;
+    if (mlbMismatch || cUrlAmbiguous) return;
     if (!searchQueryTrimmed) return;
     setPostingAnalysis(true);
     setAnalysisResult(null);

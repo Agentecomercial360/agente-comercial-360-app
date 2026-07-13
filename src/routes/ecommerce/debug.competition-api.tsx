@@ -199,6 +199,7 @@ function DebugCompetitionApiPage() {
   const hasConsistentContext =
     !!accountIdFromHeader &&
     account?.id === accountIdFromHeader &&
+    account?.is_active === true &&
     !!accountId &&
     !!companyId &&
     !!companyName;

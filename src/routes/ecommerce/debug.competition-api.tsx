@@ -160,6 +160,50 @@ type UrlListingIds = {
   ambiguous: boolean;
 };
 
+type ManualAnalysisPayload = {
+  company_id: string;
+  account_id: string;
+  watchlist_id: string;
+  observed_at: string;
+  search_query: string;
+  operator_name: string | null;
+  notes: string | null;
+  own: {
+    rank_position: number | null;
+    price: number | null;
+    free_shipping: boolean | null;
+    listing_url: string | null;
+    sold_quantity: number | null;
+    reviews_count: number | null;
+    rating_average: number | null;
+    delivery_text: string | null;
+    title_quality_score: number | null;
+    image_quality_score: number | null;
+    offer_quality_score: number | null;
+  };
+  competitors: Array<{
+    item_url: string | null;
+    ml_item_id: string | null;
+    title: string | null;
+    rank_position: number | null;
+    price: number | null;
+    is_primary: boolean;
+    free_shipping: boolean | null;
+    sold_quantity: number | null;
+    seller_nickname: string | null;
+    seller_reputation: string | null;
+    reviews_count: number | null;
+    rating_average: number | null;
+    delivery_text: string | null;
+    installments_text: string | null;
+    discount_percent: number | null;
+    title_quality_score: number | null;
+    image_quality_score: number | null;
+    offer_quality_score: number | null;
+    notes: string | null;
+  }>;
+};
+
 /**
  * Extrai o item_id real do anúncio a partir da URL, distinguindo-o do
  * catalog_product_id (/p/MLB...). Ordem de prioridade:
@@ -290,6 +334,7 @@ function DebugCompetitionApiPage() {
   const [listingsError, setListingsError] = useState<string | null>(null);
   const [selectedListingId, setSelectedListingId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [suggestedSearchQuery, setSuggestedSearchQuery] = useState<string>("");
   const [minMarginPercent, setMinMarginPercent] = useState<string>("10");
   const [notes, setNotes] = useState<string>("");
 
@@ -337,6 +382,7 @@ function DebugCompetitionApiPage() {
   const [cNotes, setCNotes] = useState<string>("");
 
   const [confirmingAnalysis, setConfirmingAnalysis] = useState(false);
+  const [pendingAnalysisPayload, setPendingAnalysisPayload] = useState<ManualAnalysisPayload | null>(null);
   const [postingAnalysis, setPostingAnalysis] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<RunResult | null>(null);
 
@@ -525,11 +571,11 @@ function DebugCompetitionApiPage() {
     [listings, selectedListingId],
   );
 
-  // Ao trocar anúncio, sugerir defaults SOMENTE quando o campo está vazio.
-  // Nunca sobrescrever o que o operador já digitou (ex.: termo real de busca).
+  // Ao trocar anúncio, manter a sugestão separada do termo efetivo digitado.
+  // O campo visível `searchQuery` é a única fonte do POST.
   useEffect(() => {
     if (!selectedListing) return;
-    setSearchQuery((prev) => (prev.trim() === "" ? selectedListing.title ?? "" : prev));
+    setSuggestedSearchQuery(selectedListing.title ?? "");
     if (selectedListing.price != null) {
       setOwnPrice((prev) => (prev.trim() === "" ? String(selectedListing.price) : prev));
     }
@@ -848,15 +894,14 @@ function DebugCompetitionApiPage() {
     !mlbMismatch &&
     !cUrlAmbiguous;
 
-  // Payload que será enviado. Não contém token nem cabeçalhos de autorização.
-  const analysisPayload = useMemo(() => {
+  function buildAnalysisPayload(submittedSearchQuery: string): ManualAnalysisPayload | null {
     if (!companyId || !accountId || !watchlistId) return null;
     return {
       company_id: companyId,
       account_id: accountId,
       watchlist_id: watchlistId,
       observed_at: new Date().toISOString(),
-      search_query: searchQueryTrimmed,
+      search_query: submittedSearchQuery,
       operator_name: toStringOrNull(operatorName),
       notes: analysisNotes.trim() || null,
       own: {
@@ -896,23 +941,45 @@ function DebugCompetitionApiPage() {
         },
       ],
     };
-  }, [
-    companyId, accountId, watchlistId, searchQueryTrimmed, operatorName, analysisNotes,
-    ownRankNum, ownPriceNum, ownFreeShipping, ownListingUrl, ownSoldQuantity,
-    ownReviewsCount, ownRatingAverage, ownDeliveryText, ownTitleQualityScore,
-    ownImageQualityScore, ownOfferQualityScore,
-    cUrlCleaned, cItemIdTrimmed, cUrlMlbId, cTitle, cRankNum, cPriceNum, cFreeShipping,
-    cSoldQuantity, cSellerNickname, cSellerReputation, cReviewsCount, cRatingAverage,
-    cDeliveryText, cInstallmentsText, cDiscountPercent, cTitleQualityScore,
-    cImageQualityScore, cOfferQualityScore, cNotes,
-  ]);
+  }
+
+  // Prévia do payload que será congelado no clique. Não contém token nem cabeçalhos.
+  const analysisPayload = useMemo(
+    () => buildAnalysisPayload(searchQueryTrimmed),
+    [
+      companyId, accountId, watchlistId, searchQueryTrimmed, operatorName, analysisNotes,
+      ownRankNum, ownPriceNum, ownFreeShipping, ownListingUrl, ownSoldQuantity,
+      ownReviewsCount, ownRatingAverage, ownDeliveryText, ownTitleQualityScore,
+      ownImageQualityScore, ownOfferQualityScore,
+      cUrlCleaned, cItemIdTrimmed, cUrlMlbId, cTitle, cRankNum, cPriceNum, cFreeShipping,
+      cSoldQuantity, cSellerNickname, cSellerReputation, cReviewsCount, cRatingAverage,
+      cDeliveryText, cInstallmentsText, cDiscountPercent, cTitleQualityScore,
+      cImageQualityScore, cOfferQualityScore, cNotes,
+    ],
+  );
+
+  const displayedAnalysisPayload = pendingAnalysisPayload ?? analysisPayload;
+
+  function openAnalysisConfirm() {
+    const submittedSearchQuery = searchQuery.trim();
+    if (!canOpenAnalysisConfirm || !submittedSearchQuery || mlbMismatch || cUrlAmbiguous) return;
+    const frozenPayload = buildAnalysisPayload(submittedSearchQuery);
+    if (!frozenPayload) return;
+    setPendingAnalysisPayload(frozenPayload);
+    setConfirmingAnalysis(true);
+  }
+
+  function cancelAnalysisConfirm() {
+    setConfirmingAnalysis(false);
+    setPendingAnalysisPayload(null);
+  }
 
   async function postManualAnalysis() {
     if (postingAnalysis) return;
     if (!canOpenAnalysisConfirm || !companyId || !accountId || !watchlistId) return;
-    if (!analysisPayload) return;
+    if (!pendingAnalysisPayload) return;
     if (mlbMismatch || cUrlAmbiguous) return;
-    if (!searchQueryTrimmed) return;
+    if (!pendingAnalysisPayload.search_query.trim()) return;
     setPostingAnalysis(true);
     setAnalysisResult(null);
     const started = performance.now();
@@ -923,7 +990,7 @@ function DebugCompetitionApiPage() {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify(analysisPayload),
+        body: JSON.stringify(pendingAnalysisPayload),
       });
       if (!res) {
         setAnalysisResult({
@@ -946,6 +1013,7 @@ function DebugCompetitionApiPage() {
         parsed,
       });
       setConfirmingAnalysis(false);
+      if (res.status === 201) setPendingAnalysisPayload(null);
       if (res.status === 201) {
         // Etapa 4 — atualizar histórico automaticamente
         void refreshHistory();

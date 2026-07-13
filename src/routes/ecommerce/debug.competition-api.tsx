@@ -958,7 +958,7 @@ function DebugCompetitionApiPage() {
     ],
   );
 
-  const displayedAnalysisPayload = pendingAnalysisPayload ?? analysisPayload;
+  const displayedAnalysisPayload = confirmingAnalysis && pendingAnalysisPayload ? pendingAnalysisPayload : analysisPayload;
 
   function openAnalysisConfirm() {
     const submittedSearchQuery = searchQuery.trim();

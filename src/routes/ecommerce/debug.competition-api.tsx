@@ -148,8 +148,91 @@ function extractMlbIdFromText(text: string | null | undefined): string | null {
 }
 
 /**
+ * Resultado da análise de uma URL de anúncio/catálogo do Mercado Livre.
+ * - itemId: item_id real do anúncio do vendedor (MLB...)
+ * - catalogId: identificador da página de catálogo (/p/MLB...)
+ * - ambiguous: URL possui múltiplos MLB e não foi possível determinar o
+ *   anúncio do vendedor com segurança.
+ */
+type UrlListingIds = {
+  itemId: string | null;
+  catalogId: string | null;
+  ambiguous: boolean;
+};
+
+/**
+ * Extrai o item_id real do anúncio a partir da URL, distinguindo-o do
+ * catalog_product_id (/p/MLB...). Ordem de prioridade:
+ *   1) pdp_filters=item_id:MLB...
+ *   2) query params item_id / itemId / wid
+ *   3) /p/MLB... → tratado como catalog_product_id
+ *   4) URL tradicional /MLB-...
+ * Nunca "adivinha" quando há múltiplos MLB divergentes: devolve ambiguous.
+ */
+function extractListingItemIdFromUrl(input: string | null | undefined): UrlListingIds {
+  const empty: UrlListingIds = { itemId: null, catalogId: null, ambiguous: false };
+  if (!input) return empty;
+  const value = input.trim();
+  if (!value) return empty;
+
+  let url: URL | null = null;
+  try { url = new URL(value); } catch { url = null; }
+
+  if (!url) {
+    const raw = [...value.matchAll(/MLB-?(\d{6,})/gi)].map((m) => `MLB${m[1]}`);
+    const uniq = Array.from(new Set(raw));
+    if (uniq.length === 0) return empty;
+    if (uniq.length === 1) return { itemId: uniq[0], catalogId: null, ambiguous: false };
+    return { itemId: null, catalogId: null, ambiguous: true };
+  }
+
+  let itemId: string | null = null;
+  let catalogId: string | null = null;
+
+  // 1) pdp_filters=item_id:MLB123 (ou item_id-MLB123)
+  const pdp = url.searchParams.get("pdp_filters");
+  if (pdp) {
+    const m = pdp.match(/item[_-]?id\s*[:=-]\s*MLB-?(\d{6,})/i);
+    if (m) itemId = `MLB${m[1]}`;
+  }
+
+  // 2) query params diretos
+  if (!itemId) {
+    for (const key of ["item_id", "itemId", "wid"]) {
+      const v = url.searchParams.get(key);
+      if (!v) continue;
+      const m = v.match(/MLB-?(\d{6,})/i);
+      if (m) { itemId = `MLB${m[1]}`; break; }
+    }
+  }
+
+  // 3) catálogo em /p/MLB...
+  const catMatch = url.pathname.match(/\/p\/MLB-?(\d{6,})/i);
+  if (catMatch) catalogId = `MLB${catMatch[1]}`;
+
+  // 4) URL tradicional /MLB-123... (só quando não é rota /p/)
+  if (!itemId && !catalogId) {
+    const pathMatch = url.pathname.match(/\/MLB-?(\d{6,})/i);
+    if (pathMatch) itemId = `MLB${pathMatch[1]}`;
+  }
+
+  // Checagem final de ambiguidade: quando ainda não temos item_id mas a URL
+  // contém múltiplos MLB distintos (além do catálogo), não adivinhar.
+  if (!itemId) {
+    const all = [...value.matchAll(/MLB-?(\d{6,})/gi)].map((m) => `MLB${m[1]}`);
+    const uniq = Array.from(new Set(all)).filter((id) => id !== catalogId);
+    if (uniq.length > 1) return { itemId: null, catalogId, ambiguous: true };
+    if (uniq.length === 1) itemId = uniq[0];
+  }
+
+  return { itemId, catalogId, ambiguous: false };
+}
+
+/**
  * Remove parâmetros de rastreamento comuns preservando a URL funcional do
- * anúncio. Se a string não for URL válida, devolve o valor original.
+ * anúncio, INCLUINDO `pdp_filters` (que carrega o item_id real do vendedor
+ * em links de catálogo). Se a string não for URL válida, devolve o valor
+ * original.
  */
 function stripTrackingParams(input: string | null | undefined): string {
   if (!input) return "";
@@ -159,11 +242,13 @@ function stripTrackingParams(input: string | null | undefined): string {
     const url = new URL(value);
     const TRACKING_KEYS = new Set([
       "matt_tool", "matt_word", "matt_source", "matt_campaign_name",
-      "wid", "sid", "tracking_id", "utm_source", "utm_medium", "utm_campaign",
-      "utm_term", "utm_content", "pdp_filters", "reco_backend",
+      "sid", "tracking_id", "utm_source", "utm_medium", "utm_campaign",
+      "utm_term", "utm_content", "reco_backend",
       "reco_backend_type", "reco_client", "reco_id", "reco_item_pos",
       "reco_model", "reco_pos", "c_id", "c_uid", "gclid", "fbclid",
       "deal_print_id", "trackId",
+      // Observação: `pdp_filters` e `wid` são preservados pois carregam o
+      // item_id real do anúncio em links de catálogo.
     ]);
     const toDelete: string[] = [];
     url.searchParams.forEach((_v, k) => {

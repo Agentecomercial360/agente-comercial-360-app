@@ -976,9 +976,7 @@ function DebugCompetitionApiPage() {
 
   async function postManualAnalysis() {
     if (postingAnalysis) return;
-    if (!canOpenAnalysisConfirm || !companyId || !accountId || !watchlistId) return;
     if (!pendingAnalysisPayload) return;
-    if (mlbMismatch || cUrlAmbiguous) return;
     if (!pendingAnalysisPayload.search_query.trim()) return;
     setPostingAnalysis(true);
     setAnalysisResult(null);

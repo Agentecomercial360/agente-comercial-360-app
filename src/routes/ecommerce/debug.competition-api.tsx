@@ -635,21 +635,21 @@ function DebugCompetitionApiPage() {
     setWatchlistGetResult(null);
     const started = performance.now();
     try {
-      const token = await withToken();
-      if (!token) {
+      const params = new URLSearchParams({ company_id: companyId, account_id: accountId });
+      const res = await authedFetch(
+        `${API_BASE}/api/mercadolivre/competition/watchlist?${params.toString()}`,
+        { method: "GET", headers: { Accept: "application/json" } },
+      );
+      if (!res) {
         setWatchlistGetResult({
           httpStatus: null,
           durationMs: 0,
           body: "",
-          interpretation: "Sessão inválida.",
+          interpretation:
+            "Sua sessão expirou e não pôde ser renovada. Entre novamente no AC360.",
         });
         return;
       }
-      const params = new URLSearchParams({ company_id: companyId, account_id: accountId });
-      const res = await fetch(
-        `${API_BASE}/api/mercadolivre/competition/watchlist?${params.toString()}`,
-        { method: "GET", headers: { Authorization: `Bearer ${token}`, Accept: "application/json" } },
-      );
       const durationMs = Math.round(performance.now() - started);
       const text = await res.text();
       const { pretty, parsed } = tryParseJson(text);

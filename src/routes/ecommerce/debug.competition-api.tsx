@@ -135,6 +135,47 @@ function tryParseJson(text: string): { pretty: string; parsed: unknown } {
   }
 }
 
+/**
+ * Extrai um ID MLB (formato "MLB123456789" ou "MLB-123456789") de qualquer
+ * string — normalmente URL de anúncio do Mercado Livre. Retorna o ID
+ * normalizado sem hífen ("MLB123456789") ou null se nada for encontrado.
+ */
+function extractMlbIdFromText(text: string | null | undefined): string | null {
+  if (!text) return null;
+  const m = text.match(/MLB-?(\d{6,})/i);
+  if (!m) return null;
+  return `MLB${m[1]}`;
+}
+
+/**
+ * Remove parâmetros de rastreamento comuns preservando a URL funcional do
+ * anúncio. Se a string não for URL válida, devolve o valor original.
+ */
+function stripTrackingParams(input: string | null | undefined): string {
+  if (!input) return "";
+  const value = input.trim();
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    const TRACKING_KEYS = new Set([
+      "matt_tool", "matt_word", "matt_source", "matt_campaign_name",
+      "wid", "sid", "tracking_id", "utm_source", "utm_medium", "utm_campaign",
+      "utm_term", "utm_content", "pdp_filters", "reco_backend",
+      "reco_backend_type", "reco_client", "reco_id", "reco_item_pos",
+      "reco_model", "reco_pos", "c_id", "c_uid", "gclid", "fbclid",
+      "deal_print_id", "trackId",
+    ]);
+    const toDelete: string[] = [];
+    url.searchParams.forEach((_v, k) => {
+      if (TRACKING_KEYS.has(k)) toDelete.push(k);
+    });
+    toDelete.forEach((k) => url.searchParams.delete(k));
+    return url.toString();
+  } catch {
+    return value;
+  }
+}
+
 function DebugCompetitionApiRoute() {
   return (
     <EcommerceLayout>
@@ -399,13 +440,16 @@ function DebugCompetitionApiPage() {
     [listings, selectedListingId],
   );
 
-  // Ao trocar anúncio, preencher defaults (sem sobrescrever se usuário já editou o próprio own*).
+  // Ao trocar anúncio, sugerir defaults SOMENTE quando o campo está vazio.
+  // Nunca sobrescrever o que o operador já digitou (ex.: termo real de busca).
   useEffect(() => {
     if (!selectedListing) return;
-    setSearchQuery(selectedListing.title ?? "");
-    if (selectedListing.price != null) setOwnPrice(String(selectedListing.price));
+    setSearchQuery((prev) => (prev.trim() === "" ? selectedListing.title ?? "" : prev));
+    if (selectedListing.price != null) {
+      setOwnPrice((prev) => (prev.trim() === "" ? String(selectedListing.price) : prev));
+    }
     const url = selectedListing.listing_url || selectedListing.external_url || "";
-    if (url) setOwnListingUrl(url);
+    if (url) setOwnListingUrl((prev) => (prev.trim() === "" ? url : prev));
   }, [selectedListing]);
 
   // ---------- Sessão / token helper ----------
@@ -696,75 +740,101 @@ function DebugCompetitionApiPage() {
   const competitorHasIdentity =
     toStringOrNull(cTitle) !== null || toStringOrNull(cUrl) !== null || toStringOrNull(cItemId) !== null;
 
+  const searchQueryTrimmed = searchQuery.trim();
+  const cItemIdTrimmed = cItemId.trim().toUpperCase().replace(/^MLB-/, "MLB");
+  const cUrlCleaned = stripTrackingParams(cUrl);
+  const cUrlMlbId = extractMlbIdFromText(cUrlCleaned);
+  const mlbMismatch =
+    !!cUrlMlbId && !!cItemIdTrimmed && cUrlMlbId !== cItemIdTrimmed;
+
   const canOpenAnalysisConfirm =
     sessionState === "authenticated" &&
     hasConsistentContext &&
     !!watchlistId &&
+    searchQueryTrimmed !== "" &&
     ownRankNum !== null &&
     ownPriceNum !== null &&
     cRankNum !== null &&
     cPriceNum !== null &&
-    competitorHasIdentity;
+    competitorHasIdentity &&
+    !mlbMismatch;
+
+  // Payload que será enviado. Não contém token nem cabeçalhos de autorização.
+  const analysisPayload = useMemo(() => {
+    if (!companyId || !accountId || !watchlistId) return null;
+    return {
+      company_id: companyId,
+      account_id: accountId,
+      watchlist_id: watchlistId,
+      observed_at: new Date().toISOString(),
+      search_query: searchQueryTrimmed,
+      operator_name: toStringOrNull(operatorName),
+      notes: analysisNotes.trim() || null,
+      own: {
+        rank_position: ownRankNum,
+        price: ownPriceNum,
+        free_shipping: triToBool(ownFreeShipping),
+        listing_url: toStringOrNull(ownListingUrl),
+        sold_quantity: toIntOrNull(ownSoldQuantity),
+        reviews_count: toIntOrNull(ownReviewsCount),
+        rating_average: toNumberOrNull(ownRatingAverage),
+        delivery_text: toStringOrNull(ownDeliveryText),
+        title_quality_score: toNumberOrNull(ownTitleQualityScore),
+        image_quality_score: toNumberOrNull(ownImageQualityScore),
+        offer_quality_score: toNumberOrNull(ownOfferQualityScore),
+      },
+      competitors: [
+        {
+          item_url: cUrlCleaned || null,
+          ml_item_id: cItemIdTrimmed || cUrlMlbId || null,
+          title: toStringOrNull(cTitle),
+          rank_position: cRankNum,
+          price: cPriceNum,
+          is_primary: true,
+          free_shipping: triToBool(cFreeShipping),
+          sold_quantity: toIntOrNull(cSoldQuantity),
+          seller_nickname: toStringOrNull(cSellerNickname),
+          seller_reputation: toStringOrNull(cSellerReputation),
+          reviews_count: toIntOrNull(cReviewsCount),
+          rating_average: toNumberOrNull(cRatingAverage),
+          delivery_text: toStringOrNull(cDeliveryText),
+          installments_text: toStringOrNull(cInstallmentsText),
+          discount_percent: toNumberOrNull(cDiscountPercent),
+          title_quality_score: toNumberOrNull(cTitleQualityScore),
+          image_quality_score: toNumberOrNull(cImageQualityScore),
+          offer_quality_score: toNumberOrNull(cOfferQualityScore),
+          notes: cNotes.trim() || null,
+        },
+      ],
+    };
+  }, [
+    companyId, accountId, watchlistId, searchQueryTrimmed, operatorName, analysisNotes,
+    ownRankNum, ownPriceNum, ownFreeShipping, ownListingUrl, ownSoldQuantity,
+    ownReviewsCount, ownRatingAverage, ownDeliveryText, ownTitleQualityScore,
+    ownImageQualityScore, ownOfferQualityScore,
+    cUrlCleaned, cItemIdTrimmed, cUrlMlbId, cTitle, cRankNum, cPriceNum, cFreeShipping,
+    cSoldQuantity, cSellerNickname, cSellerReputation, cReviewsCount, cRatingAverage,
+    cDeliveryText, cInstallmentsText, cDiscountPercent, cTitleQualityScore,
+    cImageQualityScore, cOfferQualityScore, cNotes,
+  ]);
 
   async function postManualAnalysis() {
     if (postingAnalysis) return;
     if (!canOpenAnalysisConfirm || !companyId || !accountId || !watchlistId) return;
+    if (!analysisPayload) return;
+    if (mlbMismatch) return;
+    if (!searchQueryTrimmed) return;
     setPostingAnalysis(true);
     setAnalysisResult(null);
     const started = performance.now();
     try {
-      const payload = {
-        company_id: companyId,
-        account_id: accountId,
-        watchlist_id: watchlistId,
-        observed_at: new Date().toISOString(),
-        search_query: toStringOrNull(searchQuery),
-        operator_name: toStringOrNull(operatorName),
-        notes: toStringOrNull(analysisNotes),
-        own: {
-          rank_position: ownRankNum,
-          price: ownPriceNum,
-          free_shipping: triToBool(ownFreeShipping),
-          listing_url: toStringOrNull(ownListingUrl),
-          sold_quantity: toIntOrNull(ownSoldQuantity),
-          reviews_count: toIntOrNull(ownReviewsCount),
-          rating_average: toNumberOrNull(ownRatingAverage),
-          delivery_text: toStringOrNull(ownDeliveryText),
-          title_quality_score: toNumberOrNull(ownTitleQualityScore),
-          image_quality_score: toNumberOrNull(ownImageQualityScore),
-          offer_quality_score: toNumberOrNull(ownOfferQualityScore),
-        },
-        competitors: [
-          {
-            item_url: toStringOrNull(cUrl),
-            ml_item_id: toStringOrNull(cItemId),
-            title: toStringOrNull(cTitle),
-            rank_position: cRankNum,
-            price: cPriceNum,
-            is_primary: true,
-            free_shipping: triToBool(cFreeShipping),
-            sold_quantity: toIntOrNull(cSoldQuantity),
-            seller_nickname: toStringOrNull(cSellerNickname),
-            seller_reputation: toStringOrNull(cSellerReputation),
-            reviews_count: toIntOrNull(cReviewsCount),
-            rating_average: toNumberOrNull(cRatingAverage),
-            delivery_text: toStringOrNull(cDeliveryText),
-            installments_text: toStringOrNull(cInstallmentsText),
-            discount_percent: toNumberOrNull(cDiscountPercent),
-            title_quality_score: toNumberOrNull(cTitleQualityScore),
-            image_quality_score: toNumberOrNull(cImageQualityScore),
-            offer_quality_score: toNumberOrNull(cOfferQualityScore),
-            notes: toStringOrNull(cNotes),
-          },
-        ],
-      };
       const res = await authedFetch(`${API_BASE}/api/mercadolivre/competition/manual-analysis`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(analysisPayload),
       });
       if (!res) {
         setAnalysisResult({
@@ -1218,6 +1288,27 @@ function DebugCompetitionApiPage() {
 
           <TextField label="Observação da análise" value={analysisNotes} onChange={setAnalysisNotes} />
 
+          {mlbMismatch && (
+            <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-xs text-red-800">
+              O ID MLB informado ({cItemIdTrimmed}) não corresponde ao anúncio presente no link ({cUrlMlbId}).
+              Corrija antes de registrar.
+            </div>
+          )}
+          {searchQueryTrimmed === "" && (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800">
+              Informe o termo de busca real utilizado no Mercado Livre antes de registrar.
+            </div>
+          )}
+
+          <details className="rounded-lg border border-border bg-muted/30 p-3 text-xs">
+            <summary className="cursor-pointer font-semibold text-foreground">
+              Prévia segura do payload (sem token nem cabeçalhos)
+            </summary>
+            <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed">
+{analysisPayload ? JSON.stringify(analysisPayload, null, 2) : "Payload indisponível — complete o contexto e o watchlist_id."}
+            </pre>
+          </details>
+
           <button
             type="button"
             onClick={() => setConfirmingAnalysis(true)}
@@ -1262,6 +1353,10 @@ function DebugCompetitionApiPage() {
         </fieldset>
 
         {analysisResult && <ResultBlock result={analysisResult} okStatuses={[201]} />}
+
+        {analysisResult?.httpStatus === 201 && analysisParsedObj && (
+          <RegisteredDataBlock parsed={analysisParsedObj} />
+        )}
 
         {analysisParsedObj && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -1384,6 +1479,59 @@ function ResultBlock({ result, okStatuses }: { result: RunResult; okStatuses: nu
       {result.networkError && (
         <div className="text-xs text-muted-foreground">Detalhe técnico: {result.networkError}</div>
       )}
+    </div>
+  );
+}
+
+function RegisteredDataBlock({ parsed }: { parsed: Record<string, unknown> }) {
+  // Extrai valores conhecidos do retorno do backend, testando os locais mais comuns.
+  const snapshot = (parsed.snapshot as Record<string, unknown> | undefined) ?? {};
+  const rawSummary =
+    (snapshot.raw_summary as Record<string, unknown> | undefined) ??
+    (parsed.raw_summary as Record<string, unknown> | undefined) ??
+    {};
+  const competitorsArr =
+    (parsed.competitors as Array<Record<string, unknown>> | undefined) ??
+    (snapshot.competitors as Array<Record<string, unknown>> | undefined) ??
+    [];
+  const firstComp = competitorsArr[0] ?? {};
+  const rawPayload = (firstComp.raw_payload as Record<string, unknown> | undefined) ?? {};
+
+  const searchQueryOut =
+    (rawSummary.search_query as string | undefined) ??
+    (snapshot.search_query as string | undefined) ??
+    (parsed.search_query as string | undefined) ??
+    "—";
+  const notesOut =
+    (rawSummary.notes as string | null | undefined) ??
+    (snapshot.notes as string | null | undefined) ??
+    null;
+  const competitorNotesOut =
+    (rawPayload.notes as string | null | undefined) ??
+    (firstComp.notes as string | null | undefined) ??
+    null;
+  const mlbOut =
+    (firstComp.ml_item_id as string | undefined) ??
+    (rawPayload.ml_item_id as string | undefined) ??
+    "—";
+  const ownRankOut =
+    ((snapshot.own as Record<string, unknown> | undefined)?.rank_position as number | undefined) ??
+    (parsed.own_rank_position as number | undefined);
+  const compRankOut =
+    (firstComp.rank_position as number | undefined) ??
+    (rawPayload.rank_position as number | undefined);
+
+  return (
+    <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-900 space-y-1">
+      <div className="font-semibold uppercase tracking-wide text-[11px]">
+        Dados efetivamente registrados
+      </div>
+      <div>Termo de busca: <strong>{searchQueryOut}</strong></div>
+      <div>Observação geral (raw_summary.notes): <strong>{notesOut ?? "null"}</strong></div>
+      <div>Observação do concorrente (raw_payload.notes): <strong>{competitorNotesOut ?? "null"}</strong></div>
+      <div>ID MLB do concorrente: <strong>{mlbOut}</strong></div>
+      <div>Posição própria: <strong>{ownRankOut ?? "—"}</strong></div>
+      <div>Posição do concorrente: <strong>{compRankOut ?? "—"}</strong></div>
     </div>
   );
 }

@@ -1483,6 +1483,59 @@ function ResultBlock({ result, okStatuses }: { result: RunResult; okStatuses: nu
   );
 }
 
+function RegisteredDataBlock({ parsed }: { parsed: Record<string, unknown> }) {
+  // Extrai valores conhecidos do retorno do backend, testando os locais mais comuns.
+  const snapshot = (parsed.snapshot as Record<string, unknown> | undefined) ?? {};
+  const rawSummary =
+    (snapshot.raw_summary as Record<string, unknown> | undefined) ??
+    (parsed.raw_summary as Record<string, unknown> | undefined) ??
+    {};
+  const competitorsArr =
+    (parsed.competitors as Array<Record<string, unknown>> | undefined) ??
+    (snapshot.competitors as Array<Record<string, unknown>> | undefined) ??
+    [];
+  const firstComp = competitorsArr[0] ?? {};
+  const rawPayload = (firstComp.raw_payload as Record<string, unknown> | undefined) ?? {};
+
+  const searchQueryOut =
+    (rawSummary.search_query as string | undefined) ??
+    (snapshot.search_query as string | undefined) ??
+    (parsed.search_query as string | undefined) ??
+    "—";
+  const notesOut =
+    (rawSummary.notes as string | null | undefined) ??
+    (snapshot.notes as string | null | undefined) ??
+    null;
+  const competitorNotesOut =
+    (rawPayload.notes as string | null | undefined) ??
+    (firstComp.notes as string | null | undefined) ??
+    null;
+  const mlbOut =
+    (firstComp.ml_item_id as string | undefined) ??
+    (rawPayload.ml_item_id as string | undefined) ??
+    "—";
+  const ownRankOut =
+    ((snapshot.own as Record<string, unknown> | undefined)?.rank_position as number | undefined) ??
+    (parsed.own_rank_position as number | undefined);
+  const compRankOut =
+    (firstComp.rank_position as number | undefined) ??
+    (rawPayload.rank_position as number | undefined);
+
+  return (
+    <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-900 space-y-1">
+      <div className="font-semibold uppercase tracking-wide text-[11px]">
+        Dados efetivamente registrados
+      </div>
+      <div>Termo de busca: <strong>{searchQueryOut}</strong></div>
+      <div>Observação geral (raw_summary.notes): <strong>{notesOut ?? "null"}</strong></div>
+      <div>Observação do concorrente (raw_payload.notes): <strong>{competitorNotesOut ?? "null"}</strong></div>
+      <div>ID MLB do concorrente: <strong>{mlbOut}</strong></div>
+      <div>Posição própria: <strong>{ownRankOut ?? "—"}</strong></div>
+      <div>Posição do concorrente: <strong>{compRankOut ?? "—"}</strong></div>
+    </div>
+  );
+}
+
 function ParsedField({ label, value }: { label: string; value: unknown }) {
   if (value === undefined) return null;
   const isPrimitive = value === null || typeof value !== "object";

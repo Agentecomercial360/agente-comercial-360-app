@@ -1354,6 +1354,10 @@ function DebugCompetitionApiPage() {
 
         {analysisResult && <ResultBlock result={analysisResult} okStatuses={[201]} />}
 
+        {analysisResult?.httpStatus === 201 && analysisParsedObj && (
+          <RegisteredDataBlock parsed={analysisParsedObj} />
+        )}
+
         {analysisParsedObj && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <ParsedField label="snapshot" value={analysisParsedObj.snapshot} />

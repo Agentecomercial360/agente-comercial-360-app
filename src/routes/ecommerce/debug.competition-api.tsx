@@ -740,75 +740,101 @@ function DebugCompetitionApiPage() {
   const competitorHasIdentity =
     toStringOrNull(cTitle) !== null || toStringOrNull(cUrl) !== null || toStringOrNull(cItemId) !== null;
 
+  const searchQueryTrimmed = searchQuery.trim();
+  const cItemIdTrimmed = cItemId.trim().toUpperCase().replace(/^MLB-/, "MLB");
+  const cUrlCleaned = stripTrackingParams(cUrl);
+  const cUrlMlbId = extractMlbIdFromText(cUrlCleaned);
+  const mlbMismatch =
+    !!cUrlMlbId && !!cItemIdTrimmed && cUrlMlbId !== cItemIdTrimmed;
+
   const canOpenAnalysisConfirm =
     sessionState === "authenticated" &&
     hasConsistentContext &&
     !!watchlistId &&
+    searchQueryTrimmed !== "" &&
     ownRankNum !== null &&
     ownPriceNum !== null &&
     cRankNum !== null &&
     cPriceNum !== null &&
-    competitorHasIdentity;
+    competitorHasIdentity &&
+    !mlbMismatch;
+
+  // Payload que será enviado. Não contém token nem cabeçalhos de autorização.
+  const analysisPayload = useMemo(() => {
+    if (!companyId || !accountId || !watchlistId) return null;
+    return {
+      company_id: companyId,
+      account_id: accountId,
+      watchlist_id: watchlistId,
+      observed_at: new Date().toISOString(),
+      search_query: searchQueryTrimmed,
+      operator_name: toStringOrNull(operatorName),
+      notes: analysisNotes.trim() || null,
+      own: {
+        rank_position: ownRankNum,
+        price: ownPriceNum,
+        free_shipping: triToBool(ownFreeShipping),
+        listing_url: toStringOrNull(ownListingUrl),
+        sold_quantity: toIntOrNull(ownSoldQuantity),
+        reviews_count: toIntOrNull(ownReviewsCount),
+        rating_average: toNumberOrNull(ownRatingAverage),
+        delivery_text: toStringOrNull(ownDeliveryText),
+        title_quality_score: toNumberOrNull(ownTitleQualityScore),
+        image_quality_score: toNumberOrNull(ownImageQualityScore),
+        offer_quality_score: toNumberOrNull(ownOfferQualityScore),
+      },
+      competitors: [
+        {
+          item_url: cUrlCleaned || null,
+          ml_item_id: cItemIdTrimmed || cUrlMlbId || null,
+          title: toStringOrNull(cTitle),
+          rank_position: cRankNum,
+          price: cPriceNum,
+          is_primary: true,
+          free_shipping: triToBool(cFreeShipping),
+          sold_quantity: toIntOrNull(cSoldQuantity),
+          seller_nickname: toStringOrNull(cSellerNickname),
+          seller_reputation: toStringOrNull(cSellerReputation),
+          reviews_count: toIntOrNull(cReviewsCount),
+          rating_average: toNumberOrNull(cRatingAverage),
+          delivery_text: toStringOrNull(cDeliveryText),
+          installments_text: toStringOrNull(cInstallmentsText),
+          discount_percent: toNumberOrNull(cDiscountPercent),
+          title_quality_score: toNumberOrNull(cTitleQualityScore),
+          image_quality_score: toNumberOrNull(cImageQualityScore),
+          offer_quality_score: toNumberOrNull(cOfferQualityScore),
+          notes: cNotes.trim() || null,
+        },
+      ],
+    };
+  }, [
+    companyId, accountId, watchlistId, searchQueryTrimmed, operatorName, analysisNotes,
+    ownRankNum, ownPriceNum, ownFreeShipping, ownListingUrl, ownSoldQuantity,
+    ownReviewsCount, ownRatingAverage, ownDeliveryText, ownTitleQualityScore,
+    ownImageQualityScore, ownOfferQualityScore,
+    cUrlCleaned, cItemIdTrimmed, cUrlMlbId, cTitle, cRankNum, cPriceNum, cFreeShipping,
+    cSoldQuantity, cSellerNickname, cSellerReputation, cReviewsCount, cRatingAverage,
+    cDeliveryText, cInstallmentsText, cDiscountPercent, cTitleQualityScore,
+    cImageQualityScore, cOfferQualityScore, cNotes,
+  ]);
 
   async function postManualAnalysis() {
     if (postingAnalysis) return;
     if (!canOpenAnalysisConfirm || !companyId || !accountId || !watchlistId) return;
+    if (!analysisPayload) return;
+    if (mlbMismatch) return;
+    if (!searchQueryTrimmed) return;
     setPostingAnalysis(true);
     setAnalysisResult(null);
     const started = performance.now();
     try {
-      const payload = {
-        company_id: companyId,
-        account_id: accountId,
-        watchlist_id: watchlistId,
-        observed_at: new Date().toISOString(),
-        search_query: toStringOrNull(searchQuery),
-        operator_name: toStringOrNull(operatorName),
-        notes: toStringOrNull(analysisNotes),
-        own: {
-          rank_position: ownRankNum,
-          price: ownPriceNum,
-          free_shipping: triToBool(ownFreeShipping),
-          listing_url: toStringOrNull(ownListingUrl),
-          sold_quantity: toIntOrNull(ownSoldQuantity),
-          reviews_count: toIntOrNull(ownReviewsCount),
-          rating_average: toNumberOrNull(ownRatingAverage),
-          delivery_text: toStringOrNull(ownDeliveryText),
-          title_quality_score: toNumberOrNull(ownTitleQualityScore),
-          image_quality_score: toNumberOrNull(ownImageQualityScore),
-          offer_quality_score: toNumberOrNull(ownOfferQualityScore),
-        },
-        competitors: [
-          {
-            item_url: toStringOrNull(cUrl),
-            ml_item_id: toStringOrNull(cItemId),
-            title: toStringOrNull(cTitle),
-            rank_position: cRankNum,
-            price: cPriceNum,
-            is_primary: true,
-            free_shipping: triToBool(cFreeShipping),
-            sold_quantity: toIntOrNull(cSoldQuantity),
-            seller_nickname: toStringOrNull(cSellerNickname),
-            seller_reputation: toStringOrNull(cSellerReputation),
-            reviews_count: toIntOrNull(cReviewsCount),
-            rating_average: toNumberOrNull(cRatingAverage),
-            delivery_text: toStringOrNull(cDeliveryText),
-            installments_text: toStringOrNull(cInstallmentsText),
-            discount_percent: toNumberOrNull(cDiscountPercent),
-            title_quality_score: toNumberOrNull(cTitleQualityScore),
-            image_quality_score: toNumberOrNull(cImageQualityScore),
-            offer_quality_score: toNumberOrNull(cOfferQualityScore),
-            notes: toStringOrNull(cNotes),
-          },
-        ],
-      };
       const res = await authedFetch(`${API_BASE}/api/mercadolivre/competition/manual-analysis`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(analysisPayload),
       });
       if (!res) {
         setAnalysisResult({

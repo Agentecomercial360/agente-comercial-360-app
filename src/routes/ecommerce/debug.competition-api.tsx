@@ -1288,6 +1288,27 @@ function DebugCompetitionApiPage() {
 
           <TextField label="Observação da análise" value={analysisNotes} onChange={setAnalysisNotes} />
 
+          {mlbMismatch && (
+            <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-xs text-red-800">
+              O ID MLB informado ({cItemIdTrimmed}) não corresponde ao anúncio presente no link ({cUrlMlbId}).
+              Corrija antes de registrar.
+            </div>
+          )}
+          {searchQueryTrimmed === "" && (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800">
+              Informe o termo de busca real utilizado no Mercado Livre antes de registrar.
+            </div>
+          )}
+
+          <details className="rounded-lg border border-border bg-muted/30 p-3 text-xs">
+            <summary className="cursor-pointer font-semibold text-foreground">
+              Prévia segura do payload (sem token nem cabeçalhos)
+            </summary>
+            <pre className="mt-2 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed">
+{analysisPayload ? JSON.stringify(analysisPayload, null, 2) : "Payload indisponível — complete o contexto e o watchlist_id."}
+            </pre>
+          </details>
+
           <button
             type="button"
             onClick={() => setConfirmingAnalysis(true)}

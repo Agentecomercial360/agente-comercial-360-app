@@ -135,6 +135,47 @@ function tryParseJson(text: string): { pretty: string; parsed: unknown } {
   }
 }
 
+/**
+ * Extrai um ID MLB (formato "MLB123456789" ou "MLB-123456789") de qualquer
+ * string — normalmente URL de anúncio do Mercado Livre. Retorna o ID
+ * normalizado sem hífen ("MLB123456789") ou null se nada for encontrado.
+ */
+function extractMlbIdFromText(text: string | null | undefined): string | null {
+  if (!text) return null;
+  const m = text.match(/MLB-?(\d{6,})/i);
+  if (!m) return null;
+  return `MLB${m[1]}`;
+}
+
+/**
+ * Remove parâmetros de rastreamento comuns preservando a URL funcional do
+ * anúncio. Se a string não for URL válida, devolve o valor original.
+ */
+function stripTrackingParams(input: string | null | undefined): string {
+  if (!input) return "";
+  const value = input.trim();
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    const TRACKING_KEYS = new Set([
+      "matt_tool", "matt_word", "matt_source", "matt_campaign_name",
+      "wid", "sid", "tracking_id", "utm_source", "utm_medium", "utm_campaign",
+      "utm_term", "utm_content", "pdp_filters", "reco_backend",
+      "reco_backend_type", "reco_client", "reco_id", "reco_item_pos",
+      "reco_model", "reco_pos", "c_id", "c_uid", "gclid", "fbclid",
+      "deal_print_id", "trackId",
+    ]);
+    const toDelete: string[] = [];
+    url.searchParams.forEach((_v, k) => {
+      if (TRACKING_KEYS.has(k)) toDelete.push(k);
+    });
+    toDelete.forEach((k) => url.searchParams.delete(k));
+    return url.toString();
+  } catch {
+    return value;
+  }
+}
+
 function DebugCompetitionApiRoute() {
   return (
     <EcommerceLayout>

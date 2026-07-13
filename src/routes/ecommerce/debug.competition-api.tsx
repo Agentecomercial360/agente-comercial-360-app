@@ -828,7 +828,10 @@ function DebugCompetitionApiPage() {
   const searchQueryTrimmed = searchQuery.trim();
   const cItemIdTrimmed = cItemId.trim().toUpperCase().replace(/^MLB-/, "MLB");
   const cUrlCleaned = stripTrackingParams(cUrl);
-  const cUrlMlbId = extractMlbIdFromText(cUrlCleaned);
+  const cUrlIds = extractListingItemIdFromUrl(cUrlCleaned);
+  const cUrlMlbId = cUrlIds.itemId;
+  const cUrlCatalogId = cUrlIds.catalogId;
+  const cUrlAmbiguous = cUrlIds.ambiguous;
   const mlbMismatch =
     !!cUrlMlbId && !!cItemIdTrimmed && cUrlMlbId !== cItemIdTrimmed;
 

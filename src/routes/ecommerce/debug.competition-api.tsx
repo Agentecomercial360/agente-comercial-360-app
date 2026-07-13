@@ -873,6 +873,24 @@ function DebugCompetitionApiPage() {
         </p>
       </div>
 
+      {sessionBanner === "renewing" && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800">
+          Renovando sessão com segurança...
+        </div>
+      )}
+      {sessionBanner === "renewed" && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+          Sessão renovada. Reexecutando a solicitação.
+        </div>
+      )}
+      {sessionBanner === "failed" && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+          Sua sessão não pôde ser renovada. Os dados preenchidos foram preservados.
+          Entre novamente no AC360 antes de tentar novamente.
+        </div>
+      )}
+
+
       {/* ---------- Contexto ---------- */}
       <section className="rounded-xl border border-border bg-card p-5 space-y-3">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">

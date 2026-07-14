@@ -1,5 +1,6 @@
 // Shared client for the Mercado Livre "sync-account-smart" endpoint.
 // POST { company_id, account_id, days } and returns a normalized result.
+import { supabase } from "@/lib/supabase";
 
 export const ML_COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
 
@@ -37,11 +38,21 @@ export async function runSmartAccountSync(
     days: opts.days ?? 1,
   };
 
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) {
+    throw new Error(`Falha ao obter sessão: ${sessionError.message}`);
+  }
+  const accessToken = sessionData?.session?.access_token;
+  if (!accessToken) {
+    throw new Error("Sessão não encontrada. Entre novamente no sistema.");
+  }
+
   const res = await fetch(SMART_SYNC_ENDPOINT, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json",
+      Authorization: `Bearer ${accessToken}`,
     },
     body: JSON.stringify(body),
   });
@@ -55,6 +66,18 @@ export async function runSmartAccountSync(
   }
 
   if (!res.ok) {
+    if (res.status === 401) {
+      throw new Error("Sessão inválida ou expirada. Entre novamente no sistema.");
+    }
+    if (res.status === 403) {
+      throw new Error("Você não possui acesso a esta conta Mercado Livre.");
+    }
+    if (res.status === 409) {
+      throw new Error("Já existe uma sincronização em andamento para esta conta.");
+    }
+    if (res.status === 429) {
+      throw new Error("Limite temporário de sincronizações atingido. Tente novamente em instantes.");
+    }
     const msg = data?.message || data?.error || `HTTP ${res.status}`;
     throw new Error(msg);
   }

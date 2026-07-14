@@ -1,5 +1,6 @@
 // Shared client for the Mercado Livre "sync-account-smart" endpoint.
 // POST { company_id, account_id, days } and returns a normalized result.
+import { supabase } from "@/lib/supabase";
 
 export const ML_COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
 

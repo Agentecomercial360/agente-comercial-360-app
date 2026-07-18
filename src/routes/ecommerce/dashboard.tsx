@@ -520,7 +520,7 @@ function DashboardContent() {
       </section>
 
       {/* Chart */}
-      <section className="rounded-xl border border-border bg-card p-5">
+      <section className="rounded-xl bg-card p-5 shadow-sm ring-1 ring-border/40">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
           <div>
             <h2 className="text-base font-semibold text-foreground">Faturamento por dia</h2>
@@ -536,42 +536,10 @@ function DashboardContent() {
             Sem pedidos no período.
           </div>
         ) : (
-          <div className="h-[260px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={byDay} margin={{ top: 10, right: 8, left: -12, bottom: 0 }} barCategoryGap="35%">
-                <defs>
-                  <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(217 91% 55%)" stopOpacity={0.95} />
-                    <stop offset="100%" stopColor="hsl(217 91% 55%)" stopOpacity={0.15} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="label"
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                  interval="preserveStartEnd"
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  width={64}
-                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                  tickFormatter={(v) =>
-                    v >= 1000 ? `R$ ${(v / 1000).toFixed(1)}k` : `R$ ${v}`
-                  }
-                />
-                <RTooltip
-                  cursor={{ fill: "hsl(var(--muted) / 0.4)" }}
-                  content={<ChartTooltip />}
-                />
-                <Bar dataKey="gross" fill="url(#revGradient)" radius={[6, 6, 0, 0]} maxBarSize={36} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <RevenueByDayChart data={byDay} />
         )}
       </section>
+
 
       {/* Comparativo por conta */}
       <section className="rounded-xl border border-border bg-card overflow-hidden">

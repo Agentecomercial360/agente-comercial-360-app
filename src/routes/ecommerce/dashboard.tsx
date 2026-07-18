@@ -125,6 +125,12 @@ function fmtDayLabel(key: string): string {
   return dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
 }
 
+function fmtDayLabelLong(key: string): string {
+  const [y, m, d] = key.split("-").map(Number);
+  const dt = new Date(y, (m ?? 1) - 1, d ?? 1);
+  return dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" });
+}
+
 function fmtDateTime(iso: string | null): string {
   if (!iso) return "—";
   try {

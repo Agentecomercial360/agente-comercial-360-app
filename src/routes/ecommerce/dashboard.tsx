@@ -851,7 +851,7 @@ function RevenueByDayChart({ data }: { data: ByDayPoint[] }) {
         <BarChart
           data={data}
           margin={{ top: 12, right: 24, left: -8, bottom: 0 }}
-          barCategoryGap="45%"
+          barCategoryGap="18%"
           onMouseMove={(state: { isTooltipActive?: boolean; activeTooltipIndex?: number }) => {
             if (state?.isTooltipActive && typeof state.activeTooltipIndex === "number") {
               setHoverIdx(state.activeTooltipIndex);
@@ -861,6 +861,12 @@ function RevenueByDayChart({ data }: { data: ByDayPoint[] }) {
           }}
           onMouseLeave={() => setHoverIdx(null)}
         >
+          <defs>
+            <linearGradient id="barBlueGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#2563eb" />
+              <stop offset="100%" stopColor="#60a5fa" />
+            </linearGradient>
+          </defs>
           <CartesianGrid
             vertical={false}
             stroke="hsl(var(--border) / 0.5)"
@@ -904,20 +910,27 @@ function RevenueByDayChart({ data }: { data: ByDayPoint[] }) {
           )}
           <Bar
             dataKey="gross"
-            radius={[6, 6, 0, 0]}
-            maxBarSize={28}
+            radius={[8, 8, 0, 0]}
+            maxBarSize={44}
             isAnimationActive={false}
           >
             {data.map((_, i) => {
               const isHovered = hoverIdx === i;
               const hasHover = hoverIdx !== null;
-              const opacity = hasHover ? (isHovered ? 1 : 0.4) : 0.85;
+              const opacity = hasHover ? (isHovered ? 1 : 0.6) : 1;
               return (
                 <Cell
                   key={i}
-                  fill="hsl(var(--primary))"
+                  fill="url(#barBlueGradient)"
                   fillOpacity={opacity}
-                  style={{ transition: "fill-opacity 180ms ease" }}
+                  stroke={isHovered ? "rgba(255,255,255,0.85)" : "transparent"}
+                  strokeWidth={isHovered ? 1 : 0}
+                  style={{
+                    transition: "fill-opacity 180ms ease, filter 180ms ease",
+                    filter: isHovered
+                      ? "drop-shadow(0 0 6px rgba(59,130,246,0.55))"
+                      : "none",
+                  }}
                 />
               );
             })}
@@ -938,22 +951,19 @@ function ChartTooltip({
   if (!active || !payload || !payload.length) return null;
   const d = payload[0].payload;
   return (
-    <div className="rounded-md border border-border bg-popover px-3 py-2 text-xs shadow-md min-w-[180px]">
+    <div className="rounded-lg border border-border bg-popover/90 backdrop-blur-sm px-3 py-2 text-xs shadow-xl min-w-[180px]">
       <div className="text-[11px] font-medium text-muted-foreground">
         {fmtDayLabelLong(d.key)}
       </div>
       <div className="mt-1.5 flex items-center gap-2">
-        <span className="h-2 w-2 rounded-full bg-primary" />
+        <span className="h-2 w-2 rounded-full bg-[#2563eb]" />
         <span className="text-muted-foreground">Faturamento:</span>
         <span className="ml-auto tabular-nums font-semibold text-foreground">
           {brl.format(d.gross)}
         </span>
       </div>
-      <div className="mt-1 flex items-center gap-2 pl-4">
-        <span className="text-muted-foreground">Pedidos:</span>
-        <span className="ml-auto tabular-nums text-muted-foreground">
-          {num.format(d.count)} pedidos
-        </span>
+      <div className="mt-1 pl-4 text-muted-foreground tabular-nums">
+        {num.format(d.count)} pedidos
       </div>
     </div>
   );

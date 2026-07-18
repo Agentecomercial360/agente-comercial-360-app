@@ -13,6 +13,8 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
+  ReferenceLine,
   ResponsiveContainer,
   Tooltip as RTooltip,
   XAxis,
@@ -121,6 +123,12 @@ function fmtDayLabel(key: string): string {
   const [y, m, d] = key.split("-").map(Number);
   const dt = new Date(y, (m ?? 1) - 1, d ?? 1);
   return dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
+
+function fmtDayLabelLong(key: string): string {
+  const [y, m, d] = key.split("-").map(Number);
+  const dt = new Date(y, (m ?? 1) - 1, d ?? 1);
+  return dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" });
 }
 
 function fmtDateTime(iso: string | null): string {
@@ -512,7 +520,7 @@ function DashboardContent() {
       </section>
 
       {/* Chart */}
-      <section className="rounded-xl border border-border bg-card p-5">
+      <section className="rounded-xl bg-card p-5 shadow-sm ring-1 ring-border/40">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
           <div>
             <h2 className="text-base font-semibold text-foreground">Faturamento por dia</h2>
@@ -528,42 +536,10 @@ function DashboardContent() {
             Sem pedidos no período.
           </div>
         ) : (
-          <div className="h-[260px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={byDay} margin={{ top: 10, right: 8, left: -12, bottom: 0 }} barCategoryGap="35%">
-                <defs>
-                  <linearGradient id="revGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="hsl(217 91% 55%)" stopOpacity={0.95} />
-                    <stop offset="100%" stopColor="hsl(217 91% 55%)" stopOpacity={0.15} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="label"
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                  interval="preserveStartEnd"
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  width={64}
-                  tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
-                  tickFormatter={(v) =>
-                    v >= 1000 ? `R$ ${(v / 1000).toFixed(1)}k` : `R$ ${v}`
-                  }
-                />
-                <RTooltip
-                  cursor={{ fill: "hsl(var(--muted) / 0.4)" }}
-                  content={<ChartTooltip />}
-                />
-                <Bar dataKey="gross" fill="url(#revGradient)" radius={[6, 6, 0, 0]} maxBarSize={36} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <RevenueByDayChart data={byDay} />
         )}
       </section>
+
 
       {/* Comparativo por conta */}
       <section className="rounded-xl border border-border bg-card overflow-hidden">
@@ -859,25 +835,127 @@ function PanelRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+type ByDayPoint = { key: string; label: string; gross: number; count: number };
+
+function RevenueByDayChart({ data }: { data: ByDayPoint[] }) {
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const nonZero = data.filter((d) => d.gross > 0);
+  const avg =
+    nonZero.length > 0
+      ? nonZero.reduce((s, d) => s + d.gross, 0) / nonZero.length
+      : 0;
+
+  return (
+    <div className="h-[260px] w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          margin={{ top: 12, right: 24, left: -8, bottom: 0 }}
+          barCategoryGap="45%"
+          onMouseMove={(state: { isTooltipActive?: boolean; activeTooltipIndex?: number }) => {
+            if (state?.isTooltipActive && typeof state.activeTooltipIndex === "number") {
+              setHoverIdx(state.activeTooltipIndex);
+            } else {
+              setHoverIdx(null);
+            }
+          }}
+          onMouseLeave={() => setHoverIdx(null)}
+        >
+          <CartesianGrid
+            vertical={false}
+            stroke="hsl(var(--border) / 0.5)"
+            strokeDasharray="3 3"
+          />
+          <XAxis
+            dataKey="label"
+            tickLine={false}
+            axisLine={false}
+            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+            interval="preserveStartEnd"
+          />
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            width={64}
+            tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }}
+            tickFormatter={(v) =>
+              v >= 1000 ? `R$ ${(v / 1000).toFixed(1)}k` : `R$ ${v}`
+            }
+          />
+          <RTooltip
+            cursor={false}
+            content={<ChartTooltip />}
+            wrapperStyle={{ outline: "none" }}
+          />
+          {avg > 0 && (
+            <ReferenceLine
+              y={avg}
+              stroke="hsl(var(--muted-foreground) / 0.55)"
+              strokeDasharray="4 4"
+              strokeWidth={1}
+              label={{
+                value: `Média: ${brl.format(avg)}`,
+                position: "right",
+                fill: "hsl(var(--muted-foreground))",
+                fontSize: 10,
+                offset: 6,
+              }}
+            />
+          )}
+          <Bar
+            dataKey="gross"
+            radius={[6, 6, 0, 0]}
+            maxBarSize={28}
+            isAnimationActive={false}
+          >
+            {data.map((_, i) => {
+              const isHovered = hoverIdx === i;
+              const hasHover = hoverIdx !== null;
+              const opacity = hasHover ? (isHovered ? 1 : 0.4) : 0.85;
+              return (
+                <Cell
+                  key={i}
+                  fill="hsl(var(--primary))"
+                  fillOpacity={opacity}
+                  style={{ transition: "fill-opacity 180ms ease" }}
+                />
+              );
+            })}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
 function ChartTooltip({
   active,
   payload,
-  label,
 }: {
   active?: boolean;
-  payload?: Array<{ payload: { key: string; label: string; gross: number; count: number } }>;
-  label?: string;
+  payload?: Array<{ payload: ByDayPoint }>;
 }) {
   if (!active || !payload || !payload.length) return null;
   const d = payload[0].payload;
   return (
-    <div className="rounded-lg border border-border bg-popover px-3 py-2 text-xs shadow-md">
-      <div className="font-semibold text-foreground">{label || d.label}</div>
-      <div className="mt-1 flex items-center gap-2 text-foreground">
-        <span className="h-2 w-2 rounded-sm bg-blue-500" />
-        <span className="tabular-nums font-semibold">{brl.format(d.gross)}</span>
-        <span className="text-muted-foreground">· {num.format(d.count)} pedidos</span>
+    <div className="rounded-md border border-border bg-popover px-3 py-2 text-xs shadow-md min-w-[180px]">
+      <div className="text-[11px] font-medium text-muted-foreground">
+        {fmtDayLabelLong(d.key)}
+      </div>
+      <div className="mt-1.5 flex items-center gap-2">
+        <span className="h-2 w-2 rounded-full bg-primary" />
+        <span className="text-muted-foreground">Faturamento:</span>
+        <span className="ml-auto tabular-nums font-semibold text-foreground">
+          {brl.format(d.gross)}
+        </span>
+      </div>
+      <div className="mt-1 flex items-center gap-2 pl-4">
+        <span className="text-muted-foreground">Pedidos:</span>
+        <span className="ml-auto tabular-nums text-muted-foreground">
+          {num.format(d.count)} pedidos
+        </span>
       </div>
     </div>
   );
 }
+

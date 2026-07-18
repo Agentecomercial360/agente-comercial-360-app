@@ -722,36 +722,32 @@ function SyncStatusChip({
   const Icon = error ? AlertTriangle : hasRun ? CheckCircle2 : Clock;
   const label = error ? "Erro de sincronização" : hasRun ? "Sincronizado" : "Aguardando sync";
   return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <button
-          type="button"
-          onClick={onOpen}
+    <button
+      type="button"
+      onClick={onOpen}
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-opacity hover:opacity-80",
+        tone,
+      )}
+      aria-label="Ver detalhes de sincronização"
+    >
+      <span className="relative flex h-1.5 w-1.5">
+        {hasRun && !error && (
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
+        )}
+        <span
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-opacity hover:opacity-80",
-            tone,
+            "relative inline-flex h-1.5 w-1.5 rounded-full",
+            error ? "bg-rose-500" : hasRun ? "bg-emerald-500" : "bg-slate-400",
           )}
-          aria-label="Ver detalhes de sincronização"
-        >
-          <span className="relative flex h-1.5 w-1.5">
-            {hasRun && !error && (
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-70" />
-            )}
-            <span
-              className={cn(
-                "relative inline-flex h-1.5 w-1.5 rounded-full",
-                error ? "bg-rose-500" : hasRun ? "bg-emerald-500" : "bg-slate-400",
-              )}
-            />
-          </span>
-          <Icon className="h-3 w-3" />
-          <span>{label}</span>
-          {lastAt && !error && (
-            <span className="text-muted-foreground/80 hidden sm:inline">· {fmtDateTime(lastAt)}</span>
-          )}
-        </button>
-      </SheetTrigger>
-    </Sheet>
+        />
+      </span>
+      <Icon className="h-3 w-3" />
+      <span>{label}</span>
+      {lastAt && !error && (
+        <span className="text-muted-foreground/80 hidden sm:inline">· {fmtDateTime(lastAt)}</span>
+      )}
+    </button>
   );
 }
 

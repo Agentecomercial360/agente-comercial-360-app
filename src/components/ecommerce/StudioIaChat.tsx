@@ -377,12 +377,13 @@ function ConsultiveChat({
       </div>
 
       {/* Coluna direita — contexto */}
-      <aside className="order-3 space-y-3">
-        <div className="rounded-xl border border-slate-200 bg-white p-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+      <aside className="order-3 space-y-3.5">
+        <div className="rounded-2xl border border-stone-200/80 bg-gradient-to-b from-white to-stone-50/80 p-4 shadow-[0_6px_20px_-16px_rgba(68,64,60,0.6)]">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
             Contexto da operação
           </p>
           <div className="mt-2">
+
             <ContextRow label="Conta ativa" value={accountLabel} />
             <ContextRow label="Pedidos analisados" value={fmtInt(data.summary.orders_checked)} />
             <ContextRow

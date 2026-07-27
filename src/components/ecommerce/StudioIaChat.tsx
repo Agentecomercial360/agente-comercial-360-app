@@ -384,47 +384,50 @@ function ConsultiveChat({
           ))}
 
           {messages.length === 1 && (
-            <div className="ml-0 rounded-2xl border border-indigo-100/80 bg-gradient-to-br from-white via-indigo-50/40 to-violet-50/40 p-3.5 shadow-[0_10px_24px_-20px_rgba(49,46,129,0.6)] sm:ml-11">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-indigo-500/90">
-                Resumo rápido do diagnóstico
-              </p>
-              <div className="mt-2.5 grid gap-2 sm:grid-cols-3">
-                <QuickStat
-                  label="Receita"
-                  value={
-                    (data.summary.revenue_ready_orders ?? 0) > 0 ? "Disponível" : "Sem dados"
-                  }
-                  tone={(data.summary.revenue_ready_orders ?? 0) > 0 ? "positive" : "neutral"}
-                />
-                <QuickStat
-                  label="Custos"
-                  value={costsPending ? "Pendentes" : data.summary.costs_pending === false ? "Ok" : "—"}
-                  tone={costsPending ? "warning" : "positive"}
-                />
-                <QuickStat
-                  label="Margem / Lucro"
-                  value={data.summary.profit_margin_available ? "Disponível" : "Aguardando custos"}
-                  tone={data.summary.profit_margin_available ? "positive" : "warning"}
-                />
-              </div>
+            <div className="ml-0 flex flex-wrap items-center gap-2 sm:ml-11">
+              <StatusChip
+                label={
+                  (data.summary.revenue_ready_orders ?? 0) > 0
+                    ? "Receita disponível"
+                    : "Receita sem dados"
+                }
+                tone={(data.summary.revenue_ready_orders ?? 0) > 0 ? "positive" : "neutral"}
+              />
+              <StatusChip
+                label={
+                  costsPending
+                    ? "Custos pendentes"
+                    : data.summary.costs_pending === false
+                      ? "Custos completos"
+                      : "Custos não confirmados"
+                }
+                tone={costsPending ? "warning" : data.summary.costs_pending === false ? "positive" : "neutral"}
+              />
+              <StatusChip
+                label={
+                  data.summary.profit_margin_available
+                    ? "Margem disponível"
+                    : "Margem aguardando custos"
+                }
+                tone={data.summary.profit_margin_available ? "positive" : "warning"}
+              />
             </div>
           )}
 
           <div ref={endRef} />
         </div>
 
-        <div className="border-t border-slate-100 bg-gradient-to-b from-white to-slate-50/70 px-4 py-3.5">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-            Sugestões rápidas
-
-          </p>
-          <div className="flex flex-wrap gap-2">
+        <div className="border-t border-slate-100 bg-white px-4 py-3.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Sugestões
+            </span>
             {activeTopic.questions.map((q) => (
               <button
                 key={q}
                 type="button"
                 onClick={() => push(q)}
-                className="rounded-full border border-slate-200/80 bg-white px-3.5 py-2 text-[11px] font-semibold text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-all duration-200 hover:-translate-y-px hover:border-indigo-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-violet-50 hover:text-indigo-700 hover:shadow-[0_6px_16px_-10px_rgba(79,70,229,0.7)] active:translate-y-0"
+                className="rounded-full border border-indigo-100 bg-indigo-50/40 px-3 py-1.5 text-[11px] font-medium text-slate-600 transition-colors duration-200 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
               >
                 {q}
               </button>
@@ -432,7 +435,7 @@ function ConsultiveChat({
           </div>
 
           <form
-            className="mt-3.5 flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-[0_6px_20px_-16px_rgba(15,23,42,0.55)] transition focus-within:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-500/10"
+            className="mt-3 flex items-center gap-2 rounded-full border border-slate-200/80 bg-slate-50/70 p-1 transition focus-within:border-indigo-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-500/10"
             onSubmit={(e) => {
               e.preventDefault();
               const value = input.trim();
@@ -445,15 +448,16 @@ function ConsultiveChat({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Digite uma pergunta (prévia consultiva)"
-              className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-slate-700 outline-none placeholder:text-slate-400"
+              className="min-w-0 flex-1 bg-transparent px-3.5 py-1.5 text-sm text-slate-700 outline-none placeholder:text-slate-400"
             />
             <button
               type="submit"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 ring-1 ring-white/20 transition hover:brightness-110 active:scale-[0.98]"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-violet-600 px-3.5 py-2 text-[13px] font-semibold text-white shadow-sm shadow-indigo-500/25 transition hover:brightness-110 active:scale-[0.98]"
             >
-              <Send className="h-4 w-4" /> Enviar
+              <Send className="h-3.5 w-3.5" /> Enviar
             </button>
           </form>
+
 
           <p className="mt-2.5 text-[11px] text-slate-400">
             Prévia consultiva determinística: nenhuma mensagem é gravada e nenhuma IA externa é

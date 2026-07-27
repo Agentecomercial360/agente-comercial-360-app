@@ -180,7 +180,35 @@ function SafetyBadge({ children }: { children: React.ReactNode }) {
   );
 }
 
+function QuickStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "positive" | "warning" | "neutral";
+}) {
+  const toneClass =
+    tone === "positive"
+      ? "border-emerald-200/70 bg-emerald-50/70 text-emerald-700"
+      : tone === "warning"
+        ? "border-amber-200/70 bg-amber-50/70 text-amber-700"
+        : "border-slate-200/70 bg-slate-50 text-slate-600";
+  return (
+    <div className="rounded-xl border border-slate-200/70 bg-white/90 px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+      <span
+        className={`mt-1.5 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${toneClass}`}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
 function ContextRow({
+
   label,
   value,
   tone = "default",

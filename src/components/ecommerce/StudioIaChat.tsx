@@ -180,7 +180,35 @@ function SafetyBadge({ children }: { children: React.ReactNode }) {
   );
 }
 
+function QuickStat({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "positive" | "warning" | "neutral";
+}) {
+  const toneClass =
+    tone === "positive"
+      ? "border-emerald-200/70 bg-emerald-50/70 text-emerald-700"
+      : tone === "warning"
+        ? "border-amber-200/70 bg-amber-50/70 text-amber-700"
+        : "border-slate-200/70 bg-slate-50 text-slate-600";
+  return (
+    <div className="rounded-xl border border-slate-200/70 bg-white/90 px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+      <span
+        className={`mt-1.5 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${toneClass}`}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
 function ContextRow({
+
   label,
   value,
   tone = "default",
@@ -317,8 +345,9 @@ function ConsultiveChat({
           </span>
         </div>
 
-        <div className="relative h-[26rem] space-y-4 overflow-y-auto bg-[radial-gradient(ellipse_at_top,rgba(224,231,255,0.45),transparent_60%)] bg-slate-50/50 p-4 sm:p-5">
+        <div className="relative max-h-[24rem] min-h-[15rem] space-y-3.5 overflow-y-auto bg-[radial-gradient(ellipse_at_top,rgba(224,231,255,0.45),transparent_60%)] bg-slate-50/50 p-4 sm:p-5">
           <div className="pointer-events-none absolute inset-y-0 left-[30px] hidden w-px bg-gradient-to-b from-transparent via-slate-200/70 to-transparent sm:block" />
+
 
           {messages.map((m) => (
             <div
@@ -347,12 +376,41 @@ function ConsultiveChat({
 
             </div>
           ))}
+
+          {messages.length === 1 && (
+            <div className="ml-0 rounded-2xl border border-indigo-100/80 bg-gradient-to-br from-white via-indigo-50/40 to-violet-50/40 p-3.5 shadow-[0_10px_24px_-20px_rgba(49,46,129,0.6)] sm:ml-11">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-indigo-500/90">
+                Resumo rápido do diagnóstico
+              </p>
+              <div className="mt-2.5 grid gap-2 sm:grid-cols-3">
+                <QuickStat
+                  label="Receita"
+                  value={
+                    (data.summary.revenue_ready_orders ?? 0) > 0 ? "Disponível" : "Sem dados"
+                  }
+                  tone={(data.summary.revenue_ready_orders ?? 0) > 0 ? "positive" : "neutral"}
+                />
+                <QuickStat
+                  label="Custos"
+                  value={costsPending ? "Pendentes" : data.summary.costs_pending === false ? "Ok" : "—"}
+                  tone={costsPending ? "warning" : "positive"}
+                />
+                <QuickStat
+                  label="Margem / Lucro"
+                  value={data.summary.profit_margin_available ? "Disponível" : "Aguardando custos"}
+                  tone={data.summary.profit_margin_available ? "positive" : "warning"}
+                />
+              </div>
+            </div>
+          )}
+
           <div ref={endRef} />
         </div>
 
-        <div className="border-t border-slate-100 bg-gradient-to-b from-white to-slate-50/70 p-4">
+        <div className="border-t border-slate-100 bg-gradient-to-b from-white to-slate-50/70 px-4 py-3.5">
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Sugestões rápidas
+
           </p>
           <div className="flex flex-wrap gap-2">
             {activeTopic.questions.map((q) => (

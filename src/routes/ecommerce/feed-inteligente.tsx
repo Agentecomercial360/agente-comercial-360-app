@@ -470,23 +470,29 @@ function FeedInteligente() {
                     </div>
                   </div>
 
-                  {/* Imagem grande */}
-                  <div
-                    className={`relative flex h-64 items-center justify-center bg-gradient-to-br ${status.cover}`}
-                  >
-                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.7),transparent_60%)]" />
-                    <div className="relative flex flex-col items-center gap-2">
-                      <span className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/70 shadow-sm backdrop-blur">
-                        <ImageIcon className={`h-8 w-8 ${status.coverIcon}`} />
+                  {/* Área visual do produto */}
+                  <div className="px-3">
+                    <div
+                      className={`relative flex aspect-[16/7] items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br ring-1 ring-white/60 ${status.cover}`}
+                    >
+                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_15%,rgba(255,255,255,0.75),transparent_62%)]" />
+                      <span className="absolute left-3 top-3 rounded-full bg-white/85 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-500 shadow-sm backdrop-blur">
+                        Prévia visual
                       </span>
-                      <span className="rounded-full bg-white/80 px-3 py-1 text-[10px] font-medium text-slate-500 shadow-sm backdrop-blur">
-                        Imagem do anúncio em breve
-                      </span>
+                      <div className="relative flex flex-col items-center gap-2">
+                        <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/75 shadow-sm backdrop-blur">
+                          <ImageIcon className={`h-7 w-7 ${status.coverIcon}`} />
+                        </span>
+                        <span className="text-[10px] font-medium text-slate-500">
+                          Imagem do anúncio em breve
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Métricas */}
-                  <div className="grid grid-cols-5 divide-x divide-slate-100 border-b border-slate-100">
+                  <div className="grid grid-cols-5 gap-1.5 px-3 py-3">
+
                     <Metric label="Visitas" value={card.metrics.visits} />
                     <Metric label="Vendas" value={card.metrics.sales} />
                     <Metric label="Receita" value={card.metrics.revenue} />

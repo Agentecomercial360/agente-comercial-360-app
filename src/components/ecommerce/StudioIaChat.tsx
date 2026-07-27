@@ -499,7 +499,7 @@ export function StudioIaChatSection() {
         </div>
       </div>
 
-      <div className="mt-5" aria-live="polite">
+      <div className="relative mt-5" aria-live="polite">
         {accountsLoading && (
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
             <LoaderCircle className="h-4 w-4 animate-spin" /> Identificando a conta ativa...

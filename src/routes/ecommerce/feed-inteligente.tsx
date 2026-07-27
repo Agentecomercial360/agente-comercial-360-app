@@ -492,7 +492,6 @@ function FeedInteligente() {
 
                   {/* Métricas */}
                   <div className="grid grid-cols-5 gap-1.5 px-3 py-3">
-
                     <Metric label="Visitas" value={card.metrics.visits} />
                     <Metric label="Vendas" value={card.metrics.sales} />
                     <Metric label="Receita" value={card.metrics.revenue} />
@@ -501,23 +500,22 @@ function FeedInteligente() {
                   </div>
 
                   {/* Diagnóstico e ação */}
-                  <div className="space-y-2.5 px-5 py-4">
-                    <div className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3">
-                      <p className="text-xs leading-relaxed text-slate-700">
-                        <span className="font-semibold text-blue-800">Diagnóstico: </span>
-                        {card.diagnosis}
+                  <div className="grid gap-2 px-3 pb-3 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-blue-100 bg-blue-50/60 px-3.5 py-2.5">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+                        Diagnóstico
                       </p>
+                      <p className="mt-1 text-xs leading-snug text-slate-700">{card.diagnosis}</p>
                     </div>
-                    <div className={`rounded-2xl border px-4 py-3 ${status.action}`}>
-                      <p className="flex items-start gap-1.5 text-xs leading-relaxed">
-                        <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        <span>
-                          <span className="font-semibold">Ação recomendada: </span>
-                          {card.action}
-                        </span>
+                    <div className={`rounded-2xl border px-3.5 py-2.5 ${status.action}`}>
+                      <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide">
+                        <ArrowRight className="h-3 w-3" />
+                        Ação recomendada
                       </p>
+                      <p className="mt-1 text-xs leading-snug">{card.action}</p>
                     </div>
                   </div>
+
 
                   {/* Rodapé */}
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3">

@@ -170,6 +170,14 @@ function ItemList({
 
 type ChatMessage = { id: string; role: "assistant" | "user"; text: string };
 
+type TopicKey =
+  | "diagnostico"
+  | "custos"
+  | "ads"
+  | "estoque"
+  | "oportunidades"
+  | "tarefas";
+
 const QUICK_QUESTIONS = [
   "Qual o principal ponto de atenção?",
   "O que falta para calcular margem?",
@@ -178,11 +186,73 @@ const QUICK_QUESTIONS = [
   "As fontes estão completas?",
 ] as const;
 
+const TOPICS: {
+  key: TopicKey;
+  label: string;
+  hint: string;
+  icon: React.ReactNode;
+  questions: string[];
+}[] = [
+  {
+    key: "diagnostico",
+    label: "Diagnóstico geral",
+    hint: "Resumo da operação",
+    icon: <Sparkles className="h-4 w-4" />,
+    questions: [QUICK_QUESTIONS[0], QUICK_QUESTIONS[4], "Resumo do diagnóstico"],
+  },
+  {
+    key: "custos",
+    label: "Custos pendentes",
+    hint: "Margem e lucro",
+    icon: <Coins className="h-4 w-4" />,
+    questions: [QUICK_QUESTIONS[1], "Situação dos custos"],
+  },
+  {
+    key: "ads",
+    label: "Ads e campanhas",
+    hint: "Investimento e retorno",
+    icon: <BadgeCheck className="h-4 w-4" />,
+    questions: ["O que o diagnóstico diz sobre Ads?"],
+  },
+  {
+    key: "estoque",
+    label: "Estoque e ruptura",
+    hint: "Disponibilidade",
+    icon: <ListChecks className="h-4 w-4" />,
+    questions: ["Há risco de ruptura de estoque?"],
+  },
+  {
+    key: "oportunidades",
+    label: "Produtos com oportunidade",
+    hint: "Ganhos possíveis",
+    icon: <Lightbulb className="h-4 w-4" />,
+    questions: [QUICK_QUESTIONS[2]],
+  },
+  {
+    key: "tarefas",
+    label: "Tarefas sugeridas",
+    hint: "Próximos passos",
+    icon: <CheckCircle2 className="h-4 w-4" />,
+    questions: [QUICK_QUESTIONS[3]],
+  },
+];
+
 function describeItem(item: DiagnosticItem): string {
   const parts = [item.title];
   if (item.description) parts.push(item.description);
   if (item.recommendation) parts.push(`Recomendação: ${item.recommendation}`);
   return parts.join(" — ");
+}
+
+function matchItems(data: StudioIaDiagnosticPreview, words: string[]): DiagnosticItem[] {
+  const all = [...data.attentionPoints, ...data.opportunities, ...data.suggestedTasks];
+  return all.filter((i) => {
+    const text = `${i.title} ${i.description ?? ""} ${i.recommendation ?? ""}`
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    return words.some((w) => text.includes(w));
+  });
 }
 
 function answerFor(question: string, data: StudioIaDiagnosticPreview): string {
@@ -193,6 +263,7 @@ function answerFor(question: string, data: StudioIaDiagnosticPreview): string {
       return `Principal ponto de atenção${first.severity ? ` (${first.severity})` : ""}: ${describeItem(first)}`;
     }
     case QUICK_QUESTIONS[1]:
+    case "Situação dos custos":
       return "Falta preencher e importar os custos reais dos produtos. Enquanto os custos estiverem pendentes, margem e lucro permanecem bloqueados.";
     case QUICK_QUESTIONS[2]: {
       if (data.opportunities.length === 0)
@@ -220,29 +291,85 @@ function answerFor(question: string, data: StudioIaDiagnosticPreview): string {
         ? `${base} Todas as fontes do diagnóstico responderam com dados.`
         : `${base} Pendentes: ${missing.join(", ")}.`;
     }
+    case "Resumo do diagnóstico":
+      return `Pedidos analisados: ${fmtInt(data.summary.orders_checked)}. Receita pronta: ${fmtInt(
+        data.summary.revenue_ready_orders,
+      )} pedido(s). Pontos de atenção: ${data.attentionPoints.length}. Oportunidades: ${
+        data.opportunities.length
+      }. Tarefas sugeridas: ${data.suggestedTasks.length}.`;
+    case "O que o diagnóstico diz sobre Ads?": {
+      const hits = matchItems(data, ["ads", "campanha", "anuncio", "publicidade", "acos"]);
+      return hits.length === 0
+        ? "O diagnóstico atual não trouxe apontamentos específicos de Ads e campanhas. Com custos reais cadastrados, a leitura de retorno por campanha fica mais precisa."
+        : hits
+            .slice(0, 4)
+            .map((h, i) => `${i + 1}. ${describeItem(h)}`)
+            .join("\n");
+    }
+    case "Há risco de ruptura de estoque?": {
+      const hits = matchItems(data, ["estoque", "ruptura", "reposicao", "sem estoque"]);
+      return hits.length === 0
+        ? "Nenhum alerta de estoque ou ruptura foi levantado neste diagnóstico."
+        : hits
+            .slice(0, 4)
+            .map((h, i) => `${i + 1}. ${describeItem(h)}`)
+            .join("\n");
+    }
     default:
       return "Chat livre com IA ainda não está ativo nesta versão. Use as perguntas rápidas ou aguarde a próxima etapa com IA conectada.";
   }
 }
 
-function ConsultiveChat({ data }: { data: StudioIaDiagnosticPreview }) {
+function ContextRow({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "warning" | "positive";
+}) {
+  const valueCls =
+    tone === "warning"
+      ? "text-amber-700"
+      : tone === "positive"
+        ? "text-emerald-700"
+        : "text-slate-900";
+  return (
+    <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 py-1.5 last:border-0">
+      <span className="text-[11px] font-medium text-slate-500">{label}</span>
+      <span className={`text-xs font-semibold ${valueCls}`}>{value}</span>
+    </div>
+  );
+}
+
+function ConsultiveChat({
+  data,
+  accountLabel,
+}: {
+  data: StudioIaDiagnosticPreview;
+  accountLabel: string;
+}) {
   const intro = useMemo<ChatMessage[]>(
     () => [
       {
         id: "intro",
         role: "assistant",
-        text: "Diagnóstico carregado. Analisei os dados da operação Mercado Livre - Nightled. A receita está disponível, mas margem e lucro ainda aguardam os custos reais dos produtos.",
+        text: `Diagnóstico carregado. Analisei os dados da operação ${accountLabel}. A receita está disponível, mas margem e lucro ainda aguardam os custos reais dos produtos.`,
       },
     ],
-    [],
+    [accountLabel],
   );
   const [messages, setMessages] = useState<ChatMessage[]>(intro);
   const [input, setInput] = useState("");
+  const [topic, setTopic] = useState<TopicKey>("diagnostico");
   const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "nearest" });
   }, [messages]);
+
+  const activeTopic = TOPICS.find((t) => t.key === topic) ?? TOPICS[0];
 
   const push = (question: string) => {
     const stamp = Date.now();
@@ -253,13 +380,18 @@ function ConsultiveChat({ data }: { data: StudioIaDiagnosticPreview }) {
     ]);
   };
 
+  const costsPending = data.summary.costs_pending === true;
+  const sourcesChecked = data.summary.sources_checked ?? data.sourceStatus.length;
+  const sourcesAvailable =
+    data.summary.sources_available ?? data.sourceStatus.filter((s) => s.available).length;
+
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="flex items-start gap-3">
         <span className="rounded-xl bg-blue-50 p-2.5 text-blue-700">
           <Bot className="h-5 w-5" />
         </span>
-        <div>
+        <div className="min-w-0">
           <h2 className="font-bold text-slate-900">Chat Consultivo Studio IA</h2>
           <p className="mt-1 text-sm text-slate-500">
             Converse com o assistente estratégico usando o diagnóstico carregado. Nesta versão, o
@@ -268,78 +400,194 @@ function ConsultiveChat({ data }: { data: StudioIaDiagnosticPreview }) {
         </div>
       </div>
 
-      <div className="mt-4 max-h-96 space-y-3 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/60 p-4">
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}
-          >
-            {m.role === "assistant" && (
-              <span className="mt-1 shrink-0 rounded-lg bg-blue-100 p-1.5 text-blue-700">
-                <Sparkles className="h-3.5 w-3.5" />
-              </span>
-            )}
-            <p
-              className={`max-w-[85%] whitespace-pre-line rounded-xl px-3 py-2 text-sm ${
-                m.role === "user"
-                  ? "bg-blue-600 text-white"
-                  : "border border-slate-200 bg-white text-slate-700"
-              }`}
-            >
-              {m.text}
-            </p>
-            {m.role === "user" && (
-              <span className="mt-1 shrink-0 rounded-lg bg-slate-200 p-1.5 text-slate-600">
-                <User className="h-3.5 w-3.5" />
-              </span>
-            )}
+      <div className="mt-5 flex flex-col gap-4 lg:grid lg:grid-cols-[210px_minmax(0,1fr)_250px] lg:items-start">
+        {/* Coluna esquerda — assuntos */}
+        <aside className="order-2 rounded-xl border border-slate-200 bg-slate-50/60 p-3 lg:order-1">
+          <p className="px-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            Assuntos do Studio IA
+          </p>
+          <div className="mt-2 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
+            {TOPICS.map((t) => {
+              const active = t.key === topic;
+              return (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setTopic(t.key)}
+                  className={`flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition ${
+                    active
+                      ? "border-blue-300 bg-white text-blue-700 shadow-sm"
+                      : "border-transparent bg-white/60 text-slate-600 hover:border-slate-200 hover:bg-white"
+                  }`}
+                >
+                  <span
+                    className={`shrink-0 rounded-md p-1.5 ${active ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-500"}`}
+                  >
+                    {t.icon}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-xs font-semibold">{t.label}</span>
+                    <span className="block truncate text-[10px] text-slate-400">{t.hint}</span>
+                  </span>
+                </button>
+              );
+            })}
           </div>
-        ))}
-        <div ref={endRef} />
-      </div>
+        </aside>
 
-      <div className="mt-3 flex flex-wrap gap-2">
-        {QUICK_QUESTIONS.map((q) => (
-          <button
-            key={q}
-            type="button"
-            onClick={() => push(q)}
-            className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
-          >
-            {q}
-          </button>
-        ))}
-      </div>
+        {/* Coluna central — conversa */}
+        <div className="order-1 min-w-0 lg:order-2">
+          <div className="flex items-center gap-2 rounded-t-xl border border-b-0 border-slate-200 bg-white px-3 py-2">
+            <span className="rounded-md bg-blue-50 p-1.5 text-blue-700">{activeTopic.icon}</span>
+            <span className="text-xs font-semibold text-slate-700">{activeTopic.label}</span>
+            <span className="ml-auto text-[10px] font-medium text-slate-400">
+              Contexto do chat
+            </span>
+          </div>
 
-      <form
-        className="mt-3 flex items-center gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const value = input.trim();
-          if (!value) return;
-          push(value);
-          setInput("");
-        }}
-      >
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Digite uma pergunta (prévia consultiva)"
-          className="flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
-        />
-        <button
-          type="submit"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-        >
-          <Send className="h-4 w-4" /> Enviar
-        </button>
-      </form>
-      <p className="mt-2 text-[11px] text-slate-400">
-        Prévia consultiva determinística: nenhuma mensagem é gravada e nenhuma IA externa é chamada.
-      </p>
+          <div className="h-80 space-y-3 overflow-y-auto border border-slate-200 bg-slate-50/60 p-4">
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                {m.role === "assistant" && (
+                  <span className="mt-1 shrink-0 rounded-lg bg-blue-100 p-1.5 text-blue-700">
+                    <Sparkles className="h-3.5 w-3.5" />
+                  </span>
+                )}
+                <p
+                  className={`max-w-[85%] whitespace-pre-line rounded-xl px-3 py-2 text-sm ${
+                    m.role === "user"
+                      ? "bg-blue-600 text-white"
+                      : "border border-slate-200 bg-white text-slate-700"
+                  }`}
+                >
+                  {m.text}
+                </p>
+                {m.role === "user" && (
+                  <span className="mt-1 shrink-0 rounded-lg bg-slate-200 p-1.5 text-slate-600">
+                    <User className="h-3.5 w-3.5" />
+                  </span>
+                )}
+              </div>
+            ))}
+            <div ref={endRef} />
+          </div>
+
+          <div className="rounded-b-xl border border-t-0 border-slate-200 bg-white p-3">
+            <div className="flex flex-wrap gap-1.5">
+              {activeTopic.questions.map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => push(q)}
+                  className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-100"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+
+            <form
+              className="mt-3 flex items-center gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const value = input.trim();
+                if (!value) return;
+                push(value);
+                setInput("");
+              }}
+            >
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Digite uma pergunta (prévia consultiva)"
+                className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
+              />
+              <button
+                type="submit"
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                <Send className="h-4 w-4" /> Enviar
+              </button>
+            </form>
+            <p className="mt-2 text-[11px] text-slate-400">
+              Prévia consultiva determinística: nenhuma mensagem é gravada e nenhuma IA externa é
+              chamada.
+            </p>
+          </div>
+        </div>
+
+        {/* Coluna direita — contexto */}
+        <aside className="order-3 space-y-3">
+          <div className="rounded-xl border border-slate-200 bg-white p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+              Contexto da operação
+            </p>
+            <div className="mt-2">
+              <ContextRow label="Conta ativa" value={accountLabel} />
+              <ContextRow label="Pedidos analisados" value={fmtInt(data.summary.orders_checked)} />
+              <ContextRow
+                label="Receita pronta"
+                value={fmtInt(data.summary.revenue_ready_orders)}
+                tone="positive"
+              />
+              <ContextRow
+                label="Custos pendentes"
+                value={costsPending ? "Sim" : data.summary.costs_pending === false ? "Não" : "—"}
+                tone={costsPending ? "warning" : "default"}
+              />
+              <ContextRow
+                label="Margem / lucro"
+                value={
+                  data.summary.profit_margin_available ? "Disponível" : "Aguardando custos"
+                }
+                tone={data.summary.profit_margin_available ? "positive" : "warning"}
+              />
+              <ContextRow
+                label="Fontes verificadas"
+                value={`${sourcesAvailable}/${sourcesChecked}`}
+              />
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-3">
+            <div className="flex flex-wrap gap-1.5">
+              <SafetyBadge>
+                <ShieldCheck className="h-3 w-3" /> Somente leitura
+              </SafetyBadge>
+              <SafetyBadge>
+                <Lock className="h-3 w-3" /> IA externa não chamada
+              </SafetyBadge>
+              <SafetyBadge>
+                <Clock3 className="h-3 w-3" /> Sem ações automáticas
+              </SafetyBadge>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-700">
+              Próxima ação recomendada
+            </p>
+            <p className="mt-1.5 text-sm font-semibold text-slate-900">
+              Cadastrar custos reais dos produtos
+            </p>
+            <button
+              type="button"
+              disabled
+              title="Criação de tarefas reais será liberada em uma próxima etapa."
+              className="mt-3 inline-flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-400"
+            >
+              <Lock className="h-3.5 w-3.5" /> Criar tarefa em breve
+            </button>
+          </div>
+        </aside>
+      </div>
     </section>
   );
 }
+
 
 // ---------------------------------------------------------------------------
 // Bloco principal

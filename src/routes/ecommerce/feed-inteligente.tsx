@@ -535,8 +535,9 @@ function FeedInteligente() {
                         className="gap-1.5 rounded-full text-xs text-slate-400"
                       >
                         <Lock className="h-3.5 w-3.5" />
-                        Marcar para revisão
+                        Marcar para revisão em breve
                       </Button>
+
                     </div>
                     <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-[10px] font-semibold text-violet-600">
                       <Eye className="h-3 w-3" />

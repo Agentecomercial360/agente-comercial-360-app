@@ -191,14 +191,16 @@ function ContextRow({
 }) {
   const valueCls =
     tone === "warning"
-      ? "text-amber-700"
+      ? "text-amber-700 bg-amber-50 border-amber-200"
       : tone === "positive"
-        ? "text-emerald-700"
-        : "text-slate-900";
+        ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+        : "text-slate-900 bg-slate-50 border-slate-200/70";
   return (
-    <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 py-1.5 last:border-0">
+    <div className="flex items-center justify-between gap-3 border-b border-slate-100 py-2 last:border-0">
       <span className="text-[11px] font-medium text-slate-500">{label}</span>
-      <span className={`text-xs font-semibold ${valueCls}`}>{value}</span>
+      <span className={`rounded-md border px-2 py-0.5 text-xs font-semibold ${valueCls}`}>
+        {value}
+      </span>
     </div>
   );
 }
@@ -248,11 +250,11 @@ function ConsultiveChat({
   return (
     <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[230px_minmax(0,1fr)_270px] lg:items-start">
       {/* Coluna esquerda — assuntos */}
-      <aside className="order-2 rounded-xl border border-slate-200 bg-slate-50/60 p-3 lg:order-1">
-        <p className="px-1 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+      <aside className="order-2 rounded-2xl border border-indigo-100/70 bg-gradient-to-b from-indigo-50/80 via-sky-50/60 to-white p-3.5 shadow-[0_6px_20px_-16px_rgba(49,46,129,0.5)] lg:order-1">
+        <p className="px-1 text-[11px] font-semibold uppercase tracking-wider text-indigo-500/80">
           Assuntos do Studio IA
         </p>
-        <div className="mt-2 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
+        <div className="mt-2.5 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
           {TOPICS.map((t) => {
             const active = t.key === topic;
             return (
@@ -260,14 +262,18 @@ function ConsultiveChat({
                 key={t.key}
                 type="button"
                 onClick={() => setTopic(t.key)}
-                className={`flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-left transition ${
+                className={`flex w-full items-center gap-2.5 rounded-xl border px-2.5 py-2.5 text-left transition-all duration-200 ${
                   active
-                    ? "border-blue-300 bg-white text-blue-700 shadow-sm"
-                    : "border-transparent bg-white/60 text-slate-600 hover:border-slate-200 hover:bg-white"
+                    ? "border-indigo-200 bg-gradient-to-r from-blue-50 to-violet-50 text-indigo-700 shadow-[0_4px_14px_-8px_rgba(79,70,229,0.65)]"
+                    : "border-white/70 bg-white/70 text-slate-600 hover:-translate-y-px hover:border-indigo-100 hover:bg-white hover:shadow-sm"
                 }`}
               >
                 <span
-                  className={`shrink-0 rounded-md p-1.5 ${active ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-500"}`}
+                  className={`shrink-0 rounded-lg p-2 transition ${
+                    active
+                      ? "bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-sm shadow-indigo-500/30"
+                      : "bg-slate-100 text-slate-500"
+                  }`}
                 >
                   {t.icon}
                 </span>
@@ -282,51 +288,57 @@ function ConsultiveChat({
       </aside>
 
       {/* Coluna central — conversa */}
-      <div className="order-1 min-w-0 lg:order-2">
-        <div className="flex items-center gap-2 rounded-t-xl border border-b-0 border-slate-200 bg-white px-3 py-2">
-          <span className="rounded-md bg-blue-50 p-1.5 text-blue-700">{activeTopic.icon}</span>
-          <span className="text-xs font-semibold text-slate-700">{activeTopic.label}</span>
-          <span className="ml-auto text-[10px] font-medium text-slate-400">Contexto do chat</span>
+      <div className="order-1 min-w-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_10px_30px_-20px_rgba(15,23,42,0.45)] lg:order-2">
+        <div className="flex items-center gap-2 border-b border-slate-100 bg-gradient-to-r from-white via-sky-50/60 to-violet-50/50 px-4 py-3">
+          <span className="rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 p-2 text-white shadow-sm shadow-indigo-500/25">
+            {activeTopic.icon}
+          </span>
+          <span className="text-sm font-bold text-slate-900">{activeTopic.label}</span>
+          <span className="ml-auto rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-semibold text-slate-400 ring-1 ring-slate-200/70">
+            Contexto do chat
+          </span>
         </div>
 
-        <div className="h-[26rem] space-y-3 overflow-y-auto border border-slate-200 bg-slate-50/60 p-4">
+        <div className="h-[26rem] space-y-3 overflow-y-auto bg-gradient-to-b from-slate-50/70 to-white p-4">
+
           {messages.map((m) => (
             <div
               key={m.id}
               className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}
             >
               {m.role === "assistant" && (
-                <span className="mt-1 shrink-0 rounded-lg bg-blue-100 p-1.5 text-blue-700">
+                <span className="mt-1 shrink-0 rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 p-1.5 text-white shadow-sm shadow-indigo-500/25">
                   <Sparkles className="h-3.5 w-3.5" />
                 </span>
               )}
               <p
-                className={`max-w-[85%] whitespace-pre-line rounded-xl px-3 py-2 text-sm ${
+                className={`max-w-[85%] whitespace-pre-line rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ${
                   m.role === "user"
-                    ? "bg-blue-600 text-white"
-                    : "border border-slate-200 bg-white text-slate-700"
+                    ? "rounded-br-md bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-indigo-500/25"
+                    : "rounded-bl-md border border-slate-200/80 bg-white text-slate-700"
                 }`}
               >
                 {m.text}
               </p>
               {m.role === "user" && (
-                <span className="mt-1 shrink-0 rounded-lg bg-slate-200 p-1.5 text-slate-600">
+                <span className="mt-1 shrink-0 rounded-lg bg-slate-100 p-1.5 text-slate-500 ring-1 ring-slate-200">
                   <User className="h-3.5 w-3.5" />
                 </span>
               )}
+
             </div>
           ))}
           <div ref={endRef} />
         </div>
 
-        <div className="rounded-b-xl border border-t-0 border-slate-200 bg-white p-3">
-          <div className="flex flex-wrap gap-1.5">
+        <div className="border-t border-slate-100 bg-white p-3.5">
+          <div className="flex flex-wrap gap-2">
             {activeTopic.questions.map((q) => (
               <button
                 key={q}
                 type="button"
                 onClick={() => push(q)}
-                className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-100"
+                className="rounded-full border border-indigo-100 bg-gradient-to-r from-blue-50 to-violet-50 px-3.5 py-1.5 text-[11px] font-semibold text-indigo-700 transition hover:-translate-y-px hover:border-indigo-200 hover:shadow-sm"
               >
                 {q}
               </button>
@@ -347,15 +359,16 @@ function ConsultiveChat({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Digite uma pergunta (prévia consultiva)"
-              className="min-w-0 flex-1 rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-400"
+              className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-sm outline-none transition focus:border-indigo-300 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
             />
             <button
               type="submit"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-500/25 transition hover:brightness-110 active:scale-[0.98]"
             >
               <Send className="h-4 w-4" /> Enviar
             </button>
           </form>
+
           <p className="mt-2 text-[11px] text-slate-400">
             Prévia consultiva determinística: nenhuma mensagem é gravada e nenhuma IA externa é
             chamada.
@@ -364,12 +377,13 @@ function ConsultiveChat({
       </div>
 
       {/* Coluna direita — contexto */}
-      <aside className="order-3 space-y-3">
-        <div className="rounded-xl border border-slate-200 bg-white p-3">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+      <aside className="order-3 space-y-3.5">
+        <div className="rounded-2xl border border-stone-200/80 bg-gradient-to-b from-white to-stone-50/80 p-4 shadow-[0_6px_20px_-16px_rgba(68,64,60,0.6)]">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
             Contexto da operação
           </p>
           <div className="mt-2">
+
             <ContextRow label="Conta ativa" value={accountLabel} />
             <ContextRow label="Pedidos analisados" value={fmtInt(data.summary.orders_checked)} />
             <ContextRow
@@ -394,7 +408,7 @@ function ConsultiveChat({
           </div>
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3">
+        <div className="rounded-2xl border border-amber-200/80 bg-gradient-to-b from-amber-50 to-amber-50/40 p-4 shadow-[0_6px_20px_-16px_rgba(180,83,9,0.6)]">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-700">
             Próxima ação recomendada
           </p>
@@ -438,7 +452,9 @@ export function StudioIaChatSection() {
   const data = query.data;
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-sky-50/80 via-white to-violet-50/70 p-5 shadow-[0_20px_60px_-40px_rgba(30,41,59,0.55)] sm:p-6">
+      <div className="pointer-events-none absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-sky-200/25 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 right-0 h-72 w-72 rounded-full bg-violet-200/25 blur-3xl" />
       <div className="relative overflow-hidden rounded-2xl border border-indigo-100/80 bg-gradient-to-br from-sky-50 via-indigo-50/70 to-violet-50 p-5 shadow-[0_8px_24px_-16px_rgba(49,46,129,0.45)] sm:p-6">
         <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-gradient-to-br from-blue-200/40 to-violet-200/40 blur-3xl" />
         <div className="relative flex flex-wrap items-start justify-between gap-5">
@@ -483,7 +499,7 @@ export function StudioIaChatSection() {
         </div>
       </div>
 
-      <div className="mt-5" aria-live="polite">
+      <div className="relative mt-5" aria-live="polite">
         {accountsLoading && (
           <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
             <LoaderCircle className="h-4 w-4 animate-spin" /> Identificando a conta ativa...

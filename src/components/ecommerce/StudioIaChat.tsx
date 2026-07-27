@@ -180,26 +180,57 @@ function SafetyBadge({ children }: { children: React.ReactNode }) {
   );
 }
 
-function QuickStat({
+function StatusChip({
   label,
-  value,
   tone,
 }: {
   label: string;
-  value: string;
   tone: "positive" | "warning" | "neutral";
 }) {
   const toneClass =
     tone === "positive"
-      ? "border-emerald-200/70 bg-emerald-50/70 text-emerald-700"
+      ? "border-emerald-200/80 bg-emerald-50 text-emerald-700"
       : tone === "warning"
-        ? "border-amber-200/70 bg-amber-50/70 text-amber-700"
-        : "border-slate-200/70 bg-slate-50 text-slate-600";
+        ? "border-amber-200/80 bg-amber-50 text-amber-700"
+        : "border-slate-200/80 bg-white text-slate-500";
+  const dotClass =
+    tone === "positive" ? "bg-emerald-500" : tone === "warning" ? "bg-amber-500" : "bg-slate-300";
   return (
-    <div className="rounded-xl border border-slate-200/70 bg-white/90 px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${toneClass}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
+      {label}
+    </span>
+  );
+}
+
+function ContextRow({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "warning" | "positive" | "info" | "violet" | "muted";
+}) {
+  const valueCls =
+    tone === "warning"
+      ? "text-amber-700 bg-amber-50 border-amber-200"
+      : tone === "positive"
+        ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+        : tone === "info"
+          ? "text-sky-700 bg-sky-50 border-sky-200"
+          : tone === "violet"
+            ? "text-violet-700 bg-violet-50 border-violet-200"
+            : tone === "muted"
+              ? "text-slate-500 bg-slate-50 border-slate-200"
+              : "text-slate-900 bg-slate-50 border-slate-200/70";
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg px-1.5 py-1.5 transition hover:bg-slate-50/80">
+      <span className="text-[11px] font-medium text-slate-500">{label}</span>
       <span
-        className={`mt-1.5 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${toneClass}`}
+        className={`shrink-0 rounded-md border px-2 py-0.5 text-[11px] font-semibold ${valueCls}`}
       >
         {value}
       </span>
@@ -207,31 +238,6 @@ function QuickStat({
   );
 }
 
-function ContextRow({
-
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: string;
-  tone?: "default" | "warning" | "positive";
-}) {
-  const valueCls =
-    tone === "warning"
-      ? "text-amber-700 bg-amber-50 border-amber-200"
-      : tone === "positive"
-        ? "text-emerald-700 bg-emerald-50 border-emerald-200"
-        : "text-slate-900 bg-slate-50 border-slate-200/70";
-  return (
-    <div className="flex items-center justify-between gap-3 border-b border-slate-100 py-2 last:border-0">
-      <span className="text-[11px] font-medium text-slate-500">{label}</span>
-      <span className={`rounded-md border px-2 py-0.5 text-xs font-semibold ${valueCls}`}>
-        {value}
-      </span>
-    </div>
-  );
-}
 
 function ConsultiveChat({
   data,

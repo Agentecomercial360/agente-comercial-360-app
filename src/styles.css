@@ -187,3 +187,11 @@
       0 0 48px -8px oklch(0.78 0.18 215 / 0.55);
   }
 }
+
+@utility ac-no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -60,54 +60,77 @@ const QUICK_FILTERS = [
   { label: "Top vendas", icon: Gauge, count: 20 },
 ];
 
-const SHORTCUTS: Array<{ label: string; icon: typeof TrendingUp; ring: string; bg: string }> = [
+const SHORTCUTS: Array<{
+  label: string;
+  icon: typeof TrendingUp;
+  ring: string;
+  bg: string;
+  dot: string;
+  count?: number;
+}> = [
   {
     label: "Todos",
     icon: LayoutGrid,
-    ring: "ring-slate-200",
-    bg: "from-slate-100 to-slate-50 text-slate-600",
+    ring: "ring-slate-200/80",
+    bg: "from-slate-100 to-white text-slate-600",
+    dot: "bg-slate-400",
+    count: 295,
   },
   {
     label: "Oportunidades",
     icon: TrendingUp,
-    ring: "ring-emerald-200",
-    bg: "from-emerald-100 to-emerald-50 text-emerald-600",
+    ring: "ring-emerald-200/80",
+    bg: "from-emerald-100 to-white text-emerald-600",
+    dot: "bg-emerald-500",
+    count: 42,
   },
   {
     label: "Críticos",
     icon: AlertOctagon,
-    ring: "ring-rose-200",
-    bg: "from-rose-100 to-rose-50 text-rose-600",
+    ring: "ring-rose-200/80",
+    bg: "from-rose-100 to-white text-rose-600",
+    dot: "bg-rose-500",
+    count: 18,
   },
   {
     label: "Sem custo",
     icon: Lock,
-    ring: "ring-amber-200",
-    bg: "from-amber-100 to-amber-50 text-amber-600",
+    ring: "ring-amber-200/80",
+    bg: "from-amber-100 to-white text-amber-600",
+    dot: "bg-amber-500",
+    count: 295,
   },
   {
     label: "Ads",
     icon: Sparkles,
-    ring: "ring-violet-200",
-    bg: "from-violet-100 to-violet-50 text-violet-600",
+    ring: "ring-violet-200/80",
+    bg: "from-violet-100 to-white text-violet-600",
+    dot: "bg-violet-500",
+    count: 31,
   },
   {
     label: "Estoque baixo",
     icon: Package,
-    ring: "ring-orange-200",
-    bg: "from-orange-100 to-orange-50 text-orange-600",
+    ring: "ring-orange-200/80",
+    bg: "from-orange-100 to-white text-orange-600",
+    dot: "bg-orange-500",
+    count: 12,
   },
   {
     label: "Top vendas",
     icon: Gauge,
-    ring: "ring-blue-200",
-    bg: "from-blue-100 to-blue-50 text-blue-600",
+    ring: "ring-blue-200/80",
+    bg: "from-blue-100 to-white text-blue-600",
+    dot: "bg-blue-500",
+    count: 20,
   },
   {
     label: "Revisar hoje",
     icon: CalendarCheck,
-    ring: "ring-cyan-200",
-    bg: "from-cyan-100 to-cyan-50 text-cyan-600",
+    ring: "ring-cyan-200/80",
+    bg: "from-cyan-100 to-white text-cyan-600",
+    dot: "bg-cyan-500",
+    count: 7,
   },
 ];
 
@@ -222,9 +245,9 @@ const SUGGESTIONS = [
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col items-center gap-0.5 px-2 py-2.5">
-      <p className="text-sm font-bold tracking-tight text-slate-900">{value}</p>
-      <p className="text-[10px] uppercase tracking-wide text-slate-400">{label}</p>
+    <div className="flex flex-col items-center gap-0.5 rounded-xl bg-white/70 px-2 py-2 ring-1 ring-slate-100">
+      <p className="text-[13px] font-bold leading-none tracking-tight text-slate-900">{value}</p>
+      <p className="text-[9px] uppercase tracking-wide text-slate-400">{label}</p>
     </div>
   );
 }
@@ -367,23 +390,33 @@ function FeedInteligente() {
           {/* Coluna central */}
           <div className="space-y-5">
             {/* Atalhos inteligentes */}
-            <Card className="rounded-2xl border-slate-200/80 p-4 shadow-sm">
+            <Card className="relative overflow-hidden rounded-3xl border-slate-200/70 bg-gradient-to-br from-white via-white to-slate-50/70 p-4 shadow-sm">
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Atalhos inteligentes
               </p>
-              <div className="flex gap-4 overflow-x-auto pb-1">
+              <div className="ac-no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
                 {SHORTCUTS.map((s) => (
                   <button
                     key={s.label}
                     type="button"
-                    className="group flex w-16 shrink-0 flex-col items-center gap-1.5"
+                    className="group flex w-[68px] shrink-0 flex-col items-center gap-2"
                   >
-                    <span
-                      className={`flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br ring-2 transition-transform group-hover:scale-105 ${s.bg} ${s.ring}`}
-                    >
-                      <s.icon className="h-5 w-5" />
+                    <span className="relative">
+                      <span
+                        className={`flex h-[58px] w-[58px] items-center justify-center rounded-full bg-gradient-to-br shadow-sm ring-2 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md ${s.bg} ${s.ring}`}
+                      >
+                        <s.icon className="h-5 w-5" />
+                      </span>
+                      <span
+                        className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-white ${s.dot}`}
+                      />
+                      {typeof s.count === "number" && (
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full border border-slate-200/80 bg-white px-1.5 text-[9px] font-bold text-slate-500 shadow-sm">
+                          {s.count}
+                        </span>
+                      )}
                     </span>
-                    <span className="text-center text-[10px] font-medium leading-tight text-slate-500">
+                    <span className="text-center text-[10px] font-medium leading-tight text-slate-500 transition-colors group-hover:text-slate-800">
                       {s.label}
                     </span>
                   </button>

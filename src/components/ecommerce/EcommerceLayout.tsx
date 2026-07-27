@@ -59,6 +59,7 @@ const navGroups = [
     title: "Crescimento",
     items: [
       { label: "Anúncios e Ads", to: "/ecommerce/ads", icon: Zap },
+      { label: "Feed Inteligente", to: "/ecommerce/feed-inteligente", icon: LayoutGrid },
     ],
   },
   {

@@ -307,24 +307,25 @@ function ConsultiveChat({
               className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}
             >
               {m.role === "assistant" && (
-                <span className="mt-1 shrink-0 rounded-lg bg-blue-100 p-1.5 text-blue-700">
+                <span className="mt-1 shrink-0 rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 p-1.5 text-white shadow-sm shadow-indigo-500/25">
                   <Sparkles className="h-3.5 w-3.5" />
                 </span>
               )}
               <p
-                className={`max-w-[85%] whitespace-pre-line rounded-xl px-3 py-2 text-sm ${
+                className={`max-w-[85%] whitespace-pre-line rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ${
                   m.role === "user"
-                    ? "bg-blue-600 text-white"
-                    : "border border-slate-200 bg-white text-slate-700"
+                    ? "rounded-br-md bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-indigo-500/25"
+                    : "rounded-bl-md border border-slate-200/80 bg-white text-slate-700"
                 }`}
               >
                 {m.text}
               </p>
               {m.role === "user" && (
-                <span className="mt-1 shrink-0 rounded-lg bg-slate-200 p-1.5 text-slate-600">
+                <span className="mt-1 shrink-0 rounded-lg bg-slate-100 p-1.5 text-slate-500 ring-1 ring-slate-200">
                   <User className="h-3.5 w-3.5" />
                 </span>
               )}
+
             </div>
           ))}
           <div ref={endRef} />

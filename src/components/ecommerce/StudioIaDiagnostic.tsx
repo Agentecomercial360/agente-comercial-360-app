@@ -875,7 +875,15 @@ export function StudioIaDiagnosticSection() {
             showAction
           />
 
-          <ConsultiveChat data={data} />
+          <ConsultiveChat
+            data={data}
+            accountLabel={
+              activeAccount?.account_name ||
+              activeAccount?.nickname ||
+              "Mercado Livre - Nightled"
+            }
+          />
+
         </>
       )}
     </div>

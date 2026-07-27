@@ -191,14 +191,16 @@ function ContextRow({
 }) {
   const valueCls =
     tone === "warning"
-      ? "text-amber-700"
+      ? "text-amber-700 bg-amber-50 border-amber-200"
       : tone === "positive"
-        ? "text-emerald-700"
-        : "text-slate-900";
+        ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+        : "text-slate-900 bg-slate-50 border-slate-200/70";
   return (
-    <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 py-1.5 last:border-0">
+    <div className="flex items-center justify-between gap-3 border-b border-slate-100 py-2 last:border-0">
       <span className="text-[11px] font-medium text-slate-500">{label}</span>
-      <span className={`text-xs font-semibold ${valueCls}`}>{value}</span>
+      <span className={`rounded-md border px-2 py-0.5 text-xs font-semibold ${valueCls}`}>
+        {value}
+      </span>
     </div>
   );
 }

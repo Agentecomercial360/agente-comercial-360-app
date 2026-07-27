@@ -36,6 +36,7 @@ import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produt
 import { Route as EcommercePrioridadesRouteImport } from './routes/ecommerce/prioridades'
 import { Route as EcommerceMapaVendasRouteImport } from './routes/ecommerce/mapa-vendas'
 import { Route as EcommerceLoginRouteImport } from './routes/ecommerce/login'
+import { Route as EcommerceFeedInteligenteRouteImport } from './routes/ecommerce/feed-inteligente'
 import { Route as EcommerceEstoqueRouteImport } from './routes/ecommerce/estoque'
 import { Route as EcommerceDashboardRouteImport } from './routes/ecommerce/dashboard'
 import { Route as EcommerceCustosMargemRouteImport } from './routes/ecommerce/custos-margem'
@@ -196,6 +197,12 @@ const EcommerceLoginRoute = EcommerceLoginRouteImport.update({
   path: '/ecommerce/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceFeedInteligenteRoute =
+  EcommerceFeedInteligenteRouteImport.update({
+    id: '/ecommerce/feed-inteligente',
+    path: '/ecommerce/feed-inteligente',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const EcommerceEstoqueRoute = EcommerceEstoqueRouteImport.update({
   id: '/ecommerce/estoque',
   path: '/ecommerce/estoque',
@@ -348,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce/custos-margem': typeof EcommerceCustosMargemRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
+  '/ecommerce/feed-inteligente': typeof EcommerceFeedInteligenteRoute
   '/ecommerce/login': typeof EcommerceLoginRoute
   '/ecommerce/mapa-vendas': typeof EcommerceMapaVendasRoute
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
@@ -399,6 +407,7 @@ export interface FileRoutesByTo {
   '/ecommerce/custos-margem': typeof EcommerceCustosMargemRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
+  '/ecommerce/feed-inteligente': typeof EcommerceFeedInteligenteRoute
   '/ecommerce/login': typeof EcommerceLoginRoute
   '/ecommerce/mapa-vendas': typeof EcommerceMapaVendasRoute
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
@@ -451,6 +460,7 @@ export interface FileRoutesById {
   '/ecommerce/custos-margem': typeof EcommerceCustosMargemRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
+  '/ecommerce/feed-inteligente': typeof EcommerceFeedInteligenteRoute
   '/ecommerce/login': typeof EcommerceLoginRoute
   '/ecommerce/mapa-vendas': typeof EcommerceMapaVendasRoute
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
@@ -504,6 +514,7 @@ export interface FileRouteTypes {
     | '/ecommerce/custos-margem'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
+    | '/ecommerce/feed-inteligente'
     | '/ecommerce/login'
     | '/ecommerce/mapa-vendas'
     | '/ecommerce/prioridades'
@@ -555,6 +566,7 @@ export interface FileRouteTypes {
     | '/ecommerce/custos-margem'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
+    | '/ecommerce/feed-inteligente'
     | '/ecommerce/login'
     | '/ecommerce/mapa-vendas'
     | '/ecommerce/prioridades'
@@ -606,6 +618,7 @@ export interface FileRouteTypes {
     | '/ecommerce/custos-margem'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
+    | '/ecommerce/feed-inteligente'
     | '/ecommerce/login'
     | '/ecommerce/mapa-vendas'
     | '/ecommerce/prioridades'
@@ -658,6 +671,7 @@ export interface RootRouteChildren {
   EcommerceCustosMargemRoute: typeof EcommerceCustosMargemRoute
   EcommerceDashboardRoute: typeof EcommerceDashboardRoute
   EcommerceEstoqueRoute: typeof EcommerceEstoqueRoute
+  EcommerceFeedInteligenteRoute: typeof EcommerceFeedInteligenteRoute
   EcommerceLoginRoute: typeof EcommerceLoginRoute
   EcommerceMapaVendasRoute: typeof EcommerceMapaVendasRoute
   EcommercePrioridadesRoute: typeof EcommercePrioridadesRoute
@@ -860,6 +874,13 @@ declare module '@tanstack/react-router' {
       path: '/ecommerce/login'
       fullPath: '/ecommerce/login'
       preLoaderRoute: typeof EcommerceLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/feed-inteligente': {
+      id: '/ecommerce/feed-inteligente'
+      path: '/ecommerce/feed-inteligente'
+      fullPath: '/ecommerce/feed-inteligente'
+      preLoaderRoute: typeof EcommerceFeedInteligenteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ecommerce/estoque': {
@@ -1068,6 +1089,7 @@ const rootRouteChildren: RootRouteChildren = {
   EcommerceCustosMargemRoute: EcommerceCustosMargemRoute,
   EcommerceDashboardRoute: EcommerceDashboardRoute,
   EcommerceEstoqueRoute: EcommerceEstoqueRoute,
+  EcommerceFeedInteligenteRoute: EcommerceFeedInteligenteRoute,
   EcommerceLoginRoute: EcommerceLoginRoute,
   EcommerceMapaVendasRoute: EcommerceMapaVendasRoute,
   EcommercePrioridadesRoute: EcommercePrioridadesRoute,

@@ -3,8 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   BadgeCheck,
-  Bot,
-  CheckCircle2,
+CheckCircle2,
   Clock3,
   Coins,
   Lightbulb,
@@ -12,10 +11,8 @@ import {
   LoaderCircle,
   Lock,
   RefreshCw,
-  Send,
-  ShieldCheck,
+ShieldCheck,
   Sparkles,
-  User,
 } from "lucide-react";
 import { ECOMMERCE_COMPANY_ID, useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import {
@@ -161,185 +158,6 @@ function ItemList({
         </ul>
       )}
     </section>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Chat consultivo (determinístico, sem IA externa)
-// ---------------------------------------------------------------------------
-
-type ChatMessage = { id: string; role: "assistant" | "user"; text: string };
-
-type TopicKey =
-  | "diagnostico"
-  | "custos"
-  | "ads"
-  | "estoque"
-  | "oportunidades"
-  | "tarefas";
-
-const QUICK_QUESTIONS = [
-  "Qual o principal ponto de atenção?",
-  "O que falta para calcular margem?",
-  "Quais oportunidades existem?",
-  "Quais tarefas o time deve priorizar?",
-  "As fontes estão completas?",
-] as const;
-
-const TOPICS: {
-  key: TopicKey;
-  label: string;
-  hint: string;
-  icon: React.ReactNode;
-  questions: string[];
-}[] = [
-  {
-    key: "diagnostico",
-    label: "Diagnóstico geral",
-    hint: "Resumo da operação",
-    icon: <Sparkles className="h-4 w-4" />,
-    questions: [QUICK_QUESTIONS[0], QUICK_QUESTIONS[4], "Resumo do diagnóstico"],
-  },
-  {
-    key: "custos",
-    label: "Custos pendentes",
-    hint: "Margem e lucro",
-    icon: <Coins className="h-4 w-4" />,
-    questions: [QUICK_QUESTIONS[1], "Situação dos custos"],
-  },
-  {
-    key: "ads",
-    label: "Ads e campanhas",
-    hint: "Investimento e retorno",
-    icon: <BadgeCheck className="h-4 w-4" />,
-    questions: ["O que o diagnóstico diz sobre Ads?"],
-  },
-  {
-    key: "estoque",
-    label: "Estoque e ruptura",
-    hint: "Disponibilidade",
-    icon: <ListChecks className="h-4 w-4" />,
-    questions: ["Há risco de ruptura de estoque?"],
-  },
-  {
-    key: "oportunidades",
-    label: "Produtos com oportunidade",
-    hint: "Ganhos possíveis",
-    icon: <Lightbulb className="h-4 w-4" />,
-    questions: [QUICK_QUESTIONS[2]],
-  },
-  {
-    key: "tarefas",
-    label: "Tarefas sugeridas",
-    hint: "Próximos passos",
-    icon: <CheckCircle2 className="h-4 w-4" />,
-    questions: [QUICK_QUESTIONS[3]],
-  },
-];
-
-function describeItem(item: DiagnosticItem): string {
-  const parts = [item.title];
-  if (item.description) parts.push(item.description);
-  if (item.recommendation) parts.push(`Recomendação: ${item.recommendation}`);
-  return parts.join(" — ");
-}
-
-function matchItems(data: StudioIaDiagnosticPreview, words: string[]): DiagnosticItem[] {
-  const all = [...data.attentionPoints, ...data.opportunities, ...data.suggestedTasks];
-  return all.filter((i) => {
-    const text = `${i.title} ${i.description ?? ""} ${i.recommendation ?? ""}`
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-    return words.some((w) => text.includes(w));
-  });
-}
-
-function answerFor(question: string, data: StudioIaDiagnosticPreview): string {
-  switch (question) {
-    case QUICK_QUESTIONS[0]: {
-      const first = data.attentionPoints[0];
-      if (!first) return "Não há ponto de atenção crítico no diagnóstico atual.";
-      return `Principal ponto de atenção${first.severity ? ` (${first.severity})` : ""}: ${describeItem(first)}`;
-    }
-    case QUICK_QUESTIONS[1]:
-    case "Situação dos custos":
-      return "Falta preencher e importar os custos reais dos produtos. Enquanto os custos estiverem pendentes, margem e lucro permanecem bloqueados.";
-    case QUICK_QUESTIONS[2]: {
-      if (data.opportunities.length === 0)
-        return "Nenhuma oportunidade foi identificada no diagnóstico atual.";
-      return `Identifiquei ${data.opportunities.length} oportunidade(s):\n${data.opportunities
-        .slice(0, 5)
-        .map((o, i) => `${i + 1}. ${describeItem(o)}`)
-        .join("\n")}`;
-    }
-    case QUICK_QUESTIONS[3]: {
-      if (data.suggestedTasks.length === 0)
-        return "Nenhuma tarefa sugerida no diagnóstico atual.";
-      return `Sugestões para o time avaliar (nenhuma tarefa foi criada no sistema):\n${data.suggestedTasks
-        .slice(0, 5)
-        .map((t, i) => `${i + 1}. ${describeItem(t)}`)
-        .join("\n")}`;
-    }
-    case QUICK_QUESTIONS[4]: {
-      const checked = data.summary.sources_checked ?? data.sourceStatus.length;
-      const available =
-        data.summary.sources_available ?? data.sourceStatus.filter((s) => s.available).length;
-      const missing = data.sourceStatus.filter((s) => !s.available).map((s) => s.source);
-      const base = `${available} de ${checked} fontes verificadas estão disponíveis.`;
-      return missing.length === 0
-        ? `${base} Todas as fontes do diagnóstico responderam com dados.`
-        : `${base} Pendentes: ${missing.join(", ")}.`;
-    }
-    case "Resumo do diagnóstico":
-      return `Pedidos analisados: ${fmtInt(data.summary.orders_checked)}. Receita pronta: ${fmtInt(
-        data.summary.revenue_ready_orders,
-      )} pedido(s). Pontos de atenção: ${data.attentionPoints.length}. Oportunidades: ${
-        data.opportunities.length
-      }. Tarefas sugeridas: ${data.suggestedTasks.length}.`;
-    case "O que o diagnóstico diz sobre Ads?": {
-      const hits = matchItems(data, ["ads", "campanha", "anuncio", "publicidade", "acos"]);
-      return hits.length === 0
-        ? "O diagnóstico atual não trouxe apontamentos específicos de Ads e campanhas. Com custos reais cadastrados, a leitura de retorno por campanha fica mais precisa."
-        : hits
-            .slice(0, 4)
-            .map((h, i) => `${i + 1}. ${describeItem(h)}`)
-            .join("\n");
-    }
-    case "Há risco de ruptura de estoque?": {
-      const hits = matchItems(data, ["estoque", "ruptura", "reposicao", "sem estoque"]);
-      return hits.length === 0
-        ? "Nenhum alerta de estoque ou ruptura foi levantado neste diagnóstico."
-        : hits
-            .slice(0, 4)
-            .map((h, i) => `${i + 1}. ${describeItem(h)}`)
-            .join("\n");
-    }
-    default:
-      return "Chat livre com IA ainda não está ativo nesta versão. Use as perguntas rápidas ou aguarde a próxima etapa com IA conectada.";
-  }
-}
-
-function ContextRow({
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: string;
-  tone?: "default" | "warning" | "positive";
-}) {
-  const valueCls =
-    tone === "warning"
-      ? "text-amber-700"
-      : tone === "positive"
-        ? "text-emerald-700"
-        : "text-slate-900";
-  return (
-    <div className="flex items-baseline justify-between gap-3 border-b border-slate-100 py-1.5 last:border-0">
-      <span className="text-[11px] font-medium text-slate-500">{label}</span>
-      <span className={`text-xs font-semibold ${valueCls}`}>{value}</span>
-    </div>
   );
 }
 

@@ -317,8 +317,9 @@ function ConsultiveChat({
           </span>
         </div>
 
-        <div className="relative h-[26rem] space-y-4 overflow-y-auto bg-[radial-gradient(ellipse_at_top,rgba(224,231,255,0.45),transparent_60%)] bg-slate-50/50 p-4 sm:p-5">
+        <div className="relative max-h-[24rem] min-h-[15rem] space-y-3.5 overflow-y-auto bg-[radial-gradient(ellipse_at_top,rgba(224,231,255,0.45),transparent_60%)] bg-slate-50/50 p-4 sm:p-5">
           <div className="pointer-events-none absolute inset-y-0 left-[30px] hidden w-px bg-gradient-to-b from-transparent via-slate-200/70 to-transparent sm:block" />
+
 
           {messages.map((m) => (
             <div

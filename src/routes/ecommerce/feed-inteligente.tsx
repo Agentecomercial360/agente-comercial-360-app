@@ -441,28 +441,34 @@ function FeedInteligente() {
               return (
                 <Card
                   key={card.sku}
-                  className={`overflow-hidden rounded-3xl border-slate-200/80 p-0 shadow-sm ring-1 ring-transparent transition-all hover:shadow-lg ${status.ring}`}
+                  className={`overflow-hidden rounded-[28px] border-slate-200/70 p-0 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-32px_rgba(15,23,42,0.45)] ring-1 ring-transparent transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_1px_2px_rgba(15,23,42,0.04),0_26px_56px_-34px_rgba(15,23,42,0.5)] ${status.ring}`}
                 >
                   {/* Cabeçalho do post */}
-                  <div className="flex items-start justify-between gap-3 px-5 py-4">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-sm">
-                        <Store className="h-4 w-4" />
+                  <div className="flex items-start justify-between gap-4 px-6 pb-4 pt-5">
+                    <div className="flex min-w-0 items-center gap-3.5">
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-600/20">
+                        <Store className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} />
                       </span>
                       <div className="min-w-0">
-                        <h3 className="truncate text-sm font-semibold text-slate-900">
+                        <h3 className="truncate text-[15px] font-semibold leading-snug tracking-tight text-slate-900">
                           {card.title}
                         </h3>
-                        <p className="mt-0.5 truncate text-[11px] text-slate-400">
-                          {card.sku} · Mercado Livre - Nightled
-                        </p>
+                        <div className="mt-1 flex min-w-0 items-center gap-2">
+                          <span className="inline-flex h-[18px] shrink-0 items-center rounded-md bg-slate-100 px-1.5 text-[10px] font-semibold leading-none tracking-tight text-slate-500">
+                            {card.sku}
+                          </span>
+                          <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
+                          <span className="truncate text-[11px] font-medium text-slate-400">
+                            Mercado Livre - Nightled
+                          </span>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
+                    <div className="flex shrink-0 items-center gap-1.5">
                       <span
-                        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${status.badge}`}
+                        className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold leading-none ${status.badge}`}
                       >
-                        <status.icon className="h-3 w-3" />
+                        <status.icon className="h-3 w-3 shrink-0" />
                         {status.label}
                       </span>
                       <button
@@ -476,85 +482,89 @@ function FeedInteligente() {
                   </div>
 
                   {/* Área visual do produto */}
-                  <div className="px-4">
+                  <div className="px-6">
                     <div
-                      className={`relative flex aspect-[16/9] w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br ring-1 ring-slate-100 ${status.cover}`}
+                      className={`relative flex aspect-[16/7] w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br ring-1 ring-slate-200/70 ${status.cover}`}
                     >
-                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_15%,rgba(255,255,255,0.7),transparent_62%)]" />
-                      <span className="absolute left-3 top-3 inline-flex h-6 items-center rounded-full bg-white/85 px-2.5 text-[9px] font-semibold uppercase leading-none tracking-wide text-slate-500 shadow-sm backdrop-blur">
+                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_28%_12%,rgba(255,255,255,0.75),transparent_62%)]" />
+                      <span className="absolute left-4 top-4 inline-flex h-6 items-center rounded-full bg-white/85 px-2.5 text-[9px] font-semibold uppercase leading-none tracking-wider text-slate-500 shadow-sm backdrop-blur">
                         Prévia visual
                       </span>
-                      <div className="relative flex flex-col items-center justify-center gap-2 text-center">
-                        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/80 shadow-sm backdrop-blur">
+                      <div className="relative flex flex-col items-center justify-center gap-2.5 text-center">
+                        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/85 shadow-sm ring-1 ring-white/70 backdrop-blur">
                           <ImageIcon
-                            className={`h-6 w-6 shrink-0 object-contain ${status.coverIcon}`}
+                            className={`h-6 w-6 shrink-0 ${status.coverIcon}`}
+                            strokeWidth={1.8}
                           />
                         </span>
-                        <span className="text-[10px] font-medium text-slate-500">
+                        <span className="text-[10.5px] font-medium tracking-tight text-slate-500">
                           Imagem do anúncio em breve
                         </span>
                       </div>
                     </div>
                   </div>
 
-
                   {/* Métricas */}
-                  <div className="grid grid-cols-5 gap-1.5 px-3 py-3">
-                    <Metric label="Visitas" value={card.metrics.visits} />
-                    <Metric label="Vendas" value={card.metrics.sales} />
-                    <Metric label="Receita" value={card.metrics.revenue} />
-                    <Metric label="Conversão" value={card.metrics.conversion} />
-                    <Metric label="Estoque" value={card.metrics.stock} />
+                  <div className="px-6 pt-5">
+                    <div className="grid grid-cols-5 divide-x divide-slate-100 overflow-hidden rounded-2xl bg-slate-50/70 ring-1 ring-slate-100">
+                      <Metric label="Visitas" value={card.metrics.visits} />
+                      <Metric label="Vendas" value={card.metrics.sales} />
+                      <Metric label="Receita" value={card.metrics.revenue} />
+                      <Metric label="Conversão" value={card.metrics.conversion} />
+                      <Metric label="Estoque" value={card.metrics.stock} />
+                    </div>
                   </div>
 
                   {/* Diagnóstico e ação */}
-                  <div className="grid gap-2 px-3 pb-3 sm:grid-cols-2">
-                    <div className="rounded-2xl border border-blue-100 bg-blue-50/60 px-3.5 py-2.5">
-                      <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+                  <div className="grid gap-3 px-6 pb-5 pt-4 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-blue-100/80 bg-blue-50/50 px-4 py-3.5">
+                      <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700">
+                        <Gauge className="h-3 w-3 shrink-0" />
                         Diagnóstico
                       </p>
-                      <p className="mt-1 text-xs leading-snug text-slate-700">{card.diagnosis}</p>
+                      <p className="mt-1.5 text-[12.5px] leading-relaxed text-slate-600">
+                        {card.diagnosis}
+                      </p>
                     </div>
-                    <div className={`rounded-2xl border px-3.5 py-2.5 ${status.action}`}>
-                      <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide">
-                        <ArrowRight className="h-3 w-3" />
+                    <div className={`rounded-2xl border px-4 py-3.5 ${status.action}`}>
+                      <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider">
+                        <ArrowRight className="h-3 w-3 shrink-0" />
                         Ação recomendada
                       </p>
-                      <p className="mt-1 text-xs leading-snug">{card.action}</p>
+                      <p className="mt-1.5 text-[12.5px] leading-relaxed">{card.action}</p>
                     </div>
                   </div>
 
-
                   {/* Rodapé */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3">
-                    <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/60 px-6 py-4">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Button
                         size="sm"
                         variant="outline"
-                        className="gap-1.5 rounded-full border-blue-200 bg-white text-xs text-blue-700 hover:bg-blue-50"
+                        className="h-8 gap-1.5 rounded-full border-blue-200 bg-white px-3.5 text-[12px] font-medium text-blue-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:bg-blue-50"
                       >
-                        <BarChart3 className="h-3.5 w-3.5" />
+                        <BarChart3 className="h-3.5 w-3.5 shrink-0" />
                         Ver diagnóstico
                       </Button>
                       <Button
                         size="sm"
                         variant="ghost"
                         disabled
-                        className="gap-1.5 rounded-full text-xs text-slate-400"
+                        className="h-8 gap-1.5 rounded-full px-3 text-[12px] font-medium text-slate-400"
                       >
-                        <Lock className="h-3.5 w-3.5" />
+                        <Lock className="h-3.5 w-3.5 shrink-0" />
                         Marcar para revisão em breve
                       </Button>
-
                     </div>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-[10px] font-semibold text-violet-600">
-                      <Eye className="h-3 w-3" />
+                    <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-violet-50 px-3 text-[10px] font-semibold uppercase leading-none tracking-wider text-violet-600">
+                      <Eye className="h-3 w-3 shrink-0" />
                       Prévia visual
                     </span>
                   </div>
                 </Card>
               );
             })}
+
 
             <p className="text-center text-[11px] text-slate-400">
               Exemplos ilustrativos — os anúncios reais da conta aparecerão aqui na próxima etapa.

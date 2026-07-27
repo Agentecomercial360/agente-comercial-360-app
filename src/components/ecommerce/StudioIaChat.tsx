@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  AlertTriangle,
   BadgeCheck,
   Bot,
+  Gauge,
+
   CheckCircle2,
   Clock3,
   Coins,

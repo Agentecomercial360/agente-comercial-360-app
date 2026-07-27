@@ -397,21 +397,21 @@ function FeedInteligente() {
               <p className="mb-4 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Atalhos inteligentes
               </p>
-              <div className="ac-no-scrollbar -mx-1 flex items-start gap-5 overflow-x-auto px-1 pb-1">
+              <div className="ac-no-scrollbar -mx-1 flex items-start gap-7 overflow-x-auto px-1 pb-1">
                 {SHORTCUTS.map((s) => (
                   <button
                     key={s.label}
                     type="button"
-                    className="group flex w-[64px] shrink-0 flex-col items-center gap-2.5"
+                    className="group flex w-[68px] shrink-0 flex-col items-center gap-2"
                   >
-                    <span className="relative block h-14 w-14 shrink-0">
-                      <span
-                        className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br shadow-[0_1px_2px_rgba(15,23,42,0.05)] ring-1 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md ${s.bg} ${s.ring}`}
-                      >
-                        <s.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} />
-                      </span>
+                    <span
+                      className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br shadow-[0_1px_2px_rgba(15,23,42,0.05)] ring-1 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md ${s.bg} ${s.ring}`}
+                    >
+                      <s.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} />
+                    </span>
+                    <span className="flex h-[16px] items-center">
                       {typeof s.count === "number" && (
-                        <span className="absolute -right-1 -top-1 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full border border-white bg-slate-900/85 px-1 text-[9px] font-semibold leading-none text-white">
+                        <span className="inline-flex h-[16px] min-w-[22px] items-center justify-center rounded-full bg-slate-100 px-1.5 text-[9px] font-semibold leading-none text-slate-500">
                           {s.count}
                         </span>
                       )}
@@ -422,6 +422,7 @@ function FeedInteligente() {
                   </button>
                 ))}
               </div>
+
             </Card>
 
 

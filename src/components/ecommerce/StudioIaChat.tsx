@@ -459,12 +459,20 @@ function ConsultiveChat({
 
       {/* Coluna direita — contexto */}
       <aside className="order-3 space-y-3.5">
-        <div className="rounded-2xl border border-stone-200/80 bg-gradient-to-b from-white to-stone-50/80 p-4 shadow-[0_6px_20px_-16px_rgba(68,64,60,0.6)]">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
-            Contexto da operação
-          </p>
-          <div className="mt-2">
+        <div className="rounded-[22px] border border-slate-200/80 bg-white p-4 shadow-[0_18px_44px_-32px_rgba(30,41,59,0.6),0_1px_2px_rgba(15,23,42,0.04)] ring-1 ring-white/70">
+          <div className="flex items-center gap-2 pb-3">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-sm shadow-indigo-500/30">
+              <Gauge className="h-3.5 w-3.5" />
+            </span>
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-700">
+              Contexto da operação
+            </p>
+          </div>
 
+          <p className="border-t border-slate-100 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+            Dados da operação
+          </p>
+          <div className="mt-1.5 space-y-1">
             <ContextRow label="Conta ativa" value={accountLabel} />
             <ContextRow label="Pedidos analisados" value={fmtInt(data.summary.orders_checked)} />
             <ContextRow
@@ -482,33 +490,49 @@ function ConsultiveChat({
               value={data.summary.profit_margin_available ? "Disponível" : "Aguardando custos"}
               tone={data.summary.profit_margin_available ? "positive" : "warning"}
             />
-            <ContextRow label="Fontes verificadas" value={`${sourcesAvailable}/${sourcesChecked}`} />
-            <ContextRow label="Modo" value="Somente leitura" />
-            <ContextRow label="IA externa" value="Não chamada" />
-            <ContextRow label="Ações automáticas" value="Desligadas" />
+            <ContextRow
+              label="Fontes verificadas"
+              value={`${sourcesAvailable}/${sourcesChecked}`}
+              tone={sourcesAvailable >= sourcesChecked ? "positive" : "warning"}
+            />
+          </div>
+
+          <p className="mt-4 border-t border-slate-100 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+            Segurança do modo atual
+          </p>
+          <div className="mt-1.5 space-y-1">
+            <ContextRow label="Modo" value="Somente leitura" tone="info" />
+            <ContextRow label="IA externa" value="Não chamada" tone="violet" />
+            <ContextRow label="Ações automáticas" value="Desligadas" tone="muted" />
           </div>
         </div>
 
-        <div className="rounded-2xl border border-amber-200/80 bg-gradient-to-b from-amber-50 to-amber-50/40 p-4 shadow-[0_6px_20px_-16px_rgba(180,83,9,0.6)]">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-700">
-            Próxima ação recomendada
-          </p>
-          <p className="mt-1.5 text-sm font-semibold text-slate-900">
+        <div className="rounded-[22px] border border-amber-200/80 bg-gradient-to-b from-amber-50 via-amber-50/60 to-white p-4 shadow-[0_18px_40px_-30px_rgba(180,83,9,0.65)] ring-1 ring-white/60">
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/15 text-amber-700 ring-1 ring-amber-300/70">
+              <AlertTriangle className="h-3.5 w-3.5" />
+            </span>
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
+              Próxima ação recomendada
+            </p>
+          </div>
+          <p className="mt-2.5 text-sm font-bold text-slate-900">
             Cadastrar custos reais dos produtos
           </p>
-          <p className="mt-1 text-xs text-slate-600">
+          <p className="mt-1 text-xs leading-relaxed text-slate-600">
             Sem os custos reais, a análise de margem e lucro permanece bloqueada.
           </p>
           <button
             type="button"
             disabled
             title="Criação de tarefas reais será liberada em uma próxima etapa."
-            className="mt-3 inline-flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-400"
+            className="mt-3.5 inline-flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-xl border border-amber-200/80 bg-white/80 px-3 py-2 text-xs font-semibold text-amber-700/70 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
           >
             <Lock className="h-3.5 w-3.5" /> Criar tarefa em breve
           </button>
         </div>
       </aside>
+
     </div>
   );
 }

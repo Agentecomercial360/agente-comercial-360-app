@@ -174,7 +174,7 @@ function answerFor(question: string, data: StudioIaDiagnosticPreview): string {
 
 function SafetyBadge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/80 px-3 py-1.5 text-[11px] font-semibold text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.06)] backdrop-blur-sm">
       {children}
     </span>
   );
@@ -439,43 +439,48 @@ export function StudioIaChatSection() {
 
   return (
     <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <span className="rounded-xl bg-blue-50 p-2.5 text-blue-700">
-            <Bot className="h-5 w-5" />
-          </span>
-          <div className="min-w-0">
-            <h1 className="text-lg font-bold text-slate-900">Chat Consultivo Studio IA</h1>
-            <p className="mt-1 max-w-2xl text-sm text-slate-500">
-              Converse com o assistente estratégico usando o diagnóstico carregado. Nesta versão, o
-              chat é somente leitura e não executa ações automáticas.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <SafetyBadge>
-                <ShieldCheck className="h-3.5 w-3.5" /> Somente leitura
-              </SafetyBadge>
-              <SafetyBadge>
-                <BadgeCheck className="h-3.5 w-3.5" /> IA externa não chamada
-              </SafetyBadge>
-              <SafetyBadge>
-                <Lock className="h-3.5 w-3.5" /> Sem ações automáticas
-              </SafetyBadge>
-              <SafetyBadge>
-                <Eye className="h-3.5 w-3.5" /> Prévia consultiva
-              </SafetyBadge>
+      <div className="relative overflow-hidden rounded-2xl border border-indigo-100/80 bg-gradient-to-br from-sky-50 via-indigo-50/70 to-violet-50 p-5 shadow-[0_8px_24px_-16px_rgba(49,46,129,0.45)] sm:p-6">
+        <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-gradient-to-br from-blue-200/40 to-violet-200/40 blur-3xl" />
+        <div className="relative flex flex-wrap items-start justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <span className="shrink-0 rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 p-3.5 text-white shadow-lg shadow-indigo-500/25">
+              <Bot className="h-7 w-7" />
+            </span>
+            <div className="min-w-0">
+              <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
+                Chat Consultivo Studio IA
+              </h1>
+              <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-600">
+                Converse com o assistente estratégico usando o diagnóstico já carregado da operação.
+                Nesta versão, o chat é somente leitura e não executa ações automáticas.
+              </p>
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <SafetyBadge>
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Somente leitura
+                </SafetyBadge>
+                <SafetyBadge>
+                  <BadgeCheck className="h-3.5 w-3.5 text-blue-600" /> IA externa não chamada
+                </SafetyBadge>
+                <SafetyBadge>
+                  <Lock className="h-3.5 w-3.5 text-slate-500" /> Sem ações automáticas
+                </SafetyBadge>
+                <SafetyBadge>
+                  <Eye className="h-3.5 w-3.5 text-violet-600" /> Prévia consultiva
+                </SafetyBadge>
+              </div>
             </div>
           </div>
-        </div>
 
-        <button
-          type="button"
-          onClick={() => void query.refetch()}
-          disabled={!activeAccountId || query.isFetching}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <RefreshCw className={`h-3.5 w-3.5 ${query.isFetching ? "animate-spin" : ""}`} />
-          Atualizar diagnóstico
-        </button>
+          <button
+            type="button"
+            onClick={() => void query.refetch()}
+            disabled={!activeAccountId || query.isFetching}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-500/25 transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${query.isFetching ? "animate-spin" : ""}`} />
+            Atualizar diagnóstico
+          </button>
+        </div>
       </div>
 
       <div className="mt-5" aria-live="polite">

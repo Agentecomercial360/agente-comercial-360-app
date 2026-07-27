@@ -312,34 +312,34 @@ function FeedInteligente() {
           {/* Coluna esquerda */}
           <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
             <Card className="overflow-hidden rounded-3xl border-slate-200/60 p-0 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-28px_rgba(15,23,42,0.4)]">
-              <div className="relative h-12 bg-gradient-to-r from-blue-600/90 via-indigo-600/90 to-violet-600/90">
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_130%,rgba(255,255,255,0.35),transparent_60%)]" />
-              </div>
-              <div className="-mt-8 px-5 pb-5">
-                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-gradient-to-br from-slate-50 to-slate-100 shadow-sm">
+              <div className="relative h-16 bg-gradient-to-r from-blue-600/85 via-indigo-600/85 to-violet-600/85">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_130%,rgba(255,255,255,0.3),transparent_60%)]" />
+                <div className="absolute -bottom-8 left-1/2 flex h-16 w-16 -translate-x-1/2 items-center justify-center overflow-hidden rounded-2xl border-4 border-white bg-gradient-to-br from-slate-50 to-slate-100 shadow-sm">
                   <Store className="h-6 w-6 shrink-0 text-blue-600" />
                 </div>
-                <p className="mt-3 text-sm font-semibold leading-tight text-slate-900">
+              </div>
+              <div className="px-5 pb-6 pt-11 text-center">
+                <p className="text-sm font-semibold leading-tight text-slate-900">
                   Mercado Livre - Nightled
                 </p>
-                <p className="mt-1 text-[11px] font-medium text-slate-500/90">
+                <p className="mt-1.5 text-[11px] font-medium text-slate-500/90">
                   Conta ativa da operação
                 </p>
-                <div className="mt-4 grid grid-cols-2 gap-2.5">
-                  <div className="rounded-2xl bg-slate-50/80 px-3 py-2.5 text-center ring-1 ring-slate-100">
+                <div className="mt-5 grid grid-cols-2 gap-2.5">
+                  <div className="rounded-2xl bg-slate-50/80 px-3 py-3 text-center ring-1 ring-slate-100">
                     <p className="text-base font-semibold text-slate-900">295</p>
-                    <p className="mt-0.5 text-[10px] uppercase tracking-wide text-slate-400">
+                    <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400">
                       anúncios
                     </p>
                   </div>
-                  <div className="rounded-2xl bg-slate-50/80 px-3 py-2.5 text-center ring-1 ring-slate-100">
+                  <div className="rounded-2xl bg-slate-50/80 px-3 py-3 text-center ring-1 ring-slate-100">
                     <p className="text-base font-semibold text-slate-900">455</p>
-                    <p className="mt-0.5 text-[10px] uppercase tracking-wide text-slate-400">
+                    <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400">
                       pedidos
                     </p>
                   </div>
                 </div>
-                <div className="mt-3.5 space-y-2">
+                <div className="mt-4 space-y-2">
                   <div className="flex items-center justify-between rounded-xl bg-emerald-50/70 px-3 py-2">
                     <span className="text-[11px] text-slate-600">Receita</span>
                     <span className="text-[11px] font-semibold text-emerald-700">Disponível</span>
@@ -351,6 +351,7 @@ function FeedInteligente() {
                 </div>
               </div>
             </Card>
+
 
 
             <Card className="h-fit rounded-3xl border-slate-200/60 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-28px_rgba(15,23,42,0.4)]">

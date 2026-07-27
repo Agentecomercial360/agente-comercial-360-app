@@ -250,11 +250,11 @@ function ConsultiveChat({
   return (
     <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[230px_minmax(0,1fr)_270px] lg:items-start">
       {/* Coluna esquerda — assuntos */}
-      <aside className="order-2 rounded-2xl border border-indigo-100/70 bg-gradient-to-b from-indigo-50/80 via-sky-50/60 to-white p-3.5 shadow-[0_6px_20px_-16px_rgba(49,46,129,0.5)] lg:order-1">
-        <p className="px-1 text-[11px] font-semibold uppercase tracking-wider text-indigo-500/80">
+      <aside className="order-2 rounded-[22px] border border-indigo-100/80 bg-gradient-to-b from-indigo-50/70 via-white to-white p-4 shadow-[0_18px_44px_-30px_rgba(49,46,129,0.55),0_1px_2px_rgba(15,23,42,0.03)] ring-1 ring-white/70 lg:order-1">
+        <p className="px-0.5 pb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-indigo-600/90">
           Assuntos do Studio IA
         </p>
-        <div className="mt-2.5 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
+        <div className="grid gap-2.5 border-t border-indigo-100/70 pt-3 sm:grid-cols-2 lg:grid-cols-1">
           {TOPICS.map((t) => {
             const active = t.key === topic;
             return (
@@ -262,30 +262,39 @@ function ConsultiveChat({
                 key={t.key}
                 type="button"
                 onClick={() => setTopic(t.key)}
-                className={`flex w-full items-center gap-2.5 rounded-xl border px-2.5 py-2.5 text-left transition-all duration-200 ${
+                className={`group flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition-all duration-200 ease-out ${
                   active
-                    ? "border-indigo-200 bg-gradient-to-r from-blue-50 to-violet-50 text-indigo-700 shadow-[0_4px_14px_-8px_rgba(79,70,229,0.65)]"
-                    : "border-white/70 bg-white/70 text-slate-600 hover:-translate-y-px hover:border-indigo-100 hover:bg-white hover:shadow-sm"
+                    ? "border-indigo-300/80 bg-gradient-to-r from-blue-50 via-indigo-50 to-violet-50 text-indigo-800 shadow-[0_10px_24px_-14px_rgba(79,70,229,0.75)] ring-1 ring-indigo-200/60"
+                    : "border-slate-200/70 bg-white/90 text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:-translate-y-0.5 hover:border-indigo-200/80 hover:bg-white hover:shadow-[0_10px_22px_-16px_rgba(49,46,129,0.6)]"
                 }`}
               >
                 <span
-                  className={`shrink-0 rounded-lg p-2 transition ${
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition ${
                     active
-                      ? "bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-sm shadow-indigo-500/30"
-                      : "bg-slate-100 text-slate-500"
+                      ? "bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md shadow-indigo-500/35 ring-2 ring-white/70"
+                      : "bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-500"
                   }`}
                 >
                   {t.icon}
                 </span>
                 <span className="min-w-0">
-                  <span className="block truncate text-xs font-semibold">{t.label}</span>
-                  <span className="block truncate text-[10px] text-slate-400">{t.hint}</span>
+                  <span
+                    className={`block truncate text-[13px] leading-tight ${active ? "font-bold" : "font-semibold"}`}
+                  >
+                    {t.label}
+                  </span>
+                  <span
+                    className={`mt-0.5 block truncate text-[10px] leading-tight ${active ? "text-indigo-500/80" : "text-slate-400"}`}
+                  >
+                    {t.hint}
+                  </span>
                 </span>
               </button>
             );
           })}
         </div>
       </aside>
+
 
       {/* Coluna central — conversa */}
       <div className="order-1 min-w-0 overflow-hidden rounded-[22px] border border-slate-200/70 bg-white/95 shadow-[0_24px_60px_-32px_rgba(49,46,129,0.45),0_2px_6px_-2px_rgba(15,23,42,0.06)] ring-1 ring-white/60 backdrop-blur-sm lg:order-2">

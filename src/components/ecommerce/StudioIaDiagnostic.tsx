@@ -1,9 +1,8 @@
-import { useMemo, useRef, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   BadgeCheck,
-CheckCircle2,
+  CheckCircle2,
   Clock3,
   Coins,
   Lightbulb,
@@ -11,8 +10,7 @@ CheckCircle2,
   LoaderCircle,
   Lock,
   RefreshCw,
-ShieldCheck,
-  Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 import { ECOMMERCE_COMPANY_ID, useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import {

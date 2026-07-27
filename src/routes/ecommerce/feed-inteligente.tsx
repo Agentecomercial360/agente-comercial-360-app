@@ -13,6 +13,13 @@ import {
   Image as ImageIcon,
   ArrowRight,
   Gauge,
+  MoreHorizontal,
+  Store,
+  CalendarCheck,
+  ListChecks,
+  BarChart3,
+  Boxes,
+  Target,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { Badge } from "@/components/ui/badge";
@@ -53,31 +60,96 @@ const QUICK_FILTERS = [
   { label: "Top vendas", icon: Gauge, count: 20 },
 ];
 
+const SHORTCUTS: Array<{ label: string; icon: typeof TrendingUp; ring: string; bg: string }> = [
+  {
+    label: "Todos",
+    icon: LayoutGrid,
+    ring: "ring-slate-200",
+    bg: "from-slate-100 to-slate-50 text-slate-600",
+  },
+  {
+    label: "Oportunidades",
+    icon: TrendingUp,
+    ring: "ring-emerald-200",
+    bg: "from-emerald-100 to-emerald-50 text-emerald-600",
+  },
+  {
+    label: "Críticos",
+    icon: AlertOctagon,
+    ring: "ring-rose-200",
+    bg: "from-rose-100 to-rose-50 text-rose-600",
+  },
+  {
+    label: "Sem custo",
+    icon: Lock,
+    ring: "ring-amber-200",
+    bg: "from-amber-100 to-amber-50 text-amber-600",
+  },
+  {
+    label: "Ads",
+    icon: Sparkles,
+    ring: "ring-violet-200",
+    bg: "from-violet-100 to-violet-50 text-violet-600",
+  },
+  {
+    label: "Estoque baixo",
+    icon: Package,
+    ring: "ring-orange-200",
+    bg: "from-orange-100 to-orange-50 text-orange-600",
+  },
+  {
+    label: "Top vendas",
+    icon: Gauge,
+    ring: "ring-blue-200",
+    bg: "from-blue-100 to-blue-50 text-blue-600",
+  },
+  {
+    label: "Revisar hoje",
+    icon: CalendarCheck,
+    ring: "ring-cyan-200",
+    bg: "from-cyan-100 to-cyan-50 text-cyan-600",
+  },
+];
+
 type StatusKey = "opportunity" | "attention" | "critical";
 
 const STATUS_STYLES: Record<
   StatusKey,
-  { label: string; badge: string; ring: string; glow: string; icon: typeof TrendingUp }
+  {
+    label: string;
+    badge: string;
+    ring: string;
+    cover: string;
+    coverIcon: string;
+    action: string;
+    icon: typeof TrendingUp;
+  }
 > = {
   opportunity: {
     label: "Oportunidade",
     badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
     ring: "hover:ring-emerald-200/70",
-    glow: "from-emerald-400/25 via-cyan-400/15 to-transparent",
+    cover: "from-emerald-100 via-teal-50 to-cyan-100",
+    coverIcon: "text-emerald-400/70",
+    action: "border-emerald-100 bg-emerald-50/70 text-emerald-800",
     icon: TrendingUp,
   },
   attention: {
     label: "Atenção",
     badge: "bg-amber-50 text-amber-700 border-amber-200",
     ring: "hover:ring-amber-200/70",
-    glow: "from-amber-400/25 via-orange-400/15 to-transparent",
+    cover: "from-amber-100 via-orange-50 to-yellow-100",
+    coverIcon: "text-amber-400/70",
+    action: "border-amber-100 bg-amber-50/70 text-amber-800",
     icon: AlertTriangle,
   },
   critical: {
     label: "Crítico",
     badge: "bg-rose-50 text-rose-700 border-rose-200",
     ring: "hover:ring-rose-200/70",
-    glow: "from-rose-400/25 via-fuchsia-400/15 to-transparent",
+    cover: "from-rose-100 via-pink-50 to-fuchsia-100",
+    coverIcon: "text-rose-400/70",
+    action: "border-rose-100 bg-rose-50/70 text-rose-800",
     icon: AlertOctagon,
   },
 };
@@ -141,10 +213,17 @@ const HEADER_BADGES = [
   { label: "Dados reais em breve", icon: Clock },
 ];
 
+const SUGGESTIONS = [
+  { label: "Revisar anúncios críticos", icon: AlertOctagon, tone: "text-rose-600 bg-rose-50" },
+  { label: "Conferir estoque baixo", icon: Boxes, tone: "text-amber-600 bg-amber-50" },
+  { label: "Validar produtos sem custo", icon: ListChecks, tone: "text-blue-600 bg-blue-50" },
+  { label: "Separar oportunidades para Ads", icon: Target, tone: "text-violet-600 bg-violet-50" },
+];
+
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-slate-50/80 px-2.5 py-2 text-center ring-1 ring-slate-100">
-      <p className="text-[11px] font-semibold text-slate-800">{value}</p>
+    <div className="flex flex-col items-center gap-0.5 px-2 py-2.5">
+      <p className="text-sm font-bold tracking-tight text-slate-900">{value}</p>
       <p className="text-[10px] uppercase tracking-wide text-slate-400">{label}</p>
     </div>
   );
@@ -180,31 +259,28 @@ function FeedInteligente() {
     <EcommerceLayout>
       <div className="space-y-6">
         {/* Header da página */}
-        <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm">
-          <div className="pointer-events-none absolute -right-16 -top-24 h-56 w-56 rounded-full bg-gradient-to-br from-violet-400/20 via-blue-400/15 to-cyan-300/10 blur-3xl" />
-          <div className="relative flex flex-col gap-4">
-            <div className="flex items-start gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-lg shadow-blue-600/20">
-                <LayoutGrid className="h-5 w-5" />
+        <div className="relative overflow-hidden rounded-[28px] border border-slate-200/70 bg-gradient-to-br from-blue-50/80 via-white to-violet-50/70 p-7 shadow-sm">
+          <div className="pointer-events-none absolute -right-20 -top-28 h-72 w-72 rounded-full bg-gradient-to-br from-violet-400/25 via-blue-400/20 to-cyan-300/10 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 left-1/3 h-56 w-56 rounded-full bg-gradient-to-tr from-blue-300/20 to-transparent blur-3xl" />
+          <div className="relative flex flex-col gap-5">
+            <div className="flex items-start gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 text-white shadow-xl shadow-blue-600/25">
+                <LayoutGrid className="h-6 w-6" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold tracking-tight text-slate-900">
+              <div className="min-w-0">
+                <h1 className="text-2xl font-bold tracking-tight text-slate-900">
                   Feed Inteligente da Operação
                 </h1>
-                <p className="text-sm text-slate-500">
+                <p className="mt-1 text-sm text-slate-500">
                   A vitrine visual da operação com diagnóstico por anúncio.
                 </p>
               </div>
             </div>
-            <p className="max-w-3xl text-xs text-slate-400">
-              Visualize os anúncios da conta em formato de vitrine inteligente, com diagnóstico,
-              métricas e próximas ações.
-            </p>
             <div className="flex flex-wrap gap-2">
               {HEADER_BADGES.map((badge) => (
                 <span
                   key={badge.label}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-medium text-slate-600"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/80 bg-white/80 px-3 py-1.5 text-[11px] font-medium text-slate-600 shadow-sm backdrop-blur"
                 >
                   <badge.icon className="h-3 w-3" />
                   {badge.label}
@@ -214,39 +290,107 @@ function FeedInteligente() {
           </div>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)_300px]">
+        <div className="grid gap-6 lg:grid-cols-[250px_minmax(0,1fr)_300px]">
           {/* Coluna esquerda */}
-          <Card className="h-fit rounded-2xl border-slate-200/80 p-4 shadow-sm">
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-              Filtros rápidos
-            </p>
-            <div className="space-y-1">
-              {QUICK_FILTERS.map((filter) => (
-                <button
-                  key={filter.label}
-                  type="button"
-                  className={`flex w-full items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-sm transition-colors ${
-                    filter.active
-                      ? "bg-gradient-to-r from-blue-50 to-violet-50 font-semibold text-blue-700 ring-1 ring-blue-100"
-                      : "text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <filter.icon className="h-3.5 w-3.5" />
-                    {filter.label}
-                  </span>
-                  <span className="text-[11px] text-slate-400">{filter.count}</span>
-                </button>
-              ))}
-            </div>
-            <p className="mt-4 rounded-xl bg-slate-50 p-2.5 text-[10px] leading-relaxed text-slate-400">
-              Filtros ainda visuais nesta prévia. A filtragem real será ativada com os dados da
-              operação.
-            </p>
-          </Card>
+          <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
+            <Card className="overflow-hidden rounded-2xl border-slate-200/80 p-0 shadow-sm">
+              <div className="relative h-16 bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600">
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_120%,rgba(255,255,255,0.35),transparent_60%)]" />
+              </div>
+              <div className="-mt-7 px-4 pb-4">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border-4 border-white bg-gradient-to-br from-slate-50 to-slate-100 shadow-sm">
+                  <Store className="h-5 w-5 text-blue-600" />
+                </div>
+                <p className="mt-2.5 text-sm font-semibold text-slate-900">
+                  Mercado Livre - Nightled
+                </p>
+                <p className="text-[11px] text-slate-400">Conta ativa da operação</p>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="rounded-xl bg-slate-50 px-2.5 py-2 text-center ring-1 ring-slate-100">
+                    <p className="text-sm font-bold text-slate-900">295</p>
+                    <p className="text-[10px] text-slate-400">anúncios</p>
+                  </div>
+                  <div className="rounded-xl bg-slate-50 px-2.5 py-2 text-center ring-1 ring-slate-100">
+                    <p className="text-sm font-bold text-slate-900">455</p>
+                    <p className="text-[10px] text-slate-400">pedidos</p>
+                  </div>
+                </div>
+                <div className="mt-2 space-y-1.5">
+                  <div className="flex items-center justify-between rounded-lg bg-emerald-50/70 px-2.5 py-1.5">
+                    <span className="text-[11px] text-slate-600">Receita</span>
+                    <span className="text-[11px] font-semibold text-emerald-700">Disponível</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-lg bg-amber-50/70 px-2.5 py-1.5">
+                    <span className="text-[11px] text-slate-600">Custos</span>
+                    <span className="text-[11px] font-semibold text-amber-700">Pendentes</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="h-fit rounded-2xl border-slate-200/80 p-4 shadow-sm">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                Filtros rápidos
+              </p>
+              <div className="space-y-1.5">
+                {QUICK_FILTERS.map((filter) => (
+                  <button
+                    key={filter.label}
+                    type="button"
+                    className={`flex w-full items-center justify-between gap-2 rounded-full px-3 py-2 text-left text-sm transition-all ${
+                      filter.active
+                        ? "bg-gradient-to-r from-blue-600 to-violet-600 font-semibold text-white shadow-md shadow-blue-600/20"
+                        : "border border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50/60 hover:text-blue-700"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      <filter.icon className="h-3.5 w-3.5" />
+                      {filter.label}
+                    </span>
+                    <span
+                      className={`rounded-full px-1.5 text-[10px] font-semibold ${
+                        filter.active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      {filter.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p className="mt-4 rounded-xl bg-slate-50 p-2.5 text-[10px] leading-relaxed text-slate-400">
+                Filtros ainda visuais nesta prévia. A filtragem real será ativada com os dados da
+                operação.
+              </p>
+            </Card>
+          </div>
 
           {/* Coluna central */}
-          <div className="space-y-4">
+          <div className="space-y-5">
+            {/* Atalhos inteligentes */}
+            <Card className="rounded-2xl border-slate-200/80 p-4 shadow-sm">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                Atalhos inteligentes
+              </p>
+              <div className="flex gap-4 overflow-x-auto pb-1">
+                {SHORTCUTS.map((s) => (
+                  <button
+                    key={s.label}
+                    type="button"
+                    className="group flex w-16 shrink-0 flex-col items-center gap-1.5"
+                  >
+                    <span
+                      className={`flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br ring-2 transition-transform group-hover:scale-105 ${s.bg} ${s.ring}`}
+                    >
+                      <s.icon className="h-5 w-5" />
+                    </span>
+                    <span className="text-center text-[10px] font-medium leading-tight text-slate-500">
+                      {s.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </Card>
+
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-800">Feed de anúncios</h2>
               <Badge variant="outline" className="border-violet-200 bg-violet-50 text-violet-700">
@@ -259,58 +403,108 @@ function FeedInteligente() {
               return (
                 <Card
                   key={card.sku}
-                  className={`overflow-hidden rounded-2xl border-slate-200/80 p-0 shadow-sm ring-1 ring-transparent transition-all hover:shadow-md ${status.ring}`}
+                  className={`overflow-hidden rounded-3xl border-slate-200/80 p-0 shadow-sm ring-1 ring-transparent transition-all hover:shadow-lg ${status.ring}`}
                 >
-                  <div className="flex flex-col gap-4 p-4 sm:flex-row">
-                    <div
-                      className={`relative flex h-28 w-full shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${status.glow} bg-slate-50 sm:w-32`}
-                    >
-                      <ImageIcon className="h-7 w-7 text-slate-300" />
-                      <span className="absolute bottom-1.5 rounded-full bg-white/80 px-2 py-0.5 text-[9px] font-medium text-slate-400">
-                        Imagem em breve
+                  {/* Cabeçalho do post */}
+                  <div className="flex items-start justify-between gap-3 px-5 py-4">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-sm">
+                        <Store className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0">
+                        <h3 className="truncate text-sm font-semibold text-slate-900">
+                          {card.title}
+                        </h3>
+                        <p className="mt-0.5 truncate text-[11px] text-slate-400">
+                          {card.sku} · Mercado Livre - Nightled
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${status.badge}`}
+                      >
+                        <status.icon className="h-3 w-3" />
+                        {status.label}
+                      </span>
+                      <button
+                        type="button"
+                        className="rounded-full p-1.5 text-slate-300 transition-colors hover:bg-slate-50 hover:text-slate-500"
+                        aria-label="Mais opções"
+                      >
+                        <MoreHorizontal className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Imagem grande */}
+                  <div
+                    className={`relative flex h-64 items-center justify-center bg-gradient-to-br ${status.cover}`}
+                  >
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.7),transparent_60%)]" />
+                    <div className="relative flex flex-col items-center gap-2">
+                      <span className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/70 shadow-sm backdrop-blur">
+                        <ImageIcon className={`h-8 w-8 ${status.coverIcon}`} />
+                      </span>
+                      <span className="rounded-full bg-white/80 px-3 py-1 text-[10px] font-medium text-slate-500 shadow-sm backdrop-blur">
+                        Imagem do anúncio em breve
                       </span>
                     </div>
+                  </div>
 
-                    <div className="min-w-0 flex-1 space-y-3">
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <h3 className="truncate text-sm font-semibold text-slate-900">
-                            {card.title}
-                          </h3>
-                          <p className="mt-0.5 text-[11px] text-slate-400">
-                            {card.sku} · Mercado Livre - Nightled
-                          </p>
-                        </div>
-                        <span
-                          className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${status.badge}`}
-                        >
-                          <status.icon className="h-3 w-3" />
-                          {status.label}
-                        </span>
-                      </div>
+                  {/* Métricas */}
+                  <div className="grid grid-cols-5 divide-x divide-slate-100 border-b border-slate-100">
+                    <Metric label="Visitas" value={card.metrics.visits} />
+                    <Metric label="Vendas" value={card.metrics.sales} />
+                    <Metric label="Receita" value={card.metrics.revenue} />
+                    <Metric label="Conversão" value={card.metrics.conversion} />
+                    <Metric label="Estoque" value={card.metrics.stock} />
+                  </div>
 
-                      <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-                        <Metric label="Visitas" value={card.metrics.visits} />
-                        <Metric label="Vendas" value={card.metrics.sales} />
-                        <Metric label="Receita" value={card.metrics.revenue} />
-                        <Metric label="Conversão" value={card.metrics.conversion} />
-                        <Metric label="Estoque" value={card.metrics.stock} />
-                      </div>
-
-                      <div className="space-y-1.5 rounded-xl bg-slate-50/70 p-3">
-                        <p className="text-xs text-slate-600">
-                          <span className="font-semibold text-slate-800">Diagnóstico: </span>
-                          {card.diagnosis}
-                        </p>
-                        <p className="flex items-start gap-1.5 text-xs text-blue-700">
-                          <ArrowRight className="mt-0.5 h-3 w-3 shrink-0" />
-                          <span>
-                            <span className="font-semibold">Ação recomendada: </span>
-                            {card.action}
-                          </span>
-                        </p>
-                      </div>
+                  {/* Diagnóstico e ação */}
+                  <div className="space-y-2.5 px-5 py-4">
+                    <div className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3">
+                      <p className="text-xs leading-relaxed text-slate-700">
+                        <span className="font-semibold text-blue-800">Diagnóstico: </span>
+                        {card.diagnosis}
+                      </p>
                     </div>
+                    <div className={`rounded-2xl border px-4 py-3 ${status.action}`}>
+                      <p className="flex items-start gap-1.5 text-xs leading-relaxed">
+                        <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                        <span>
+                          <span className="font-semibold">Ação recomendada: </span>
+                          {card.action}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Rodapé */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3">
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="gap-1.5 rounded-full border-blue-200 bg-white text-xs text-blue-700 hover:bg-blue-50"
+                      >
+                        <BarChart3 className="h-3.5 w-3.5" />
+                        Ver diagnóstico
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled
+                        className="gap-1.5 rounded-full text-xs text-slate-400"
+                      >
+                        <Lock className="h-3.5 w-3.5" />
+                        Marcar para revisão
+                      </Button>
+                    </div>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-[10px] font-semibold text-violet-600">
+                      <Eye className="h-3 w-3" />
+                      Prévia visual
+                    </span>
                   </div>
                 </Card>
               );
@@ -322,7 +516,7 @@ function FeedInteligente() {
           </div>
 
           {/* Coluna direita */}
-          <div className="space-y-4">
+          <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
             <Card className="rounded-2xl border-slate-200/80 p-4 shadow-sm ring-1 ring-slate-100">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Contexto da operação
@@ -361,6 +555,28 @@ function FeedInteligente() {
                 <Lock className="h-3 w-3" />
                 Criar tarefa em breve
               </Button>
+            </Card>
+
+            <Card className="rounded-2xl border-slate-200/80 p-4 shadow-sm">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                Sugestões visuais
+              </p>
+              <div className="space-y-2">
+                {SUGGESTIONS.map((s) => (
+                  <div
+                    key={s.label}
+                    className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-white px-3 py-2.5 transition-colors hover:border-slate-200 hover:bg-slate-50/70"
+                  >
+                    <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${s.tone}`}>
+                      <s.icon className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="text-xs text-slate-600">{s.label}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-3 text-[10px] leading-relaxed text-slate-400">
+                Sugestões ilustrativas nesta prévia — nenhuma ação é executada.
+              </p>
             </Card>
           </div>
         </div>

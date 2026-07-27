@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  AlertTriangle,
   BadgeCheck,
   Bot,
+  Gauge,
+
   CheckCircle2,
   Clock3,
   Coins,
@@ -180,26 +183,57 @@ function SafetyBadge({ children }: { children: React.ReactNode }) {
   );
 }
 
-function QuickStat({
+function StatusChip({
   label,
-  value,
   tone,
 }: {
   label: string;
-  value: string;
   tone: "positive" | "warning" | "neutral";
 }) {
   const toneClass =
     tone === "positive"
-      ? "border-emerald-200/70 bg-emerald-50/70 text-emerald-700"
+      ? "border-emerald-200/80 bg-emerald-50 text-emerald-700"
       : tone === "warning"
-        ? "border-amber-200/70 bg-amber-50/70 text-amber-700"
-        : "border-slate-200/70 bg-slate-50 text-slate-600";
+        ? "border-amber-200/80 bg-amber-50 text-amber-700"
+        : "border-slate-200/80 bg-white text-slate-500";
+  const dotClass =
+    tone === "positive" ? "bg-emerald-500" : tone === "warning" ? "bg-amber-500" : "bg-slate-300";
   return (
-    <div className="rounded-xl border border-slate-200/70 bg-white/90 px-3 py-2.5 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${toneClass}`}
+    >
+      <span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
+      {label}
+    </span>
+  );
+}
+
+function ContextRow({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: string;
+  tone?: "default" | "warning" | "positive" | "info" | "violet" | "muted";
+}) {
+  const valueCls =
+    tone === "warning"
+      ? "text-amber-700 bg-amber-50 border-amber-200"
+      : tone === "positive"
+        ? "text-emerald-700 bg-emerald-50 border-emerald-200"
+        : tone === "info"
+          ? "text-sky-700 bg-sky-50 border-sky-200"
+          : tone === "violet"
+            ? "text-violet-700 bg-violet-50 border-violet-200"
+            : tone === "muted"
+              ? "text-slate-500 bg-slate-50 border-slate-200"
+              : "text-slate-900 bg-slate-50 border-slate-200/70";
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-lg px-1.5 py-1.5 transition hover:bg-slate-50/80">
+      <span className="text-[11px] font-medium text-slate-500">{label}</span>
       <span
-        className={`mt-1.5 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold ${toneClass}`}
+        className={`shrink-0 rounded-md border px-2 py-0.5 text-[11px] font-semibold ${valueCls}`}
       >
         {value}
       </span>
@@ -207,31 +241,6 @@ function QuickStat({
   );
 }
 
-function ContextRow({
-
-  label,
-  value,
-  tone = "default",
-}: {
-  label: string;
-  value: string;
-  tone?: "default" | "warning" | "positive";
-}) {
-  const valueCls =
-    tone === "warning"
-      ? "text-amber-700 bg-amber-50 border-amber-200"
-      : tone === "positive"
-        ? "text-emerald-700 bg-emerald-50 border-emerald-200"
-        : "text-slate-900 bg-slate-50 border-slate-200/70";
-  return (
-    <div className="flex items-center justify-between gap-3 border-b border-slate-100 py-2 last:border-0">
-      <span className="text-[11px] font-medium text-slate-500">{label}</span>
-      <span className={`rounded-md border px-2 py-0.5 text-xs font-semibold ${valueCls}`}>
-        {value}
-      </span>
-    </div>
-  );
-}
 
 function ConsultiveChat({
   data,
@@ -378,47 +387,50 @@ function ConsultiveChat({
           ))}
 
           {messages.length === 1 && (
-            <div className="ml-0 rounded-2xl border border-indigo-100/80 bg-gradient-to-br from-white via-indigo-50/40 to-violet-50/40 p-3.5 shadow-[0_10px_24px_-20px_rgba(49,46,129,0.6)] sm:ml-11">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-indigo-500/90">
-                Resumo rápido do diagnóstico
-              </p>
-              <div className="mt-2.5 grid gap-2 sm:grid-cols-3">
-                <QuickStat
-                  label="Receita"
-                  value={
-                    (data.summary.revenue_ready_orders ?? 0) > 0 ? "Disponível" : "Sem dados"
-                  }
-                  tone={(data.summary.revenue_ready_orders ?? 0) > 0 ? "positive" : "neutral"}
-                />
-                <QuickStat
-                  label="Custos"
-                  value={costsPending ? "Pendentes" : data.summary.costs_pending === false ? "Ok" : "—"}
-                  tone={costsPending ? "warning" : "positive"}
-                />
-                <QuickStat
-                  label="Margem / Lucro"
-                  value={data.summary.profit_margin_available ? "Disponível" : "Aguardando custos"}
-                  tone={data.summary.profit_margin_available ? "positive" : "warning"}
-                />
-              </div>
+            <div className="ml-0 flex flex-wrap items-center gap-2 sm:ml-11">
+              <StatusChip
+                label={
+                  (data.summary.revenue_ready_orders ?? 0) > 0
+                    ? "Receita disponível"
+                    : "Receita sem dados"
+                }
+                tone={(data.summary.revenue_ready_orders ?? 0) > 0 ? "positive" : "neutral"}
+              />
+              <StatusChip
+                label={
+                  costsPending
+                    ? "Custos pendentes"
+                    : data.summary.costs_pending === false
+                      ? "Custos completos"
+                      : "Custos não confirmados"
+                }
+                tone={costsPending ? "warning" : data.summary.costs_pending === false ? "positive" : "neutral"}
+              />
+              <StatusChip
+                label={
+                  data.summary.profit_margin_available
+                    ? "Margem disponível"
+                    : "Margem aguardando custos"
+                }
+                tone={data.summary.profit_margin_available ? "positive" : "warning"}
+              />
             </div>
           )}
 
           <div ref={endRef} />
         </div>
 
-        <div className="border-t border-slate-100 bg-gradient-to-b from-white to-slate-50/70 px-4 py-3.5">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-            Sugestões rápidas
-
-          </p>
-          <div className="flex flex-wrap gap-2">
+        <div className="border-t border-slate-100 bg-white px-4 py-3.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+              Sugestões
+            </span>
             {activeTopic.questions.map((q) => (
               <button
                 key={q}
                 type="button"
                 onClick={() => push(q)}
-                className="rounded-full border border-slate-200/80 bg-white px-3.5 py-2 text-[11px] font-semibold text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-all duration-200 hover:-translate-y-px hover:border-indigo-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-violet-50 hover:text-indigo-700 hover:shadow-[0_6px_16px_-10px_rgba(79,70,229,0.7)] active:translate-y-0"
+                className="rounded-full border border-indigo-100 bg-indigo-50/40 px-3 py-1.5 text-[11px] font-medium text-slate-600 transition-colors duration-200 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
               >
                 {q}
               </button>
@@ -426,7 +438,7 @@ function ConsultiveChat({
           </div>
 
           <form
-            className="mt-3.5 flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-[0_6px_20px_-16px_rgba(15,23,42,0.55)] transition focus-within:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-500/10"
+            className="mt-3 flex items-center gap-2 rounded-full border border-slate-200/80 bg-slate-50/70 p-1 transition focus-within:border-indigo-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-500/10"
             onSubmit={(e) => {
               e.preventDefault();
               const value = input.trim();
@@ -439,15 +451,16 @@ function ConsultiveChat({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Digite uma pergunta (prévia consultiva)"
-              className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-slate-700 outline-none placeholder:text-slate-400"
+              className="min-w-0 flex-1 bg-transparent px-3.5 py-1.5 text-sm text-slate-700 outline-none placeholder:text-slate-400"
             />
             <button
               type="submit"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 ring-1 ring-white/20 transition hover:brightness-110 active:scale-[0.98]"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-violet-600 px-3.5 py-2 text-[13px] font-semibold text-white shadow-sm shadow-indigo-500/25 transition hover:brightness-110 active:scale-[0.98]"
             >
-              <Send className="h-4 w-4" /> Enviar
+              <Send className="h-3.5 w-3.5" /> Enviar
             </button>
           </form>
+
 
           <p className="mt-2.5 text-[11px] text-slate-400">
             Prévia consultiva determinística: nenhuma mensagem é gravada e nenhuma IA externa é
@@ -459,12 +472,20 @@ function ConsultiveChat({
 
       {/* Coluna direita — contexto */}
       <aside className="order-3 space-y-3.5">
-        <div className="rounded-2xl border border-stone-200/80 bg-gradient-to-b from-white to-stone-50/80 p-4 shadow-[0_6px_20px_-16px_rgba(68,64,60,0.6)]">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-stone-500">
-            Contexto da operação
-          </p>
-          <div className="mt-2">
+        <div className="rounded-[22px] border border-slate-200/80 bg-white p-4 shadow-[0_18px_44px_-32px_rgba(30,41,59,0.6),0_1px_2px_rgba(15,23,42,0.04)] ring-1 ring-white/70">
+          <div className="flex items-center gap-2 pb-3">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-sm shadow-indigo-500/30">
+              <Gauge className="h-3.5 w-3.5" />
+            </span>
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-700">
+              Contexto da operação
+            </p>
+          </div>
 
+          <p className="border-t border-slate-100 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+            Dados da operação
+          </p>
+          <div className="mt-1.5 space-y-1">
             <ContextRow label="Conta ativa" value={accountLabel} />
             <ContextRow label="Pedidos analisados" value={fmtInt(data.summary.orders_checked)} />
             <ContextRow
@@ -482,33 +503,49 @@ function ConsultiveChat({
               value={data.summary.profit_margin_available ? "Disponível" : "Aguardando custos"}
               tone={data.summary.profit_margin_available ? "positive" : "warning"}
             />
-            <ContextRow label="Fontes verificadas" value={`${sourcesAvailable}/${sourcesChecked}`} />
-            <ContextRow label="Modo" value="Somente leitura" />
-            <ContextRow label="IA externa" value="Não chamada" />
-            <ContextRow label="Ações automáticas" value="Desligadas" />
+            <ContextRow
+              label="Fontes verificadas"
+              value={`${sourcesAvailable}/${sourcesChecked}`}
+              tone={sourcesAvailable >= sourcesChecked ? "positive" : "warning"}
+            />
+          </div>
+
+          <p className="mt-4 border-t border-slate-100 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+            Segurança do modo atual
+          </p>
+          <div className="mt-1.5 space-y-1">
+            <ContextRow label="Modo" value="Somente leitura" tone="info" />
+            <ContextRow label="IA externa" value="Não chamada" tone="violet" />
+            <ContextRow label="Ações automáticas" value="Desligadas" tone="muted" />
           </div>
         </div>
 
-        <div className="rounded-2xl border border-amber-200/80 bg-gradient-to-b from-amber-50 to-amber-50/40 p-4 shadow-[0_6px_20px_-16px_rgba(180,83,9,0.6)]">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-700">
-            Próxima ação recomendada
-          </p>
-          <p className="mt-1.5 text-sm font-semibold text-slate-900">
+        <div className="rounded-[22px] border border-amber-200/80 bg-gradient-to-b from-amber-50 via-amber-50/60 to-white p-4 shadow-[0_18px_40px_-30px_rgba(180,83,9,0.65)] ring-1 ring-white/60">
+          <div className="flex items-center gap-2">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/15 text-amber-700 ring-1 ring-amber-300/70">
+              <AlertTriangle className="h-3.5 w-3.5" />
+            </span>
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
+              Próxima ação recomendada
+            </p>
+          </div>
+          <p className="mt-2.5 text-sm font-bold text-slate-900">
             Cadastrar custos reais dos produtos
           </p>
-          <p className="mt-1 text-xs text-slate-600">
+          <p className="mt-1 text-xs leading-relaxed text-slate-600">
             Sem os custos reais, a análise de margem e lucro permanece bloqueada.
           </p>
           <button
             type="button"
             disabled
             title="Criação de tarefas reais será liberada em uma próxima etapa."
-            className="mt-3 inline-flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white/70 px-3 py-2 text-xs font-semibold text-slate-400"
+            className="mt-3.5 inline-flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-xl border border-amber-200/80 bg-white/80 px-3 py-2 text-xs font-semibold text-amber-700/70 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
           >
             <Lock className="h-3.5 w-3.5" /> Criar tarefa em breve
           </button>
         </div>
       </aside>
+
     </div>
   );
 }

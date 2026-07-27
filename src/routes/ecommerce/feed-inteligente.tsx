@@ -60,54 +60,77 @@ const QUICK_FILTERS = [
   { label: "Top vendas", icon: Gauge, count: 20 },
 ];
 
-const SHORTCUTS: Array<{ label: string; icon: typeof TrendingUp; ring: string; bg: string }> = [
+const SHORTCUTS: Array<{
+  label: string;
+  icon: typeof TrendingUp;
+  ring: string;
+  bg: string;
+  dot: string;
+  count?: number;
+}> = [
   {
     label: "Todos",
     icon: LayoutGrid,
-    ring: "ring-slate-200",
-    bg: "from-slate-100 to-slate-50 text-slate-600",
+    ring: "ring-slate-200/80",
+    bg: "from-slate-100 to-white text-slate-600",
+    dot: "bg-slate-400",
+    count: 295,
   },
   {
     label: "Oportunidades",
     icon: TrendingUp,
-    ring: "ring-emerald-200",
-    bg: "from-emerald-100 to-emerald-50 text-emerald-600",
+    ring: "ring-emerald-200/80",
+    bg: "from-emerald-100 to-white text-emerald-600",
+    dot: "bg-emerald-500",
+    count: 42,
   },
   {
     label: "Críticos",
     icon: AlertOctagon,
-    ring: "ring-rose-200",
-    bg: "from-rose-100 to-rose-50 text-rose-600",
+    ring: "ring-rose-200/80",
+    bg: "from-rose-100 to-white text-rose-600",
+    dot: "bg-rose-500",
+    count: 18,
   },
   {
     label: "Sem custo",
     icon: Lock,
-    ring: "ring-amber-200",
-    bg: "from-amber-100 to-amber-50 text-amber-600",
+    ring: "ring-amber-200/80",
+    bg: "from-amber-100 to-white text-amber-600",
+    dot: "bg-amber-500",
+    count: 295,
   },
   {
     label: "Ads",
     icon: Sparkles,
-    ring: "ring-violet-200",
-    bg: "from-violet-100 to-violet-50 text-violet-600",
+    ring: "ring-violet-200/80",
+    bg: "from-violet-100 to-white text-violet-600",
+    dot: "bg-violet-500",
+    count: 31,
   },
   {
     label: "Estoque baixo",
     icon: Package,
-    ring: "ring-orange-200",
-    bg: "from-orange-100 to-orange-50 text-orange-600",
+    ring: "ring-orange-200/80",
+    bg: "from-orange-100 to-white text-orange-600",
+    dot: "bg-orange-500",
+    count: 12,
   },
   {
     label: "Top vendas",
     icon: Gauge,
-    ring: "ring-blue-200",
-    bg: "from-blue-100 to-blue-50 text-blue-600",
+    ring: "ring-blue-200/80",
+    bg: "from-blue-100 to-white text-blue-600",
+    dot: "bg-blue-500",
+    count: 20,
   },
   {
     label: "Revisar hoje",
     icon: CalendarCheck,
-    ring: "ring-cyan-200",
-    bg: "from-cyan-100 to-cyan-50 text-cyan-600",
+    ring: "ring-cyan-200/80",
+    bg: "from-cyan-100 to-white text-cyan-600",
+    dot: "bg-cyan-500",
+    count: 7,
   },
 ];
 
@@ -222,9 +245,9 @@ const SUGGESTIONS = [
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col items-center gap-0.5 px-2 py-2.5">
-      <p className="text-sm font-bold tracking-tight text-slate-900">{value}</p>
-      <p className="text-[10px] uppercase tracking-wide text-slate-400">{label}</p>
+    <div className="flex flex-col items-center gap-0.5 rounded-xl bg-white/70 px-2 py-2 ring-1 ring-slate-100">
+      <p className="text-[13px] font-bold leading-none tracking-tight text-slate-900">{value}</p>
+      <p className="text-[9px] uppercase tracking-wide text-slate-400">{label}</p>
     </div>
   );
 }
@@ -367,23 +390,33 @@ function FeedInteligente() {
           {/* Coluna central */}
           <div className="space-y-5">
             {/* Atalhos inteligentes */}
-            <Card className="rounded-2xl border-slate-200/80 p-4 shadow-sm">
+            <Card className="relative overflow-hidden rounded-3xl border-slate-200/70 bg-gradient-to-br from-white via-white to-slate-50/70 p-4 shadow-sm">
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Atalhos inteligentes
               </p>
-              <div className="flex gap-4 overflow-x-auto pb-1">
+              <div className="ac-no-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
                 {SHORTCUTS.map((s) => (
                   <button
                     key={s.label}
                     type="button"
-                    className="group flex w-16 shrink-0 flex-col items-center gap-1.5"
+                    className="group flex w-[68px] shrink-0 flex-col items-center gap-2"
                   >
-                    <span
-                      className={`flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br ring-2 transition-transform group-hover:scale-105 ${s.bg} ${s.ring}`}
-                    >
-                      <s.icon className="h-5 w-5" />
+                    <span className="relative">
+                      <span
+                        className={`flex h-[58px] w-[58px] items-center justify-center rounded-full bg-gradient-to-br shadow-sm ring-2 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md ${s.bg} ${s.ring}`}
+                      >
+                        <s.icon className="h-5 w-5" />
+                      </span>
+                      <span
+                        className={`absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-white ${s.dot}`}
+                      />
+                      {typeof s.count === "number" && (
+                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 rounded-full border border-slate-200/80 bg-white px-1.5 text-[9px] font-bold text-slate-500 shadow-sm">
+                          {s.count}
+                        </span>
+                      )}
                     </span>
-                    <span className="text-center text-[10px] font-medium leading-tight text-slate-500">
+                    <span className="text-center text-[10px] font-medium leading-tight text-slate-500 transition-colors group-hover:text-slate-800">
                       {s.label}
                     </span>
                   </button>
@@ -437,23 +470,28 @@ function FeedInteligente() {
                     </div>
                   </div>
 
-                  {/* Imagem grande */}
-                  <div
-                    className={`relative flex h-64 items-center justify-center bg-gradient-to-br ${status.cover}`}
-                  >
-                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.7),transparent_60%)]" />
-                    <div className="relative flex flex-col items-center gap-2">
-                      <span className="flex h-20 w-20 items-center justify-center rounded-3xl bg-white/70 shadow-sm backdrop-blur">
-                        <ImageIcon className={`h-8 w-8 ${status.coverIcon}`} />
+                  {/* Área visual do produto */}
+                  <div className="px-3">
+                    <div
+                      className={`relative flex aspect-[16/7] items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br ring-1 ring-white/60 ${status.cover}`}
+                    >
+                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_15%,rgba(255,255,255,0.75),transparent_62%)]" />
+                      <span className="absolute left-3 top-3 rounded-full bg-white/85 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-slate-500 shadow-sm backdrop-blur">
+                        Prévia visual
                       </span>
-                      <span className="rounded-full bg-white/80 px-3 py-1 text-[10px] font-medium text-slate-500 shadow-sm backdrop-blur">
-                        Imagem do anúncio em breve
-                      </span>
+                      <div className="relative flex flex-col items-center gap-2">
+                        <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/75 shadow-sm backdrop-blur">
+                          <ImageIcon className={`h-7 w-7 ${status.coverIcon}`} />
+                        </span>
+                        <span className="text-[10px] font-medium text-slate-500">
+                          Imagem do anúncio em breve
+                        </span>
+                      </div>
                     </div>
                   </div>
 
                   {/* Métricas */}
-                  <div className="grid grid-cols-5 divide-x divide-slate-100 border-b border-slate-100">
+                  <div className="grid grid-cols-5 gap-1.5 px-3 py-3">
                     <Metric label="Visitas" value={card.metrics.visits} />
                     <Metric label="Vendas" value={card.metrics.sales} />
                     <Metric label="Receita" value={card.metrics.revenue} />
@@ -462,23 +500,22 @@ function FeedInteligente() {
                   </div>
 
                   {/* Diagnóstico e ação */}
-                  <div className="space-y-2.5 px-5 py-4">
-                    <div className="rounded-2xl border border-blue-100 bg-blue-50/60 px-4 py-3">
-                      <p className="text-xs leading-relaxed text-slate-700">
-                        <span className="font-semibold text-blue-800">Diagnóstico: </span>
-                        {card.diagnosis}
+                  <div className="grid gap-2 px-3 pb-3 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-blue-100 bg-blue-50/60 px-3.5 py-2.5">
+                      <p className="text-[10px] font-semibold uppercase tracking-wide text-blue-700">
+                        Diagnóstico
                       </p>
+                      <p className="mt-1 text-xs leading-snug text-slate-700">{card.diagnosis}</p>
                     </div>
-                    <div className={`rounded-2xl border px-4 py-3 ${status.action}`}>
-                      <p className="flex items-start gap-1.5 text-xs leading-relaxed">
-                        <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-                        <span>
-                          <span className="font-semibold">Ação recomendada: </span>
-                          {card.action}
-                        </span>
+                    <div className={`rounded-2xl border px-3.5 py-2.5 ${status.action}`}>
+                      <p className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide">
+                        <ArrowRight className="h-3 w-3" />
+                        Ação recomendada
                       </p>
+                      <p className="mt-1 text-xs leading-snug">{card.action}</p>
                     </div>
                   </div>
+
 
                   {/* Rodapé */}
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 bg-slate-50/50 px-5 py-3">
@@ -498,8 +535,9 @@ function FeedInteligente() {
                         className="gap-1.5 rounded-full text-xs text-slate-400"
                       >
                         <Lock className="h-3.5 w-3.5" />
-                        Marcar para revisão
+                        Marcar para revisão em breve
                       </Button>
+
                     </div>
                     <span className="inline-flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1 text-[10px] font-semibold text-violet-600">
                       <Eye className="h-3 w-3" />

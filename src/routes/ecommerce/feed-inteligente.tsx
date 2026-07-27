@@ -353,7 +353,7 @@ function FeedInteligente() {
             </Card>
 
 
-            <Card className="h-fit rounded-2xl border-slate-200/80 p-4 shadow-sm">
+            <Card className="h-fit rounded-3xl border-slate-200/60 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-28px_rgba(15,23,42,0.4)]">
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Filtros rápidos
               </p>
@@ -558,7 +558,7 @@ function FeedInteligente() {
 
           {/* Coluna direita */}
           <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
-            <Card className="rounded-2xl border-slate-200/80 p-4 shadow-sm ring-1 ring-slate-100">
+            <Card className="rounded-3xl border-slate-200/60 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-28px_rgba(15,23,42,0.4)] ring-1 ring-slate-100">
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Contexto da operação
               </p>
@@ -573,7 +573,7 @@ function FeedInteligente() {
               </div>
             </Card>
 
-            <Card className="rounded-2xl border-amber-200/70 bg-gradient-to-br from-amber-50 to-orange-50/60 p-4 shadow-sm">
+            <Card className="rounded-3xl border-amber-200/70 bg-gradient-to-br from-amber-50 to-orange-50/60 p-4 shadow-sm">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                 <div>
@@ -598,7 +598,7 @@ function FeedInteligente() {
               </Button>
             </Card>
 
-            <Card className="rounded-2xl border-slate-200/80 p-4 shadow-sm">
+            <Card className="rounded-3xl border-slate-200/60 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-28px_rgba(15,23,42,0.4)]">
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Sugestões visuais
               </p>

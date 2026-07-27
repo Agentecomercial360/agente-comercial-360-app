@@ -44,6 +44,7 @@ import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
 import { Route as EcommerceConsultorIaRouteImport } from './routes/ecommerce/consultor-ia'
 import { Route as EcommerceConfiguracoesRouteImport } from './routes/ecommerce/configuracoes'
 import { Route as EcommerceConcorrenciaRouteImport } from './routes/ecommerce/concorrencia'
+import { Route as EcommerceChatConsultivoIaRouteImport } from './routes/ecommerce/chat-consultivo-ia'
 import { Route as EcommerceBaseIaRouteImport } from './routes/ecommerce/base-ia'
 import { Route as EcommerceAdsRouteImport } from './routes/ecommerce/ads'
 import { Route as EcommerceAcademiaRouteImport } from './routes/ecommerce/academia'
@@ -235,6 +236,12 @@ const EcommerceConcorrenciaRoute = EcommerceConcorrenciaRouteImport.update({
   path: '/ecommerce/concorrencia',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceChatConsultivoIaRoute =
+  EcommerceChatConsultivoIaRouteImport.update({
+    id: '/ecommerce/chat-consultivo-ia',
+    path: '/ecommerce/chat-consultivo-ia',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const EcommerceBaseIaRoute = EcommerceBaseIaRouteImport.update({
   id: '/ecommerce/base-ia',
   path: '/ecommerce/base-ia',
@@ -332,6 +339,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce/academia': typeof EcommerceAcademiaRouteWithChildren
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/base-ia': typeof EcommerceBaseIaRoute
+  '/ecommerce/chat-consultivo-ia': typeof EcommerceChatConsultivoIaRoute
   '/ecommerce/concorrencia': typeof EcommerceConcorrenciaRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -382,6 +390,7 @@ export interface FileRoutesByTo {
   '/ecommerce/academia': typeof EcommerceAcademiaRouteWithChildren
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/base-ia': typeof EcommerceBaseIaRoute
+  '/ecommerce/chat-consultivo-ia': typeof EcommerceChatConsultivoIaRoute
   '/ecommerce/concorrencia': typeof EcommerceConcorrenciaRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -433,6 +442,7 @@ export interface FileRoutesById {
   '/ecommerce/academia': typeof EcommerceAcademiaRouteWithChildren
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/base-ia': typeof EcommerceBaseIaRoute
+  '/ecommerce/chat-consultivo-ia': typeof EcommerceChatConsultivoIaRoute
   '/ecommerce/concorrencia': typeof EcommerceConcorrenciaRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -485,6 +495,7 @@ export interface FileRouteTypes {
     | '/ecommerce/academia'
     | '/ecommerce/ads'
     | '/ecommerce/base-ia'
+    | '/ecommerce/chat-consultivo-ia'
     | '/ecommerce/concorrencia'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -535,6 +546,7 @@ export interface FileRouteTypes {
     | '/ecommerce/academia'
     | '/ecommerce/ads'
     | '/ecommerce/base-ia'
+    | '/ecommerce/chat-consultivo-ia'
     | '/ecommerce/concorrencia'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -585,6 +597,7 @@ export interface FileRouteTypes {
     | '/ecommerce/academia'
     | '/ecommerce/ads'
     | '/ecommerce/base-ia'
+    | '/ecommerce/chat-consultivo-ia'
     | '/ecommerce/concorrencia'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -636,6 +649,7 @@ export interface RootRouteChildren {
   EcommerceAcademiaRoute: typeof EcommerceAcademiaRouteWithChildren
   EcommerceAdsRoute: typeof EcommerceAdsRoute
   EcommerceBaseIaRoute: typeof EcommerceBaseIaRoute
+  EcommerceChatConsultivoIaRoute: typeof EcommerceChatConsultivoIaRoute
   EcommerceConcorrenciaRoute: typeof EcommerceConcorrenciaRoute
   EcommerceConfiguracoesRoute: typeof EcommerceConfiguracoesRoute
   EcommerceConsultorIaRoute: typeof EcommerceConsultorIaRoute
@@ -904,6 +918,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommerceConcorrenciaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/chat-consultivo-ia': {
+      id: '/ecommerce/chat-consultivo-ia'
+      path: '/ecommerce/chat-consultivo-ia'
+      fullPath: '/ecommerce/chat-consultivo-ia'
+      preLoaderRoute: typeof EcommerceChatConsultivoIaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ecommerce/base-ia': {
       id: '/ecommerce/base-ia'
       path: '/ecommerce/base-ia'
@@ -1038,6 +1059,7 @@ const rootRouteChildren: RootRouteChildren = {
   EcommerceAcademiaRoute: EcommerceAcademiaRouteWithChildren,
   EcommerceAdsRoute: EcommerceAdsRoute,
   EcommerceBaseIaRoute: EcommerceBaseIaRoute,
+  EcommerceChatConsultivoIaRoute: EcommerceChatConsultivoIaRoute,
   EcommerceConcorrenciaRoute: EcommerceConcorrenciaRoute,
   EcommerceConfiguracoesRoute: EcommerceConfiguracoesRoute,
   EcommerceConsultorIaRoute: EcommerceConsultorIaRoute,

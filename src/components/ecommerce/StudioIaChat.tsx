@@ -348,12 +348,41 @@ function ConsultiveChat({
 
             </div>
           ))}
+
+          {messages.length === 1 && (
+            <div className="ml-0 rounded-2xl border border-indigo-100/80 bg-gradient-to-br from-white via-indigo-50/40 to-violet-50/40 p-3.5 shadow-[0_10px_24px_-20px_rgba(49,46,129,0.6)] sm:ml-11">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-indigo-500/90">
+                Resumo rápido do diagnóstico
+              </p>
+              <div className="mt-2.5 grid gap-2 sm:grid-cols-3">
+                <QuickStat
+                  label="Receita"
+                  value={
+                    (data.summary.revenue_ready_orders ?? 0) > 0 ? "Disponível" : "Sem dados"
+                  }
+                  tone={(data.summary.revenue_ready_orders ?? 0) > 0 ? "positive" : "neutral"}
+                />
+                <QuickStat
+                  label="Custos"
+                  value={costsPending ? "Pendentes" : data.summary.costs_pending === false ? "Ok" : "—"}
+                  tone={costsPending ? "warning" : "positive"}
+                />
+                <QuickStat
+                  label="Margem / Lucro"
+                  value={data.summary.profit_margin_available ? "Disponível" : "Aguardando custos"}
+                  tone={data.summary.profit_margin_available ? "positive" : "warning"}
+                />
+              </div>
+            </div>
+          )}
+
           <div ref={endRef} />
         </div>
 
-        <div className="border-t border-slate-100 bg-gradient-to-b from-white to-slate-50/70 p-4">
+        <div className="border-t border-slate-100 bg-gradient-to-b from-white to-slate-50/70 px-4 py-3.5">
           <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Sugestões rápidas
+
           </p>
           <div className="flex flex-wrap gap-2">
             {activeTopic.questions.map((q) => (

@@ -239,12 +239,15 @@ const SUGGESTIONS = [
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex flex-col items-center gap-0.5 rounded-xl bg-white/70 px-2 py-2 ring-1 ring-slate-100">
-      <p className="text-[13px] font-bold leading-none tracking-tight text-slate-900">{value}</p>
-      <p className="text-[9px] uppercase tracking-wide text-slate-400">{label}</p>
+    <div className="flex flex-col items-center justify-center gap-1 px-2 py-3">
+      <p className="text-[15px] font-semibold leading-none tracking-tight text-slate-900">
+        {value}
+      </p>
+      <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400">{label}</p>
     </div>
   );
 }
+
 
 function ContextRow({
   label,

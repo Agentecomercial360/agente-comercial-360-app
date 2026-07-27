@@ -408,7 +408,7 @@ function ConsultiveChat({
           </div>
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3">
+        <div className="rounded-2xl border border-amber-200/80 bg-gradient-to-b from-amber-50 to-amber-50/40 p-4 shadow-[0_6px_20px_-16px_rgba(180,83,9,0.6)]">
           <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-700">
             Próxima ação recomendada
           </p>

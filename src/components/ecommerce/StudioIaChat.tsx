@@ -452,7 +452,9 @@ export function StudioIaChatSection() {
   const data = query.data;
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-sky-50/80 via-white to-violet-50/70 p-5 shadow-[0_20px_60px_-40px_rgba(30,41,59,0.55)] sm:p-6">
+      <div className="pointer-events-none absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-sky-200/25 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-24 right-0 h-72 w-72 rounded-full bg-violet-200/25 blur-3xl" />
       <div className="relative overflow-hidden rounded-2xl border border-indigo-100/80 bg-gradient-to-br from-sky-50 via-indigo-50/70 to-violet-50 p-5 shadow-[0_8px_24px_-16px_rgba(49,46,129,0.45)] sm:p-6">
         <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-gradient-to-br from-blue-200/40 to-violet-200/40 blur-3xl" />
         <div className="relative flex flex-wrap items-start justify-between gap-5">

@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { StudioIaSourcesStatus } from "@/components/ecommerce/StudioIaSourcesStatus";
+import { StudioIaDiagnosticSection } from "@/components/ecommerce/StudioIaDiagnostic";
+
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/consultor-ia")({

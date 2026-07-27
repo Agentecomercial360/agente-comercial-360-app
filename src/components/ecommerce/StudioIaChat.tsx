@@ -288,41 +288,51 @@ function ConsultiveChat({
       </aside>
 
       {/* Coluna central — conversa */}
-      <div className="order-1 min-w-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_10px_30px_-20px_rgba(15,23,42,0.45)] lg:order-2">
-        <div className="flex items-center gap-2 border-b border-slate-100 bg-gradient-to-r from-white via-sky-50/60 to-violet-50/50 px-4 py-3">
-          <span className="rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 p-2 text-white shadow-sm shadow-indigo-500/25">
+      <div className="order-1 min-w-0 overflow-hidden rounded-[22px] border border-slate-200/70 bg-white/95 shadow-[0_24px_60px_-32px_rgba(49,46,129,0.45),0_2px_6px_-2px_rgba(15,23,42,0.06)] ring-1 ring-white/60 backdrop-blur-sm lg:order-2">
+        <div className="h-1 w-full bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-600" />
+        <div className="flex items-center gap-3 border-b border-slate-100 bg-gradient-to-r from-white via-sky-50/70 to-violet-50/60 px-4 py-3.5">
+          <span className="rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 p-2.5 text-white shadow-md shadow-indigo-500/30 ring-1 ring-white/40">
             {activeTopic.icon}
           </span>
-          <span className="text-sm font-bold text-slate-900">{activeTopic.label}</span>
-          <span className="ml-auto rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-semibold text-slate-400 ring-1 ring-slate-200/70">
+          <span className="min-w-0">
+            <span className="block truncate text-[15px] font-bold tracking-tight text-slate-900">
+              {activeTopic.label}
+            </span>
+            <span className="block truncate text-[11px] font-medium text-slate-400">
+              {activeTopic.hint}
+            </span>
+          </span>
+          <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200/70 bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(52,211,153,0.18)]" />
             Contexto do chat
           </span>
         </div>
 
-        <div className="h-[26rem] space-y-3 overflow-y-auto bg-gradient-to-b from-slate-50/70 to-white p-4">
+        <div className="relative h-[26rem] space-y-4 overflow-y-auto bg-[radial-gradient(ellipse_at_top,rgba(224,231,255,0.45),transparent_60%)] bg-slate-50/50 p-4 sm:p-5">
+          <div className="pointer-events-none absolute inset-y-0 left-[30px] hidden w-px bg-gradient-to-b from-transparent via-slate-200/70 to-transparent sm:block" />
 
           {messages.map((m) => (
             <div
               key={m.id}
-              className={`flex gap-2 ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`relative flex gap-2.5 ${m.role === "user" ? "justify-end" : "justify-start"}`}
             >
               {m.role === "assistant" && (
-                <span className="mt-1 shrink-0 rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 p-1.5 text-white shadow-sm shadow-indigo-500/25">
-                  <Sparkles className="h-3.5 w-3.5" />
+                <span className="mt-0.5 shrink-0 self-start rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 p-2 text-white shadow-md shadow-indigo-500/30 ring-2 ring-white">
+                  <Sparkles className="h-4 w-4" />
                 </span>
               )}
               <p
-                className={`max-w-[85%] whitespace-pre-line rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-sm ${
+                className={`max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                   m.role === "user"
-                    ? "rounded-br-md bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-indigo-500/25"
-                    : "rounded-bl-md border border-slate-200/80 bg-white text-slate-700"
+                    ? "rounded-br-md bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-lg shadow-indigo-500/25 ring-1 ring-white/20"
+                    : "rounded-bl-md border border-slate-200/70 bg-white text-slate-700 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.5)] ring-1 ring-white/70"
                 }`}
               >
                 {m.text}
               </p>
               {m.role === "user" && (
-                <span className="mt-1 shrink-0 rounded-lg bg-slate-100 p-1.5 text-slate-500 ring-1 ring-slate-200">
-                  <User className="h-3.5 w-3.5" />
+                <span className="mt-0.5 shrink-0 self-start rounded-xl bg-white p-2 text-slate-500 shadow-sm ring-1 ring-slate-200">
+                  <User className="h-4 w-4" />
                 </span>
               )}
 
@@ -331,14 +341,17 @@ function ConsultiveChat({
           <div ref={endRef} />
         </div>
 
-        <div className="border-t border-slate-100 bg-white p-3.5">
+        <div className="border-t border-slate-100 bg-gradient-to-b from-white to-slate-50/70 p-4">
+          <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+            Sugestões rápidas
+          </p>
           <div className="flex flex-wrap gap-2">
             {activeTopic.questions.map((q) => (
               <button
                 key={q}
                 type="button"
                 onClick={() => push(q)}
-                className="rounded-full border border-indigo-100 bg-gradient-to-r from-blue-50 to-violet-50 px-3.5 py-1.5 text-[11px] font-semibold text-indigo-700 transition hover:-translate-y-px hover:border-indigo-200 hover:shadow-sm"
+                className="rounded-full border border-slate-200/80 bg-white px-3.5 py-2 text-[11px] font-semibold text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-all duration-200 hover:-translate-y-px hover:border-indigo-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-violet-50 hover:text-indigo-700 hover:shadow-[0_6px_16px_-10px_rgba(79,70,229,0.7)] active:translate-y-0"
               >
                 {q}
               </button>
@@ -346,7 +359,7 @@ function ConsultiveChat({
           </div>
 
           <form
-            className="mt-3 flex items-center gap-2"
+            className="mt-3.5 flex items-center gap-2 rounded-2xl border border-slate-200/80 bg-white p-1.5 shadow-[0_6px_20px_-16px_rgba(15,23,42,0.55)] transition focus-within:border-indigo-300 focus-within:ring-4 focus-within:ring-indigo-500/10"
             onSubmit={(e) => {
               e.preventDefault();
               const value = input.trim();
@@ -359,22 +372,23 @@ function ConsultiveChat({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Digite uma pergunta (prévia consultiva)"
-              className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-2.5 text-sm outline-none transition focus:border-indigo-300 focus:bg-white focus:ring-4 focus:ring-indigo-500/10"
+              className="min-w-0 flex-1 bg-transparent px-3 py-2 text-sm text-slate-700 outline-none placeholder:text-slate-400"
             />
             <button
               type="submit"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-500/25 transition hover:brightness-110 active:scale-[0.98]"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 ring-1 ring-white/20 transition hover:brightness-110 active:scale-[0.98]"
             >
               <Send className="h-4 w-4" /> Enviar
             </button>
           </form>
 
-          <p className="mt-2 text-[11px] text-slate-400">
+          <p className="mt-2.5 text-[11px] text-slate-400">
             Prévia consultiva determinística: nenhuma mensagem é gravada e nenhuma IA externa é
             chamada.
           </p>
         </div>
       </div>
+
 
       {/* Coluna direita — contexto */}
       <aside className="order-3 space-y-3.5">

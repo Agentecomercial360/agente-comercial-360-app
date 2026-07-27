@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { StudioIaSourcesStatus } from "@/components/ecommerce/StudioIaSourcesStatus";
+import { StudioIaDiagnosticSection } from "@/components/ecommerce/StudioIaDiagnostic";
+
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/consultor-ia")({
@@ -208,6 +210,8 @@ function ConsultorIA() {
           </div>
         </div>
         <StudioIaSourcesStatus />
+        <StudioIaDiagnosticSection />
+
         {loading && (
           <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm text-slate-500 shadow-sm">
             Carregando dados do Assistente Estratégico...

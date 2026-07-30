@@ -1287,7 +1287,7 @@ function FeedInteligente() {
                           <Metric
                             icon={TrendingUp}
                             label="conversão"
-                            value={formatPercent(item.metrics.conversionRate)}
+                            value={conversionDisplay(item)}
                           />
                           <Metric
                             icon={Eye}

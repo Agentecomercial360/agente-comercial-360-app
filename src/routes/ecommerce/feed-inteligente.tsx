@@ -523,6 +523,18 @@ function FeedInteligente() {
     [items, summary],
   );
 
+  // Faixa de prioridade: usa somente os feed_items já carregados pelo GET atual.
+  const priorityEntries = useMemo<PriorityEntry[]>(() => {
+    return items
+      .map((item) => {
+        const classified = classifyPriority(item);
+        return classified ? { item, ...classified } : null;
+      })
+      .filter((e): e is PriorityEntry => e !== null)
+      .sort((a, b) => a.rank - b.rank || (b.item.metrics.sales ?? 0) - (a.item.metrics.sales ?? 0))
+      .slice(0, 10);
+  }, [items]);
+
   const revenueTone = summary?.revenueAvailable ? "positive" : "pending";
 
   return (

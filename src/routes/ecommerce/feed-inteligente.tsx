@@ -473,6 +473,32 @@ function classifyPriority(item: FeedItem): { tag: PriorityTag; rank: number } | 
   return null;
 }
 
+/**
+ * Prioridade de negócio (camada 1, nunca sobreposta pela imagem):
+ * crítico > sem custo > oportunidade > vendas/saudável.
+ */
+function businessRank(item: FeedItem): number {
+  const haystack = [item.statusLabel ?? "", ...item.badges].join(" ").toLowerCase();
+  if (item.status === "critical") return 0;
+  if (item.status === "missing_cost" || haystack.includes("sem custo")) return 1;
+  if (item.status === "attention") return 2;
+  if (item.status === "opportunity") return 3;
+  return 4;
+}
+
+function hasRealImage(item: FeedItem): boolean {
+  return Boolean(item.imageUrl) || item.hasImage;
+}
+
+/** Camada 1: prioridade de negócio. Camada 2 (desempate): imagem real, depois receita. */
+function compareFeedItems(a: FeedItem, b: FeedItem): number {
+  const rank = businessRank(a) - businessRank(b);
+  if (rank !== 0) return rank;
+  const image = Number(hasRealImage(b)) - Number(hasRealImage(a));
+  if (image !== 0) return image;
+  return (b.metrics.revenue ?? 0) - (a.metrics.revenue ?? 0);
+}
+
 function dedupeBadges(badges: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];

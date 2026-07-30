@@ -712,7 +712,10 @@ function FeedInteligente() {
               </div>
             </Card>
 
+            {!loading && !errorKind && <PriorityStrip entries={priorityEntries} />}
+
             <div className="flex items-center justify-between">
+
               <h2 className="text-sm font-semibold text-slate-800">Feed de anúncios</h2>
               <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
                 Dados reais conectados

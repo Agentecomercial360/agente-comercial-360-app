@@ -186,7 +186,9 @@ function normalizeItem(entry: unknown, index: number): FeedItem | null {
   const rawId = toText(pick(record, ["id", "feed_id", "row_id"]));
 
   const imageUrl =
-    safeImageUrl(pick(record, ["image_url"])) ?? safeImageUrl(pick(record, ["thumbnail_url"]));
+    safeImageUrl(pick(record, ["image_url"])) ??
+    safeImageUrl(pick(record, ["thumbnail_url"])) ??
+    safeImageUrl(pick(listing, ["image_url", "thumbnail_url"]));
 
   return {
     id: listingId ?? rawId ?? toText(pick(record, ["seller_sku", "sku"])) ?? `feed-item-${index}`,
@@ -202,7 +204,7 @@ function normalizeItem(entry: unknown, index: number): FeedItem | null {
       conversionRate: toNumber(pick(metrics, ["conversion_rate", "conversao", "conversion"])),
       stock: toNumber(pick(metrics, ["stock", "estoque", "available_quantity"])),
     },
-    imageUrl: imageUrl ?? safeImageUrl(pick(listing, ["image_url", "thumbnail_url"])),
+    imageUrl,
     imageSource: toText(pick(record, ["image_source"])),
     imageSyncedAt: toText(pick(record, ["image_synced_at"])),
     hasImage: toBool(pick(record, ["has_image"])) ?? Boolean(imageUrl),

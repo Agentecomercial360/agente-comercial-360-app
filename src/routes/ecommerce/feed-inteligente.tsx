@@ -1310,15 +1310,30 @@ function FeedInteligente() {
                               <Gauge className="h-3 w-3 shrink-0" />O que aconteceu
                             </p>
                             <p className="mt-1.5 text-[12.5px] leading-relaxed text-slate-600">
-                              {item.diagnostic ?? "Sem diagnóstico disponível para este anúncio."}
+                              {consultiveDiagnostic(item)}
                             </p>
+                            {impactLine(item) && (
+                              <p className="mt-2 text-[12.5px] font-semibold leading-relaxed text-amber-700">
+                                {impactLine(item)}
+                              </p>
+                            )}
+                            {agingLine(item) && (
+                              <p className="mt-1 text-[11.5px] leading-relaxed text-slate-500">
+                                {agingLine(item)}
+                              </p>
+                            )}
+                            {isMissingCost(item) && (
+                              <p className="mt-1 text-[11.5px] leading-relaxed text-slate-500">
+                                ROI, ROAS e margem dependem do custo real cadastrado.
+                              </p>
+                            )}
                           </div>
                           <div className={`rounded-[18px] border px-4 py-3 ${status.action}`}>
                             <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider">
                               <ArrowRight className="h-3 w-3 shrink-0" />O que fazer
                             </p>
                             <p className="mt-1.5 text-[12.5px] font-medium leading-relaxed">
-                              {item.recommendedAction ?? "Nenhuma ação recomendada no momento."}
+                              {consultiveAction(item)}
                             </p>
                           </div>
                         </div>

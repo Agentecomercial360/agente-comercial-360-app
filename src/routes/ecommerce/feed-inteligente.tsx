@@ -1003,6 +1003,9 @@ function FeedInteligente() {
                 <div className="grid gap-5 xl:grid-cols-2">
                   {visibleItems.map((item) => {
                     const status = STATUS_STYLES[item.status];
+                    const isRepeated = repeatedKeys.has(
+                      `${item.sku ?? ""}|${item.title}`.trim().toLowerCase(),
+                    );
                     return (
                       <Card
                         key={item.id}
@@ -1020,11 +1023,17 @@ function FeedInteligente() {
                             <p className="truncate text-[12px] font-semibold leading-tight text-[#0A1F44]">
                               {item.sku ?? "SKU não informado"}
                             </p>
-                            <p className="text-[11px] leading-tight text-slate-400">
-                              Mercado Livre
+                            <p className="flex items-center gap-1.5 text-[11px] leading-tight text-slate-400">
+                              <span>Mercado Livre</span>
+                              {isRepeated && (
+                                <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">
+                                  Anúncio {item.id}
+                                </span>
+                              )}
                             </p>
                           </div>
                         </div>
+
 
                         <h3 className="font-display mt-3 px-5 text-[15px] font-semibold leading-snug tracking-tight text-[#0A1F44]">
                           {item.title}

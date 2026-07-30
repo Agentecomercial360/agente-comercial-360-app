@@ -493,6 +493,145 @@ function hasRealImage(item: FeedItem): boolean {
   return Boolean(item.imageUrl) || item.hasImage;
 }
 
+function cleanKey(value: string | null | undefined): string | null {
+  const clean = value?.trim().toLowerCase().replace(/\s+/g, " ");
+  return clean ? clean : null;
+}
+
+function normalizeSkuKey(sku: string | null): string | null {
+  return cleanKey(sku)?.replace(/[^a-z0-9]/g, "") ?? null;
+}
+
+function normalizeImageKey(imageUrl: string | null): string | null {
+  const clean = imageUrl?.trim();
+  if (!clean) return null;
+  try {
+    const url = new URL(clean);
+    return `${url.hostname}${url.pathname}`.toLowerCase();
+  } catch {
+    return clean.toLowerCase();
+  }
+}
+
+function normalizeTitleKey(title: string): string {
+  return title
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function isGeneratedFallbackId(value: string): boolean {
+  return /^feed-item-\d+$/i.test(value.trim());
+}
+
+function dedupeIdentityKey(item: FeedItem): string | null {
+  const candidates = [item.listingId, item.id]
+    .map((value) => value?.trim())
+    .filter((value): value is string => Boolean(value));
+  const identity = candidates.find((value) => !isGeneratedFallbackId(value));
+  return identity ? `listing:${identity.toLowerCase()}` : null;
+}
+
+function visualDuplicateKey(item: FeedItem): string | null {
+  const sku = normalizeSkuKey(item.sku);
+  const image = normalizeImageKey(item.imageUrl);
+  if (!sku || !image) return null;
+  return `visual:${sku}|${image}`;
+}
+
+function titleCompleteness(item: FeedItem): number {
+  return item.title.replace(/\s+/g, " ").trim().length;
+}
+
+function itemCompletenessScore(item: FeedItem): number {
+  return (
+    titleCompleteness(item) * 100 +
+    Number(hasRealImage(item)) * 20 +
+    Number(Boolean(item.diagnostic)) * 5 +
+    Number(Boolean(item.recommendedAction)) * 5 +
+    dedupeBadges(item.badges).length
+  );
+}
+
+function selectBestDuplicate(current: FeedItem, next: FeedItem): FeedItem {
+  const scoreDelta = itemCompletenessScore(next) - itemCompletenessScore(current);
+  if (scoreDelta > 0) return next;
+  if (scoreDelta < 0) return current;
+  return (next.metrics.revenue ?? 0) > (current.metrics.revenue ?? 0) ? next : current;
+}
+
+function stableItemKey(item: FeedItem): string {
+  return (
+    dedupeIdentityKey(item) ??
+    visualDuplicateKey(item) ??
+    `item:${normalizeSkuKey(item.sku) ?? "sem-sku"}|${normalizeTitleKey(item.title)}|${
+      normalizeImageKey(item.imageUrl) ?? "sem-imagem"
+    }`
+  );
+}
+
+function hashString(value: string): string {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash * 31 + value.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+function elementIdForItem(item: FeedItem): string {
+  return `feed-item-${hashString(stableItemKey(item))}`;
+}
+
+function dedupeFeedItems(rawItems: FeedItem[]): FeedItem[] {
+  const byIdentity = new Map<string, FeedItem>();
+  const withoutIdentity: FeedItem[] = [];
+
+  for (const item of rawItems) {
+    const key = dedupeIdentityKey(item);
+    if (!key) {
+      withoutIdentity.push(item);
+      continue;
+    }
+    const current = byIdentity.get(key);
+    byIdentity.set(key, current ? selectBestDuplicate(current, item) : item);
+  }
+
+  const byVisual = new Map<string, FeedItem>();
+  const uniqueWithoutIdentity: FeedItem[] = [];
+  for (const item of withoutIdentity) {
+    const key = visualDuplicateKey(item);
+    if (!key) {
+      uniqueWithoutIdentity.push(item);
+      continue;
+    }
+    const current = byVisual.get(key);
+    byVisual.set(key, current ? selectBestDuplicate(current, item) : item);
+  }
+
+  return [...byIdentity.values(), ...byVisual.values(), ...uniqueWithoutIdentity];
+}
+
+function duplicateLabelByItemKey(items: FeedItem[]): Map<string, string> {
+  const bySku = new Map<string, FeedItem[]>();
+  for (const item of items) {
+    const sku = normalizeSkuKey(item.sku);
+    if (!sku) continue;
+    bySku.set(sku, [...(bySku.get(sku) ?? []), item]);
+  }
+
+  const labels = new Map<string, string>();
+  for (const group of bySku.values()) {
+    if (group.length < 2) continue;
+    group.forEach((item, index) => {
+      labels.set(stableItemKey(item), `Anúncio ${String.fromCharCode(65 + index)}`);
+    });
+  }
+  return labels;
+}
+
 /** Camada 1: prioridade de negócio. Camada 2 (desempate): imagem real, depois receita. */
 function compareFeedItems(a: FeedItem, b: FeedItem): number {
   const rank = businessRank(a) - businessRank(b);
@@ -571,7 +710,7 @@ function PriorityStory({ entry }: { entry: PriorityEntry }) {
       onClick={() => {
         if (typeof document === "undefined") return;
         document
-          .getElementById(`feed-item-${item.id}`)
+          .getElementById(elementIdForItem(item))
           ?.scrollIntoView({ behavior: "smooth", block: "center" });
       }}
       className="group flex w-[92px] min-w-[92px] flex-shrink-0 snap-start flex-col items-center gap-2 text-center"
@@ -687,7 +826,7 @@ function PriorityStrip({ entries }: { entries: PriorityEntry[] }) {
           className="flex snap-x snap-mandatory flex-nowrap gap-4 overflow-x-auto overflow-y-hidden scroll-smooth px-1 pb-1 pt-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {entries.map((entry) => (
-            <PriorityStory key={entry.item.id} entry={entry} />
+            <PriorityStory key={stableItemKey(entry.item)} entry={entry} />
           ))}
         </div>
       </div>
@@ -741,29 +880,13 @@ function FeedInteligente() {
   }, [load]);
 
   const rawItems = useMemo(() => data?.items ?? [], [data]);
-  // Deduplicação por identificador único do anúncio (id; SKU+título como fallback).
-  const uniqueItems = useMemo(() => {
-    const seen = new Set<string>();
-    const out: FeedItem[] = [];
-    for (const item of rawItems) {
-      const key = (item.id || `${item.sku ?? ""}|${item.title}`).trim().toLowerCase();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      out.push(item);
-    }
-    return out;
-  }, [rawItems]);
+  // Deduplicação real por anúncio: remove IDs repetidos e, quando não há ID confiável,
+  // evita exibir o mesmo SKU com a mesma imagem como cards duplicados.
+  const uniqueItems = useMemo(() => dedupeFeedItems(rawItems), [rawItems]);
   // Ordenação local: prioridade de negócio primeiro, imagem real como desempate.
   const items = useMemo(() => [...uniqueItems].sort(compareFeedItems), [uniqueItems]);
-  // Anúncios distintos do mesmo produto: destacamos o ID para não parecer duplicidade.
-  const repeatedKeys = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const item of items) {
-      const key = `${item.sku ?? ""}|${item.title}`.trim().toLowerCase();
-      counts.set(key, (counts.get(key) ?? 0) + 1);
-    }
-    return new Set([...counts.entries()].filter(([, n]) => n > 1).map(([k]) => k));
-  }, [items]);
+  // Anúncios reais do mesmo SKU recebem chip curto e consistente, sem IDs técnicos.
+  const duplicateLabels = useMemo(() => duplicateLabelByItemKey(items), [items]);
   const summary = data?.summary;
 
   const filters = useMemo(() => {
@@ -1003,13 +1126,11 @@ function FeedInteligente() {
                 <div className="grid gap-5 xl:grid-cols-2">
                   {visibleItems.map((item) => {
                     const status = STATUS_STYLES[item.status];
-                    const isRepeated = repeatedKeys.has(
-                      `${item.sku ?? ""}|${item.title}`.trim().toLowerCase(),
-                    );
+                    const duplicateLabel = duplicateLabels.get(stableItemKey(item));
                     return (
                       <Card
-                        key={item.id}
-                        id={`feed-item-${item.id}`}
+                        key={stableItemKey(item)}
+                        id={elementIdForItem(item)}
                         className={`flex flex-col overflow-hidden rounded-[24px] border-0 p-0 shadow-[0_1px_2px_rgba(10,31,68,0.04),0_20px_44px_-34px_rgba(10,31,68,0.5)] ring-2 ring-transparent transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_1px_2px_rgba(10,31,68,0.04),0_28px_58px_-34px_rgba(10,31,68,0.55)] ${status.ring}`}
                       >
                         <FeedProductCover item={item} status={status} />
@@ -1025,9 +1146,9 @@ function FeedInteligente() {
                             </p>
                             <p className="flex items-center gap-1.5 text-[11px] leading-tight text-slate-400">
                               <span>Mercado Livre</span>
-                              {isRepeated && (
+                              {duplicateLabel && (
                                 <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">
-                                  Anúncio {item.id}
+                                  {duplicateLabel}
                                 </span>
                               )}
                             </p>
@@ -1173,7 +1294,7 @@ function FeedInteligente() {
                 <div className="divide-y divide-slate-100">
                   <ContextRow
                     label="Itens no feed"
-                    value={loading ? "—" : formatCount(summary?.feedItemsReturned ?? items.length)}
+                    value={loading ? "—" : formatCount(visibleItems.length)}
                   />
                   <ContextRow
                     label="Itens com imagem no feed"

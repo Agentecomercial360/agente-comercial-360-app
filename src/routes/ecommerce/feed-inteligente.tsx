@@ -442,18 +442,21 @@ const STATUS_DOT: Record<FeedStatusKey, string> = {
   neutral: "bg-emerald-500",
 };
 
+/** Categoria real do item (mesma fonte usada nos badges) define a cor do anel. */
 function storyRing(item: FeedItem, tag: PriorityTag): string {
   if (item.status !== "neutral") return STATUS_RING[item.status];
-  if (tag === "Sem custo") return PRIORITY_RING[tag];
-  if (tag === "Com vendas") return "ring-emerald-500";
-  return PRIORITY_RING[tag];
+  if (tag === "Sem custo") return PRIORITY_RING["Sem custo"];
+  if (tag === "Com vendas") return PRIORITY_RING["Com vendas"];
+  if (tag === "Ads") return PRIORITY_RING.Ads;
+  return "ring-emerald-500";
 }
 
 function storyDot(item: FeedItem, tag: PriorityTag): string {
   if (item.status !== "neutral") return STATUS_DOT[item.status];
-  if (tag === "Sem custo") return PRIORITY_DOT[tag];
-  if (tag === "Com vendas") return "bg-emerald-500";
-  return PRIORITY_DOT[tag];
+  if (tag === "Sem custo") return PRIORITY_DOT["Sem custo"];
+  if (tag === "Com vendas") return PRIORITY_DOT["Com vendas"];
+  if (tag === "Ads") return PRIORITY_DOT.Ads;
+  return "bg-emerald-500";
 }
 
 function classifyPriority(item: FeedItem): { tag: PriorityTag; rank: number } | null {
@@ -738,8 +741,29 @@ function FeedInteligente() {
   }, [load]);
 
   const rawItems = useMemo(() => data?.items ?? [], [data]);
+  // Deduplicação por identificador único do anúncio (id; SKU+título como fallback).
+  const uniqueItems = useMemo(() => {
+    const seen = new Set<string>();
+    const out: FeedItem[] = [];
+    for (const item of rawItems) {
+      const key = (item.id || `${item.sku ?? ""}|${item.title}`).trim().toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(item);
+    }
+    return out;
+  }, [rawItems]);
   // Ordenação local: prioridade de negócio primeiro, imagem real como desempate.
-  const items = useMemo(() => [...rawItems].sort(compareFeedItems), [rawItems]);
+  const items = useMemo(() => [...uniqueItems].sort(compareFeedItems), [uniqueItems]);
+  // Anúncios distintos do mesmo produto: destacamos o ID para não parecer duplicidade.
+  const repeatedKeys = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const item of items) {
+      const key = `${item.sku ?? ""}|${item.title}`.trim().toLowerCase();
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return new Set([...counts.entries()].filter(([, n]) => n > 1).map(([k]) => k));
+  }, [items]);
   const summary = data?.summary;
 
   const filters = useMemo(() => {
@@ -979,6 +1003,9 @@ function FeedInteligente() {
                 <div className="grid gap-5 xl:grid-cols-2">
                   {visibleItems.map((item) => {
                     const status = STATUS_STYLES[item.status];
+                    const isRepeated = repeatedKeys.has(
+                      `${item.sku ?? ""}|${item.title}`.trim().toLowerCase(),
+                    );
                     return (
                       <Card
                         key={item.id}
@@ -996,11 +1023,17 @@ function FeedInteligente() {
                             <p className="truncate text-[12px] font-semibold leading-tight text-[#0A1F44]">
                               {item.sku ?? "SKU não informado"}
                             </p>
-                            <p className="text-[11px] leading-tight text-slate-400">
-                              Mercado Livre
+                            <p className="flex items-center gap-1.5 text-[11px] leading-tight text-slate-400">
+                              <span>Mercado Livre</span>
+                              {isRepeated && (
+                                <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">
+                                  Anúncio {item.id}
+                                </span>
+                              )}
                             </p>
                           </div>
                         </div>
+
 
                         <h3 className="font-display mt-3 px-5 text-[15px] font-semibold leading-snug tracking-tight text-[#0A1F44]">
                           {item.title}
@@ -1073,13 +1106,13 @@ function FeedInteligente() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 gap-1.5 rounded-full bg-[#EAF0FF] px-3.5 text-[12px] font-semibold text-[#0B3BC7] hover:bg-[#D9E4FF] hover:text-[#0A2E9E]"
+                            className="h-8 gap-1.5 rounded-full bg-[#E4ECFF] px-3.5 text-[12px] font-semibold text-[#0A2E9E] hover:bg-[#CFDEFF] hover:text-[#08246F]"
                           >
                             <BarChart3 className="h-3.5 w-3.5 shrink-0" />
                             Ver diagnóstico
                           </Button>
-                          <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-slate-200 px-3 text-[10px] font-semibold uppercase leading-none tracking-wider text-slate-700">
-                            <Eye className="h-3 w-3 shrink-0" />
+                          <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-slate-100 px-3 text-[10px] font-semibold uppercase leading-none tracking-wider text-slate-800">
+                            <Eye className="h-3 w-3 shrink-0 text-slate-800" />
                             Somente leitura
                           </span>
                         </div>

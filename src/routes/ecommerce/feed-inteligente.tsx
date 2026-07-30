@@ -553,6 +553,13 @@ function dedupeIdentityKey(item: FeedItem): string | null {
   return identity ? `listing:${identity.toLowerCase()}` : null;
 }
 
+function marketplaceListingKey(item: FeedItem): string | null {
+  const marketplaceId = [item.listingId, item.id]
+    .map((value) => value?.trim())
+    .find((value): value is string => Boolean(value && isMarketplaceListingId(value)));
+  return marketplaceId ? marketplaceId.toLowerCase() : null;
+}
+
 function visualDuplicateKey(item: FeedItem): string | null {
   const sku = normalizeSkuKey(item.sku);
   const image = normalizeImageKey(item.imageUrl);
@@ -605,31 +612,46 @@ function elementIdForItem(item: FeedItem): string {
 
 function dedupeFeedItems(rawItems: FeedItem[]): FeedItem[] {
   const byIdentity = new Map<string, FeedItem>();
-  const withoutIdentity: FeedItem[] = [];
+  const unresolved: FeedItem[] = [];
 
   for (const item of rawItems) {
     const key = dedupeIdentityKey(item);
     if (!key) {
-      withoutIdentity.push(item);
+      unresolved.push(item);
       continue;
     }
     const current = byIdentity.get(key);
     byIdentity.set(key, current ? selectBestDuplicate(current, item) : item);
   }
 
-  const byVisual = new Map<string, FeedItem>();
-  const uniqueWithoutIdentity: FeedItem[] = [];
-  for (const item of withoutIdentity) {
+  const byVisual = new Map<string, FeedItem[]>();
+  const withoutVisualKey: FeedItem[] = [];
+  for (const item of [...byIdentity.values(), ...unresolved]) {
     const key = visualDuplicateKey(item);
     if (!key) {
-      uniqueWithoutIdentity.push(item);
+      withoutVisualKey.push(item);
       continue;
     }
-    const current = byVisual.get(key);
-    byVisual.set(key, current ? selectBestDuplicate(current, item) : item);
+    byVisual.set(key, [...(byVisual.get(key) ?? []), item]);
   }
 
-  return [...byIdentity.values(), ...byVisual.values(), ...uniqueWithoutIdentity];
+  const visuallyDeduped: FeedItem[] = [];
+  for (const group of byVisual.values()) {
+    if (group.length === 1) {
+      visuallyDeduped.push(group[0]);
+      continue;
+    }
+    const marketplaceKeys = new Set(
+      group.map((item) => marketplaceListingKey(item)).filter((key): key is string => Boolean(key)),
+    );
+    if (marketplaceKeys.size === group.length) {
+      visuallyDeduped.push(...group);
+      continue;
+    }
+    visuallyDeduped.push(group.reduce(selectBestDuplicate));
+  }
+
+  return [...visuallyDeduped, ...withoutVisualKey];
 }
 
 function duplicateLabelByItemKey(items: FeedItem[]): Map<string, string> {

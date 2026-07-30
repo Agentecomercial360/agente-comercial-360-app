@@ -400,7 +400,7 @@ function FeedInteligente() {
   }, [data, items]);
 
   const visibleItems = useMemo(() => {
-    if (activeFilter === "all") return items;
+    if (activeFilter === "all" || activeFilter === "analyzed") return items;
     return items.filter((i) => i.status === activeFilter);
   }, [activeFilter, items]);
 

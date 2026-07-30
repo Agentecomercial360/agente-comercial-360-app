@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   LayoutGrid,
@@ -5,7 +6,6 @@ import {
   Eye,
   Lock,
   ShieldCheck,
-  Clock,
   TrendingUp,
   AlertTriangle,
   AlertOctagon,
@@ -15,16 +15,28 @@ import {
   Gauge,
   MoreHorizontal,
   Store,
-  
   ListChecks,
   BarChart3,
   Boxes,
   Target,
+  Database,
+  BrainCircuit,
+  RefreshCw,
+  Inbox,
+  WifiOff,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  getIntelligentFeedPreview,
+  IntelligentFeedError,
+  type FeedItem,
+  type FeedStatusKey,
+  type IntelligentFeedPreview,
+} from "@/lib/intelligent-feed-preview";
 
 export const Route = createFileRoute("/ecommerce/feed-inteligente")({
   component: FeedInteligente,
@@ -50,88 +62,26 @@ export const Route = createFileRoute("/ecommerce/feed-inteligente")({
   }),
 });
 
-const QUICK_FILTERS = [
-  { label: "Todos", icon: LayoutGrid, count: 295, active: true },
-  { label: "Oportunidades", icon: TrendingUp, count: 42 },
-  { label: "Críticos", icon: AlertOctagon, count: 18 },
-  { label: "Sem custo", icon: Lock, count: 295 },
-  { label: "Ads", icon: Sparkles, count: 31 },
-  { label: "Estoque baixo", icon: Package, count: 12 },
-  { label: "Top vendas", icon: Gauge, count: 20 },
+const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
+const ACCOUNT_ID = "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4";
+const FEED_LIMIT = 20;
+
+const HEADER_BADGES = [
+  { label: "Somente leitura", icon: Lock },
+  { label: "Sem ações automáticas", icon: ShieldCheck },
+  { label: "Dados reais conectados", icon: Database },
+  { label: "IA externa não chamada", icon: BrainCircuit },
 ];
 
-const SHORTCUTS: Array<{
-  label: string;
-  icon: typeof TrendingUp;
-  ring: string;
-  bg: string;
-  dot: string;
-  count?: number;
-}> = [
-  {
-    label: "Todos",
-    icon: LayoutGrid,
-    ring: "ring-slate-200/80",
-    bg: "from-slate-100 to-white text-slate-600",
-    dot: "bg-slate-400",
-    count: 295,
-  },
-  {
-    label: "Oportunidades",
-    icon: TrendingUp,
-    ring: "ring-emerald-200/80",
-    bg: "from-emerald-100 to-white text-emerald-600",
-    dot: "bg-emerald-500",
-    count: 42,
-  },
-  {
-    label: "Críticos",
-    icon: AlertOctagon,
-    ring: "ring-rose-200/80",
-    bg: "from-rose-100 to-white text-rose-600",
-    dot: "bg-rose-500",
-    count: 18,
-  },
-  {
-    label: "Sem custo",
-    icon: Lock,
-    ring: "ring-amber-200/80",
-    bg: "from-amber-100 to-white text-amber-600",
-    dot: "bg-amber-500",
-    count: 295,
-  },
-  {
-    label: "Ads",
-    icon: Sparkles,
-    ring: "ring-violet-200/80",
-    bg: "from-violet-100 to-white text-violet-600",
-    dot: "bg-violet-500",
-    count: 31,
-  },
-  {
-    label: "Estoque baixo",
-    icon: Package,
-    ring: "ring-orange-200/80",
-    bg: "from-orange-100 to-white text-orange-600",
-    dot: "bg-orange-500",
-    count: 12,
-  },
-  {
-    label: "Top vendas",
-    icon: Gauge,
-    ring: "ring-blue-200/80",
-    bg: "from-blue-100 to-white text-blue-600",
-    dot: "bg-blue-500",
-    count: 20,
-  },
-
-
+const SUGGESTIONS = [
+  { label: "Revisar anúncios críticos", icon: AlertOctagon, tone: "text-rose-600 bg-rose-50" },
+  { label: "Conferir estoque baixo", icon: Boxes, tone: "text-amber-600 bg-amber-50" },
+  { label: "Validar produtos sem custo", icon: ListChecks, tone: "text-blue-600 bg-blue-50" },
+  { label: "Separar oportunidades para Ads", icon: Target, tone: "text-violet-600 bg-violet-50" },
 ];
-
-type StatusKey = "opportunity" | "attention" | "critical";
 
 const STATUS_STYLES: Record<
-  StatusKey,
+  FeedStatusKey,
   {
     label: string;
     badge: string;
@@ -140,6 +90,9 @@ const STATUS_STYLES: Record<
     coverIcon: string;
     action: string;
     icon: typeof TrendingUp;
+    chip: string;
+    shortcutRing: string;
+    shortcutBg: string;
   }
 > = {
   opportunity: {
@@ -150,6 +103,9 @@ const STATUS_STYLES: Record<
     coverIcon: "text-emerald-400/70",
     action: "border-emerald-100 bg-emerald-50/70 text-emerald-800",
     icon: TrendingUp,
+    chip: "bg-emerald-50 text-emerald-700",
+    shortcutRing: "ring-emerald-200/80",
+    shortcutBg: "from-emerald-100 to-white text-emerald-600",
   },
   attention: {
     label: "Atenção",
@@ -159,6 +115,9 @@ const STATUS_STYLES: Record<
     coverIcon: "text-amber-400/70",
     action: "border-amber-100 bg-amber-50/70 text-amber-800",
     icon: AlertTriangle,
+    chip: "bg-amber-50 text-amber-700",
+    shortcutRing: "ring-amber-200/80",
+    shortcutBg: "from-amber-100 to-white text-amber-600",
   },
   critical: {
     label: "Crítico",
@@ -168,74 +127,64 @@ const STATUS_STYLES: Record<
     coverIcon: "text-rose-400/70",
     action: "border-rose-100 bg-rose-50/70 text-rose-800",
     icon: AlertOctagon,
+    chip: "bg-rose-50 text-rose-700",
+    shortcutRing: "ring-rose-200/80",
+    shortcutBg: "from-rose-100 to-white text-rose-600",
+  },
+  missing_cost: {
+    label: "Sem custo",
+    badge: "bg-violet-50 text-violet-700 border-violet-200",
+    ring: "hover:ring-violet-200/70",
+    cover: "from-violet-100 via-purple-50 to-indigo-100",
+    coverIcon: "text-violet-400/70",
+    action: "border-violet-100 bg-violet-50/70 text-violet-800",
+    icon: Lock,
+    chip: "bg-violet-50 text-violet-700",
+    shortcutRing: "ring-violet-200/80",
+    shortcutBg: "from-violet-100 to-white text-violet-600",
+  },
+  neutral: {
+    label: "Neutro",
+    badge: "bg-slate-50 text-slate-600 border-slate-200",
+    ring: "hover:ring-slate-200/70",
+    cover: "from-slate-100 via-blue-50 to-slate-100",
+    coverIcon: "text-slate-400/70",
+    action: "border-blue-100 bg-blue-50/60 text-blue-800",
+    icon: Gauge,
+    chip: "bg-slate-100 text-slate-600",
+    shortcutRing: "ring-slate-200/80",
+    shortcutBg: "from-slate-100 to-white text-slate-600",
   },
 };
 
-const MOCK_CARDS: Array<{
-  title: string;
-  sku: string;
-  status: StatusKey;
-  diagnosis: string;
-  action: string;
-  metrics: { visits: string; sales: string; revenue: string; conversion: string; stock: string };
-}> = [
-  {
-    title: "Kit Churrasco com oportunidade de escala",
-    sku: "SKU-EX-1042",
-    status: "opportunity",
-    diagnosis: "Produto com bom volume e potencial de crescimento.",
-    action: "Validar custos reais antes de escalar Ads.",
-    metrics: {
-      visits: "4.120",
-      sales: "86",
-      revenue: "R$ 18.400",
-      conversion: "2,1%",
-      stock: "74",
-    },
-  },
-  {
-    title: "Lareira com estoque baixo",
-    sku: "SKU-EX-2213",
-    status: "attention",
-    diagnosis: "Produto com boa demanda, mas risco de ruptura.",
-    action: "Revisar estoque antes de aumentar investimento.",
-    metrics: {
-      visits: "2.870",
-      sales: "51",
-      revenue: "R$ 12.950",
-      conversion: "1,8%",
-      stock: "6",
-    },
-  },
-  {
-    title: "Organizador com visitas e nenhuma venda",
-    sku: "SKU-EX-3390",
-    status: "critical",
-    diagnosis: "Produto recebe visitas, mas não converte.",
-    action: "Revisar título, imagem, preço e qualidade do anúncio.",
-    metrics: {
-      visits: "1.930",
-      sales: "0",
-      revenue: "R$ 0",
-      conversion: "0,0%",
-      stock: "48",
-    },
-  },
+const STATUS_ORDER: FeedStatusKey[] = [
+  "critical",
+  "attention",
+  "missing_cost",
+  "opportunity",
+  "neutral",
 ];
 
-const HEADER_BADGES = [
-  { label: "Prévia visual", icon: Eye },
-  { label: "Somente leitura", icon: Lock },
-  { label: "Sem ações automáticas", icon: ShieldCheck },
-  { label: "Dados reais em breve", icon: Clock },
-];
+const numberFormatter = new Intl.NumberFormat("pt-BR");
+const currencyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+  maximumFractionDigits: 0,
+});
 
-const SUGGESTIONS = [
-  { label: "Revisar anúncios críticos", icon: AlertOctagon, tone: "text-rose-600 bg-rose-50" },
-  { label: "Conferir estoque baixo", icon: Boxes, tone: "text-amber-600 bg-amber-50" },
-  { label: "Validar produtos sem custo", icon: ListChecks, tone: "text-blue-600 bg-blue-50" },
-  { label: "Separar oportunidades para Ads", icon: Target, tone: "text-violet-600 bg-violet-50" },
-];
+function formatCount(value: number | null | undefined): string {
+  return typeof value === "number" ? numberFormatter.format(value) : "—";
+}
+
+function formatCurrency(value: number | null | undefined): string {
+  return typeof value === "number" ? currencyFormatter.format(value) : "—";
+}
+
+function formatPercent(value: number | null | undefined): string {
+  if (typeof value !== "number") return "—";
+  const percent = value <= 1 ? value * 100 : value;
+  return `${percent.toFixed(1).replace(".", ",")}%`;
+}
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
@@ -247,7 +196,6 @@ function Metric({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
-
 
 function ContextRow({
   label,
@@ -274,7 +222,190 @@ function ContextRow({
   );
 }
 
+function FeedCardSkeleton() {
+  return (
+    <Card className="overflow-hidden rounded-[28px] border-slate-200/70 p-0 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-32px_rgba(15,23,42,0.45)]">
+      <div className="flex items-start justify-between gap-4 px-6 pb-4 pt-5">
+        <div className="flex min-w-0 flex-1 items-center gap-3.5">
+          <Skeleton className="h-11 w-11 shrink-0 rounded-2xl" />
+          <div className="min-w-0 flex-1 space-y-2">
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-3 w-1/3" />
+          </div>
+        </div>
+        <Skeleton className="h-7 w-24 rounded-full" />
+      </div>
+      <div className="px-6">
+        <Skeleton className="aspect-[16/7] w-full rounded-2xl" />
+      </div>
+      <div className="px-6 pt-5">
+        <Skeleton className="h-[74px] w-full rounded-2xl" />
+      </div>
+      <div className="grid gap-3 px-6 pb-6 pt-4 sm:grid-cols-2">
+        <Skeleton className="h-[86px] rounded-2xl" />
+        <Skeleton className="h-[86px] rounded-2xl" />
+      </div>
+    </Card>
+  );
+}
+
+function FeedStateCard({
+  icon: Icon,
+  tone,
+  title,
+  description,
+  onRetry,
+}: {
+  icon: typeof Inbox;
+  tone: "neutral" | "warning" | "danger";
+  title: string;
+  description: string;
+  onRetry?: () => void;
+}) {
+  const tones = {
+    neutral: "bg-slate-100 text-slate-500",
+    warning: "bg-amber-50 text-amber-600",
+    danger: "bg-rose-50 text-rose-600",
+  } as const;
+  return (
+    <Card className="rounded-[28px] border-slate-200/70 px-8 py-12 text-center shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-32px_rgba(15,23,42,0.45)]">
+      <span
+        className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${tones[tone]}`}
+      >
+        <Icon className="h-6 w-6" strokeWidth={1.8} />
+      </span>
+      <p className="mt-4 text-sm font-semibold text-slate-900">{title}</p>
+      <p className="mx-auto mt-1.5 max-w-md text-[12.5px] leading-relaxed text-slate-500">
+        {description}
+      </p>
+      {onRetry && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onRetry}
+          className="mt-5 h-8 gap-1.5 rounded-full border-blue-200 bg-white px-4 text-[12px] font-medium text-blue-700 hover:bg-blue-50"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          Tentar novamente
+        </Button>
+      )}
+    </Card>
+  );
+}
+
+function FeedProductCover({ item, status }: { item: FeedItem; status: (typeof STATUS_STYLES)[FeedStatusKey] }) {
+  const [broken, setBroken] = useState(false);
+  const showImage = Boolean(item.imageUrl) && !broken;
+
+  return (
+    <div
+      className={`relative flex aspect-[16/7] w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br ring-1 ring-slate-200/70 ${status.cover}`}
+    >
+      {showImage ? (
+        <img
+          src={item.imageUrl as string}
+          alt={item.title}
+          loading="lazy"
+          onError={() => setBroken(true)}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <>
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_28%_12%,rgba(255,255,255,0.75),transparent_62%)]" />
+          <div className="relative flex flex-col items-center justify-center gap-2.5 text-center">
+            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/85 shadow-sm ring-1 ring-white/70 backdrop-blur">
+              <ImageIcon className={`h-6 w-6 shrink-0 ${status.coverIcon}`} strokeWidth={1.8} />
+            </span>
+            <span className="text-[10.5px] font-medium tracking-tight text-slate-500">
+              Sem imagem sincronizada
+            </span>
+          </div>
+        </>
+      )}
+      {item.imageSource && showImage && (
+        <span className="absolute left-4 top-4 inline-flex h-6 items-center rounded-full bg-white/85 px-2.5 text-[9px] font-semibold uppercase leading-none tracking-wider text-slate-500 shadow-sm backdrop-blur">
+          {item.imageSource}
+        </span>
+      )}
+    </div>
+  );
+}
+
 function FeedInteligente() {
+  const [data, setData] = useState<IntelligentFeedPreview | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorKind, setErrorKind] = useState<"auth" | "unavailable" | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string>("all");
+  const abortRef = useRef<AbortController | null>(null);
+
+  const load = useCallback(async () => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setLoading(true);
+    setErrorKind(null);
+    try {
+      // SOMENTE LEITURA: apenas GET /intelligent-feed/preview.
+      const preview = await getIntelligentFeedPreview({
+        companyId: COMPANY_ID,
+        accountId: ACCOUNT_ID,
+        limit: FEED_LIMIT,
+        signal: controller.signal,
+      });
+      if (controller.signal.aborted) return;
+      setData(preview);
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setData(null);
+      if (
+        error instanceof IntelligentFeedError &&
+        (error.kind === "unauthenticated" || error.kind === "forbidden")
+      ) {
+        setErrorKind("auth");
+      } else {
+        setErrorKind("unavailable");
+      }
+    } finally {
+      if (!controller.signal.aborted) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void load();
+    return () => abortRef.current?.abort();
+  }, [load]);
+
+  const items = data?.items ?? [];
+  const summary = data?.summary;
+
+  const filters = useMemo(() => {
+    const base = [{ key: "all", label: "Todos", count: items.length }];
+    if (data?.filters.length) {
+      return [...base, ...data.filters];
+    }
+    return [
+      ...base,
+      ...STATUS_ORDER.map((status) => ({
+        key: status,
+        label: STATUS_STYLES[status].label,
+        count: items.filter((i) => i.status === status).length,
+      })),
+    ];
+  }, [data, items]);
+
+  const visibleItems = useMemo(() => {
+    if (activeFilter === "all") return items;
+    return items.filter((i) => i.status === activeFilter);
+  }, [activeFilter, items]);
+
+  const itemsWithImage = useMemo(
+    () => summary?.itemsWithImage ?? items.filter((i) => i.hasImage).length,
+    [items, summary],
+  );
+
+  const revenueTone = summary?.revenueAvailable ? "positive" : "pending";
+
   return (
     <EcommerceLayout>
       <div className="space-y-6">
@@ -283,18 +414,30 @@ function FeedInteligente() {
           <div className="pointer-events-none absolute -right-24 -top-32 h-80 w-80 rounded-full bg-gradient-to-br from-violet-400/20 via-blue-400/14 to-cyan-300/8 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-28 left-1/4 h-64 w-64 rounded-full bg-gradient-to-tr from-blue-300/14 to-transparent blur-3xl" />
           <div className="relative flex flex-col gap-6">
-            <div className="flex items-center gap-5">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/20">
-                <LayoutGrid className="h-6 w-6" />
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex items-center gap-5">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-600/20">
+                  <LayoutGrid className="h-6 w-6" />
+                </div>
+                <div className="min-w-0">
+                  <h1 className="text-[26px] font-semibold leading-tight tracking-tight text-slate-900">
+                    Feed Inteligente da Operação
+                  </h1>
+                  <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
+                    A vitrine visual da operação com diagnóstico por anúncio.
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h1 className="text-[26px] font-semibold leading-tight tracking-tight text-slate-900">
-                  Feed Inteligente da Operação
-                </h1>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
-                  A vitrine visual da operação com diagnóstico por anúncio.
-                </p>
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void load()}
+                disabled={loading}
+                className="h-9 gap-2 rounded-full border-slate-200 bg-white/80 px-4 text-[12.5px] font-medium text-slate-600 shadow-sm backdrop-blur hover:bg-white"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+                Atualizar feed
+              </Button>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               {HEADER_BADGES.map((badge) => (
@@ -310,7 +453,6 @@ function FeedInteligente() {
           </div>
         </div>
 
-
         <div className="grid gap-6 lg:grid-cols-[250px_minmax(0,1fr)_300px]">
           {/* Coluna esquerda */}
           <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
@@ -323,20 +465,24 @@ function FeedInteligente() {
               </div>
               <div className="px-5 pb-6 pt-11 text-center">
                 <p className="text-sm font-semibold leading-tight text-slate-900">
-                  Mercado Livre - Nightled
+                  Conta ativa da operação
                 </p>
                 <p className="mt-1.5 text-[11px] font-medium text-slate-500/90">
-                  Conta ativa da operação
+                  Dados reais do backend AC360
                 </p>
                 <div className="mt-5 grid grid-cols-2 gap-2.5">
                   <div className="rounded-2xl bg-slate-50/80 px-3 py-3 text-center ring-1 ring-slate-100">
-                    <p className="text-base font-semibold text-slate-900">295</p>
+                    <p className="text-base font-semibold text-slate-900">
+                      {loading ? "—" : formatCount(summary?.listingsChecked)}
+                    </p>
                     <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400">
                       anúncios
                     </p>
                   </div>
                   <div className="rounded-2xl bg-slate-50/80 px-3 py-3 text-center ring-1 ring-slate-100">
-                    <p className="text-base font-semibold text-slate-900">455</p>
+                    <p className="text-base font-semibold text-slate-900">
+                      {loading ? "—" : formatCount(summary?.ordersChecked)}
+                    </p>
                     <p className="mt-1 text-[10px] uppercase tracking-wide text-slate-400">
                       pedidos
                     </p>
@@ -345,50 +491,52 @@ function FeedInteligente() {
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center justify-between rounded-xl bg-emerald-50/70 px-3 py-2">
                     <span className="text-[11px] text-slate-600">Receita</span>
-                    <span className="text-[11px] font-semibold text-emerald-700">Disponível</span>
+                    <span className="text-[11px] font-semibold text-emerald-700">
+                      {summary?.revenueAvailable ? "Disponível" : "Indisponível"}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between rounded-xl bg-amber-50/70 px-3 py-2">
-                    <span className="text-[11px] text-slate-600">Custos</span>
-                    <span className="text-[11px] font-semibold text-amber-700">Pendentes</span>
+                    <span className="text-[11px] text-slate-600">Itens com imagem</span>
+                    <span className="text-[11px] font-semibold text-amber-700">
+                      {loading ? "—" : formatCount(itemsWithImage)}
+                    </span>
                   </div>
                 </div>
               </div>
             </Card>
-
-
 
             <Card className="h-fit rounded-3xl border-slate-200/60 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-28px_rgba(15,23,42,0.4)]">
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                 Filtros rápidos
               </p>
               <div className="space-y-1.5">
-                {QUICK_FILTERS.map((filter) => (
-                  <button
-                    key={filter.label}
-                    type="button"
-                    className={`flex w-full items-center justify-between gap-2 rounded-full px-3 py-2 text-left text-sm transition-all ${
-                      filter.active
-                        ? "bg-gradient-to-r from-blue-600 to-violet-600 font-semibold text-white shadow-md shadow-blue-600/20"
-                        : "border border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50/60 hover:text-blue-700"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2">
-                      <filter.icon className="h-3.5 w-3.5" />
-                      {filter.label}
-                    </span>
-                    <span
-                      className={`rounded-full px-1.5 text-[10px] font-semibold ${
-                        filter.active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+                {filters.map((filter) => {
+                  const active = filter.key === activeFilter;
+                  return (
+                    <button
+                      key={filter.key}
+                      type="button"
+                      onClick={() => setActiveFilter(filter.key)}
+                      className={`flex w-full items-center justify-between gap-2 rounded-full px-3 py-2 text-left text-sm transition-all ${
+                        active
+                          ? "bg-gradient-to-r from-blue-600 to-violet-600 font-semibold text-white shadow-md shadow-blue-600/20"
+                          : "border border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50/60 hover:text-blue-700"
                       }`}
                     >
-                      {filter.count}
-                    </span>
-                  </button>
-                ))}
+                      <span className="truncate">{filter.label}</span>
+                      <span
+                        className={`rounded-full px-1.5 text-[10px] font-semibold ${
+                          active ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+                        }`}
+                      >
+                        {filter.count}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
               <p className="mt-4 rounded-xl bg-slate-50 p-2.5 text-[10px] leading-relaxed text-slate-400">
-                Filtros ainda visuais nesta prévia. A filtragem real será ativada com os dados da
-                operação.
+                Contadores calculados a partir dos dados reais retornados pelo backend.
               </p>
             </Card>
           </div>
@@ -401,174 +549,220 @@ function FeedInteligente() {
                 Atalhos inteligentes
               </p>
               <div className="ac-no-scrollbar -mx-1 flex items-start gap-7 overflow-x-auto px-1 pb-1">
-                {SHORTCUTS.map((s) => (
-                  <button
-                    key={s.label}
-                    type="button"
-                    className="group flex w-[68px] shrink-0 flex-col items-center gap-2"
-                  >
-                    <span
-                      className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br shadow-[0_1px_2px_rgba(15,23,42,0.05)] ring-1 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md ${s.bg} ${s.ring}`}
+                {filters.map((filter) => {
+                  const style = STATUS_STYLES[filter.key as FeedStatusKey];
+                  const Icon =
+                    filter.key === "all" ? LayoutGrid : (style?.icon ?? Sparkles);
+                  return (
+                    <button
+                      key={filter.key}
+                      type="button"
+                      onClick={() => setActiveFilter(filter.key)}
+                      className="group flex w-[68px] shrink-0 flex-col items-center gap-2"
                     >
-                      <s.icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} />
-                    </span>
-                    <span className="flex h-[16px] items-center">
-                      {typeof s.count === "number" && (
+                      <span
+                        className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br shadow-[0_1px_2px_rgba(15,23,42,0.05)] ring-1 transition-all duration-200 group-hover:-translate-y-0.5 group-hover:shadow-md ${
+                          style?.shortcutBg ?? "from-slate-100 to-white text-slate-600"
+                        } ${style?.shortcutRing ?? "ring-slate-200/80"}`}
+                      >
+                        <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} />
+                      </span>
+                      <span className="flex h-[16px] items-center">
                         <span className="inline-flex h-[16px] min-w-[22px] items-center justify-center rounded-full bg-slate-100 px-1.5 text-[9px] font-semibold leading-none text-slate-500">
-                          {s.count}
+                          {filter.count}
                         </span>
-                      )}
-                    </span>
-                    <span className="w-full text-center text-[10.5px] font-medium leading-tight tracking-tight text-slate-500 transition-colors group-hover:text-slate-800">
-                      {s.label}
-                    </span>
-                  </button>
-                ))}
+                      </span>
+                      <span className="w-full text-center text-[10.5px] font-medium leading-tight tracking-tight text-slate-500 transition-colors group-hover:text-slate-800">
+                        {filter.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-
             </Card>
-
 
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-slate-800">Feed de anúncios</h2>
-              <Badge variant="outline" className="border-violet-200 bg-violet-50 text-violet-700">
-                Prévia visual
+              <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
+                Dados reais conectados
               </Badge>
             </div>
 
-            {MOCK_CARDS.map((card) => {
-              const status = STATUS_STYLES[card.status];
-              return (
-                <Card
-                  key={card.sku}
-                  className={`overflow-hidden rounded-[28px] border-slate-200/70 p-0 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-32px_rgba(15,23,42,0.45)] ring-1 ring-transparent transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_1px_2px_rgba(15,23,42,0.04),0_26px_56px_-34px_rgba(15,23,42,0.5)] ${status.ring}`}
-                >
-                  {/* Cabeçalho do post */}
-                  <div className="flex items-start justify-between gap-4 px-6 pb-4 pt-5">
-                    <div className="flex min-w-0 items-center gap-3.5">
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-600/20">
-                        <Store className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} />
-                      </span>
-                      <div className="min-w-0">
-                        <h3 className="truncate text-[15px] font-semibold leading-snug tracking-tight text-slate-900">
-                          {card.title}
-                        </h3>
-                        <div className="mt-1 flex min-w-0 items-center gap-2">
-                          <span className="inline-flex h-[18px] shrink-0 items-center rounded-md bg-slate-100 px-1.5 text-[10px] font-semibold leading-none tracking-tight text-slate-500">
-                            {card.sku}
-                          </span>
-                          <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
-                          <span className="truncate text-[11px] font-medium text-slate-400">
-                            Mercado Livre - Nightled
-                          </span>
+            {loading && (
+              <>
+                <FeedCardSkeleton />
+                <FeedCardSkeleton />
+                <FeedCardSkeleton />
+              </>
+            )}
+
+            {!loading && errorKind === "auth" && (
+              <FeedStateCard
+                icon={Lock}
+                tone="danger"
+                title="Sessão expirada ou sem permissão. Faça login novamente."
+                description="Entre novamente no AC360 para carregar o Feed Inteligente da operação."
+              />
+            )}
+
+            {!loading && errorKind === "unavailable" && (
+              <FeedStateCard
+                icon={WifiOff}
+                tone="warning"
+                title="Não foi possível carregar o Feed Inteligente agora. Tente novamente em instantes."
+                description="O backend do AC360 não respondeu a esta consulta de leitura."
+                onRetry={() => void load()}
+              />
+            )}
+
+            {!loading && !errorKind && visibleItems.length === 0 && (
+              <FeedStateCard
+                icon={Inbox}
+                tone="neutral"
+                title="Nenhum item encontrado para a operação ativa."
+                description="Ajuste o filtro selecionado ou atualize o feed para consultar novamente."
+                onRetry={() => void load()}
+              />
+            )}
+
+            {!loading &&
+              !errorKind &&
+              visibleItems.map((item) => {
+                const status = STATUS_STYLES[item.status];
+                return (
+                  <Card
+                    key={item.id}
+                    className={`overflow-hidden rounded-[28px] border-slate-200/70 p-0 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-32px_rgba(15,23,42,0.45)] ring-1 ring-transparent transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_1px_2px_rgba(15,23,42,0.04),0_26px_56px_-34px_rgba(15,23,42,0.5)] ${status.ring}`}
+                  >
+                    {/* Cabeçalho do post */}
+                    <div className="flex items-start justify-between gap-4 px-6 pb-4 pt-5">
+                      <div className="flex min-w-0 items-center gap-3.5">
+                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-600/20">
+                          <Store className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} />
+                        </span>
+                        <div className="min-w-0">
+                          <h3 className="truncate text-[15px] font-semibold leading-snug tracking-tight text-slate-900">
+                            {item.title}
+                          </h3>
+                          <div className="mt-1 flex min-w-0 items-center gap-2">
+                            <span className="inline-flex h-[18px] shrink-0 items-center rounded-md bg-slate-100 px-1.5 text-[10px] font-semibold leading-none tracking-tight text-slate-500">
+                              {item.sku ?? "SKU não informado"}
+                            </span>
+                            <span className="h-1 w-1 shrink-0 rounded-full bg-slate-300" />
+                            <span className="truncate text-[11px] font-medium text-slate-400">
+                              Mercado Livre
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      <span
-                        className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold leading-none ${status.badge}`}
-                      >
-                        <status.icon className="h-3 w-3 shrink-0" />
-                        {status.label}
-                      </span>
-                      <button
-                        type="button"
-                        className="rounded-full p-1.5 text-slate-300 transition-colors hover:bg-slate-50 hover:text-slate-500"
-                        aria-label="Mais opções"
-                      >
-                        <MoreHorizontal className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Área visual do produto */}
-                  <div className="px-6">
-                    <div
-                      className={`relative flex aspect-[16/7] w-full items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br ring-1 ring-slate-200/70 ${status.cover}`}
-                    >
-                      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_28%_12%,rgba(255,255,255,0.75),transparent_62%)]" />
-                      <span className="absolute left-4 top-4 inline-flex h-6 items-center rounded-full bg-white/85 px-2.5 text-[9px] font-semibold uppercase leading-none tracking-wider text-slate-500 shadow-sm backdrop-blur">
-                        Prévia visual
-                      </span>
-                      <div className="relative flex flex-col items-center justify-center gap-2.5 text-center">
-                        <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/85 shadow-sm ring-1 ring-white/70 backdrop-blur">
-                          <ImageIcon
-                            className={`h-6 w-6 shrink-0 ${status.coverIcon}`}
-                            strokeWidth={1.8}
-                          />
+                      <div className="flex shrink-0 items-center gap-1.5">
+                        <span
+                          className={`inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold leading-none ${status.badge}`}
+                        >
+                          <status.icon className="h-3 w-3 shrink-0" />
+                          {item.statusLabel ?? status.label}
                         </span>
-                        <span className="text-[10.5px] font-medium tracking-tight text-slate-500">
-                          Imagem do anúncio em breve
-                        </span>
+                        <button
+                          type="button"
+                          className="rounded-full p-1.5 text-slate-300 transition-colors hover:bg-slate-50 hover:text-slate-500"
+                          aria-label="Mais opções"
+                        >
+                          <MoreHorizontal className="h-4 w-4" />
+                        </button>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Métricas */}
-                  <div className="px-6 pt-5">
-                    <div className="grid grid-cols-5 divide-x divide-slate-100 overflow-hidden rounded-2xl bg-slate-50/70 ring-1 ring-slate-100">
-                      <Metric label="Visitas" value={card.metrics.visits} />
-                      <Metric label="Vendas" value={card.metrics.sales} />
-                      <Metric label="Receita" value={card.metrics.revenue} />
-                      <Metric label="Conversão" value={card.metrics.conversion} />
-                      <Metric label="Estoque" value={card.metrics.stock} />
+                    {/* Área visual do produto */}
+                    <div className="px-6">
+                      <FeedProductCover item={item} status={status} />
                     </div>
-                  </div>
 
-                  {/* Diagnóstico e ação */}
-                  <div className="grid gap-3 px-6 pb-5 pt-4 sm:grid-cols-2">
-                    <div className="rounded-2xl border border-blue-100/80 bg-blue-50/50 px-4 py-3.5">
-                      <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700">
-                        <Gauge className="h-3 w-3 shrink-0" />
-                        Diagnóstico
-                      </p>
-                      <p className="mt-1.5 text-[12.5px] leading-relaxed text-slate-600">
-                        {card.diagnosis}
-                      </p>
+                    {/* Métricas */}
+                    <div className="px-6 pt-5">
+                      <div className="grid grid-cols-5 divide-x divide-slate-100 overflow-hidden rounded-2xl bg-slate-50/70 ring-1 ring-slate-100">
+                        <Metric label="Visitas" value={formatCount(item.metrics.visits)} />
+                        <Metric label="Vendas" value={formatCount(item.metrics.sales)} />
+                        <Metric label="Receita" value={formatCurrency(item.metrics.revenue)} />
+                        <Metric
+                          label="Conversão"
+                          value={formatPercent(item.metrics.conversionRate)}
+                        />
+                        <Metric label="Estoque" value={formatCount(item.metrics.stock)} />
+                      </div>
                     </div>
-                    <div className={`rounded-2xl border px-4 py-3.5 ${status.action}`}>
-                      <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider">
-                        <ArrowRight className="h-3 w-3 shrink-0" />
-                        Ação recomendada
-                      </p>
-                      <p className="mt-1.5 text-[12.5px] leading-relaxed">{card.action}</p>
+
+                    {/* Badges do item */}
+                    {item.badges.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 px-6 pt-4">
+                        {item.badges.map((badge) => (
+                          <span
+                            key={badge}
+                            className={`inline-flex h-6 items-center rounded-full px-2.5 text-[10px] font-semibold leading-none ${status.chip}`}
+                          >
+                            {badge}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Diagnóstico e ação */}
+                    <div className="grid gap-3 px-6 pb-5 pt-4 sm:grid-cols-2">
+                      <div className="rounded-2xl border border-blue-100/80 bg-blue-50/50 px-4 py-3.5">
+                        <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700">
+                          <Gauge className="h-3 w-3 shrink-0" />
+                          Diagnóstico
+                        </p>
+                        <p className="mt-1.5 text-[12.5px] leading-relaxed text-slate-600">
+                          {item.diagnostic ?? "Sem diagnóstico disponível para este anúncio."}
+                        </p>
+                      </div>
+                      <div className={`rounded-2xl border px-4 py-3.5 ${status.action}`}>
+                        <p className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider">
+                          <ArrowRight className="h-3 w-3 shrink-0" />
+                          Ação recomendada
+                        </p>
+                        <p className="mt-1.5 text-[12.5px] leading-relaxed">
+                          {item.recommendedAction ?? "Nenhuma ação recomendada no momento."}
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Rodapé */}
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/60 px-6 py-4">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 gap-1.5 rounded-full border-blue-200 bg-white px-3.5 text-[12px] font-medium text-blue-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:bg-blue-50"
-                      >
-                        <BarChart3 className="h-3.5 w-3.5 shrink-0" />
-                        Ver diagnóstico
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        disabled
-                        className="h-8 gap-1.5 rounded-full px-3 text-[12px] font-medium text-slate-400"
-                      >
-                        <Lock className="h-3.5 w-3.5 shrink-0" />
-                        Marcar para revisão em breve
-                      </Button>
+                    {/* Rodapé */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 bg-slate-50/60 px-6 py-4">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 gap-1.5 rounded-full border-blue-200 bg-white px-3.5 text-[12px] font-medium text-blue-700 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:bg-blue-50"
+                        >
+                          <BarChart3 className="h-3.5 w-3.5 shrink-0" />
+                          Ver diagnóstico
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled
+                          className="h-8 gap-1.5 rounded-full px-3 text-[12px] font-medium text-slate-400"
+                        >
+                          <Lock className="h-3.5 w-3.5 shrink-0" />
+                          Marcar para revisão em breve
+                        </Button>
+                      </div>
+                      <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-slate-100 px-3 text-[10px] font-semibold uppercase leading-none tracking-wider text-slate-500">
+                        <Eye className="h-3 w-3 shrink-0" />
+                        Somente leitura
+                      </span>
                     </div>
-                    <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-violet-50 px-3 text-[10px] font-semibold uppercase leading-none tracking-wider text-violet-600">
-                      <Eye className="h-3 w-3 shrink-0" />
-                      Prévia visual
-                    </span>
-                  </div>
-                </Card>
-              );
-            })}
+                  </Card>
+                );
+              })}
 
-
-            <p className="text-center text-[11px] text-slate-400">
-              Exemplos ilustrativos — os anúncios reais da conta aparecerão aqui na próxima etapa.
-            </p>
+            {!loading && !errorKind && visibleItems.length > 0 && (
+              <p className="text-center text-[11px] text-slate-400">
+                Exibindo {visibleItems.length} de {items.length} itens retornados pelo backend
+                (limite {FEED_LIMIT}).
+              </p>
+            )}
           </div>
 
           {/* Coluna direita */}
@@ -578,60 +772,118 @@ function FeedInteligente() {
                 Contexto da operação
               </p>
               <div className="divide-y divide-slate-100">
-                <ContextRow label="Conta ativa" value="ML - Nightled" tone="info" />
-                <ContextRow label="Anúncios analisados" value="295" />
-                <ContextRow label="Pedidos analisados" value="455" />
-                <ContextRow label="Receita" value="Disponível" tone="positive" />
-                <ContextRow label="Custos" value="Pendentes" tone="pending" />
-                <ContextRow label="Margem / Lucro" value="Aguardando custos" tone="pending" />
-                <ContextRow label="Modo" value="Somente leitura" />
+                <ContextRow
+                  label="Anúncios analisados"
+                  value={loading ? "—" : formatCount(summary?.listingsChecked)}
+                />
+                <ContextRow
+                  label="Pedidos analisados"
+                  value={loading ? "—" : formatCount(summary?.ordersChecked)}
+                />
+                <ContextRow
+                  label="Produtos analisados"
+                  value={loading ? "—" : formatCount(summary?.productsChecked)}
+                />
+                <ContextRow
+                  label="Receita"
+                  value={summary?.revenueAvailable ? "Disponível" : "Indisponível"}
+                  tone={revenueTone}
+                />
+                <ContextRow
+                  label="Itens no feed"
+                  value={loading ? "—" : formatCount(summary?.feedItemsReturned ?? items.length)}
+                />
+                <ContextRow
+                  label="Itens com imagem"
+                  value={loading ? "—" : formatCount(itemsWithImage)}
+                />
+                <ContextRow label="Modo" value={data?.mode ?? "Somente leitura"} />
               </div>
-            </Card>
-
-            <Card className="rounded-3xl border-amber-200/70 bg-gradient-to-br from-amber-50 to-orange-50/60 p-4 shadow-sm">
-              <div className="flex items-start gap-2">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-700">
-                    Próxima prioridade
-                  </p>
-                  <p className="mt-1 text-sm font-semibold text-slate-900">
-                    Cadastrar custos reais dos produtos
-                  </p>
-                  <p className="mt-1 text-xs text-slate-600">
-                    Sem custos reais, o diagnóstico de margem e lucro permanece bloqueado.
-                  </p>
-                </div>
-              </div>
-              <Button
-                disabled
-                variant="outline"
-                className="mt-3 w-full gap-2 border-amber-200 bg-white/70 text-xs text-amber-700"
-              >
-                <Lock className="h-3 w-3" />
-                Criar tarefa em breve
-              </Button>
             </Card>
 
             <Card className="rounded-3xl border-slate-200/60 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-28px_rgba(15,23,42,0.4)]">
               <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                Sugestões visuais
+                Segurança do modo atual
               </p>
-              <div className="space-y-2">
-                {SUGGESTIONS.map((s) => (
-                  <div
-                    key={s.label}
-                    className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-white px-3 py-2.5 transition-colors hover:border-slate-200 hover:bg-slate-50/70"
-                  >
-                    <span className={`flex h-7 w-7 items-center justify-center rounded-lg ${s.tone}`}>
-                      <s.icon className="h-3.5 w-3.5" />
-                    </span>
-                    <span className="text-xs text-slate-600">{s.label}</span>
-                  </div>
-                ))}
+              <div className="divide-y divide-slate-100">
+                <ContextRow
+                  label="Escrita permitida"
+                  value={data?.writeAllowed ? "Sim" : "Não"}
+                  tone={data?.writeAllowed ? "pending" : "positive"}
+                />
+                <ContextRow
+                  label="Escrita executada"
+                  value={data?.writeExecuted ? "Sim" : "Não"}
+                  tone={data?.writeExecuted ? "pending" : "positive"}
+                />
+                <ContextRow
+                  label="Marketplace externo"
+                  value={data?.externalMarketplaceCalled ? "Chamado" : "Não chamado"}
+                  tone={data?.externalMarketplaceCalled ? "pending" : "positive"}
+                />
+                <ContextRow
+                  label="IA externa"
+                  value={data?.externalAiCalled ? "Chamada" : "Não chamada"}
+                  tone={data?.externalAiCalled ? "pending" : "positive"}
+                />
               </div>
+            </Card>
+
+            {(data?.warnings.length ?? 0) > 0 && (
+              <Card className="rounded-3xl border-amber-200/70 bg-gradient-to-br from-amber-50 to-orange-50/60 p-4 shadow-sm">
+                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-700">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  Avisos do backend
+                </p>
+                <ul className="mt-2 space-y-1.5">
+                  {data?.warnings.map((warning) => (
+                    <li key={warning} className="text-xs leading-relaxed text-slate-600">
+                      • {warning}
+                    </li>
+                  ))}
+                </ul>
+              </Card>
+            )}
+
+            <Card className="rounded-3xl border-slate-200/60 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-28px_rgba(15,23,42,0.4)]">
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                {(data?.recommendations.length ?? 0) > 0
+                  ? "Recomendações do backend"
+                  : "Sugestões visuais"}
+              </p>
+              {(data?.recommendations.length ?? 0) > 0 ? (
+                <div className="space-y-2">
+                  {data?.recommendations.map((rec) => (
+                    <div
+                      key={rec}
+                      className="flex items-start gap-2.5 rounded-xl border border-slate-100 bg-white px-3 py-2.5"
+                    >
+                      <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                        <Target className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="text-xs leading-relaxed text-slate-600">{rec}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {SUGGESTIONS.map((s) => (
+                    <div
+                      key={s.label}
+                      className="flex items-center gap-2.5 rounded-xl border border-slate-100 bg-white px-3 py-2.5 transition-colors hover:border-slate-200 hover:bg-slate-50/70"
+                    >
+                      <span
+                        className={`flex h-7 w-7 items-center justify-center rounded-lg ${s.tone}`}
+                      >
+                        <s.icon className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="text-xs text-slate-600">{s.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
               <p className="mt-3 text-[10px] leading-relaxed text-slate-400">
-                Sugestões ilustrativas nesta prévia — nenhuma ação é executada.
+                Nenhuma ação é executada a partir desta tela.
               </p>
             </Card>
           </div>

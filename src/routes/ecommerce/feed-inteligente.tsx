@@ -24,6 +24,8 @@ import {
   RefreshCw,
   Inbox,
   WifiOff,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { Badge } from "@/components/ui/badge";
@@ -386,7 +388,7 @@ function PriorityMiniCard({ entry }: { entry: PriorityEntry }) {
           .getElementById(`feed-item-${item.id}`)
           ?.scrollIntoView({ behavior: "smooth", block: "center" });
       }}
-      className="group flex w-[150px] shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_6px_18px_-12px_rgba(15,23,42,0.5)] sm:w-[164px]"
+      className="group flex w-[190px] min-w-[190px] flex-shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-slate-200 bg-white text-left shadow-[0_1px_2px_rgba(15,23,42,0.05)] transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_6px_18px_-12px_rgba(15,23,42,0.5)] sm:w-[210px] sm:min-w-[210px]"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-50">
         {showImage ? (
@@ -432,7 +434,37 @@ function PriorityMiniCard({ entry }: { entry: PriorityEntry }) {
 }
 
 function PriorityStrip({ entries }: { entries: PriorityEntry[] }) {
+  const scrollerRef = useRef<HTMLDivElement | null>(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(false);
+
+  const updateArrows = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    setCanLeft(el.scrollLeft > 4);
+    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  }, []);
+
+  useEffect(() => {
+    updateArrows();
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.addEventListener("scroll", updateArrows, { passive: true });
+    window.addEventListener("resize", updateArrows);
+    return () => {
+      el.removeEventListener("scroll", updateArrows);
+      window.removeEventListener("resize", updateArrows);
+    };
+  }, [updateArrows, entries.length]);
+
+  const scrollBy = (direction: -1 | 1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * Math.max(220, el.clientWidth * 0.8), behavior: "smooth" });
+  };
+
   if (entries.length === 0) return null;
+
   return (
     <Card className="rounded-2xl border-slate-200 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -444,18 +476,53 @@ function PriorityStrip({ entries }: { entries: PriorityEntry[] }) {
             Produtos que merecem atenção agora
           </h2>
         </div>
-        <span className="hidden text-[10.5px] font-medium text-slate-400 sm:inline">
-          {entries.length} destaque(s)
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="hidden text-[10.5px] font-medium text-slate-400 sm:inline">
+            {entries.length} destaque(s)
+          </span>
+          <div className="hidden items-center gap-1 sm:flex">
+            <button
+              type="button"
+              aria-label="Rolar para a esquerda"
+              disabled={!canLeft}
+              onClick={() => scrollBy(-1)}
+              className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-35"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" strokeWidth={2.2} />
+            </button>
+            <button
+              type="button"
+              aria-label="Rolar para a direita"
+              disabled={!canRight}
+              onClick={() => scrollBy(1)}
+              className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-35"
+            >
+              <ChevronRight className="h-3.5 w-3.5" strokeWidth={2.2} />
+            </button>
+          </div>
+        </div>
       </div>
-      <div className="-mx-1 flex snap-x scroll-px-1 gap-2.5 overflow-x-auto px-1 pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {entries.map((entry) => (
-          <PriorityMiniCard key={entry.item.id} entry={entry} />
-        ))}
+
+      <div className="relative">
+        {canLeft && (
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-white to-transparent" />
+        )}
+        {canRight && (
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-white to-transparent" />
+        )}
+        <div
+          ref={scrollerRef}
+          className="flex snap-x snap-mandatory flex-nowrap gap-3 overflow-x-auto overflow-y-hidden scroll-smooth px-1 pb-2 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {entries.map((entry) => (
+            <PriorityMiniCard key={entry.item.id} entry={entry} />
+          ))}
+        </div>
       </div>
     </Card>
   );
 }
+
 
 
 function FeedInteligente() {

@@ -193,6 +193,15 @@ function formatPercent(value: number | null | undefined): string {
   return `${percent.toFixed(1).replace(".", ",")}%`;
 }
 
+/**
+ * Conversão só é exibida quando existe dado real de visitas.
+ * Ausência de dado nunca vira zero.
+ */
+function conversionDisplay(item: FeedItem): string {
+  if (typeof item.metrics.visits !== "number") return "—";
+  return formatPercent(item.metrics.conversionRate);
+}
+
 /** Dias corridos desde uma data confiável do backend. Nunca estima. */
 function daysSince(value: string | null | undefined): number | null {
   if (!value) return null;

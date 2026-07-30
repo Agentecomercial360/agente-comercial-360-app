@@ -193,6 +193,67 @@ function formatPercent(value: number | null | undefined): string {
   return `${percent.toFixed(1).replace(".", ",")}%`;
 }
 
+/** Dias corridos desde uma data confiável do backend. Nunca estima. */
+function daysSince(value: string | null | undefined): number | null {
+  if (!value) return null;
+  const parsed = new Date(value);
+  const time = parsed.getTime();
+  if (!Number.isFinite(time)) return null;
+  const diff = Math.floor((Date.now() - time) / 86_400_000);
+  return diff >= 0 && diff < 3650 ? diff : null;
+}
+
+function isMissingCost(item: FeedItem): boolean {
+  if (item.status === "missing_cost") return true;
+  const haystack = `${item.statusLabel ?? ""} ${item.diagnostic ?? ""} ${item.badges.join(" ")}`
+    .toLowerCase();
+  return haystack.includes("sem custo") || haystack.includes("custo real");
+}
+
+/** Frase de impacto financeiro usando apenas a receita já retornada pelo backend. */
+function impactLine(item: FeedItem): string | null {
+  if (!isMissingCost(item)) return null;
+  const revenue = item.metrics.revenue;
+  if (typeof revenue !== "number" || revenue <= 0) return null;
+  return `${formatCurrency(revenue)} em receita sem custo auditado.`;
+}
+
+function agingLine(item: FeedItem): string | null {
+  if (!isMissingCost(item)) return null;
+  const days = daysSince(item.statusSince);
+  if (days === null) return null;
+  if (days === 0) return "Sem custo cadastrado desde hoje.";
+  return `Sem custo há ${days} ${days === 1 ? "dia" : "dias"}.`;
+}
+
+/** Diagnóstico consultivo baseado só em vendas, receita e status de custo reais. */
+function consultiveDiagnostic(item: FeedItem): string {
+  if (isMissingCost(item)) {
+    const sales = item.metrics.sales;
+    const revenue = item.metrics.revenue;
+    const parts: string[] = [];
+    if (typeof sales === "number" && sales > 0) {
+      parts.push(`${formatCount(sales)} ${sales === 1 ? "venda" : "vendas"}`);
+    }
+    if (typeof revenue === "number" && revenue > 0) {
+      parts.push(`${formatCurrency(revenue)} de receita`);
+    }
+    const prefix =
+      parts.length > 0
+        ? `Este produto já registrou ${parts.join(" e ")}, mas ainda não tem custo real cadastrado.`
+        : "Este produto ainda não tem custo real cadastrado.";
+    return `${prefix} Sem esse custo, o sistema não consegue confirmar margem, lucro, ROI ou ROAS com segurança.`;
+  }
+  return item.diagnostic ?? "Sem diagnóstico disponível para este anúncio.";
+}
+
+function consultiveAction(item: FeedItem): string {
+  if (isMissingCost(item)) {
+    return "Cadastrar custo real do SKU/produto antes de escalar Ads, comprar mais estoque ou analisar margem.";
+  }
+  return item.recommendedAction ?? "Nenhuma ação recomendada no momento.";
+}
+
 function KpiCard({
   icon: Icon,
   label,

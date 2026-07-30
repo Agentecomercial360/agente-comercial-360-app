@@ -68,7 +68,10 @@ export const Route = createFileRoute("/ecommerce/feed-inteligente")({
 
 const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
 const ACCOUNT_ID = "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4";
-const FEED_LIMIT = 20;
+/** Quantidade solicitada ao GET (o backend pode reduzir internamente). */
+const FEED_FETCH_LIMIT = 60;
+/** Quantidade exibida na tela para preservar performance. */
+const FEED_DISPLAY_LIMIT = 20;
 
 const HEADER_BADGES = [
   { label: "Somente leitura", icon: Lock },

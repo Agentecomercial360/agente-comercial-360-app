@@ -384,7 +384,7 @@ function FeedInteligente() {
     if (data?.filters.length) {
       const relabeled = data.filters.map((filter) =>
         filter.key === "all" || filter.label.trim().toLowerCase() === "todos"
-          ? { ...filter, key: filter.key, label: "Anúncios analisados" }
+          ? { ...filter, key: "analyzed", label: "Anúncios analisados" }
           : filter,
       );
       return [...base, ...relabeled];

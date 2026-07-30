@@ -337,12 +337,13 @@ type PriorityTag = "Sem custo" | "Com vendas" | "Sem imagem" | "Ads" | "Atençã
 type PriorityEntry = { item: FeedItem; tag: PriorityTag; rank: number };
 
 const PRIORITY_TAG_STYLES: Record<PriorityTag, string> = {
-  "Sem custo": "bg-amber-50 text-amber-700 ring-amber-200/80",
-  "Com vendas": "bg-emerald-50 text-emerald-700 ring-emerald-200/80",
-  "Sem imagem": "bg-slate-100 text-slate-600 ring-slate-200/80",
-  Ads: "bg-violet-50 text-violet-700 ring-violet-200/80",
-  Atenção: "bg-rose-50 text-rose-700 ring-rose-200/80",
+  "Sem custo": "bg-violet-50 text-violet-700 ring-violet-200/70",
+  "Com vendas": "bg-emerald-50 text-emerald-700 ring-emerald-200/70",
+  "Sem imagem": "bg-slate-100 text-slate-600 ring-slate-200/70",
+  Ads: "bg-sky-50 text-sky-700 ring-sky-200/70",
+  Atenção: "bg-amber-50 text-amber-700 ring-amber-200/70",
 };
+
 
 function classifyPriority(item: FeedItem): { tag: PriorityTag; rank: number } | null {
   const haystack = [item.statusLabel ?? "", ...item.badges].join(" ").toLowerCase();

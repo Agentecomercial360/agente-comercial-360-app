@@ -527,8 +527,12 @@ function isGeneratedFallbackId(value: string): boolean {
   return /^feed-item-\d+$/i.test(value.trim());
 }
 
+function isMarketplaceListingId(value: string): boolean {
+  return /^MLB\d+$/i.test(value.trim());
+}
+
 function dedupeIdentityKey(item: FeedItem): string | null {
-  const candidates = [item.listingId, item.id]
+  const candidates = [item.listingId, isMarketplaceListingId(item.id) ? item.id : null]
     .map((value) => value?.trim())
     .filter((value): value is string => Boolean(value));
   const identity = candidates.find((value) => !isGeneratedFallbackId(value));

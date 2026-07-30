@@ -24,6 +24,8 @@ import {
   RefreshCw,
   Inbox,
   WifiOff,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { Badge } from "@/components/ui/badge";

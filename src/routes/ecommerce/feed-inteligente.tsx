@@ -1092,7 +1092,7 @@ function FeedInteligente() {
               {!loading && !errorKind && visibleItems.length > 0 && (
                 <p className="text-center text-[11px] text-slate-400">
                   Exibindo {visibleItems.length} de {items.length} itens retornados pelo backend
-                  (limite {FEED_LIMIT}).
+                  (leitura de até {FEED_FETCH_LIMIT}).
                 </p>
               )}
             </div>

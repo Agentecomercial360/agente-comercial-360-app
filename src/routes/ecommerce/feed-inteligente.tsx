@@ -442,18 +442,21 @@ const STATUS_DOT: Record<FeedStatusKey, string> = {
   neutral: "bg-emerald-500",
 };
 
+/** Categoria real do item (mesma fonte usada nos badges) define a cor do anel. */
 function storyRing(item: FeedItem, tag: PriorityTag): string {
   if (item.status !== "neutral") return STATUS_RING[item.status];
-  if (tag === "Sem custo") return PRIORITY_RING[tag];
-  if (tag === "Com vendas") return "ring-emerald-500";
-  return PRIORITY_RING[tag];
+  if (tag === "Sem custo") return PRIORITY_RING["Sem custo"];
+  if (tag === "Com vendas") return PRIORITY_RING["Com vendas"];
+  if (tag === "Ads") return PRIORITY_RING.Ads;
+  return "ring-emerald-500";
 }
 
 function storyDot(item: FeedItem, tag: PriorityTag): string {
   if (item.status !== "neutral") return STATUS_DOT[item.status];
-  if (tag === "Sem custo") return PRIORITY_DOT[tag];
-  if (tag === "Com vendas") return "bg-emerald-500";
-  return PRIORITY_DOT[tag];
+  if (tag === "Sem custo") return PRIORITY_DOT["Sem custo"];
+  if (tag === "Com vendas") return PRIORITY_DOT["Com vendas"];
+  if (tag === "Ads") return PRIORITY_DOT.Ads;
+  return "bg-emerald-500";
 }
 
 function classifyPriority(item: FeedItem): { tag: PriorityTag; rank: number } | null {

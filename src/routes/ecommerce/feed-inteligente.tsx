@@ -1335,7 +1335,7 @@ function FeedInteligente() {
                             )}
                             {isMissingCost(item) && (
                               <p className="mt-1 text-[11.5px] leading-relaxed text-slate-500">
-                                ROI, ROAS e margem dependem do custo real cadastrado.
+                                {LIMITATION_LINE}
                               </p>
                             )}
                           </div>

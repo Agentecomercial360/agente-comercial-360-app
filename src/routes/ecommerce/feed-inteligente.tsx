@@ -966,10 +966,10 @@ function FeedInteligente() {
             </Card>
 
             {(data?.warnings.length ?? 0) > 0 && (
-              <Card className="rounded-3xl border-amber-200/70 bg-gradient-to-br from-amber-50 to-orange-50/60 p-4 shadow-sm">
-                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-amber-700">
-                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                  Avisos do backend
+              <Card className="rounded-3xl border-slate-200/70 bg-slate-50/70 p-4 shadow-sm">
+                <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                  Avisos técnicos da operação
                 </p>
                 <ul className="mt-2 space-y-1.5">
                   {data?.warnings.map((warning) => (

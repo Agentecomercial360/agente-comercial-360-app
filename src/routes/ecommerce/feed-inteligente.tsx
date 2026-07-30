@@ -766,6 +766,8 @@ function FeedInteligente() {
                 return (
                   <Card
                     key={item.id}
+                    id={`feed-item-${item.id}`}
+
                     className={`overflow-hidden rounded-[28px] border-slate-200/70 p-0 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_18px_40px_-32px_rgba(15,23,42,0.45)] ring-1 ring-transparent transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_1px_2px_rgba(15,23,42,0.04),0_26px_56px_-34px_rgba(15,23,42,0.5)] ${status.ring}`}
                   >
                     {/* Cabeçalho do post */}

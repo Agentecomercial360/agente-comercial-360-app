@@ -741,8 +741,29 @@ function FeedInteligente() {
   }, [load]);
 
   const rawItems = useMemo(() => data?.items ?? [], [data]);
+  // Deduplicação por identificador único do anúncio (id; SKU+título como fallback).
+  const uniqueItems = useMemo(() => {
+    const seen = new Set<string>();
+    const out: FeedItem[] = [];
+    for (const item of rawItems) {
+      const key = (item.id || `${item.sku ?? ""}|${item.title}`).trim().toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(item);
+    }
+    return out;
+  }, [rawItems]);
   // Ordenação local: prioridade de negócio primeiro, imagem real como desempate.
-  const items = useMemo(() => [...rawItems].sort(compareFeedItems), [rawItems]);
+  const items = useMemo(() => [...uniqueItems].sort(compareFeedItems), [uniqueItems]);
+  // Anúncios distintos do mesmo produto: destacamos o ID para não parecer duplicidade.
+  const repeatedKeys = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const item of items) {
+      const key = `${item.sku ?? ""}|${item.title}`.trim().toLowerCase();
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return new Set([...counts.entries()].filter(([, n]) => n > 1).map(([k]) => k));
+  }, [items]);
   const summary = data?.summary;
 
   const filters = useMemo(() => {

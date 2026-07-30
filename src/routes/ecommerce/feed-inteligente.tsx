@@ -1106,13 +1106,13 @@ function FeedInteligente() {
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 gap-1.5 rounded-full bg-[#EAF0FF] px-3.5 text-[12px] font-semibold text-[#0B3BC7] hover:bg-[#D9E4FF] hover:text-[#0A2E9E]"
+                            className="h-8 gap-1.5 rounded-full bg-[#E4ECFF] px-3.5 text-[12px] font-semibold text-[#0A2E9E] hover:bg-[#CFDEFF] hover:text-[#08246F]"
                           >
                             <BarChart3 className="h-3.5 w-3.5 shrink-0" />
                             Ver diagnóstico
                           </Button>
-                          <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-slate-200 px-3 text-[10px] font-semibold uppercase leading-none tracking-wider text-slate-700">
-                            <Eye className="h-3 w-3 shrink-0" />
+                          <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-slate-100 px-3 text-[10px] font-semibold uppercase leading-none tracking-wider text-slate-800">
+                            <Eye className="h-3 w-3 shrink-0 text-slate-800" />
                             Somente leitura
                           </span>
                         </div>

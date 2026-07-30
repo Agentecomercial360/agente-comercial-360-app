@@ -35,6 +35,8 @@ export type FeedItem = {
   imageUrl: string | null;
   imageSource: string | null;
   imageSyncedAt: string | null;
+  /** Data confiável vinda do backend (created_at/updated_at/last_status_at/...), se existir. */
+  statusSince: string | null;
   hasImage: boolean;
   diagnostic: string | null;
   recommendedAction: string | null;

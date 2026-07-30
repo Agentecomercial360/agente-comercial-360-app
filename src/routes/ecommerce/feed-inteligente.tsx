@@ -531,8 +531,22 @@ function isMarketplaceListingId(value: string): boolean {
   return /^MLB\d+$/i.test(value.trim());
 }
 
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value.trim(),
+  );
+}
+
+function isReliableItemId(item: FeedItem): boolean {
+  const value = item.id.trim();
+  const sku = normalizeSkuKey(item.sku);
+  if (!value || isGeneratedFallbackId(value)) return false;
+  if (sku && normalizeSkuKey(value) === sku) return false;
+  return isMarketplaceListingId(value) || isUuid(value) || value.includes(":");
+}
+
 function dedupeIdentityKey(item: FeedItem): string | null {
-  const candidates = [item.listingId, isMarketplaceListingId(item.id) ? item.id : null]
+  const candidates = [item.listingId, isReliableItemId(item) ? item.id : null]
     .map((value) => value?.trim())
     .filter((value): value is string => Boolean(value));
   const identity = candidates.find((value) => !isGeneratedFallbackId(value));

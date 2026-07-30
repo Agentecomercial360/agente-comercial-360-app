@@ -162,9 +162,11 @@ function normalizeItem(entry: unknown, index: number): FeedItem | null {
       pick(record, [
         "listing_id",
         "item_id",
+        "ml_item_id",
         "mlb_id",
         "marketplace_listing_id",
         "external_listing_id",
+        "external_id",
         "mercadolivre_item_id",
       ]),
     ) ??
@@ -172,9 +174,11 @@ function normalizeItem(entry: unknown, index: number): FeedItem | null {
       pick(listing, [
         "listing_id",
         "item_id",
+        "ml_item_id",
         "mlb_id",
         "marketplace_listing_id",
         "external_listing_id",
+        "external_id",
         "mercadolivre_item_id",
         "id",
       ]),
@@ -187,8 +191,8 @@ function normalizeItem(entry: unknown, index: number): FeedItem | null {
   return {
     id: listingId ?? rawId ?? toText(pick(record, ["seller_sku", "sku"])) ?? `feed-item-${index}`,
     listingId,
-    title: toText(pick(record, ["title", "name"])) ?? "Anúncio sem título",
-    sku: toText(pick(record, ["seller_sku", "sku"])),
+    title: toText(pick(record, ["title", "name"])) ?? toText(pick(listing, ["title", "name"])) ?? "Anúncio sem título",
+    sku: toText(pick(record, ["seller_sku", "sku", "external_sku"])) ?? toText(pick(listing, ["seller_sku", "sku", "external_sku"])),
     status: toStatus(pick(record, ["status", "status_key", "severity"])),
     statusLabel: toText(pick(record, ["status_label"])),
     metrics: {
@@ -198,7 +202,7 @@ function normalizeItem(entry: unknown, index: number): FeedItem | null {
       conversionRate: toNumber(pick(metrics, ["conversion_rate", "conversao", "conversion"])),
       stock: toNumber(pick(metrics, ["stock", "estoque", "available_quantity"])),
     },
-    imageUrl,
+    imageUrl: imageUrl ?? safeImageUrl(pick(listing, ["image_url", "thumbnail_url"])),
     imageSource: toText(pick(record, ["image_source"])),
     imageSyncedAt: toText(pick(record, ["image_synced_at"])),
     hasImage: toBool(pick(record, ["has_image"])) ?? Boolean(imageUrl),

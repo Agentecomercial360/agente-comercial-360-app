@@ -209,6 +209,19 @@ function normalizeItem(entry: unknown, index: number): FeedItem | null {
     imageUrl,
     imageSource: toText(pick(record, ["image_source"])),
     imageSyncedAt: toText(pick(record, ["image_synced_at"])),
+    statusSince:
+      toText(
+        pick(record, [
+          "last_status_at",
+          "status_changed_at",
+          "diagnostic_created_at",
+          "cost_missing_since",
+          "created_at",
+          "updated_at",
+        ]),
+      ) ??
+      toText(pick(diagnostic, ["created_at", "updated_at", "generated_at"])) ??
+      toText(pick(listing, ["created_at", "updated_at"])),
     hasImage: toBool(pick(record, ["has_image"])) ?? Boolean(imageUrl),
     diagnostic:
       toText(pick(diagnostic, ["message", "text", "description"])) ??

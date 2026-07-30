@@ -20,6 +20,7 @@ export type FeedStatusKey =
 
 export type FeedItem = {
   id: string;
+  listingId: string | null;
   title: string;
   sku: string | null;
   status: FeedStatusKey;
@@ -153,17 +154,47 @@ function normalizeItem(entry: unknown, index: number): FeedItem | null {
   const metrics = asRecord(record.metrics) ?? record;
   const diagnostic = asRecord(record.diagnostic);
   const recommended = asRecord(record.recommended_action);
+  const listing =
+    asRecord(record.listing) ?? asRecord(record.ecommerce_listing) ?? asRecord(record.ad);
+
+  const listingId =
+    toText(
+      pick(record, [
+        "listing_id",
+        "item_id",
+        "ml_item_id",
+        "mlb_id",
+        "marketplace_listing_id",
+        "external_listing_id",
+        "external_id",
+        "mercadolivre_item_id",
+      ]),
+    ) ??
+    toText(
+      pick(listing, [
+        "listing_id",
+        "item_id",
+        "ml_item_id",
+        "mlb_id",
+        "marketplace_listing_id",
+        "external_listing_id",
+        "external_id",
+        "mercadolivre_item_id",
+        "id",
+      ]),
+    );
+  const rawId = toText(pick(record, ["id", "feed_id", "row_id"]));
 
   const imageUrl =
-    safeImageUrl(pick(record, ["image_url"])) ?? safeImageUrl(pick(record, ["thumbnail_url"]));
+    safeImageUrl(pick(record, ["image_url"])) ??
+    safeImageUrl(pick(record, ["thumbnail_url"])) ??
+    safeImageUrl(pick(listing, ["image_url", "thumbnail_url"]));
 
   return {
-    id:
-      toText(pick(record, ["id", "item_id", "listing_id", "mlb_id"])) ??
-      toText(pick(record, ["seller_sku", "sku"])) ??
-      `feed-item-${index}`,
-    title: toText(pick(record, ["title", "name"])) ?? "Anúncio sem título",
-    sku: toText(pick(record, ["seller_sku", "sku"])),
+    id: listingId ?? rawId ?? toText(pick(record, ["seller_sku", "sku"])) ?? `feed-item-${index}`,
+    listingId,
+    title: toText(pick(record, ["title", "name"])) ?? toText(pick(listing, ["title", "name"])) ?? "Anúncio sem título",
+    sku: toText(pick(record, ["seller_sku", "sku", "external_sku"])) ?? toText(pick(listing, ["seller_sku", "sku", "external_sku"])),
     status: toStatus(pick(record, ["status", "status_key", "severity"])),
     statusLabel: toText(pick(record, ["status_label"])),
     metrics: {

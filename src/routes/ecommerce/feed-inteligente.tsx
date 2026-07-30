@@ -68,7 +68,10 @@ export const Route = createFileRoute("/ecommerce/feed-inteligente")({
 
 const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
 const ACCOUNT_ID = "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4";
-const FEED_LIMIT = 20;
+/** Quantidade solicitada ao GET (o backend pode reduzir internamente). */
+const FEED_FETCH_LIMIT = 60;
+/** Quantidade exibida na tela para preservar performance. */
+const FEED_DISPLAY_LIMIT = 20;
 
 const HEADER_BADGES = [
   { label: "Somente leitura", icon: Lock },
@@ -470,6 +473,32 @@ function classifyPriority(item: FeedItem): { tag: PriorityTag; rank: number } | 
   return null;
 }
 
+/**
+ * Prioridade de negócio (camada 1, nunca sobreposta pela imagem):
+ * crítico > sem custo > oportunidade > vendas/saudável.
+ */
+function businessRank(item: FeedItem): number {
+  const haystack = [item.statusLabel ?? "", ...item.badges].join(" ").toLowerCase();
+  if (item.status === "critical") return 0;
+  if (item.status === "missing_cost" || haystack.includes("sem custo")) return 1;
+  if (item.status === "attention") return 2;
+  if (item.status === "opportunity") return 3;
+  return 4;
+}
+
+function hasRealImage(item: FeedItem): boolean {
+  return Boolean(item.imageUrl) || item.hasImage;
+}
+
+/** Camada 1: prioridade de negócio. Camada 2 (desempate): imagem real, depois receita. */
+function compareFeedItems(a: FeedItem, b: FeedItem): number {
+  const rank = businessRank(a) - businessRank(b);
+  if (rank !== 0) return rank;
+  const image = Number(hasRealImage(b)) - Number(hasRealImage(a));
+  if (image !== 0) return image;
+  return (b.metrics.revenue ?? 0) - (a.metrics.revenue ?? 0);
+}
+
 function dedupeBadges(badges: string[]): string[] {
   const seen = new Set<string>();
   const out: string[] = [];
@@ -682,7 +711,7 @@ function FeedInteligente() {
       const preview = await getIntelligentFeedPreview({
         companyId: COMPANY_ID,
         accountId: ACCOUNT_ID,
-        limit: FEED_LIMIT,
+        limit: FEED_FETCH_LIMIT,
         signal: controller.signal,
       });
       if (controller.signal.aborted) return;
@@ -708,7 +737,9 @@ function FeedInteligente() {
     return () => abortRef.current?.abort();
   }, [load]);
 
-  const items = data?.items ?? [];
+  const rawItems = useMemo(() => data?.items ?? [], [data]);
+  // Ordenação local: prioridade de negócio primeiro, imagem real como desempate.
+  const items = useMemo(() => [...rawItems].sort(compareFeedItems), [rawItems]);
   const summary = data?.summary;
 
   const filters = useMemo(() => {
@@ -738,15 +769,18 @@ function FeedInteligente() {
 
   const visibleItems = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return filteredByStatus;
-    return filteredByStatus.filter((i) =>
-      [i.title, i.sku ?? "", i.statusLabel ?? ""].join(" ").toLowerCase().includes(term),
-    );
+    const matched = !term
+      ? filteredByStatus
+      : filteredByStatus.filter((i) =>
+          [i.title, i.sku ?? "", i.statusLabel ?? ""].join(" ").toLowerCase().includes(term),
+        );
+    return matched.slice(0, FEED_DISPLAY_LIMIT);
   }, [filteredByStatus, search]);
 
+  // Reflete apenas os itens realmente exibidos na tela após a ordenação local.
   const itemsWithImage = useMemo(
-    () => summary?.itemsWithImage ?? items.filter((i) => i.hasImage).length,
-    [items, summary],
+    () => visibleItems.filter(hasRealImage).length,
+    [visibleItems],
   );
 
   // Faixa de prioridade: usa somente os feed_items já carregados pelo GET atual.
@@ -757,9 +791,16 @@ function FeedInteligente() {
         return classified ? { item, ...classified } : null;
       })
       .filter((e): e is PriorityEntry => e !== null)
-      .sort((a, b) => a.rank - b.rank || (b.item.metrics.sales ?? 0) - (a.item.metrics.sales ?? 0))
+      .sort(
+        (a, b) =>
+          businessRank(a.item) - businessRank(b.item) ||
+          Number(hasRealImage(b.item)) - Number(hasRealImage(a.item)) ||
+          (b.item.metrics.revenue ?? 0) - (a.item.metrics.revenue ?? 0) ||
+          a.rank - b.rank,
+      )
       .slice(0, 10);
   }, [items]);
+
 
   const revenueTone = summary?.revenueAvailable ? "positive" : "pending";
 
@@ -1051,7 +1092,7 @@ function FeedInteligente() {
               {!loading && !errorKind && visibleItems.length > 0 && (
                 <p className="text-center text-[11px] text-slate-400">
                   Exibindo {visibleItems.length} de {items.length} itens retornados pelo backend
-                  (limite {FEED_LIMIT}).
+                  (leitura de até {FEED_FETCH_LIMIT}).
                 </p>
               )}
             </div>

@@ -224,8 +224,12 @@ function impactLine(item: FeedItem): string | null {
   if (!isMissingCost(item)) return null;
   const revenue = item.metrics.revenue;
   if (typeof revenue !== "number" || revenue <= 0) return null;
-  return `${formatCurrency(revenue)} em receita sem custo auditado.`;
+  return `${formatCurrency(revenue)} em receita com rentabilidade ainda não validada.`;
 }
+
+/** Limitação técnica correta: ROAS depende de dados de Ads, não do custo. */
+const LIMITATION_LINE =
+  "Sem o custo real, o sistema não consegue confirmar margem, lucro ou ROI. Caso existam dados de Ads, o ROAS pode ser calculado, mas sua rentabilidade não pode ser validada.";
 
 function agingLine(item: FeedItem): string | null {
   if (!isMissingCost(item)) return null;
@@ -241,24 +245,22 @@ function consultiveDiagnostic(item: FeedItem): string {
     const sales = item.metrics.sales;
     const revenue = item.metrics.revenue;
     const parts: string[] = [];
-    if (typeof sales === "number" && sales > 0) {
+    if (typeof sales === "number") {
       parts.push(`${formatCount(sales)} ${sales === 1 ? "venda" : "vendas"}`);
     }
-    if (typeof revenue === "number" && revenue > 0) {
-      parts.push(`${formatCurrency(revenue)} de receita`);
+    if (typeof revenue === "number") {
+      parts.push(`${formatCurrency(revenue)} em receita`);
     }
-    const prefix =
-      parts.length > 0
-        ? `Este produto já registrou ${parts.join(" e ")}, mas ainda não tem custo real cadastrado.`
-        : "Este produto ainda não tem custo real cadastrado.";
-    return `${prefix} Sem esse custo, o sistema não consegue confirmar margem, lucro, ROI ou ROAS com segurança.`;
+    return parts.length > 0
+      ? `Este produto registrou ${parts.join(" e ")}, mas ainda não possui custo real cadastrado.`
+      : "Este produto ainda não possui custo real cadastrado.";
   }
   return item.diagnostic ?? "Sem diagnóstico disponível para este anúncio.";
 }
 
 function consultiveAction(item: FeedItem): string {
   if (isMissingCost(item)) {
-    return "Cadastrar custo real do SKU/produto antes de escalar Ads, comprar mais estoque ou analisar margem.";
+    return "Cadastrar o custo real do SKU antes de avaliar margem, lucro, preço ou expansão de Ads.";
   }
   return item.recommendedAction ?? "Nenhuma ação recomendada no momento.";
 }

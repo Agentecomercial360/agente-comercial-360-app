@@ -711,7 +711,7 @@ function FeedInteligente() {
       const preview = await getIntelligentFeedPreview({
         companyId: COMPANY_ID,
         accountId: ACCOUNT_ID,
-        limit: FEED_LIMIT,
+        limit: FEED_FETCH_LIMIT,
         signal: controller.signal,
       });
       if (controller.signal.aborted) return;

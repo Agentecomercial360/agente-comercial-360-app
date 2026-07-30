@@ -332,6 +332,120 @@ function FeedProductCover({ item, status }: { item: FeedItem; status: (typeof ST
   );
 }
 
+type PriorityTag = "Sem custo" | "Com vendas" | "Sem imagem" | "Ads" | "Atenção";
+
+type PriorityEntry = { item: FeedItem; tag: PriorityTag; rank: number };
+
+const PRIORITY_TAG_STYLES: Record<PriorityTag, string> = {
+  "Sem custo": "bg-amber-50 text-amber-700 ring-amber-200/80",
+  "Com vendas": "bg-emerald-50 text-emerald-700 ring-emerald-200/80",
+  "Sem imagem": "bg-slate-100 text-slate-600 ring-slate-200/80",
+  Ads: "bg-violet-50 text-violet-700 ring-violet-200/80",
+  Atenção: "bg-rose-50 text-rose-700 ring-rose-200/80",
+};
+
+function classifyPriority(item: FeedItem): { tag: PriorityTag; rank: number } | null {
+  const haystack = [item.statusLabel ?? "", ...item.badges].join(" ").toLowerCase();
+  const sales = item.metrics.sales ?? 0;
+  if (item.status === "missing_cost" || haystack.includes("custo")) {
+    return { tag: "Sem custo", rank: 1 };
+  }
+  if (sales > 0) return { tag: "Com vendas", rank: 2 };
+  if (!item.hasImage && !item.imageUrl) return { tag: "Sem imagem", rank: 3 };
+  if (haystack.includes("ads") || haystack.includes("publicidade")) {
+    return { tag: "Ads", rank: 4 };
+  }
+  if (item.status === "critical" || item.status === "attention") {
+    return { tag: "Atenção", rank: 5 };
+  }
+  return null;
+}
+
+function PriorityMiniCard({ entry }: { entry: PriorityEntry }) {
+  const { item, tag } = entry;
+  const [broken, setBroken] = useState(false);
+  const showImage = Boolean(item.imageUrl) && !broken;
+  const sales = item.metrics.sales;
+  const revenue = item.metrics.revenue;
+  const metricLabel = sales && sales > 0 ? "Vendas" : "Receita";
+  const metricValue =
+    sales && sales > 0 ? formatCount(sales) : revenue ? formatCurrency(revenue) : "—";
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        if (typeof document === "undefined") return;
+        document
+          .getElementById(`feed-item-${item.id}`)
+          ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }}
+      className="group flex w-[168px] shrink-0 snap-start flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white text-left shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_26px_-24px_rgba(15,23,42,0.45)] transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_1px_2px_rgba(15,23,42,0.04),0_16px_34px_-24px_rgba(37,99,235,0.45)]"
+    >
+      <div className="relative flex aspect-[16/9] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-slate-100 to-slate-50">
+        {showImage ? (
+          <img
+            src={item.imageUrl as string}
+            alt={item.title}
+            loading="lazy"
+            onError={() => setBroken(true)}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <ImageIcon className="h-5 w-5 shrink-0 text-slate-400" strokeWidth={1.8} />
+        )}
+        <span
+          className={`absolute left-2 top-2 inline-flex h-[18px] items-center rounded-full px-2 text-[9px] font-semibold leading-none tracking-tight ring-1 ${PRIORITY_TAG_STYLES[tag]}`}
+        >
+          {tag}
+        </span>
+      </div>
+      <div className="flex flex-1 flex-col gap-1.5 px-3 py-2.5">
+        <p className="line-clamp-2 text-[11.5px] font-semibold leading-snug tracking-tight text-slate-800">
+          {item.title}
+        </p>
+        <span className="inline-flex h-[16px] w-fit max-w-full items-center truncate rounded-md bg-slate-100 px-1.5 text-[9.5px] font-semibold leading-none text-slate-500">
+          {item.sku ?? "SKU não informado"}
+        </span>
+        <div className="mt-auto flex items-baseline gap-1 pt-1">
+          <span className="text-[9.5px] font-medium uppercase tracking-wider text-slate-400">
+            {metricLabel}
+          </span>
+          <span className="text-[12px] font-semibold tabular-nums text-slate-900">
+            {metricValue}
+          </span>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function PriorityStrip({ entries }: { entries: PriorityEntry[] }) {
+  if (entries.length === 0) return null;
+  return (
+    <Card className="rounded-3xl border-slate-200/60 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_-28px_rgba(15,23,42,0.4)]">
+      <div className="mb-3.5 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-sm">
+            <Target className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
+          </span>
+          <h2 className="text-sm font-semibold tracking-tight text-slate-800">
+            Produtos que merecem atenção agora
+          </h2>
+        </div>
+        <span className="hidden text-[10.5px] font-medium text-slate-400 sm:inline">
+          {entries.length} destaque(s)
+        </span>
+      </div>
+      <div className="-mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {entries.map((entry) => (
+          <PriorityMiniCard key={entry.item.id} entry={entry} />
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 function FeedInteligente() {
   const [data, setData] = useState<IntelligentFeedPreview | null>(null);
   const [loading, setLoading] = useState(true);

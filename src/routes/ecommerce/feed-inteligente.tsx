@@ -737,7 +737,9 @@ function FeedInteligente() {
     return () => abortRef.current?.abort();
   }, [load]);
 
-  const items = data?.items ?? [];
+  const rawItems = useMemo(() => data?.items ?? [], [data]);
+  // Ordenação local: prioridade de negócio primeiro, imagem real como desempate.
+  const items = useMemo(() => [...rawItems].sort(compareFeedItems), [rawItems]);
   const summary = data?.summary;
 
   const filters = useMemo(() => {
@@ -767,15 +769,18 @@ function FeedInteligente() {
 
   const visibleItems = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return filteredByStatus;
-    return filteredByStatus.filter((i) =>
-      [i.title, i.sku ?? "", i.statusLabel ?? ""].join(" ").toLowerCase().includes(term),
-    );
+    const matched = !term
+      ? filteredByStatus
+      : filteredByStatus.filter((i) =>
+          [i.title, i.sku ?? "", i.statusLabel ?? ""].join(" ").toLowerCase().includes(term),
+        );
+    return matched.slice(0, FEED_DISPLAY_LIMIT);
   }, [filteredByStatus, search]);
 
+  // Reflete apenas os itens realmente exibidos na tela após a ordenação local.
   const itemsWithImage = useMemo(
-    () => summary?.itemsWithImage ?? items.filter((i) => i.hasImage).length,
-    [items, summary],
+    () => visibleItems.filter(hasRealImage).length,
+    [visibleItems],
   );
 
   // Faixa de prioridade: usa somente os feed_items já carregados pelo GET atual.
@@ -786,9 +791,16 @@ function FeedInteligente() {
         return classified ? { item, ...classified } : null;
       })
       .filter((e): e is PriorityEntry => e !== null)
-      .sort((a, b) => a.rank - b.rank || (b.item.metrics.sales ?? 0) - (a.item.metrics.sales ?? 0))
+      .sort(
+        (a, b) =>
+          businessRank(a.item) - businessRank(b.item) ||
+          Number(hasRealImage(b.item)) - Number(hasRealImage(a.item)) ||
+          (b.item.metrics.revenue ?? 0) - (a.item.metrics.revenue ?? 0) ||
+          a.rank - b.rank,
+      )
       .slice(0, 10);
   }, [items]);
+
 
   const revenueTone = summary?.revenueAvailable ? "positive" : "pending";
 

@@ -318,7 +318,7 @@ function FeedProductCover({ item, status }: { item: FeedItem; status: (typeof ST
               <ImageIcon className={`h-6 w-6 shrink-0 ${status.coverIcon}`} strokeWidth={1.8} />
             </span>
             <span className="text-[10.5px] font-medium tracking-tight text-slate-500">
-              Sem imagem sincronizada
+              Imagem ainda não sincronizada
             </span>
           </div>
         </>
@@ -380,9 +380,14 @@ function FeedInteligente() {
   const summary = data?.summary;
 
   const filters = useMemo(() => {
-    const base = [{ key: "all", label: "Todos", count: items.length }];
+    const base = [{ key: "all", label: "Itens no feed", count: items.length }];
     if (data?.filters.length) {
-      return [...base, ...data.filters];
+      const relabeled = data.filters.map((filter) =>
+        filter.key === "all" || filter.label.trim().toLowerCase() === "todos"
+          ? { ...filter, key: "analyzed", label: "Anúncios analisados" }
+          : filter,
+      );
+      return [...base, ...relabeled];
     }
     return [
       ...base,
@@ -395,7 +400,7 @@ function FeedInteligente() {
   }, [data, items]);
 
   const visibleItems = useMemo(() => {
-    if (activeFilter === "all") return items;
+    if (activeFilter === "all" || activeFilter === "analyzed") return items;
     return items.filter((i) => i.status === activeFilter);
   }, [activeFilter, items]);
 
@@ -496,7 +501,7 @@ function FeedInteligente() {
                     </span>
                   </div>
                   <div className="flex items-center justify-between rounded-xl bg-amber-50/70 px-3 py-2">
-                    <span className="text-[11px] text-slate-600">Itens com imagem</span>
+                    <span className="text-[11px] text-slate-600">Itens com imagem no feed</span>
                     <span className="text-[11px] font-semibold text-amber-700">
                       {loading ? "—" : formatCount(itemsWithImage)}
                     </span>
@@ -794,7 +799,7 @@ function FeedInteligente() {
                   value={loading ? "—" : formatCount(summary?.feedItemsReturned ?? items.length)}
                 />
                 <ContextRow
-                  label="Itens com imagem"
+                  label="Itens com imagem no feed"
                   value={loading ? "—" : formatCount(itemsWithImage)}
                 />
                 <ContextRow label="Modo" value={data?.mode ?? "Somente leitura"} />

@@ -417,35 +417,35 @@ function ConsultiveChat({
       {/* Coluna central — conversa */}
       <div className="order-1 flex min-w-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(10,31,68,0.55)] lg:order-2">
         {/* Cabeçalho da conversa */}
-        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5">
-          <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white shadow-md shadow-[#1E5EFF]/25">
-            <Bot className="h-5 w-5" />
-            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+        <div className="flex items-center gap-4 border-b border-slate-100 px-6 py-5">
+          <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4C87FF] via-[#1E5EFF] to-[#0A1F44] text-white shadow-md shadow-[#1E5EFF]/25">
+            <Sparkles className="h-5 w-5" />
+            <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500" />
           </span>
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="truncate text-[15px] font-bold tracking-tight text-[#0A1F44]">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h2 className="truncate text-[19px] font-bold tracking-tight text-[#0A1F44]">
                 Chat Consultivo Studio IA
               </h2>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
+                <ShieldCheck className="h-3 w-3 text-emerald-600" />
                 Somente leitura
               </span>
             </div>
-            <p className="mt-0.5 truncate text-[11px] font-medium text-slate-400">
+            <p className="mt-1 truncate text-[12px] font-medium text-slate-400">
               {activeTopic.label} · {activeTopic.hint}
             </p>
           </div>
 
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
               onClick={copyLastAnswer}
               title="Copiar resposta"
               aria-label="Copiar resposta"
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-[#1E5EFF]/30 hover:bg-[#EAF0FF] hover:text-[#1E5EFF]"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-[#1E5EFF]"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
             </button>
             <button
               type="button"
@@ -453,25 +453,26 @@ function ConsultiveChat({
               title="Ver fontes usadas nesta resposta"
               aria-label="Ver fontes usadas nesta resposta"
               aria-expanded={showSources}
-              className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
+              className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
                 showSources
-                  ? "border-[#1E5EFF]/30 bg-[#EAF0FF] text-[#1E5EFF]"
-                  : "border-slate-200 bg-white text-slate-500 hover:border-[#1E5EFF]/30 hover:bg-[#EAF0FF] hover:text-[#1E5EFF]"
+                  ? "bg-[#EAF0FF] text-[#1E5EFF]"
+                  : "text-slate-500 hover:bg-slate-100 hover:text-[#1E5EFF]"
               }`}
             >
-              <Database className="h-3.5 w-3.5" />
+              <Database className="h-4 w-4" />
             </button>
             <button
               type="button"
               disabled
               title="Criar tarefa a partir desta resposta — em breve"
               aria-label="Criar tarefa a partir desta resposta — em breve"
-              className="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-full border border-dashed border-slate-200 bg-slate-50 text-slate-300"
+              className="flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-full text-slate-300"
             >
-              <ListPlus className="h-3.5 w-3.5" />
+              <ListPlus className="h-4 w-4" />
             </button>
           </div>
         </div>
+
 
         {/* Sobre este modo / fontes */}
         <div className="border-b border-slate-100 bg-slate-50/60 px-4 py-2">

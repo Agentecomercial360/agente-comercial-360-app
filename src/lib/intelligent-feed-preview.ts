@@ -291,6 +291,8 @@ export function normalizeIntelligentFeedPreview(payload: unknown): IntelligentFe
 
   return {
     mode: toText(pick(root, ["mode"]) ?? pick(data, ["mode"])),
+    periodLabel: readPeriodLabel(root, data, summaryRecord),
+
     writeAllowed: toBool(pick(root, ["write_allowed"])) ?? false,
     writeExecuted: toBool(pick(root, ["write_executed"])) ?? false,
     externalMarketplaceCalled: toBool(pick(root, ["external_marketplace_called"])) ?? false,

@@ -1399,14 +1399,20 @@ function FeedInteligente() {
                                 {impactLine(item)}
                               </p>
                             )}
+                            {priorityReason(item) && (
+                              <p className="mt-1.5 text-[11.5px] leading-relaxed text-slate-600">
+                                {priorityReason(item)}
+                              </p>
+                            )}
                             {agingLine(item) && (
                               <p className="mt-1 text-[11.5px] leading-relaxed text-slate-500">
                                 {agingLine(item)}
                               </p>
                             )}
-                            {isMissingCost(item) && (
-                              <p className="mt-1 text-[11.5px] leading-relaxed text-slate-500">
-                                {LIMITATION_LINE}
+                            <DataAvailability item={item} />
+                            {!visitsAreConsolidated(item) && (
+                              <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
+                                {VISITS_NOTE}
                               </p>
                             )}
                           </div>
@@ -1417,8 +1423,14 @@ function FeedInteligente() {
                             <p className="mt-1.5 text-[12.5px] font-medium leading-relaxed">
                               {consultiveAction(item)}
                             </p>
+                            {outcomeLine(item) && (
+                              <p className="mt-1.5 text-[11.5px] leading-relaxed opacity-80">
+                                {outcomeLine(item)}
+                              </p>
+                            )}
                           </div>
                         </div>
+
 
                         {/* Rodapé */}
                         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-4">

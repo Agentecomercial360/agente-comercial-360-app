@@ -275,6 +275,35 @@ function normalizeFilters(value: unknown): FeedFilter[] {
     .filter((f): f is FeedFilter => f !== null);
 }
 
+/** Formata uma data ISO como dd/mm/aaaa. Retorna null se não for data válida. */
+function formatDay(value: string): string | null {
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) return value;
+  return parsed.toLocaleDateString("pt-BR");
+}
+
+/**
+ * Lê o período analisado apenas de campos confiáveis do backend.
+ * Nunca inventa datas nem infere períodos.
+ */
+function readPeriodLabel(...sources: (UnknownRecord | null)[]): string | null {
+  for (const source of sources) {
+    const direct = toText(
+      pick(source, ["period_label", "period", "reference_period", "analyzed_period"]),
+    );
+    if (direct) return direct;
+
+    const nested = asRecord(pick(source, ["period", "analyzed_period", "reference_period"]));
+    const from = toText(pick(source, ["date_from", "start_date"])) ?? toText(pick(nested, ["date_from", "start_date", "from"]));
+    const to = toText(pick(source, ["date_to", "end_date"])) ?? toText(pick(nested, ["date_to", "end_date", "to"]));
+    if (from && to) return `${formatDay(from)} a ${formatDay(to)}`;
+    if (from) return `a partir de ${formatDay(from)}`;
+    if (to) return `até ${formatDay(to)}`;
+  }
+  return null;
+}
+
+
 export function normalizeIntelligentFeedPreview(payload: unknown): IntelligentFeedPreview {
   const root = asRecord(payload) ?? {};
   const data = asRecord(root.data) ?? root;

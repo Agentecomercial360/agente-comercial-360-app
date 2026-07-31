@@ -335,7 +335,30 @@ function outcomeLine(item: FeedItem): string | null {
 }
 
 
+/** Apresentação compacta das fontes disponíveis e pendentes do item. */
+function DataAvailability({ item }: { item: FeedItem }) {
+  const { available, pending } = dataAvailability(item);
+  if (available.length === 0 && pending.length === 0) return null;
+  return (
+    <div className="mt-2 space-y-0.5 text-[11px] leading-relaxed text-slate-500">
+      {available.length > 0 && (
+        <p>
+          <span className="font-semibold text-slate-600">Dados disponíveis:</span>{" "}
+          {available.join(", ")}.
+        </p>
+      )}
+      {pending.length > 0 && (
+        <p>
+          <span className="font-semibold text-slate-600">Dados pendentes:</span>{" "}
+          {pending.join(", ")}.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function KpiCard({
+
   icon: Icon,
   label,
   value,

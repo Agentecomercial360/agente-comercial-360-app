@@ -1362,8 +1362,9 @@ function FeedInteligente() {
                           <Metric
                             icon={Eye}
                             label="visitas"
-                            value={formatCount(item.metrics.visits)}
+                            value={visitsDisplay(item)}
                           />
+
                           <Metric
                             icon={Boxes}
                             label="estoque"

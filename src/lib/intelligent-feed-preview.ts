@@ -31,7 +31,12 @@ export type FeedItem = {
     revenue: number | null;
     conversionRate: number | null;
     stock: number | null;
+    cost: number | null;
+    ads: number | null;
   };
+  /** Confirmação explícita do backend de que a fonte de visitas está consolidada. */
+  visitsAvailable: boolean | null;
+
   imageUrl: string | null;
   imageSource: string | null;
   imageSyncedAt: string | null;

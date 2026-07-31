@@ -4,21 +4,28 @@ import {
   AlertTriangle,
   BadgeCheck,
   Bot,
-  Gauge,
-
+  Boxes,
+  Check,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   Coins,
+  Copy,
+  Database,
   Eye,
+  Gauge,
   Lightbulb,
   ListChecks,
+  ListPlus,
   LoaderCircle,
   Lock,
+  Percent,
+  Receipt,
   RefreshCw,
   Send,
   ShieldCheck,
   Sparkles,
-  User,
+  Store,
 } from "lucide-react";
 import { ECOMMERCE_COMPANY_ID, useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import {
@@ -175,14 +182,6 @@ function answerFor(question: string, data: StudioIaDiagnosticPreview): string {
   }
 }
 
-function SafetyBadge({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/80 px-3 py-1.5 text-[11px] font-semibold text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.06)] backdrop-blur-sm">
-      {children}
-    </span>
-  );
-}
-
 function StatusChip({
   label,
   tone,
@@ -192,10 +191,10 @@ function StatusChip({
 }) {
   const toneClass =
     tone === "positive"
-      ? "border-emerald-200/80 bg-emerald-50 text-emerald-700"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
       : tone === "warning"
-        ? "border-amber-200/80 bg-amber-50 text-amber-700"
-        : "border-slate-200/80 bg-white text-slate-500";
+        ? "border-amber-200 bg-amber-50 text-amber-700"
+        : "border-slate-200 bg-white text-slate-500";
   const dotClass =
     tone === "positive" ? "bg-emerald-500" : tone === "warning" ? "bg-amber-500" : "bg-slate-300";
   return (
@@ -208,39 +207,84 @@ function StatusChip({
   );
 }
 
-function ContextRow({
+type ContextTone = "default" | "warning" | "positive" | "info" | "violet" | "muted";
+
+function ContextBlock({
+  icon,
   label,
   value,
   tone = "default",
 }: {
+  icon: React.ReactNode;
   label: string;
   value: string;
-  tone?: "default" | "warning" | "positive" | "info" | "violet" | "muted";
+  tone?: ContextTone;
 }) {
-  const valueCls =
-    tone === "warning"
-      ? "text-amber-700 bg-amber-50 border-amber-200"
-      : tone === "positive"
-        ? "text-emerald-700 bg-emerald-50 border-emerald-200"
-        : tone === "info"
-          ? "text-sky-700 bg-sky-50 border-sky-200"
-          : tone === "violet"
-            ? "text-violet-700 bg-violet-50 border-violet-200"
-            : tone === "muted"
-              ? "text-slate-500 bg-slate-50 border-slate-200"
-              : "text-slate-900 bg-slate-50 border-slate-200/70";
+  const toneMap: Record<ContextTone, { box: string; icon: string; value: string }> = {
+    default: {
+      box: "border-slate-200 bg-white",
+      icon: "bg-slate-100 text-slate-500",
+      value: "text-slate-900",
+    },
+    positive: {
+      box: "border-emerald-200/70 bg-emerald-50/40",
+      icon: "bg-emerald-100 text-emerald-600",
+      value: "text-emerald-700",
+    },
+    warning: {
+      box: "border-amber-200/70 bg-amber-50/40",
+      icon: "bg-amber-100 text-amber-600",
+      value: "text-amber-700",
+    },
+    info: {
+      box: "border-sky-200/70 bg-sky-50/40",
+      icon: "bg-sky-100 text-sky-600",
+      value: "text-sky-700",
+    },
+    violet: {
+      box: "border-violet-200/70 bg-violet-50/40",
+      icon: "bg-violet-100 text-violet-600",
+      value: "text-violet-700",
+    },
+    muted: {
+      box: "border-slate-200 bg-slate-50/60",
+      icon: "bg-slate-100 text-slate-400",
+      value: "text-slate-500",
+    },
+  };
+  const t = toneMap[tone];
   return (
-    <div className="flex items-center justify-between gap-3 rounded-lg px-1.5 py-1.5 transition hover:bg-slate-50/80">
-      <span className="text-[11px] font-medium text-slate-500">{label}</span>
-      <span
-        className={`shrink-0 rounded-md border px-2 py-0.5 text-[11px] font-semibold ${valueCls}`}
-      >
-        {value}
+    <div className={`flex items-center gap-2.5 rounded-2xl border px-2.5 py-2 ${t.box}`}>
+      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl ${t.icon}`}>
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[10px] font-semibold uppercase tracking-wide text-slate-400">
+          {label}
+        </span>
+        <span className={`block truncate text-[13px] font-bold ${t.value}`}>{value}</span>
       </span>
     </div>
   );
 }
 
+function TypingBubble() {
+  return (
+    <div className="flex items-end gap-2.5">
+      <span className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white ring-2 ring-white">
+        <Sparkles className="h-3.5 w-3.5" />
+      </span>
+      <span className="inline-flex items-center gap-2 rounded-[18px] rounded-bl-md border border-slate-200 bg-white px-4 py-3 text-xs font-medium text-slate-500 shadow-sm">
+        <span className="flex gap-1">
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#1E5EFF]/60 [animation-delay:-0.2s]" />
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#1E5EFF]/60 [animation-delay:-0.1s]" />
+          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#1E5EFF]/60" />
+        </span>
+        Consultando dados do diagnóstico...
+      </span>
+    </div>
+  );
+}
 
 function ConsultiveChat({
   data,
@@ -262,21 +306,39 @@ function ConsultiveChat({
   const [messages, setMessages] = useState<ChatMessage[]>(intro);
   const [input, setInput] = useState("");
   const [topic, setTopic] = useState<TopicKey>("diagnostico");
+  const [thinking, setThinking] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [showSources, setShowSources] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
   const endRef = useRef<HTMLDivElement | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "nearest" });
-  }, [messages]);
+  }, [messages, thinking]);
+
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
   const activeTopic = TOPICS.find((t) => t.key === topic) ?? TOPICS[0];
 
   const push = (question: string) => {
     const stamp = Date.now();
-    setMessages((prev) => [
-      ...prev,
-      { id: `u-${stamp}`, role: "user", text: question },
-      { id: `a-${stamp}`, role: "assistant", text: answerFor(question, data) },
-    ]);
+    const answer = answerFor(question, data);
+    setMessages((prev) => [...prev, { id: `u-${stamp}`, role: "user", text: question }]);
+    setThinking(true);
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      setThinking(false);
+      setMessages((prev) => [...prev, { id: `a-${stamp}`, role: "assistant", text: answer }]);
+    }, 420);
+  };
+
+  const copyLastAnswer = () => {
+    const last = [...messages].reverse().find((m) => m.role === "assistant");
+    if (!last) return;
+    void navigator.clipboard?.writeText(last.text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
   };
 
   const costsPending = data.summary.costs_pending === true;
@@ -285,13 +347,13 @@ function ConsultiveChat({
     data.summary.sources_available ?? data.sourceStatus.filter((s) => s.available).length;
 
   return (
-    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[230px_minmax(0,1fr)_270px] lg:items-start">
+    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[238px_minmax(0,1fr)_282px] lg:items-start">
       {/* Coluna esquerda — assuntos */}
-      <aside className="order-2 rounded-[22px] border border-indigo-100/80 bg-gradient-to-b from-indigo-50/70 via-white to-white p-4 shadow-[0_18px_44px_-30px_rgba(49,46,129,0.55),0_1px_2px_rgba(15,23,42,0.03)] ring-1 ring-white/70 lg:order-1">
-        <p className="px-0.5 pb-3 text-[11px] font-bold uppercase tracking-[0.14em] text-indigo-600/90">
+      <aside className="order-2 rounded-[22px] border border-slate-200 bg-white p-3 shadow-[0_10px_30px_-24px_rgba(10,31,68,0.45)] lg:order-1">
+        <p className="px-1.5 pb-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
           Assuntos do Studio IA
         </p>
-        <div className="grid gap-2.5 border-t border-indigo-100/70 pt-3 sm:grid-cols-2 lg:grid-cols-1">
+        <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-1">
           {TOPICS.map((t) => {
             const active = t.key === topic;
             return (
@@ -299,17 +361,18 @@ function ConsultiveChat({
                 key={t.key}
                 type="button"
                 onClick={() => setTopic(t.key)}
-                className={`group flex w-full items-center gap-3 rounded-2xl border px-3 py-3 text-left transition-all duration-200 ease-out ${
+                aria-pressed={active}
+                className={`group flex w-[220px] shrink-0 snap-start items-center gap-2.5 rounded-2xl border border-l-[3px] px-3 py-2.5 text-left transition-all duration-200 sm:w-full ${
                   active
-                    ? "border-indigo-300/80 bg-gradient-to-r from-blue-50 via-indigo-50 to-violet-50 text-indigo-800 shadow-[0_10px_24px_-14px_rgba(79,70,229,0.75)] ring-1 ring-indigo-200/60"
-                    : "border-slate-200/70 bg-white/90 text-slate-600 shadow-[0_1px_2px_rgba(15,23,42,0.04)] hover:-translate-y-0.5 hover:border-indigo-200/80 hover:bg-white hover:shadow-[0_10px_22px_-16px_rgba(49,46,129,0.6)]"
+                    ? "border-[#1E5EFF]/25 border-l-[#1E5EFF] bg-[#EAF0FF] text-[#0A1F44]"
+                    : "border-slate-200 border-l-transparent bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                 }`}
               >
                 <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition ${
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition ${
                     active
-                      ? "bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-md shadow-indigo-500/35 ring-2 ring-white/70"
-                      : "bg-slate-100 text-slate-500 group-hover:bg-indigo-50 group-hover:text-indigo-500"
+                      ? "bg-[#1E5EFF] text-white shadow-sm shadow-[#1E5EFF]/30"
+                      : "bg-slate-100 text-slate-500 group-hover:bg-[#EAF0FF] group-hover:text-[#1E5EFF]"
                   }`}
                 >
                   {t.icon}
@@ -321,7 +384,7 @@ function ConsultiveChat({
                     {t.label}
                   </span>
                   <span
-                    className={`mt-0.5 block truncate text-[10px] leading-tight ${active ? "text-indigo-500/80" : "text-slate-400"}`}
+                    className={`mt-0.5 block truncate text-[10px] leading-tight ${active ? "text-[#1E5EFF]/70" : "text-slate-400"}`}
                   >
                     {t.hint}
                   </span>
@@ -332,62 +395,142 @@ function ConsultiveChat({
         </div>
       </aside>
 
-
       {/* Coluna central — conversa */}
-      <div className="order-1 min-w-0 overflow-hidden rounded-[22px] border border-slate-200/70 bg-white/95 shadow-[0_24px_60px_-32px_rgba(49,46,129,0.45),0_2px_6px_-2px_rgba(15,23,42,0.06)] ring-1 ring-white/60 backdrop-blur-sm lg:order-2">
-        <div className="h-1 w-full bg-gradient-to-r from-blue-600 via-indigo-500 to-violet-600" />
-        <div className="flex items-center gap-3 border-b border-slate-100 bg-gradient-to-r from-white via-sky-50/70 to-violet-50/60 px-4 py-3.5">
-          <span className="rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 p-2.5 text-white shadow-md shadow-indigo-500/30 ring-1 ring-white/40">
-            {activeTopic.icon}
+      <div className="order-1 flex min-w-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(10,31,68,0.55)] lg:order-2">
+        {/* Cabeçalho da conversa */}
+        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5">
+          <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white shadow-md shadow-[#1E5EFF]/25">
+            <Bot className="h-5 w-5" />
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
           </span>
-          <span className="min-w-0">
-            <span className="block truncate text-[15px] font-bold tracking-tight text-slate-900">
-              {activeTopic.label}
-            </span>
-            <span className="block truncate text-[11px] font-medium text-slate-400">
-              {activeTopic.hint}
-            </span>
-          </span>
-          <span className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-full border border-slate-200/70 bg-white/90 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-slate-400 shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_0_3px_rgba(52,211,153,0.18)]" />
-            Contexto do chat
-          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="truncate text-[15px] font-bold tracking-tight text-[#0A1F44]">
+                Chat Consultivo Studio IA
+              </h2>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                Somente leitura
+              </span>
+            </div>
+            <p className="mt-0.5 truncate text-[11px] font-medium text-slate-400">
+              {activeTopic.label} · {activeTopic.hint}
+            </p>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1">
+            <button
+              type="button"
+              onClick={copyLastAnswer}
+              title="Copiar resposta"
+              aria-label="Copiar resposta"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-[#1E5EFF]/30 hover:bg-[#EAF0FF] hover:text-[#1E5EFF]"
+            >
+              {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowSources((v) => !v)}
+              title="Ver fontes usadas nesta resposta"
+              aria-label="Ver fontes usadas nesta resposta"
+              aria-expanded={showSources}
+              className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
+                showSources
+                  ? "border-[#1E5EFF]/30 bg-[#EAF0FF] text-[#1E5EFF]"
+                  : "border-slate-200 bg-white text-slate-500 hover:border-[#1E5EFF]/30 hover:bg-[#EAF0FF] hover:text-[#1E5EFF]"
+              }`}
+            >
+              <Database className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              disabled
+              title="Criar tarefa a partir desta resposta — em breve"
+              aria-label="Criar tarefa a partir desta resposta — em breve"
+              className="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-full border border-dashed border-slate-200 bg-slate-50 text-slate-300"
+            >
+              <ListPlus className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
 
-        <div className="relative max-h-[24rem] min-h-[15rem] space-y-3.5 overflow-y-auto bg-[radial-gradient(ellipse_at_top,rgba(224,231,255,0.45),transparent_60%)] bg-slate-50/50 p-4 sm:p-5">
-          <div className="pointer-events-none absolute inset-y-0 left-[30px] hidden w-px bg-gradient-to-b from-transparent via-slate-200/70 to-transparent sm:block" />
+        {/* Sobre este modo / fontes */}
+        <div className="border-b border-slate-100 bg-slate-50/60 px-4 py-2">
+          <button
+            type="button"
+            onClick={() => setShowAbout((v) => !v)}
+            aria-expanded={showAbout}
+            className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-[#1E5EFF]"
+          >
+            <ShieldCheck className="h-3.5 w-3.5" />
+            Sobre este modo
+            <ChevronDown className={`h-3 w-3 transition ${showAbout ? "rotate-180" : ""}`} />
+          </button>
+          {showAbout && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                <ShieldCheck className="h-3 w-3 text-emerald-600" /> Somente leitura
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                <BadgeCheck className="h-3 w-3 text-[#1E5EFF]" /> IA externa não chamada
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                <Lock className="h-3 w-3 text-slate-500" /> Sem ações automáticas
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600">
+                <Eye className="h-3 w-3 text-violet-600" /> Prévia consultiva
+              </span>
+            </div>
+          )}
+          {showSources && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {data.sourceStatus.map((s) => (
+                <span
+                  key={s.source}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
+                    s.available
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : "border-amber-200 bg-amber-50 text-amber-700"
+                  }`}
+                >
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${s.available ? "bg-emerald-500" : "bg-amber-500"}`}
+                  />
+                  {s.source}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
 
-
+        {/* Mensagens */}
+        <div className="max-h-[26rem] min-h-[16rem] space-y-4 overflow-y-auto bg-slate-50/50 p-4 sm:p-5">
           {messages.map((m) => (
             <div
               key={m.id}
-              className={`relative flex gap-2.5 ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`flex items-end gap-2.5 ${m.role === "user" ? "justify-end" : "justify-start"}`}
             >
               {m.role === "assistant" && (
-                <span className="mt-0.5 shrink-0 self-start rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 p-2 text-white shadow-md shadow-indigo-500/30 ring-2 ring-white">
-                  <Sparkles className="h-4 w-4" />
+                <span className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white ring-2 ring-white">
+                  <Sparkles className="h-3.5 w-3.5" />
                 </span>
               )}
               <p
-                className={`max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-3 text-sm leading-relaxed ${
+                className={`max-w-[85%] whitespace-pre-line px-4 py-3 text-sm leading-relaxed ${
                   m.role === "user"
-                    ? "rounded-br-md bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-lg shadow-indigo-500/25 ring-1 ring-white/20"
-                    : "rounded-bl-md border border-slate-200/70 bg-white text-slate-700 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.5)] ring-1 ring-white/70"
+                    ? "rounded-[20px] rounded-br-md bg-[#1E5EFF] text-white shadow-md shadow-[#1E5EFF]/20"
+                    : "rounded-[20px] rounded-bl-md border border-slate-200 bg-white text-slate-700 shadow-sm"
                 }`}
               >
                 {m.text}
               </p>
-              {m.role === "user" && (
-                <span className="mt-0.5 shrink-0 self-start rounded-xl bg-white p-2 text-slate-500 shadow-sm ring-1 ring-slate-200">
-                  <User className="h-4 w-4" />
-                </span>
-              )}
-
             </div>
           ))}
 
-          {messages.length === 1 && (
-            <div className="ml-0 flex flex-wrap items-center gap-2 sm:ml-11">
+          {thinking && <TypingBubble />}
+
+          {messages.length === 1 && !thinking && (
+            <div className="ml-0 flex flex-wrap items-center gap-2 sm:ml-[42px]">
               <StatusChip
                 label={
                   (data.summary.revenue_ready_orders ?? 0) > 0
@@ -420,6 +563,7 @@ function ConsultiveChat({
           <div ref={endRef} />
         </div>
 
+        {/* Composer */}
         <div className="border-t border-slate-100 bg-white px-4 py-3.5">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
@@ -430,7 +574,7 @@ function ConsultiveChat({
                 key={q}
                 type="button"
                 onClick={() => push(q)}
-                className="rounded-full border border-indigo-100 bg-indigo-50/40 px-3 py-1.5 text-[11px] font-medium text-slate-600 transition-colors duration-200 hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700"
+                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-600 transition hover:border-[#1E5EFF]/30 hover:bg-[#EAF0FF] hover:text-[#1E5EFF]"
               >
                 {q}
               </button>
@@ -438,7 +582,7 @@ function ConsultiveChat({
           </div>
 
           <form
-            className="mt-3 flex items-center gap-2 rounded-full border border-slate-200/80 bg-slate-50/70 p-1 transition focus-within:border-indigo-300 focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-500/10"
+            className="mt-3 flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-1 transition focus-within:border-[#1E5EFF]/40 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1E5EFF]/10"
             onSubmit={(e) => {
               e.preventDefault();
               const value = input.trim();
@@ -455,12 +599,11 @@ function ConsultiveChat({
             />
             <button
               type="submit"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-blue-600 to-violet-600 px-3.5 py-2 text-[13px] font-semibold text-white shadow-sm shadow-indigo-500/25 transition hover:brightness-110 active:scale-[0.98]"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-[#1E5EFF] to-[#0A1F44] px-4 py-2 text-[13px] font-semibold text-white shadow-sm shadow-[#1E5EFF]/25 transition hover:brightness-110 active:scale-[0.98]"
             >
               <Send className="h-3.5 w-3.5" /> Enviar
             </button>
           </form>
-
 
           <p className="mt-2.5 text-[11px] text-slate-400">
             Prévia consultiva determinística: nenhuma mensagem é gravada e nenhuma IA externa é
@@ -469,41 +612,52 @@ function ConsultiveChat({
         </div>
       </div>
 
-
       {/* Coluna direita — contexto */}
       <aside className="order-3 space-y-3.5">
-        <div className="rounded-[22px] border border-slate-200/80 bg-white p-4 shadow-[0_18px_44px_-32px_rgba(30,41,59,0.6),0_1px_2px_rgba(15,23,42,0.04)] ring-1 ring-white/70">
-          <div className="flex items-center gap-2 pb-3">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-sm shadow-indigo-500/30">
+        <details
+          open
+          className="group rounded-[22px] border border-slate-200 bg-white p-3.5 shadow-[0_10px_30px_-24px_rgba(10,31,68,0.45)] lg:[&>summary]:cursor-default"
+        >
+          <summary className="flex cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
+            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white">
               <Gauge className="h-3.5 w-3.5" />
             </span>
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-slate-700">
+            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#0A1F44]">
               Contexto da operação
             </p>
-          </div>
+            <ChevronDown className="ml-auto h-3.5 w-3.5 text-slate-400 transition group-open:rotate-180 lg:hidden" />
+          </summary>
 
-          <p className="border-t border-slate-100 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+          <p className="mt-3 border-t border-slate-100 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
             Dados da operação
           </p>
-          <div className="mt-1.5 space-y-1">
-            <ContextRow label="Conta ativa" value={accountLabel} />
-            <ContextRow label="Pedidos analisados" value={fmtInt(data.summary.orders_checked)} />
-            <ContextRow
+          <div className="mt-2 space-y-2">
+            <ContextBlock icon={<Store className="h-3.5 w-3.5" />} label="Conta ativa" value={accountLabel} />
+            <ContextBlock
+              icon={<Receipt className="h-3.5 w-3.5" />}
+              label="Pedidos analisados"
+              value={fmtInt(data.summary.orders_checked)}
+            />
+            <ContextBlock
+              icon={<Coins className="h-3.5 w-3.5" />}
               label="Receita pronta"
               value={fmtInt(data.summary.revenue_ready_orders)}
               tone="positive"
             />
-            <ContextRow
+            <ContextBlock
+              icon={<AlertTriangle className="h-3.5 w-3.5" />}
               label="Custos pendentes"
               value={costsPending ? "Sim" : data.summary.costs_pending === false ? "Não" : "—"}
               tone={costsPending ? "warning" : "default"}
             />
-            <ContextRow
+            <ContextBlock
+              icon={<Percent className="h-3.5 w-3.5" />}
               label="Margem / lucro"
               value={data.summary.profit_margin_available ? "Disponível" : "Aguardando custos"}
               tone={data.summary.profit_margin_available ? "positive" : "warning"}
             />
-            <ContextRow
+            <ContextBlock
+              icon={<Boxes className="h-3.5 w-3.5" />}
               label="Fontes verificadas"
               value={`${sourcesAvailable}/${sourcesChecked}`}
               tone={sourcesAvailable >= sourcesChecked ? "positive" : "warning"}
@@ -513,23 +667,23 @@ function ConsultiveChat({
           <p className="mt-4 border-t border-slate-100 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
             Segurança do modo atual
           </p>
-          <div className="mt-1.5 space-y-1">
-            <ContextRow label="Modo" value="Somente leitura" tone="info" />
-            <ContextRow label="IA externa" value="Não chamada" tone="violet" />
-            <ContextRow label="Ações automáticas" value="Desligadas" tone="muted" />
+          <div className="mt-2 space-y-2">
+            <ContextBlock icon={<ShieldCheck className="h-3.5 w-3.5" />} label="Modo" value="Somente leitura" tone="info" />
+            <ContextBlock icon={<BadgeCheck className="h-3.5 w-3.5" />} label="IA externa" value="Não chamada" tone="violet" />
+            <ContextBlock icon={<Lock className="h-3.5 w-3.5" />} label="Ações automáticas" value="Desligadas" tone="muted" />
           </div>
-        </div>
+        </details>
 
-        <div className="rounded-[22px] border border-amber-200/80 bg-gradient-to-b from-amber-50 via-amber-50/60 to-white p-4 shadow-[0_18px_40px_-30px_rgba(180,83,9,0.65)] ring-1 ring-white/60">
+        <div className="rounded-[22px] border border-amber-200 bg-gradient-to-b from-amber-50 to-white p-4 shadow-[0_14px_34px_-28px_rgba(180,83,9,0.7)]">
           <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/15 text-amber-700 ring-1 ring-amber-300/70">
+            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/15 text-amber-700 ring-1 ring-amber-300/70">
               <AlertTriangle className="h-3.5 w-3.5" />
             </span>
             <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
               Próxima ação recomendada
             </p>
           </div>
-          <p className="mt-2.5 text-sm font-bold text-slate-900">
+          <p className="mt-2.5 text-sm font-bold text-[#0A1F44]">
             Cadastrar custos reais dos produtos
           </p>
           <p className="mt-1 text-xs leading-relaxed text-slate-600">
@@ -539,13 +693,12 @@ function ConsultiveChat({
             type="button"
             disabled
             title="Criação de tarefas reais será liberada em uma próxima etapa."
-            className="mt-3.5 inline-flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-xl border border-amber-200/80 bg-white/80 px-3 py-2 text-xs font-semibold text-amber-700/70 shadow-[0_1px_2px_rgba(15,23,42,0.04)]"
+            className="mt-3.5 inline-flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-full border border-amber-200 bg-white px-3 py-2 text-xs font-semibold text-amber-700/80"
           >
             <Lock className="h-3.5 w-3.5" /> Criar tarefa em breve
           </button>
         </div>
       </aside>
-
     </div>
   );
 }
@@ -570,78 +723,59 @@ export function StudioIaChatSection() {
   const data = query.data;
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-sky-50/80 via-white to-violet-50/70 p-5 shadow-[0_20px_60px_-40px_rgba(30,41,59,0.55)] sm:p-6">
-      <div className="pointer-events-none absolute -left-24 top-1/3 h-72 w-72 rounded-full bg-sky-200/25 blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-24 right-0 h-72 w-72 rounded-full bg-violet-200/25 blur-3xl" />
-      <div className="relative overflow-hidden rounded-2xl border border-indigo-100/80 bg-gradient-to-br from-sky-50 via-indigo-50/70 to-violet-50 p-5 shadow-[0_8px_24px_-16px_rgba(49,46,129,0.45)] sm:p-6">
-        <div className="pointer-events-none absolute -right-16 -top-20 h-52 w-52 rounded-full bg-gradient-to-br from-blue-200/40 to-violet-200/40 blur-3xl" />
-        <div className="relative flex flex-wrap items-start justify-between gap-5">
-          <div className="flex items-start gap-4">
-            <span className="shrink-0 rounded-2xl bg-gradient-to-br from-blue-600 to-violet-600 p-3.5 text-white shadow-lg shadow-indigo-500/25">
-              <Bot className="h-7 w-7" />
-            </span>
-            <div className="min-w-0">
-              <h1 className="text-xl font-bold tracking-tight text-slate-900 sm:text-2xl">
-                Chat Consultivo Studio IA
-              </h1>
-              <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-slate-600">
-                Converse com o assistente estratégico usando o diagnóstico já carregado da operação.
-                Nesta versão, o chat é somente leitura e não executa ações automáticas.
-              </p>
-              <div className="mt-4 flex flex-wrap items-center gap-2">
-                <SafetyBadge>
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Somente leitura
-                </SafetyBadge>
-                <SafetyBadge>
-                  <BadgeCheck className="h-3.5 w-3.5 text-blue-600" /> IA externa não chamada
-                </SafetyBadge>
-                <SafetyBadge>
-                  <Lock className="h-3.5 w-3.5 text-slate-500" /> Sem ações automáticas
-                </SafetyBadge>
-                <SafetyBadge>
-                  <Eye className="h-3.5 w-3.5 text-violet-600" /> Prévia consultiva
-                </SafetyBadge>
-              </div>
-            </div>
+    <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-[0_18px_50px_-40px_rgba(10,31,68,0.5)] sm:p-6">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 pb-5">
+        <div className="flex min-w-0 items-start gap-3.5">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white shadow-md shadow-[#1E5EFF]/25">
+            <Bot className="h-6 w-6" />
+          </span>
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold tracking-tight text-[#0A1F44] sm:text-2xl">
+              Chat Consultivo Studio IA
+            </h1>
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
+              Converse com o assistente estratégico usando o diagnóstico já carregado da operação.
+              Nesta versão, o chat é somente leitura e não executa ações automáticas.
+            </p>
           </div>
-
-          <button
-            type="button"
-            onClick={() => void query.refetch()}
-            disabled={!activeAccountId || query.isFetching}
-            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-violet-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-500/25 transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${query.isFetching ? "animate-spin" : ""}`} />
-            Atualizar diagnóstico
-          </button>
         </div>
+
+        <button
+          type="button"
+          onClick={() => void query.refetch()}
+          disabled={!activeAccountId || query.isFetching}
+          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#1E5EFF] to-[#0A1F44] px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#1E5EFF]/25 transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <RefreshCw className={`h-3.5 w-3.5 ${query.isFetching ? "animate-spin" : ""}`} />
+          Atualizar diagnóstico
+        </button>
       </div>
 
       <div className="relative mt-5" aria-live="polite">
         {accountsLoading && (
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
             <LoaderCircle className="h-4 w-4 animate-spin" /> Identificando a conta ativa...
           </div>
         )}
 
         {!accountsLoading && !activeAccountId && (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
             Selecione uma conta Mercado Livre específica no topo da tela para carregar o
             diagnóstico.
           </div>
         )}
 
         {query.isPending && activeAccountId && !accountsLoading && (
-          <div className="grid gap-3 lg:grid-cols-[230px_minmax(0,1fr)_270px]">
-            <div className="h-72 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
-            <div className="h-72 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
-            <div className="h-72 animate-pulse rounded-xl border border-slate-200 bg-slate-50" />
+          <div className="grid gap-3 lg:grid-cols-[238px_minmax(0,1fr)_282px]">
+            <div className="h-72 animate-pulse rounded-[22px] border border-slate-200 bg-slate-50" />
+            <div className="h-72 animate-pulse rounded-[22px] border border-slate-200 bg-slate-50" />
+            <div className="h-72 animate-pulse rounded-[22px] border border-slate-200 bg-slate-50" />
           </div>
         )}
 
         {query.error && (
           <div
-            className={`rounded-xl border p-4 text-sm ${
+            className={`rounded-2xl border p-4 text-sm ${
               query.error instanceof StudioIaDiagnosticError &&
               query.error.kind === "not_deployed"
                 ? "border-amber-200 bg-amber-50 text-amber-800"

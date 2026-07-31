@@ -66,6 +66,9 @@ export type FeedFilter = {
 
 export type IntelligentFeedPreview = {
   mode: string | null;
+  /** Período analisado, apenas quando o backend informa. Nunca inferido. */
+  periodLabel: string | null;
+
   writeAllowed: boolean;
   writeExecuted: boolean;
   externalMarketplaceCalled: boolean;

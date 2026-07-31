@@ -340,12 +340,15 @@ function ConsultiveChat({
   const push = (question: string) => {
     const stamp = Date.now();
     const answer = answerFor(question, data);
-    setMessages((prev) => [...prev, { id: `u-${stamp}`, role: "user", text: question }]);
+    setMessages((prev) => [...prev, { id: `u-${stamp}`, role: "user", text: question, at: stamp }]);
     setThinking(true);
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       setThinking(false);
-      setMessages((prev) => [...prev, { id: `a-${stamp}`, role: "assistant", text: answer }]);
+      setMessages((prev) => [
+        ...prev,
+        { id: `a-${stamp}`, role: "assistant", text: answer, at: Date.now() },
+      ]);
     }, 420);
   };
 

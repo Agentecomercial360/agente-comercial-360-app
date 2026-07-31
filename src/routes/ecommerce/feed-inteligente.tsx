@@ -194,13 +194,33 @@ function formatPercent(value: number | null | undefined): string {
 }
 
 /**
- * Conversão só é exibida quando existe dado real de visitas.
- * Ausência de dado nunca vira zero.
+ * Visitas só são consideradas reais quando o backend confirma a fonte
+ * ou quando o valor é coerente com as vendas do item.
+ * Zero nunca é apresentado como dado real ao lado de vendas registradas.
+ */
+function visitsAreConsolidated(item: FeedItem): boolean {
+  if (item.visitsAvailable === false) return false;
+  if (typeof item.metrics.visits !== "number") return false;
+  if (item.visitsAvailable === true) return true;
+  const sales = item.metrics.sales ?? 0;
+  if (sales > 0 && item.metrics.visits <= 0) return false;
+  return true;
+}
+
+function visitsDisplay(item: FeedItem): string {
+  return visitsAreConsolidated(item) ? formatCount(item.metrics.visits) : "—";
+}
+
+/**
+ * Conversão só é exibida quando existe dado real e consolidado de visitas.
+ * Ausência de dado nunca vira zero e nunca é calculada localmente.
  */
 function conversionDisplay(item: FeedItem): string {
-  if (typeof item.metrics.visits !== "number") return "—";
+  if (!visitsAreConsolidated(item)) return "—";
   return formatPercent(item.metrics.conversionRate);
 }
+
+const VISITS_NOTE = "Fonte de visitas ainda não consolidada para este anúncio.";
 
 /** Dias corridos desde uma data confiável do backend. Nunca estima. */
 function daysSince(value: string | null | undefined): number | null {
@@ -219,6 +239,22 @@ function isMissingCost(item: FeedItem): boolean {
   return haystack.includes("sem custo") || haystack.includes("custo real");
 }
 
+function hasCost(item: FeedItem): boolean {
+  return typeof item.metrics.cost === "number" && !isMissingCost(item);
+}
+
+function hasAds(item: FeedItem): boolean {
+  return typeof item.metrics.ads === "number";
+}
+
+/** SKU legível do item. Nunca expõe UUID ou id técnico interno. */
+function friendlySku(item: FeedItem): string | null {
+  const sku = item.sku?.trim();
+  if (!sku) return null;
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sku);
+  return isUuid ? null : sku;
+}
+
 /** Frase de impacto financeiro usando apenas a receita já retornada pelo backend. */
 function impactLine(item: FeedItem): string | null {
   if (!isMissingCost(item)) return null;
@@ -227,9 +263,30 @@ function impactLine(item: FeedItem): string | null {
   return `${formatCurrency(revenue)} em receita com rentabilidade ainda não validada.`;
 }
 
-/** Limitação técnica correta: ROAS depende de dados de Ads, não do custo. */
-const LIMITATION_LINE =
-  "Sem o custo real, o sistema não consegue confirmar margem, lucro ou ROI. Caso existam dados de Ads, o ROAS pode ser calculado, mas sua rentabilidade não pode ser validada.";
+/** Motivo da prioridade, derivado apenas do status e dos dados já existentes. */
+function priorityReason(item: FeedItem): string | null {
+  if (!isMissingCost(item)) return null;
+  const sales = item.metrics.sales ?? 0;
+  if (sales > 0) {
+    return "Motivo da prioridade: produto com vendas, mas sem custo real cadastrado.";
+  }
+  return "Motivo da prioridade: produto com receita e rentabilidade ainda não validada.";
+}
+
+/** Lista dinâmica de fontes disponíveis e pendentes para o item. */
+function dataAvailability(item: FeedItem): { available: string[]; pending: string[] } {
+  const available: string[] = [];
+  const pending: string[] = [];
+
+  (typeof item.metrics.sales === "number" ? available : pending).push("vendas");
+  (typeof item.metrics.revenue === "number" ? available : pending).push("receita");
+  (hasCost(item) ? available : pending).push("custo");
+  (visitsAreConsolidated(item) ? available : pending).push("visitas");
+  (typeof item.metrics.stock === "number" ? available : pending).push("estoque");
+  (hasAds(item) ? available : pending).push("Ads");
+
+  return { available, pending };
+}
 
 function agingLine(item: FeedItem): string | null {
   if (!isMissingCost(item)) return null;
@@ -260,10 +317,23 @@ function consultiveDiagnostic(item: FeedItem): string {
 
 function consultiveAction(item: FeedItem): string {
   if (isMissingCost(item)) {
-    return "Cadastrar o custo real do SKU antes de avaliar margem, lucro, preço ou expansão de Ads.";
+    const sku = friendlySku(item);
+    return sku
+      ? `Cadastrar o custo real do SKU ${sku} antes de avaliar margem, lucro, preço ou expansão de Ads.`
+      : "Cadastrar o custo real deste anúncio antes de avaliar margem, lucro, preço ou expansão de Ads.";
   }
   return item.recommendedAction ?? "Nenhuma ação recomendada no momento.";
 }
+
+/** O que a ação libera. ROAS só é citado quando existem dados reais de Ads. */
+function outcomeLine(item: FeedItem): string | null {
+  if (!isMissingCost(item)) return null;
+  const base = "Essa ação permitirá calcular lucro, margem e ROI deste SKU.";
+  return hasAds(item)
+    ? `${base} Também permitirá validar se o ROAS representa retorno lucrativo.`
+    : base;
+}
+
 
 function KpiCard({
   icon: Icon,

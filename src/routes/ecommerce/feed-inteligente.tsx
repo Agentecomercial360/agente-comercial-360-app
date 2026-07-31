@@ -1550,21 +1550,29 @@ function FeedInteligente() {
                 </div>
               </Card>
 
-              {humanizeWarnings(data?.warnings ?? []).length > 0 && (
-                <Card className="rounded-[24px] border-0 bg-slate-50 p-4 shadow-sm">
-                  <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                    <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                    Observações sobre os dados
-                  </p>
-                  <ul className="mt-2 space-y-1.5">
-                    {humanizeWarnings(data?.warnings ?? []).map((warning) => (
-                      <li key={warning} className="text-xs leading-relaxed text-slate-600">
-                        • {warning}
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              )}
+              {(() => {
+                const notes = [...humanizeWarnings(data?.warnings ?? [])];
+                if (!loading && data && !data.periodLabel) {
+                  notes.push("O período exato da análise ainda não foi informado pela fonte atual.");
+                }
+                if (notes.length === 0) return null;
+                return (
+                  <Card className="rounded-[24px] border-0 bg-slate-50 p-4 shadow-sm">
+                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                      Observações sobre os dados
+                    </p>
+                    <ul className="mt-2 space-y-1.5">
+                      {notes.map((warning) => (
+                        <li key={warning} className="text-xs leading-relaxed text-slate-600">
+                          • {warning}
+                        </li>
+                      ))}
+                    </ul>
+                  </Card>
+                );
+              })()}
+
 
               <Card className="rounded-[24px] border-0 p-5 shadow-[0_1px_2px_rgba(10,31,68,0.04),0_18px_40px_-34px_rgba(10,31,68,0.45)]">
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">

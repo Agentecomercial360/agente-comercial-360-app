@@ -524,33 +524,41 @@ function ConsultiveChat({
         </div>
 
         {/* Mensagens */}
-        <div className="max-h-[26rem] min-h-[16rem] space-y-4 overflow-y-auto bg-slate-50/50 p-4 sm:p-5">
+        <div className="max-h-[30rem] min-h-[18rem] space-y-6 overflow-y-auto bg-[#F7F8FB] p-6 sm:p-7">
           {messages.map((m) => (
             <div
               key={m.id}
-              className={`flex items-end gap-2.5 ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`flex items-end gap-3 ${m.role === "user" ? "justify-end" : "justify-start"}`}
             >
               {m.role === "assistant" && (
-                <span className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white ring-2 ring-white">
-                  <Sparkles className="h-3.5 w-3.5" />
+                <span className="mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4C87FF] to-[#1E5EFF] text-white ring-2 ring-white">
+                  <Sparkles className="h-4 w-4" />
                 </span>
               )}
-              <p
-                className={`max-w-[85%] whitespace-pre-line px-4 py-3 text-sm leading-relaxed ${
-                  m.role === "user"
-                    ? "rounded-[20px] rounded-br-md bg-[#1E5EFF] text-white shadow-md shadow-[#1E5EFF]/20"
-                    : "rounded-[20px] rounded-bl-md border border-slate-200 bg-white text-slate-700 shadow-sm"
-                }`}
-              >
-                {m.text}
-              </p>
+              <div className={`flex max-w-[78%] flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
+                <p
+                  className={`whitespace-pre-line px-5 py-4 text-[15px] leading-[1.6] ${
+                    m.role === "user"
+                      ? "rounded-[20px] rounded-br-md bg-[#1E5EFF] text-white shadow-md shadow-[#1E5EFF]/20"
+                      : "rounded-[20px] rounded-bl-md border border-slate-200 bg-white text-slate-700 shadow-sm"
+                  }`}
+                >
+                  {m.text}
+                </p>
+                {m.at != null && (
+                  <span className="mt-1.5 px-1 text-[11px] font-medium text-slate-400">
+                    {fmtTime(m.at)}
+                  </span>
+                )}
+              </div>
             </div>
           ))}
 
           {thinking && <TypingBubble />}
 
           {messages.length === 1 && !thinking && (
-            <div className="ml-0 flex flex-wrap items-center gap-2 sm:ml-[42px]">
+            <div className="ml-0 flex flex-wrap items-center gap-2.5 sm:ml-[52px]">
+
               <StatusChip
                 label={
                   (data.summary.revenue_ready_orders ?? 0) > 0

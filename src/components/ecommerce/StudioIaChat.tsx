@@ -266,15 +266,19 @@ function ContextBlock({
   };
   const t = toneMap[tone];
   return (
-    <div className={`flex items-center gap-2.5 rounded-2xl border px-2.5 py-2 ${t.box}`}>
-      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl ${t.icon}`}>
+    <div
+      className={`flex items-start gap-3 rounded-2xl border p-3.5 shadow-[0_6px_18px_-16px_rgba(10,31,68,0.5)] ${t.box}`}
+    >
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${t.icon}`}>
         {icon}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[10px] font-semibold uppercase tracking-wide text-slate-400">
           {label}
         </span>
-        <span className={`block truncate text-[13px] font-bold ${t.value}`}>{value}</span>
+        <span className={`mt-1 block truncate text-[15px] font-bold leading-tight ${t.value}`}>
+          {value}
+        </span>
       </span>
     </div>
   );
@@ -282,11 +286,11 @@ function ContextBlock({
 
 function TypingBubble() {
   return (
-    <div className="flex items-end gap-2.5">
-      <span className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white ring-2 ring-white">
-        <Sparkles className="h-3.5 w-3.5" />
+    <div className="flex items-end gap-3">
+      <span className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4C87FF] to-[#1E5EFF] text-white ring-2 ring-white">
+        <Sparkles className="h-4 w-4" />
       </span>
-      <span className="inline-flex items-center gap-2 rounded-[18px] rounded-bl-md border border-slate-200 bg-white px-4 py-3 text-xs font-medium text-slate-500 shadow-sm">
+      <span className="inline-flex items-center gap-2 rounded-[20px] rounded-bl-lg border border-slate-200 bg-white px-5 py-4 text-[13px] font-medium text-slate-500 shadow-sm">
         <span className="flex gap-1">
           <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#1E5EFF]/60 [animation-delay:-0.2s]" />
           <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#1E5EFF]/60 [animation-delay:-0.1s]" />

@@ -592,8 +592,8 @@ function ConsultiveChat({
         </div>
 
         {/* Composer */}
-        <div className="border-t border-slate-100 bg-white px-4 py-3.5">
-          <div className="flex flex-wrap items-center gap-1.5">
+        <div className="border-t border-slate-100 bg-white px-6 py-5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
               Sugestões
             </span>
@@ -602,7 +602,7 @@ function ConsultiveChat({
                 key={q}
                 type="button"
                 onClick={() => push(q)}
-                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-600 transition hover:border-[#1E5EFF]/30 hover:bg-[#EAF0FF] hover:text-[#1E5EFF]"
+                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-[12px] font-medium text-slate-700 transition hover:border-[#1E5EFF]/40 hover:bg-[#EAF0FF] hover:text-[#1E5EFF]"
               >
                 {q}
               </button>
@@ -610,7 +610,7 @@ function ConsultiveChat({
           </div>
 
           <form
-            className="mt-3 flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-1 transition focus-within:border-[#1E5EFF]/40 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1E5EFF]/10"
+            className="mt-4 flex min-h-[52px] items-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-1.5 transition focus-within:border-[#1E5EFF] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1E5EFF]/10"
             onSubmit={(e) => {
               e.preventDefault();
               const value = input.trim();
@@ -623,21 +623,22 @@ function ConsultiveChat({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Digite uma pergunta (prévia consultiva)"
-              className="min-w-0 flex-1 bg-transparent px-3.5 py-1.5 text-sm text-slate-700 outline-none placeholder:text-slate-400"
+              className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-[15px] text-slate-700 outline-none placeholder:text-slate-400"
             />
             <button
               type="submit"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-[#1E5EFF] to-[#0A1F44] px-4 py-2 text-[13px] font-semibold text-white shadow-sm shadow-[#1E5EFF]/25 transition hover:brightness-110 active:scale-[0.98]"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-[#1E5EFF] to-[#0A1F44] px-5 py-2.5 text-[13px] font-semibold text-white shadow-sm shadow-[#1E5EFF]/25 transition hover:brightness-110 active:scale-[0.98]"
             >
-              <Send className="h-3.5 w-3.5" /> Enviar
+              <Send className="h-4 w-4" /> Enviar
             </button>
           </form>
 
-          <p className="mt-2.5 text-[11px] text-slate-400">
+          <p className="mt-3.5 text-[11px] text-slate-400">
             Prévia consultiva determinística: nenhuma mensagem é gravada e nenhuma IA externa é
             chamada.
           </p>
         </div>
+
       </div>
 
       {/* Coluna direita — contexto */}

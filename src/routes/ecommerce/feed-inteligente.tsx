@@ -1279,15 +1279,23 @@ function FeedInteligente() {
             <div className="space-y-5">
               {!loading && !errorKind && <PriorityStrip entries={priorityEntries} />}
 
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-sm font-semibold tracking-tight text-[#0A1F44]">
-                  Feed de anúncios
-                </h2>
-                <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-emerald-50 px-3 text-[11px] font-semibold text-emerald-700">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="font-display text-sm font-semibold tracking-tight text-[#0A1F44]">
+                    Feed de anúncios
+                  </h2>
+                  {!loading && data?.periodLabel && (
+                    <p className="mt-0.5 truncate text-[11px] text-slate-400">
+                      Período analisado: {data.periodLabel}
+                    </p>
+                  )}
+                </div>
+                <span className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-emerald-50 px-3 text-[11px] font-semibold text-emerald-700">
                   <Database className="h-3 w-3 shrink-0" />
                   Dados reais conectados
                 </span>
               </div>
+
 
               {loading && (
                 <div className="grid gap-5 xl:grid-cols-2">

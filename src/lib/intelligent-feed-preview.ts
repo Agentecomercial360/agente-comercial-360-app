@@ -210,7 +210,15 @@ function normalizeItem(entry: unknown, index: number): FeedItem | null {
       revenue: toNumber(pick(metrics, ["revenue", "receita"])),
       conversionRate: toNumber(pick(metrics, ["conversion_rate", "conversao", "conversion"])),
       stock: toNumber(pick(metrics, ["stock", "estoque", "available_quantity"])),
+      cost: toNumber(pick(metrics, ["cost", "custo", "unit_cost", "real_cost", "cost_value"])),
+      ads: toNumber(
+        pick(metrics, ["ads_investment", "ad_spend", "ads_cost", "investimento_ads", "roas", "acos"]),
+      ),
     },
+    visitsAvailable:
+      toBool(pick(record, ["visits_available", "visits_source_available", "has_visits"])) ??
+      toBool(pick(metrics, ["visits_available", "visits_source_available", "has_visits"])),
+
     imageUrl,
     imageSource: toText(pick(record, ["image_source"])),
     imageSyncedAt: toText(pick(record, ["image_synced_at"])),

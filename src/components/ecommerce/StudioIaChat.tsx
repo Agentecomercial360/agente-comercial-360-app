@@ -366,44 +366,43 @@ function ConsultiveChat({
     data.summary.sources_available ?? data.sourceStatus.filter((s) => s.available).length;
 
   return (
-    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[238px_minmax(0,1fr)_282px] lg:items-start">
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[264px_minmax(0,1fr)_312px] lg:gap-6 lg:items-start">
       {/* Coluna esquerda — assuntos */}
-      <aside className="order-2 rounded-[22px] border border-slate-200 bg-white p-3 shadow-[0_10px_30px_-24px_rgba(10,31,68,0.45)] lg:order-1">
-        <p className="px-1.5 pb-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+      <aside className="order-2 rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_30px_-24px_rgba(10,31,68,0.45)] lg:order-1">
+        <p className="px-1 pb-4 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
           Assuntos do Studio IA
         </p>
-        <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-1">
+        <div className="-mx-1 flex snap-x gap-2.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-1">
           {TOPICS.map((t) => {
             const active = t.key === topic;
+            const tone = TOPIC_TONE[t.key] ?? TOPIC_TONE.tarefas;
             return (
               <button
                 key={t.key}
                 type="button"
                 onClick={() => setTopic(t.key)}
                 aria-pressed={active}
-                className={`group flex w-[220px] shrink-0 snap-start items-center gap-2.5 rounded-2xl border border-l-[3px] px-3 py-2.5 text-left transition-all duration-200 sm:w-full ${
+                className={`group flex w-[240px] shrink-0 snap-start items-center gap-3.5 rounded-2xl border border-l-4 p-4 text-left transition-all duration-200 sm:w-full ${
                   active
                     ? "border-[#1E5EFF]/25 border-l-[#1E5EFF] bg-[#EAF0FF] text-[#0A1F44]"
                     : "border-slate-200 border-l-transparent bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                 }`}
               >
                 <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition ${
-                    active
-                      ? "bg-[#1E5EFF] text-white shadow-sm shadow-[#1E5EFF]/30"
-                      : "bg-slate-100 text-slate-500 group-hover:bg-[#EAF0FF] group-hover:text-[#1E5EFF]"
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition ${
+                    active ? `${tone.active} shadow-sm` : tone.idle
                   }`}
                 >
                   {t.icon}
                 </span>
                 <span className="min-w-0">
                   <span
-                    className={`block truncate text-[13px] leading-tight ${active ? "font-bold" : "font-semibold"}`}
+                    className={`block truncate text-[13.5px] leading-tight ${active ? "font-bold text-[#0A1F44]" : "font-semibold"}`}
                   >
                     {t.label}
                   </span>
                   <span
-                    className={`mt-0.5 block truncate text-[10px] leading-tight ${active ? "text-[#1E5EFF]/70" : "text-slate-400"}`}
+                    className={`mt-1 block truncate text-[11px] leading-tight ${active ? "text-[#1E5EFF]/80" : "text-slate-400"}`}
                   >
                     {t.hint}
                   </span>
@@ -413,6 +412,7 @@ function ConsultiveChat({
           })}
         </div>
       </aside>
+
 
       {/* Coluna central — conversa */}
       <div className="order-1 flex min-w-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(10,31,68,0.55)] lg:order-2">

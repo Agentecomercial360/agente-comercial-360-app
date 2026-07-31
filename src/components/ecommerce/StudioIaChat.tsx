@@ -37,7 +37,19 @@ import {
 
 const fmtInt = (n: number | null | undefined) => (n == null ? "—" : n.toLocaleString("pt-BR"));
 
-type ChatMessage = { id: string; role: "assistant" | "user"; text: string };
+type ChatMessage = { id: string; role: "assistant" | "user"; text: string; at?: number };
+
+const fmtTime = (ts: number) =>
+  new Date(ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+const TOPIC_TONE: Record<string, { idle: string; active: string }> = {
+  diagnostico: { idle: "bg-[#EAF0FF] text-[#1E5EFF]", active: "bg-[#1E5EFF] text-white" },
+  custos: { idle: "bg-amber-100 text-amber-600", active: "bg-amber-500 text-white" },
+  ads: { idle: "bg-violet-100 text-violet-600", active: "bg-violet-500 text-white" },
+  estoque: { idle: "bg-sky-100 text-sky-600", active: "bg-sky-500 text-white" },
+  oportunidades: { idle: "bg-emerald-100 text-emerald-600", active: "bg-emerald-500 text-white" },
+  tarefas: { idle: "bg-slate-100 text-slate-500", active: "bg-[#0A1F44] text-white" },
+};
 
 type TopicKey = "diagnostico" | "custos" | "ads" | "estoque" | "oportunidades" | "tarefas";
 
@@ -254,15 +266,19 @@ function ContextBlock({
   };
   const t = toneMap[tone];
   return (
-    <div className={`flex items-center gap-2.5 rounded-2xl border px-2.5 py-2 ${t.box}`}>
-      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl ${t.icon}`}>
+    <div
+      className={`flex items-start gap-3 rounded-2xl border p-3.5 shadow-[0_6px_18px_-16px_rgba(10,31,68,0.5)] ${t.box}`}
+    >
+      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${t.icon}`}>
         {icon}
       </span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-[10px] font-semibold uppercase tracking-wide text-slate-400">
           {label}
         </span>
-        <span className={`block truncate text-[13px] font-bold ${t.value}`}>{value}</span>
+        <span className={`mt-1 block truncate text-[15px] font-bold leading-tight ${t.value}`}>
+          {value}
+        </span>
       </span>
     </div>
   );
@@ -270,11 +286,11 @@ function ContextBlock({
 
 function TypingBubble() {
   return (
-    <div className="flex items-end gap-2.5">
-      <span className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white ring-2 ring-white">
-        <Sparkles className="h-3.5 w-3.5" />
+    <div className="flex items-end gap-3">
+      <span className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4C87FF] to-[#1E5EFF] text-white ring-2 ring-white">
+        <Sparkles className="h-4 w-4" />
       </span>
-      <span className="inline-flex items-center gap-2 rounded-[18px] rounded-bl-md border border-slate-200 bg-white px-4 py-3 text-xs font-medium text-slate-500 shadow-sm">
+      <span className="inline-flex items-center gap-2 rounded-[20px] rounded-bl-lg border border-slate-200 bg-white px-5 py-4 text-[13px] font-medium text-slate-500 shadow-sm">
         <span className="flex gap-1">
           <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#1E5EFF]/60 [animation-delay:-0.2s]" />
           <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#1E5EFF]/60 [animation-delay:-0.1s]" />
@@ -324,12 +340,15 @@ function ConsultiveChat({
   const push = (question: string) => {
     const stamp = Date.now();
     const answer = answerFor(question, data);
-    setMessages((prev) => [...prev, { id: `u-${stamp}`, role: "user", text: question }]);
+    setMessages((prev) => [...prev, { id: `u-${stamp}`, role: "user", text: question, at: stamp }]);
     setThinking(true);
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       setThinking(false);
-      setMessages((prev) => [...prev, { id: `a-${stamp}`, role: "assistant", text: answer }]);
+      setMessages((prev) => [
+        ...prev,
+        { id: `a-${stamp}`, role: "assistant", text: answer, at: Date.now() },
+      ]);
     }, 420);
   };
 
@@ -347,44 +366,43 @@ function ConsultiveChat({
     data.summary.sources_available ?? data.sourceStatus.filter((s) => s.available).length;
 
   return (
-    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[238px_minmax(0,1fr)_282px] lg:items-start">
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[264px_minmax(0,1fr)_312px] lg:gap-6 lg:items-start">
       {/* Coluna esquerda — assuntos */}
-      <aside className="order-2 rounded-[22px] border border-slate-200 bg-white p-3 shadow-[0_10px_30px_-24px_rgba(10,31,68,0.45)] lg:order-1">
-        <p className="px-1.5 pb-2.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+      <aside className="order-2 rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_30px_-24px_rgba(10,31,68,0.45)] lg:order-1">
+        <p className="px-1 pb-4 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
           Assuntos do Studio IA
         </p>
-        <div className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-1">
+        <div className="-mx-1 flex snap-x gap-2.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-1">
           {TOPICS.map((t) => {
             const active = t.key === topic;
+            const tone = TOPIC_TONE[t.key] ?? TOPIC_TONE.tarefas;
             return (
               <button
                 key={t.key}
                 type="button"
                 onClick={() => setTopic(t.key)}
                 aria-pressed={active}
-                className={`group flex w-[220px] shrink-0 snap-start items-center gap-2.5 rounded-2xl border border-l-[3px] px-3 py-2.5 text-left transition-all duration-200 sm:w-full ${
+                className={`group flex w-[240px] shrink-0 snap-start items-center gap-3.5 rounded-2xl border border-l-4 p-4 text-left transition-all duration-200 sm:w-full ${
                   active
                     ? "border-[#1E5EFF]/25 border-l-[#1E5EFF] bg-[#EAF0FF] text-[#0A1F44]"
                     : "border-slate-200 border-l-transparent bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
                 }`}
               >
                 <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition ${
-                    active
-                      ? "bg-[#1E5EFF] text-white shadow-sm shadow-[#1E5EFF]/30"
-                      : "bg-slate-100 text-slate-500 group-hover:bg-[#EAF0FF] group-hover:text-[#1E5EFF]"
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition ${
+                    active ? `${tone.active} shadow-sm` : tone.idle
                   }`}
                 >
                   {t.icon}
                 </span>
                 <span className="min-w-0">
                   <span
-                    className={`block truncate text-[13px] leading-tight ${active ? "font-bold" : "font-semibold"}`}
+                    className={`block truncate text-[13.5px] leading-tight ${active ? "font-bold text-[#0A1F44]" : "font-semibold"}`}
                   >
                     {t.label}
                   </span>
                   <span
-                    className={`mt-0.5 block truncate text-[10px] leading-tight ${active ? "text-[#1E5EFF]/70" : "text-slate-400"}`}
+                    className={`mt-1 block truncate text-[11px] leading-tight ${active ? "text-[#1E5EFF]/80" : "text-slate-400"}`}
                   >
                     {t.hint}
                   </span>
@@ -395,38 +413,39 @@ function ConsultiveChat({
         </div>
       </aside>
 
+
       {/* Coluna central — conversa */}
       <div className="order-1 flex min-w-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(10,31,68,0.55)] lg:order-2">
         {/* Cabeçalho da conversa */}
-        <div className="flex items-center gap-3 border-b border-slate-100 px-4 py-3.5">
-          <span className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white shadow-md shadow-[#1E5EFF]/25">
-            <Bot className="h-5 w-5" />
-            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-emerald-500" />
+        <div className="flex items-center gap-4 border-b border-slate-100 px-6 py-5">
+          <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4C87FF] via-[#1E5EFF] to-[#0A1F44] text-white shadow-md shadow-[#1E5EFF]/25">
+            <Sparkles className="h-5 w-5" />
+            <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500" />
           </span>
           <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="truncate text-[15px] font-bold tracking-tight text-[#0A1F44]">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h2 className="truncate text-[19px] font-bold tracking-tight text-[#0A1F44]">
                 Chat Consultivo Studio IA
               </h2>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
+                <ShieldCheck className="h-3 w-3 text-emerald-600" />
                 Somente leitura
               </span>
             </div>
-            <p className="mt-0.5 truncate text-[11px] font-medium text-slate-400">
+            <p className="mt-1 truncate text-[12px] font-medium text-slate-400">
               {activeTopic.label} · {activeTopic.hint}
             </p>
           </div>
 
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-2">
             <button
               type="button"
               onClick={copyLastAnswer}
               title="Copiar resposta"
               aria-label="Copiar resposta"
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-[#1E5EFF]/30 hover:bg-[#EAF0FF] hover:text-[#1E5EFF]"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-[#1E5EFF]"
             >
-              {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+              {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
             </button>
             <button
               type="button"
@@ -434,25 +453,26 @@ function ConsultiveChat({
               title="Ver fontes usadas nesta resposta"
               aria-label="Ver fontes usadas nesta resposta"
               aria-expanded={showSources}
-              className={`flex h-8 w-8 items-center justify-center rounded-full border transition ${
+              className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
                 showSources
-                  ? "border-[#1E5EFF]/30 bg-[#EAF0FF] text-[#1E5EFF]"
-                  : "border-slate-200 bg-white text-slate-500 hover:border-[#1E5EFF]/30 hover:bg-[#EAF0FF] hover:text-[#1E5EFF]"
+                  ? "bg-[#EAF0FF] text-[#1E5EFF]"
+                  : "text-slate-500 hover:bg-slate-100 hover:text-[#1E5EFF]"
               }`}
             >
-              <Database className="h-3.5 w-3.5" />
+              <Database className="h-4 w-4" />
             </button>
             <button
               type="button"
               disabled
               title="Criar tarefa a partir desta resposta — em breve"
               aria-label="Criar tarefa a partir desta resposta — em breve"
-              className="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-full border border-dashed border-slate-200 bg-slate-50 text-slate-300"
+              className="flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-full text-slate-300"
             >
-              <ListPlus className="h-3.5 w-3.5" />
+              <ListPlus className="h-4 w-4" />
             </button>
           </div>
         </div>
+
 
         {/* Sobre este modo / fontes */}
         <div className="border-b border-slate-100 bg-slate-50/60 px-4 py-2">
@@ -504,33 +524,41 @@ function ConsultiveChat({
         </div>
 
         {/* Mensagens */}
-        <div className="max-h-[26rem] min-h-[16rem] space-y-4 overflow-y-auto bg-slate-50/50 p-4 sm:p-5">
+        <div className="max-h-[30rem] min-h-[18rem] space-y-6 overflow-y-auto bg-[#F7F8FB] p-6 sm:p-7">
           {messages.map((m) => (
             <div
               key={m.id}
-              className={`flex items-end gap-2.5 ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`flex items-end gap-3 ${m.role === "user" ? "justify-end" : "justify-start"}`}
             >
               {m.role === "assistant" && (
-                <span className="mb-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white ring-2 ring-white">
-                  <Sparkles className="h-3.5 w-3.5" />
+                <span className="mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4C87FF] to-[#1E5EFF] text-white ring-2 ring-white">
+                  <Sparkles className="h-4 w-4" />
                 </span>
               )}
-              <p
-                className={`max-w-[85%] whitespace-pre-line px-4 py-3 text-sm leading-relaxed ${
-                  m.role === "user"
-                    ? "rounded-[20px] rounded-br-md bg-[#1E5EFF] text-white shadow-md shadow-[#1E5EFF]/20"
-                    : "rounded-[20px] rounded-bl-md border border-slate-200 bg-white text-slate-700 shadow-sm"
-                }`}
-              >
-                {m.text}
-              </p>
+              <div className={`flex max-w-[78%] flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
+                <p
+                  className={`whitespace-pre-line px-5 py-4 text-[15px] leading-[1.6] ${
+                    m.role === "user"
+                      ? "rounded-[20px] rounded-br-md bg-[#1E5EFF] text-white shadow-md shadow-[#1E5EFF]/20"
+                      : "rounded-[20px] rounded-bl-md border border-slate-200 bg-white text-slate-700 shadow-sm"
+                  }`}
+                >
+                  {m.text}
+                </p>
+                {m.at != null && (
+                  <span className="mt-1.5 px-1 text-[11px] font-medium text-slate-400">
+                    {fmtTime(m.at)}
+                  </span>
+                )}
+              </div>
             </div>
           ))}
 
           {thinking && <TypingBubble />}
 
           {messages.length === 1 && !thinking && (
-            <div className="ml-0 flex flex-wrap items-center gap-2 sm:ml-[42px]">
+            <div className="ml-0 flex flex-wrap items-center gap-2.5 sm:ml-[52px]">
+
               <StatusChip
                 label={
                   (data.summary.revenue_ready_orders ?? 0) > 0
@@ -564,8 +592,8 @@ function ConsultiveChat({
         </div>
 
         {/* Composer */}
-        <div className="border-t border-slate-100 bg-white px-4 py-3.5">
-          <div className="flex flex-wrap items-center gap-1.5">
+        <div className="border-t border-slate-100 bg-white px-6 py-5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
               Sugestões
             </span>
@@ -574,7 +602,7 @@ function ConsultiveChat({
                 key={q}
                 type="button"
                 onClick={() => push(q)}
-                className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-600 transition hover:border-[#1E5EFF]/30 hover:bg-[#EAF0FF] hover:text-[#1E5EFF]"
+                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-[12px] font-medium text-slate-700 transition hover:border-[#1E5EFF]/40 hover:bg-[#EAF0FF] hover:text-[#1E5EFF]"
               >
                 {q}
               </button>
@@ -582,7 +610,7 @@ function ConsultiveChat({
           </div>
 
           <form
-            className="mt-3 flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-1 transition focus-within:border-[#1E5EFF]/40 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1E5EFF]/10"
+            className="mt-4 flex min-h-[52px] items-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-1.5 transition focus-within:border-[#1E5EFF] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1E5EFF]/10"
             onSubmit={(e) => {
               e.preventDefault();
               const value = input.trim();
@@ -595,32 +623,33 @@ function ConsultiveChat({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Digite uma pergunta (prévia consultiva)"
-              className="min-w-0 flex-1 bg-transparent px-3.5 py-1.5 text-sm text-slate-700 outline-none placeholder:text-slate-400"
+              className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-[15px] text-slate-700 outline-none placeholder:text-slate-400"
             />
             <button
               type="submit"
-              className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-gradient-to-r from-[#1E5EFF] to-[#0A1F44] px-4 py-2 text-[13px] font-semibold text-white shadow-sm shadow-[#1E5EFF]/25 transition hover:brightness-110 active:scale-[0.98]"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-[#1E5EFF] to-[#0A1F44] px-5 py-2.5 text-[13px] font-semibold text-white shadow-sm shadow-[#1E5EFF]/25 transition hover:brightness-110 active:scale-[0.98]"
             >
-              <Send className="h-3.5 w-3.5" /> Enviar
+              <Send className="h-4 w-4" /> Enviar
             </button>
           </form>
 
-          <p className="mt-2.5 text-[11px] text-slate-400">
+          <p className="mt-3.5 text-[11px] text-slate-400">
             Prévia consultiva determinística: nenhuma mensagem é gravada e nenhuma IA externa é
             chamada.
           </p>
         </div>
+
       </div>
 
       {/* Coluna direita — contexto */}
-      <aside className="order-3 space-y-3.5">
+      <aside className="order-3 space-y-5">
         <details
           open
-          className="group rounded-[22px] border border-slate-200 bg-white p-3.5 shadow-[0_10px_30px_-24px_rgba(10,31,68,0.45)] lg:[&>summary]:cursor-default"
+          className="group rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_30px_-24px_rgba(10,31,68,0.45)] lg:[&>summary]:cursor-default"
         >
-          <summary className="flex cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
-            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white">
-              <Gauge className="h-3.5 w-3.5" />
+          <summary className="flex cursor-pointer list-none items-center gap-2.5 [&::-webkit-details-marker]:hidden">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#4C87FF] to-[#1E5EFF] text-white">
+              <Gauge className="h-4 w-4" />
             </span>
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#0A1F44]">
               Contexto da operação
@@ -628,53 +657,53 @@ function ConsultiveChat({
             <ChevronDown className="ml-auto h-3.5 w-3.5 text-slate-400 transition group-open:rotate-180 lg:hidden" />
           </summary>
 
-          <p className="mt-3 border-t border-slate-100 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+          <p className="mt-4 border-t border-slate-100 pt-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
             Dados da operação
           </p>
-          <div className="mt-2 space-y-2">
-            <ContextBlock icon={<Store className="h-3.5 w-3.5" />} label="Conta ativa" value={accountLabel} />
+          <div className="mt-3 space-y-3">
+            <ContextBlock icon={<Store className="h-4 w-4" />} label="Conta ativa" value={accountLabel} />
             <ContextBlock
-              icon={<Receipt className="h-3.5 w-3.5" />}
+              icon={<Receipt className="h-4 w-4" />}
               label="Pedidos analisados"
               value={fmtInt(data.summary.orders_checked)}
             />
             <ContextBlock
-              icon={<Coins className="h-3.5 w-3.5" />}
+              icon={<Coins className="h-4 w-4" />}
               label="Receita pronta"
               value={fmtInt(data.summary.revenue_ready_orders)}
               tone="positive"
             />
             <ContextBlock
-              icon={<AlertTriangle className="h-3.5 w-3.5" />}
+              icon={<AlertTriangle className="h-4 w-4" />}
               label="Custos pendentes"
               value={costsPending ? "Sim" : data.summary.costs_pending === false ? "Não" : "—"}
               tone={costsPending ? "warning" : "default"}
             />
             <ContextBlock
-              icon={<Percent className="h-3.5 w-3.5" />}
+              icon={<Percent className="h-4 w-4" />}
               label="Margem / lucro"
               value={data.summary.profit_margin_available ? "Disponível" : "Aguardando custos"}
               tone={data.summary.profit_margin_available ? "positive" : "warning"}
             />
             <ContextBlock
-              icon={<Boxes className="h-3.5 w-3.5" />}
+              icon={<Boxes className="h-4 w-4" />}
               label="Fontes verificadas"
               value={`${sourcesAvailable}/${sourcesChecked}`}
               tone={sourcesAvailable >= sourcesChecked ? "positive" : "warning"}
             />
           </div>
 
-          <p className="mt-4 border-t border-slate-100 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+          <p className="mt-6 border-t border-slate-100 pt-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
             Segurança do modo atual
           </p>
-          <div className="mt-2 space-y-2">
-            <ContextBlock icon={<ShieldCheck className="h-3.5 w-3.5" />} label="Modo" value="Somente leitura" tone="info" />
-            <ContextBlock icon={<BadgeCheck className="h-3.5 w-3.5" />} label="IA externa" value="Não chamada" tone="violet" />
-            <ContextBlock icon={<Lock className="h-3.5 w-3.5" />} label="Ações automáticas" value="Desligadas" tone="muted" />
+          <div className="mt-3 space-y-3">
+            <ContextBlock icon={<ShieldCheck className="h-4 w-4" />} label="Modo" value="Somente leitura" tone="info" />
+            <ContextBlock icon={<BadgeCheck className="h-4 w-4" />} label="IA externa" value="Não chamada" tone="violet" />
+            <ContextBlock icon={<Lock className="h-4 w-4" />} label="Ações automáticas" value="Desligadas" tone="muted" />
           </div>
         </details>
 
-        <div className="rounded-[22px] border border-amber-200 bg-gradient-to-b from-amber-50 to-white p-4 shadow-[0_14px_34px_-28px_rgba(180,83,9,0.7)]">
+        <div className="rounded-[24px] border border-amber-200 bg-gradient-to-b from-amber-50 to-white p-5 shadow-[0_14px_34px_-28px_rgba(180,83,9,0.7)]">
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/15 text-amber-700 ring-1 ring-amber-300/70">
               <AlertTriangle className="h-3.5 w-3.5" />

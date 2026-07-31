@@ -194,13 +194,33 @@ function formatPercent(value: number | null | undefined): string {
 }
 
 /**
- * Conversão só é exibida quando existe dado real de visitas.
- * Ausência de dado nunca vira zero.
+ * Visitas só são consideradas reais quando o backend confirma a fonte
+ * ou quando o valor é coerente com as vendas do item.
+ * Zero nunca é apresentado como dado real ao lado de vendas registradas.
+ */
+function visitsAreConsolidated(item: FeedItem): boolean {
+  if (item.visitsAvailable === false) return false;
+  if (typeof item.metrics.visits !== "number") return false;
+  if (item.visitsAvailable === true) return true;
+  const sales = item.metrics.sales ?? 0;
+  if (sales > 0 && item.metrics.visits <= 0) return false;
+  return true;
+}
+
+function visitsDisplay(item: FeedItem): string {
+  return visitsAreConsolidated(item) ? formatCount(item.metrics.visits) : "—";
+}
+
+/**
+ * Conversão só é exibida quando existe dado real e consolidado de visitas.
+ * Ausência de dado nunca vira zero e nunca é calculada localmente.
  */
 function conversionDisplay(item: FeedItem): string {
-  if (typeof item.metrics.visits !== "number") return "—";
+  if (!visitsAreConsolidated(item)) return "—";
   return formatPercent(item.metrics.conversionRate);
 }
+
+const VISITS_NOTE = "Fonte de visitas ainda não consolidada para este anúncio.";
 
 /** Dias corridos desde uma data confiável do backend. Nunca estima. */
 function daysSince(value: string | null | undefined): number | null {
@@ -219,6 +239,22 @@ function isMissingCost(item: FeedItem): boolean {
   return haystack.includes("sem custo") || haystack.includes("custo real");
 }
 
+function hasCost(item: FeedItem): boolean {
+  return typeof item.metrics.cost === "number" && !isMissingCost(item);
+}
+
+function hasAds(item: FeedItem): boolean {
+  return typeof item.metrics.ads === "number";
+}
+
+/** SKU legível do item. Nunca expõe UUID ou id técnico interno. */
+function friendlySku(item: FeedItem): string | null {
+  const sku = item.sku?.trim();
+  if (!sku) return null;
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sku);
+  return isUuid ? null : sku;
+}
+
 /** Frase de impacto financeiro usando apenas a receita já retornada pelo backend. */
 function impactLine(item: FeedItem): string | null {
   if (!isMissingCost(item)) return null;
@@ -227,9 +263,30 @@ function impactLine(item: FeedItem): string | null {
   return `${formatCurrency(revenue)} em receita com rentabilidade ainda não validada.`;
 }
 
-/** Limitação técnica correta: ROAS depende de dados de Ads, não do custo. */
-const LIMITATION_LINE =
-  "Sem o custo real, o sistema não consegue confirmar margem, lucro ou ROI. Caso existam dados de Ads, o ROAS pode ser calculado, mas sua rentabilidade não pode ser validada.";
+/** Motivo da prioridade, derivado apenas do status e dos dados já existentes. */
+function priorityReason(item: FeedItem): string | null {
+  if (!isMissingCost(item)) return null;
+  const sales = item.metrics.sales ?? 0;
+  if (sales > 0) {
+    return "Motivo da prioridade: produto com vendas, mas sem custo real cadastrado.";
+  }
+  return "Motivo da prioridade: produto com receita e rentabilidade ainda não validada.";
+}
+
+/** Lista dinâmica de fontes disponíveis e pendentes para o item. */
+function dataAvailability(item: FeedItem): { available: string[]; pending: string[] } {
+  const available: string[] = [];
+  const pending: string[] = [];
+
+  (typeof item.metrics.sales === "number" ? available : pending).push("vendas");
+  (typeof item.metrics.revenue === "number" ? available : pending).push("receita");
+  (hasCost(item) ? available : pending).push("custo");
+  (visitsAreConsolidated(item) ? available : pending).push("visitas");
+  (typeof item.metrics.stock === "number" ? available : pending).push("estoque");
+  (hasAds(item) ? available : pending).push("Ads");
+
+  return { available, pending };
+}
 
 function agingLine(item: FeedItem): string | null {
   if (!isMissingCost(item)) return null;
@@ -260,12 +317,48 @@ function consultiveDiagnostic(item: FeedItem): string {
 
 function consultiveAction(item: FeedItem): string {
   if (isMissingCost(item)) {
-    return "Cadastrar o custo real do SKU antes de avaliar margem, lucro, preço ou expansão de Ads.";
+    const sku = friendlySku(item);
+    return sku
+      ? `Cadastrar o custo real do SKU ${sku} antes de avaliar margem, lucro, preço ou expansão de Ads.`
+      : "Cadastrar o custo real deste anúncio antes de avaliar margem, lucro, preço ou expansão de Ads.";
   }
   return item.recommendedAction ?? "Nenhuma ação recomendada no momento.";
 }
 
+/** O que a ação libera. ROAS só é citado quando existem dados reais de Ads. */
+function outcomeLine(item: FeedItem): string | null {
+  if (!isMissingCost(item)) return null;
+  const base = "Essa ação permitirá calcular lucro, margem e ROI deste SKU.";
+  return hasAds(item)
+    ? `${base} Também permitirá validar se o ROAS representa retorno lucrativo.`
+    : base;
+}
+
+
+/** Apresentação compacta das fontes disponíveis e pendentes do item. */
+function DataAvailability({ item }: { item: FeedItem }) {
+  const { available, pending } = dataAvailability(item);
+  if (available.length === 0 && pending.length === 0) return null;
+  return (
+    <div className="mt-2 space-y-0.5 text-[11px] leading-relaxed text-slate-500">
+      {available.length > 0 && (
+        <p>
+          <span className="font-semibold text-slate-600">Dados disponíveis:</span>{" "}
+          {available.join(", ")}.
+        </p>
+      )}
+      {pending.length > 0 && (
+        <p>
+          <span className="font-semibold text-slate-600">Dados pendentes:</span>{" "}
+          {pending.join(", ")}.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function KpiCard({
+
   icon: Icon,
   label,
   value,
@@ -1186,15 +1279,23 @@ function FeedInteligente() {
             <div className="space-y-5">
               {!loading && !errorKind && <PriorityStrip entries={priorityEntries} />}
 
-              <div className="flex items-center justify-between">
-                <h2 className="font-display text-sm font-semibold tracking-tight text-[#0A1F44]">
-                  Feed de anúncios
-                </h2>
-                <span className="inline-flex h-7 items-center gap-1.5 rounded-full bg-emerald-50 px-3 text-[11px] font-semibold text-emerald-700">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="font-display text-sm font-semibold tracking-tight text-[#0A1F44]">
+                    Feed de anúncios
+                  </h2>
+                  {!loading && data?.periodLabel && (
+                    <p className="mt-0.5 truncate text-[11px] text-slate-400">
+                      Período analisado: {data.periodLabel}
+                    </p>
+                  )}
+                </div>
+                <span className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-emerald-50 px-3 text-[11px] font-semibold text-emerald-700">
                   <Database className="h-3 w-3 shrink-0" />
                   Dados reais conectados
                 </span>
               </div>
+
 
               {loading && (
                 <div className="grid gap-5 xl:grid-cols-2">
@@ -1292,8 +1393,9 @@ function FeedInteligente() {
                           <Metric
                             icon={Eye}
                             label="visitas"
-                            value={formatCount(item.metrics.visits)}
+                            value={visitsDisplay(item)}
                           />
+
                           <Metric
                             icon={Boxes}
                             label="estoque"
@@ -1328,14 +1430,20 @@ function FeedInteligente() {
                                 {impactLine(item)}
                               </p>
                             )}
+                            {priorityReason(item) && (
+                              <p className="mt-1.5 text-[11.5px] leading-relaxed text-slate-600">
+                                {priorityReason(item)}
+                              </p>
+                            )}
                             {agingLine(item) && (
                               <p className="mt-1 text-[11.5px] leading-relaxed text-slate-500">
                                 {agingLine(item)}
                               </p>
                             )}
-                            {isMissingCost(item) && (
-                              <p className="mt-1 text-[11.5px] leading-relaxed text-slate-500">
-                                {LIMITATION_LINE}
+                            <DataAvailability item={item} />
+                            {!visitsAreConsolidated(item) && (
+                              <p className="mt-1 text-[11px] leading-relaxed text-slate-400">
+                                {VISITS_NOTE}
                               </p>
                             )}
                           </div>
@@ -1346,8 +1454,14 @@ function FeedInteligente() {
                             <p className="mt-1.5 text-[12.5px] font-medium leading-relaxed">
                               {consultiveAction(item)}
                             </p>
+                            {outcomeLine(item) && (
+                              <p className="mt-1.5 text-[11.5px] leading-relaxed opacity-80">
+                                {outcomeLine(item)}
+                              </p>
+                            )}
                           </div>
                         </div>
+
 
                         {/* Rodapé */}
                         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-4">
@@ -1436,21 +1550,29 @@ function FeedInteligente() {
                 </div>
               </Card>
 
-              {humanizeWarnings(data?.warnings ?? []).length > 0 && (
-                <Card className="rounded-[24px] border-0 bg-slate-50 p-4 shadow-sm">
-                  <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                    <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                    Observações sobre os dados
-                  </p>
-                  <ul className="mt-2 space-y-1.5">
-                    {humanizeWarnings(data?.warnings ?? []).map((warning) => (
-                      <li key={warning} className="text-xs leading-relaxed text-slate-600">
-                        • {warning}
-                      </li>
-                    ))}
-                  </ul>
-                </Card>
-              )}
+              {(() => {
+                const notes = [...humanizeWarnings(data?.warnings ?? [])];
+                if (!loading && data && !data.periodLabel) {
+                  notes.push("O período exato da análise ainda não foi informado pela fonte atual.");
+                }
+                if (notes.length === 0) return null;
+                return (
+                  <Card className="rounded-[24px] border-0 bg-slate-50 p-4 shadow-sm">
+                    <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                      <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+                      Observações sobre os dados
+                    </p>
+                    <ul className="mt-2 space-y-1.5">
+                      {notes.map((warning) => (
+                        <li key={warning} className="text-xs leading-relaxed text-slate-600">
+                          • {warning}
+                        </li>
+                      ))}
+                    </ul>
+                  </Card>
+                );
+              })()}
+
 
               <Card className="rounded-[24px] border-0 p-5 shadow-[0_1px_2px_rgba(10,31,68,0.04),0_18px_40px_-34px_rgba(10,31,68,0.45)]">
                 <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">

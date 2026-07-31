@@ -31,7 +31,12 @@ export type FeedItem = {
     revenue: number | null;
     conversionRate: number | null;
     stock: number | null;
+    cost: number | null;
+    ads: number | null;
   };
+  /** Confirmação explícita do backend de que a fonte de visitas está consolidada. */
+  visitsAvailable: boolean | null;
+
   imageUrl: string | null;
   imageSource: string | null;
   imageSyncedAt: string | null;
@@ -61,6 +66,9 @@ export type FeedFilter = {
 
 export type IntelligentFeedPreview = {
   mode: string | null;
+  /** Período analisado, apenas quando o backend informa. Nunca inferido. */
+  periodLabel: string | null;
+
   writeAllowed: boolean;
   writeExecuted: boolean;
   externalMarketplaceCalled: boolean;
@@ -205,7 +213,15 @@ function normalizeItem(entry: unknown, index: number): FeedItem | null {
       revenue: toNumber(pick(metrics, ["revenue", "receita"])),
       conversionRate: toNumber(pick(metrics, ["conversion_rate", "conversao", "conversion"])),
       stock: toNumber(pick(metrics, ["stock", "estoque", "available_quantity"])),
+      cost: toNumber(pick(metrics, ["cost", "custo", "unit_cost", "real_cost", "cost_value"])),
+      ads: toNumber(
+        pick(metrics, ["ads_investment", "ad_spend", "ads_cost", "investimento_ads", "roas", "acos"]),
+      ),
     },
+    visitsAvailable:
+      toBool(pick(record, ["visits_available", "visits_source_available", "has_visits"])) ??
+      toBool(pick(metrics, ["visits_available", "visits_source_available", "has_visits"])),
+
     imageUrl,
     imageSource: toText(pick(record, ["image_source"])),
     imageSyncedAt: toText(pick(record, ["image_synced_at"])),
@@ -259,6 +275,35 @@ function normalizeFilters(value: unknown): FeedFilter[] {
     .filter((f): f is FeedFilter => f !== null);
 }
 
+/** Formata uma data ISO como dd/mm/aaaa. Retorna null se não for data válida. */
+function formatDay(value: string): string | null {
+  const parsed = new Date(value);
+  if (!Number.isFinite(parsed.getTime())) return value;
+  return parsed.toLocaleDateString("pt-BR");
+}
+
+/**
+ * Lê o período analisado apenas de campos confiáveis do backend.
+ * Nunca inventa datas nem infere períodos.
+ */
+function readPeriodLabel(...sources: (UnknownRecord | null)[]): string | null {
+  for (const source of sources) {
+    const direct = toText(
+      pick(source, ["period_label", "period", "reference_period", "analyzed_period"]),
+    );
+    if (direct) return direct;
+
+    const nested = asRecord(pick(source, ["period", "analyzed_period", "reference_period"]));
+    const from = toText(pick(source, ["date_from", "start_date"])) ?? toText(pick(nested, ["date_from", "start_date", "from"]));
+    const to = toText(pick(source, ["date_to", "end_date"])) ?? toText(pick(nested, ["date_to", "end_date", "to"]));
+    if (from && to) return `${formatDay(from)} a ${formatDay(to)}`;
+    if (from) return `a partir de ${formatDay(from)}`;
+    if (to) return `até ${formatDay(to)}`;
+  }
+  return null;
+}
+
+
 export function normalizeIntelligentFeedPreview(payload: unknown): IntelligentFeedPreview {
   const root = asRecord(payload) ?? {};
   const data = asRecord(root.data) ?? root;
@@ -275,6 +320,8 @@ export function normalizeIntelligentFeedPreview(payload: unknown): IntelligentFe
 
   return {
     mode: toText(pick(root, ["mode"]) ?? pick(data, ["mode"])),
+    periodLabel: readPeriodLabel(root, data, summaryRecord),
+
     writeAllowed: toBool(pick(root, ["write_allowed"])) ?? false,
     writeExecuted: toBool(pick(root, ["write_executed"])) ?? false,
     externalMarketplaceCalled: toBool(pick(root, ["external_marketplace_called"])) ?? false,

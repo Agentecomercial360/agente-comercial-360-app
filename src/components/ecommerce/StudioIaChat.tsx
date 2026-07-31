@@ -37,7 +37,19 @@ import {
 
 const fmtInt = (n: number | null | undefined) => (n == null ? "—" : n.toLocaleString("pt-BR"));
 
-type ChatMessage = { id: string; role: "assistant" | "user"; text: string };
+type ChatMessage = { id: string; role: "assistant" | "user"; text: string; at?: number };
+
+const fmtTime = (ts: number) =>
+  new Date(ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+const TOPIC_TONE: Record<string, { idle: string; active: string }> = {
+  diagnostico: { idle: "bg-[#EAF0FF] text-[#1E5EFF]", active: "bg-[#1E5EFF] text-white" },
+  custos: { idle: "bg-amber-100 text-amber-600", active: "bg-amber-500 text-white" },
+  ads: { idle: "bg-violet-100 text-violet-600", active: "bg-violet-500 text-white" },
+  estoque: { idle: "bg-sky-100 text-sky-600", active: "bg-sky-500 text-white" },
+  oportunidades: { idle: "bg-emerald-100 text-emerald-600", active: "bg-emerald-500 text-white" },
+  tarefas: { idle: "bg-slate-100 text-slate-500", active: "bg-[#0A1F44] text-white" },
+};
 
 type TopicKey = "diagnostico" | "custos" | "ads" | "estoque" | "oportunidades" | "tarefas";
 

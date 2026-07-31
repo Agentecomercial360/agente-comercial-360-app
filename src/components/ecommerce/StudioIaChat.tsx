@@ -642,14 +642,14 @@ function ConsultiveChat({
       </div>
 
       {/* Coluna direita — contexto */}
-      <aside className="order-3 space-y-3.5">
+      <aside className="order-3 space-y-5">
         <details
           open
-          className="group rounded-[22px] border border-slate-200 bg-white p-3.5 shadow-[0_10px_30px_-24px_rgba(10,31,68,0.45)] lg:[&>summary]:cursor-default"
+          className="group rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_30px_-24px_rgba(10,31,68,0.45)] lg:[&>summary]:cursor-default"
         >
-          <summary className="flex cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden">
-            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white">
-              <Gauge className="h-3.5 w-3.5" />
+          <summary className="flex cursor-pointer list-none items-center gap-2.5 [&::-webkit-details-marker]:hidden">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#4C87FF] to-[#1E5EFF] text-white">
+              <Gauge className="h-4 w-4" />
             </span>
             <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#0A1F44]">
               Contexto da operação
@@ -657,53 +657,53 @@ function ConsultiveChat({
             <ChevronDown className="ml-auto h-3.5 w-3.5 text-slate-400 transition group-open:rotate-180 lg:hidden" />
           </summary>
 
-          <p className="mt-3 border-t border-slate-100 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+          <p className="mt-4 border-t border-slate-100 pt-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
             Dados da operação
           </p>
-          <div className="mt-2 space-y-2">
-            <ContextBlock icon={<Store className="h-3.5 w-3.5" />} label="Conta ativa" value={accountLabel} />
+          <div className="mt-3 space-y-3">
+            <ContextBlock icon={<Store className="h-4 w-4" />} label="Conta ativa" value={accountLabel} />
             <ContextBlock
-              icon={<Receipt className="h-3.5 w-3.5" />}
+              icon={<Receipt className="h-4 w-4" />}
               label="Pedidos analisados"
               value={fmtInt(data.summary.orders_checked)}
             />
             <ContextBlock
-              icon={<Coins className="h-3.5 w-3.5" />}
+              icon={<Coins className="h-4 w-4" />}
               label="Receita pronta"
               value={fmtInt(data.summary.revenue_ready_orders)}
               tone="positive"
             />
             <ContextBlock
-              icon={<AlertTriangle className="h-3.5 w-3.5" />}
+              icon={<AlertTriangle className="h-4 w-4" />}
               label="Custos pendentes"
               value={costsPending ? "Sim" : data.summary.costs_pending === false ? "Não" : "—"}
               tone={costsPending ? "warning" : "default"}
             />
             <ContextBlock
-              icon={<Percent className="h-3.5 w-3.5" />}
+              icon={<Percent className="h-4 w-4" />}
               label="Margem / lucro"
               value={data.summary.profit_margin_available ? "Disponível" : "Aguardando custos"}
               tone={data.summary.profit_margin_available ? "positive" : "warning"}
             />
             <ContextBlock
-              icon={<Boxes className="h-3.5 w-3.5" />}
+              icon={<Boxes className="h-4 w-4" />}
               label="Fontes verificadas"
               value={`${sourcesAvailable}/${sourcesChecked}`}
               tone={sourcesAvailable >= sourcesChecked ? "positive" : "warning"}
             />
           </div>
 
-          <p className="mt-4 border-t border-slate-100 pt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+          <p className="mt-6 border-t border-slate-100 pt-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
             Segurança do modo atual
           </p>
-          <div className="mt-2 space-y-2">
-            <ContextBlock icon={<ShieldCheck className="h-3.5 w-3.5" />} label="Modo" value="Somente leitura" tone="info" />
-            <ContextBlock icon={<BadgeCheck className="h-3.5 w-3.5" />} label="IA externa" value="Não chamada" tone="violet" />
-            <ContextBlock icon={<Lock className="h-3.5 w-3.5" />} label="Ações automáticas" value="Desligadas" tone="muted" />
+          <div className="mt-3 space-y-3">
+            <ContextBlock icon={<ShieldCheck className="h-4 w-4" />} label="Modo" value="Somente leitura" tone="info" />
+            <ContextBlock icon={<BadgeCheck className="h-4 w-4" />} label="IA externa" value="Não chamada" tone="violet" />
+            <ContextBlock icon={<Lock className="h-4 w-4" />} label="Ações automáticas" value="Desligadas" tone="muted" />
           </div>
         </details>
 
-        <div className="rounded-[22px] border border-amber-200 bg-gradient-to-b from-amber-50 to-white p-4 shadow-[0_14px_34px_-28px_rgba(180,83,9,0.7)]">
+        <div className="rounded-[24px] border border-amber-200 bg-gradient-to-b from-amber-50 to-white p-5 shadow-[0_14px_34px_-28px_rgba(180,83,9,0.7)]">
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/15 text-amber-700 ring-1 ring-amber-300/70">
               <AlertTriangle className="h-3.5 w-3.5" />

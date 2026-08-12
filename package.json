@@ -4,7 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "node dist/dist/autocommit & vite",
+    "dev": "node .nitro/dist/autocommit & vite",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",

@@ -4,20 +4,17 @@ import {
   Target,
   Search,
   ExternalLink,
-  Loader2,
   Store,
   CheckCircle2,
   Link2,
   Pause,
   XCircle,
   Tag,
-  Hash,
   Activity,
   AlertTriangle,
   ListChecks,
   DollarSign,
   Flame,
-  TrendingUp,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
@@ -569,78 +566,56 @@ function CentralAcoesInner() {
     });
   }, [allActions, filter, q]);
 
-  const kpis = [
-    { label: "Total de ações", value: counts.total.toLocaleString("pt-BR"), icon: ListChecks, accent: "from-blue-700 to-blue-900" },
-    { label: "Críticas", value: counts.critical.toLocaleString("pt-BR"), icon: Flame, accent: "from-red-700 to-rose-900" },
-    { label: "Alta prioridade", value: counts.high.toLocaleString("pt-BR"), icon: AlertTriangle, accent: "from-rose-600 to-rose-800" },
-    { label: "Média prioridade", value: counts.medium.toLocaleString("pt-BR"), icon: Activity, accent: "from-amber-600 to-orange-700" },
-    { label: "Ações de custo", value: counts.cost.toLocaleString("pt-BR"), icon: DollarSign, accent: "from-indigo-600 to-blue-800" },
-    { label: "Pausados para revisar", value: counts.paused.toLocaleString("pt-BR"), icon: Pause, accent: "from-slate-600 to-slate-800" },
-    { label: "Faturamento bloqueado", value: fmtBRL(counts.blockedRevenue), icon: TrendingUp, accent: "from-rose-600 to-red-800" },
-  ];
-
   const filters: { k: FilterKey; label: string }[] = [
     { k: "all", label: "Todas" },
     { k: "critical", label: "Críticas" },
     { k: "high", label: "Alta prioridade" },
-    { k: "medium", label: "Média prioridade" },
-    { k: "low", label: "Baixa prioridade" },
-    { k: "cost", label: "Custo" },
+    { k: "cost", label: "Custos" },
     { k: "paused", label: "Pausados" },
-    { k: "registration", label: "Cadastro" },
   ];
 
   const showPendingState = !loadingAccount && activeAccount && !isActiveConnected;
   const showEmptyState =
     !loading && !showPendingState && activeAccount && isActiveConnected && allActions.length === 0;
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <header className="space-y-2">
-        <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-          <Target className="h-3.5 w-3.5" />
-          Operação Inteligente
-        </div>
-        <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-          Central de Ações
-        </h1>
-        <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
-          O que o operador precisa fazer primeiro hoje. Ações consolidadas de Produtos Problema, Custos e Margem, Produtos Prioritários por Impacto e Anúncios.
-        </p>
-      </header>
+  const accountLabel = loadingAccount
+    ? "Carregando…"
+    : activeAccount?.account_name || activeAccount?.nickname || "Nenhuma conta selecionada";
 
-      {/* Active account summary */}
-      <section className="rounded-2xl border border-border/60 bg-card p-4 shadow-[var(--shadow-soft)] flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 text-white">
-            <Store className="h-4 w-4" />
+  return (
+    <div className="space-y-5">
+      {/* Header */}
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div className="space-y-1.5">
+          <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <Target className="h-3.5 w-3.5 text-primary" />
+            Operação inteligente
           </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Conta analisada
-            </span>
-            <span className="text-sm font-bold text-foreground">
-              {loadingAccount
-                ? "Carregando…"
-                : activeAccount?.account_name || activeAccount?.nickname || "Nenhuma conta selecionada"}
-            </span>
-          </div>
+          <h1 className="font-display text-2xl md:text-[28px] font-bold text-foreground leading-tight">
+            Central de Ações
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-2xl">
+            O que precisa ser resolvido primeiro hoje — custos, margem e anúncios em uma
+            única fila priorizada.
+          </p>
         </div>
-        {activeAccount && (
-          isActiveConnected ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Conectada
-            </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
-              <Link2 className="h-3.5 w-3.5" />
-              Aguardando conexão
-            </span>
-          )
-        )}
-      </section>
+        <div className="inline-flex items-center gap-2 rounded-lg border border-border/70 bg-card px-3 py-2 text-xs shadow-[var(--shadow-soft)]">
+          <Store className="h-4 w-4 text-muted-foreground" />
+          <span className="font-semibold text-foreground">{accountLabel}</span>
+          {activeAccount &&
+            (isActiveConnected ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
+                <CheckCircle2 className="h-3 w-3" />
+                Conectada
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                <Link2 className="h-3 w-3" />
+                Aguardando
+              </span>
+            ))}
+        </div>
+      </header>
 
       {error && (
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -648,32 +623,38 @@ function CentralAcoesInner() {
         </div>
       )}
 
-      {/* KPIs */}
-      <section className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-4">
-        {kpis.map((k) => {
-          const Icon = k.icon;
-          return (
-            <div
-              key={k.label}
-              className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-4 shadow-[var(--shadow-soft)]"
-            >
-              <div className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${k.accent} opacity-10`} />
-              <div className="flex items-start justify-between gap-2">
-                <div className="space-y-1 min-w-0">
-                  <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    {k.label}
-                  </div>
-                  <div className="font-display text-xl xl:text-2xl font-bold text-foreground tabular-nums whitespace-nowrap">
-                    {loading ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> : k.value}
-                  </div>
-                </div>
-                <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${k.accent} text-white shadow-md`}>
-                  <Icon className="h-4 w-4" />
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      {/* KPI summary bar */}
+      <section className="flex flex-wrap items-center gap-x-8 gap-y-4 rounded-xl border border-border/70 bg-card px-5 py-4 shadow-[var(--shadow-soft)]">
+        <KpiItem label="Total de ações" loading={loading}>
+          <span className="font-display text-xl font-bold text-foreground tabular-nums">
+            {counts.total.toLocaleString("pt-BR")}
+          </span>
+        </KpiItem>
+        <KpiItem label="Críticas" loading={loading}>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-sm font-semibold text-red-700 tabular-nums">
+            <Flame className="h-3.5 w-3.5" />
+            {counts.critical.toLocaleString("pt-BR")}
+          </span>
+        </KpiItem>
+        <KpiItem label="Alta prioridade" loading={loading}>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-sm font-semibold text-amber-700 tabular-nums">
+            <AlertTriangle className="h-3.5 w-3.5" />
+            {counts.high.toLocaleString("pt-BR")}
+          </span>
+        </KpiItem>
+        <KpiItem label="Ações de custo" loading={loading}>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-sm font-semibold text-blue-700 tabular-nums">
+            <DollarSign className="h-3.5 w-3.5" />
+            {counts.cost.toLocaleString("pt-BR")}
+          </span>
+        </KpiItem>
+        <div className="ml-auto">
+          <KpiItem label="Faturamento afetado total" loading={loading} align="right">
+            <span className="font-display text-xl font-bold text-rose-700 tabular-nums whitespace-nowrap">
+              {fmtBRL(counts.blockedRevenue)}
+            </span>
+          </KpiItem>
+        </div>
       </section>
 
       {showPendingState ? (
@@ -689,40 +670,30 @@ function CentralAcoesInner() {
           </p>
         </section>
       ) : showEmptyState ? (
-        <section className="rounded-2xl border border-dashed border-border bg-card p-10 text-center shadow-[var(--shadow-soft)]">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-700 mb-3">
-            <CheckCircle2 className="h-6 w-6" />
-          </div>
-          <h3 className="font-display text-lg font-bold text-foreground">
-            Nenhuma ação pendente encontrada.
-          </h3>
-          <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
-            Anúncios e custos da conta selecionada estão em dia nos critérios atuais.
-          </p>
-        </section>
+        <EmptyState />
       ) : (
         <>
-          {/* Filters */}
-          <section className="rounded-2xl border border-border/60 bg-card p-4 shadow-[var(--shadow-soft)] flex flex-wrap items-center gap-3">
-            <div className="relative flex-1 min-w-[240px]">
+          {/* Search + segmented filters */}
+          <section className="flex flex-wrap items-center gap-3 rounded-xl border border-border/70 bg-card p-2.5 shadow-[var(--shadow-soft)]">
+            <div className="relative flex-1 min-w-[260px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar por nome, título, SKU, conta ou ML Item ID"
-                className="w-full rounded-lg border border-border bg-background pl-9 pr-3 py-2 text-sm outline-none focus:border-blue-500"
+                placeholder="Buscar por produto, SKU, título ou ID..."
+                className="w-full rounded-lg border border-transparent bg-muted/40 pl-9 pr-3 py-2 text-sm outline-none transition-colors focus:border-primary/40 focus:bg-background"
               />
             </div>
-            <div className="inline-flex flex-wrap rounded-lg border border-border bg-muted/30 p-1">
+            <div className="inline-flex flex-wrap items-center gap-1 rounded-lg bg-muted/50 p-1">
               {filters.map((opt) => (
                 <button
                   key={opt.k}
                   type="button"
                   onClick={() => setFilter(opt.k)}
-                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+                  className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
                     filter === opt.k
-                      ? "bg-blue-700 text-white shadow-sm"
+                      ? "bg-card text-foreground shadow-sm ring-1 ring-border/70"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -734,34 +705,25 @@ function CentralAcoesInner() {
 
           {/* Table */}
           <ScrollableTableSection>
-            <table className="w-full text-sm min-w-[1400px]">
+            <table className="w-full text-sm min-w-[1040px]">
               <thead>
-                <tr className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  <th className="sticky left-0 z-20 bg-muted/60 backdrop-blur px-4 py-3 text-left font-semibold whitespace-nowrap shadow-[1px_0_0_0_var(--color-border)]">Prioridade</th>
+                <tr className="border-b border-border/70 text-[11px] uppercase tracking-wider text-muted-foreground">
+                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Prioridade</th>
                   <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Produto / Anúncio</th>
-                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">SKU</th>
-                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Conta ML</th>
-                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Tipo de ação</th>
-                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Motivo</th>
+                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Tipo de ação & motivo</th>
                   <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Ação recomendada</th>
-                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Status</th>
                   <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Faturamento afetado</th>
-                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Atualização</th>
                   <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Ação</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
-                  <tr>
-                    <td colSpan={11} className="px-5 py-16 text-center text-muted-foreground">
-                      <Loader2 className="h-5 w-5 animate-spin mx-auto" />
-                    </td>
-                  </tr>
+                  Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
                 ) : filteredActions.length === 0 ? (
                   <tr>
-                    <td colSpan={11} className="px-5 py-16 text-center">
+                    <td colSpan={6} className="px-5 py-16 text-center">
                       <div className="mx-auto max-w-md space-y-2">
-                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
                           <ListChecks className="h-6 w-6" />
                         </div>
                         <div className="font-display text-base font-semibold text-foreground">
@@ -776,103 +738,80 @@ function CentralAcoesInner() {
                       a.type === "register_cost" ||
                       a.type === "prioritize_cost" ||
                       a.type === "release_margin";
+                    const title = a.product?.product_name || a.listing?.title || "—";
+                    const subId = a.product?.sku || a.listing?.ml_item_id || null;
                     return (
-                      <tr key={a.id} className="group border-t border-border/60 hover:bg-muted/20 align-top">
-                        <td className="sticky left-0 z-10 bg-card group-hover:bg-muted/40 px-4 py-3 shadow-[1px_0_0_0_var(--color-border)]">
+                      <tr
+                        key={a.id}
+                        className="border-b border-border/50 transition-colors hover:bg-muted/50"
+                      >
+                        <td className="px-4 py-3 align-middle">
                           <PriorityBadge p={a.priority} />
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="font-semibold text-foreground line-clamp-2">
-                            {a.product?.product_name || a.listing?.title || "—"}
+                        <td className="px-4 py-3 align-middle max-w-[340px]">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border/70 bg-muted/40 text-muted-foreground">
+                              <Tag className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="truncate font-medium text-foreground" title={title}>
+                                {title}
+                              </div>
+                              <div className="truncate text-xs text-muted-foreground">
+                                {subId ? (
+                                  <span className="font-mono">{subId}</span>
+                                ) : (
+                                  "Sem SKU"
+                                )}
+                                {a.accountNames[0] ? ` · ${a.accountNames[0]}` : ""}
+                              </div>
+                            </div>
                           </div>
-                          {a.listing?.ml_item_id && (
-                            <div className="text-[11px] text-muted-foreground mt-0.5 inline-flex items-center gap-1">
-                              <Tag className="h-3 w-3" />
-                              {a.listing.ml_item_id}
-                            </div>
-                          )}
                         </td>
-                        <td className="px-4 py-3 text-xs">
-                          {a.product?.sku ? (
-                            <span className="inline-flex items-center gap-1 font-mono text-foreground/80">
-                              <Hash className="h-3 w-3" />
-                              {a.product.sku}
+                        <td className="px-4 py-3 align-middle max-w-[280px]">
+                          <div className="flex flex-col gap-1">
+                            <ActionTypeBadge type={a.type} label={a.typeLabel} />
+                            <span className="truncate text-xs text-muted-foreground" title={a.reason}>
+                              {a.reason}
                             </span>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
+                          </div>
                         </td>
-                        <td className="px-4 py-3 text-xs">
-                          {a.accountNames.length === 0 ? (
-                            <span className="text-muted-foreground">—</span>
-                          ) : (
-                            <div className="flex flex-wrap gap-1">
-                              {a.accountNames.slice(0, 2).map((n, i) => (
-                                <span
-                                  key={i}
-                                  className="rounded-md border border-border bg-background px-1.5 py-0.5 text-[10px] text-foreground/80"
-                                >
-                                  {n}
-                                </span>
-                              ))}
-                              {a.accountNames.length > 2 && (
-                                <span className="text-[10px] text-muted-foreground">
-                                  +{a.accountNames.length - 2}
-                                </span>
-                              )}
-                            </div>
-                          )}
+                        <td className="px-4 py-3 align-middle max-w-[300px]">
+                          <div className="truncate font-semibold text-foreground" title={a.recommendation}>
+                            {a.recommendation}
+                          </div>
+                          <div className="mt-0.5 text-[11px] text-muted-foreground">
+                            {isCostAction ? "Custo pendente" : `Atualizado em ${fmtDate(a.updatedAt)}`}
+                          </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <ActionTypeBadge type={a.type} label={a.typeLabel} />
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground max-w-[240px]">
-                          {a.reason}
-                        </td>
-                        <td className="px-4 py-3 text-foreground max-w-[280px]">
-                          {a.recommendation}
-                        </td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {isCostAction ? (
-                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">
-                              <AlertTriangle className="h-3 w-3" />
-                              Sem custo
-                            </span>
-                          ) : (
-                            <StatusBadge status={a.listing?.status ?? null} />
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums whitespace-nowrap">
+                        <td className="px-4 py-3 text-right align-middle tabular-nums whitespace-nowrap">
                           {a.affectedRevenue != null ? (
-                            <span className="font-semibold text-rose-700">
+                            <span className="font-semibold text-foreground">
                               {fmtBRL(a.affectedRevenue)}
                             </span>
                           ) : (
                             <span className="text-muted-foreground">—</span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                          {fmtDate(a.updatedAt)}
-                        </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3 text-right align-middle">
                           {a.ctaHref ? (
                             a.ctaExternal ? (
                               <a
                                 href={a.ctaHref}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted/40"
+                                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
                               >
-                                {a.ctaLabel}
+                                Resolver
                                 <ExternalLink className="h-3.5 w-3.5" />
                               </a>
                             ) : (
                               <Link
                                 to="/ecommerce/custos-margem"
                                 hash="pending-costs-table"
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-800"
+                                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
                               >
-                                {a.ctaLabel}
+                                Executar ação
                               </Link>
                             )
                           ) : (
@@ -886,12 +825,87 @@ function CentralAcoesInner() {
               </tbody>
             </table>
           </ScrollableTableSection>
-
         </>
       )}
     </div>
   );
 }
+
+function KpiItem({
+  label,
+  loading,
+  align = "left",
+  children,
+}: {
+  label: string;
+  loading: boolean;
+  align?: "left" | "right";
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={`flex flex-col gap-1.5 ${align === "right" ? "items-end" : "items-start"}`}>
+      <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </span>
+      {loading ? (
+        <span className="h-6 w-16 animate-pulse rounded-md bg-muted" />
+      ) : (
+        children
+      )}
+    </div>
+  );
+}
+
+function SkeletonRow() {
+  return (
+    <tr className="border-b border-border/50">
+      <td className="px-4 py-3">
+        <div className="h-5 w-20 animate-pulse rounded-full bg-muted" />
+      </td>
+      <td className="px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="h-9 w-9 animate-pulse rounded-md bg-muted" />
+          <div className="space-y-1.5">
+            <div className="h-3.5 w-48 animate-pulse rounded bg-muted" />
+            <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+          </div>
+        </div>
+      </td>
+      <td className="px-4 py-3">
+        <div className="space-y-1.5">
+          <div className="h-5 w-24 animate-pulse rounded-full bg-muted" />
+          <div className="h-3 w-40 animate-pulse rounded bg-muted" />
+        </div>
+      </td>
+      <td className="px-4 py-3">
+        <div className="h-3.5 w-56 animate-pulse rounded bg-muted" />
+      </td>
+      <td className="px-4 py-3">
+        <div className="ml-auto h-3.5 w-20 animate-pulse rounded bg-muted" />
+      </td>
+      <td className="px-4 py-3">
+        <div className="ml-auto h-7 w-24 animate-pulse rounded-md bg-muted" />
+      </td>
+    </tr>
+  );
+}
+
+function EmptyState() {
+  return (
+    <section className="rounded-2xl border border-dashed border-border bg-card p-12 text-center shadow-[var(--shadow-soft)]">
+      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 mb-4">
+        <CheckCircle2 className="h-7 w-7" />
+      </div>
+      <h3 className="font-display text-lg font-bold text-foreground">
+        Nenhuma ação pendente. Sua operação está otimizada!
+      </h3>
+      <p className="text-sm text-muted-foreground mt-1.5 max-w-md mx-auto">
+        Anúncios e custos da conta selecionada estão em dia nos critérios atuais.
+      </p>
+    </section>
+  );
+}
+
 
 function PriorityBadge({ p }: { p: Priority }) {
   if (p === "critical")

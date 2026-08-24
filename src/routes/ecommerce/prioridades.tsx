@@ -4,20 +4,17 @@ import {
   Target,
   Search,
   ExternalLink,
-  Loader2,
   Store,
   CheckCircle2,
   Link2,
   Pause,
   XCircle,
   Tag,
-  Hash,
   Activity,
   AlertTriangle,
   ListChecks,
   DollarSign,
   Flame,
-  TrendingUp,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";

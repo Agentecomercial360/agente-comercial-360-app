@@ -36,3 +36,10 @@ build
 *.njsproj
 *.sln
 *.sw?
+# adicionado automaticamente pelo container
+**/AGENTS.md
+.opencode/
+ECC
+.opencode
+.agent-deps/
+.nitro/

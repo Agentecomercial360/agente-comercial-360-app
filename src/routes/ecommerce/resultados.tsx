@@ -666,7 +666,7 @@ function ResultadosAcoesContent() {
         </section>
 
         {/* Debug operacional da medição — apenas em desenvolvimento */}
-        {isDev && (
+        {isDev && hydrated && (
           <details className="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-3 text-[11px] text-slate-700">
             <summary className="cursor-pointer font-semibold uppercase tracking-wider text-slate-600">
               Debug operacional da medição

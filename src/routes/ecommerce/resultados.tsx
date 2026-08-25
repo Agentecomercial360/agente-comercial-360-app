@@ -228,6 +228,7 @@ function ResultadosAcoesContent() {
   const [resultsAvailable, setResultsAvailable] = useState<boolean>(true);
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
+  const hydrated = useHydrated();
 
   const loadAll = useCallback(async () => {
     if (accLoading) return;

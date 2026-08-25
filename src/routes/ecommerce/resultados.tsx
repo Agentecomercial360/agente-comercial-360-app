@@ -579,8 +579,8 @@ function ResultadosAcoesContent() {
                         </div>
                       </TableCell>
                       <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-24 rounded-full" /></Cell>
-                      <TableCell className="pr-5 text-right"><Skeleton className="ml-auto h-8 w-20" /></Cell>
+                      <TableCell><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
+                      <TableCell className="pr-5 text-right"><Skeleton className="ml-auto h-8 w-20" /></TableCell>
                     </TableRow>
                   ))
                 ) : tasks.length === 0 ? (

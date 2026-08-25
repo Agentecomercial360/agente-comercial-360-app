@@ -1,5 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
+  MessageSquare,
   RefreshCw,
   Bot,
   Calendar,
@@ -21,6 +22,7 @@ import {
   DollarSign,
   ClipboardList,
   GraduationCap,
+  LayoutGrid,
 
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
@@ -58,6 +60,7 @@ const navGroups = [
     title: "Crescimento",
     items: [
       { label: "Anúncios e Ads", to: "/ecommerce/ads", icon: Zap },
+      { label: "Feed Inteligente", to: "/ecommerce/feed-inteligente", icon: LayoutGrid },
     ],
   },
   {
@@ -71,6 +74,7 @@ const navGroups = [
     items: [
       { label: "Diagnóstico Inteligente", to: "/ecommerce/radar-ia", icon: Radar },
       { label: "Assistente Estratégico", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
+      { label: "Chat Consultivo IA", to: "/ecommerce/chat-consultivo-ia", icon: MessageSquare },
       { label: "Regras da Operação", to: "/ecommerce/base-ia", icon: BookOpen },
     ],
   },

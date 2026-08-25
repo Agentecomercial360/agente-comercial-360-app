@@ -1,28 +1,68 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import {
-  UserCog,
   CheckCircle2,
   Clock,
   RefreshCw,
   Store,
+  Plus,
+  MoreHorizontal,
+  Settings2,
   Link2,
-  AlertCircle,
+  Unlink,
+  ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
 import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export const Route = createFileRoute("/ecommerce/contas")({
   component: ContasML,
   head: () => ({
-    meta: [{ title: "Contas Mercado Livre | Agente Comercial 360" }],
+    meta: [
+      { title: "Contas Mercado Livre | AC360 E-commerce Intelligence" },
+      {
+        name: "description",
+        content:
+          "Gerencie as contas Mercado Livre conectadas, autorizações e status de sincronização no AC360.",
+      },
+      { property: "og:title", content: "Contas Mercado Livre | AC360" },
+      {
+        property: "og:description",
+        content:
+          "Contas conectadas, autorizações e sincronização de anúncios do Mercado Livre.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex, nofollow" },
+    ],
   }),
 });
 
 const ROBOMIX_COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
-
 
 type AccountRow = {
   id: string;
@@ -75,7 +115,6 @@ function isConnected(account: AccountRow, integration?: IntegrationRow): boolean
   const a = (account.auth_status ?? "").toLowerCase();
   const i = (integration?.integration_status ?? "").toLowerCase();
   if (CONNECTED_VALUES.has(a) || CONNECTED_VALUES.has(i)) return true;
-  // Fallback: linked integration with a successful sync record
   if (integration && (integration.last_sync_at || integration.external_user_id)) {
     return true;
   }
@@ -102,7 +141,6 @@ function formatDateTime(iso: string | null): string {
 
 function ContasML() {
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
   const [integrations, setIntegrations] = useState<IntegrationRow[]>([]);
   const [syncingId, setSyncingId] = useState<string | null>(null);
@@ -110,7 +148,6 @@ function ContasML() {
   async function loadData() {
     try {
       setLoading(true);
-      setError(null);
       const { data: accData, error: accErr } = await supabase
         .from("ecommerce_accounts")
         .select(
@@ -139,7 +176,7 @@ function ContasML() {
       setAccounts(filteredAccounts);
       setIntegrations(filteredIntegrations);
     } catch (e: any) {
-      setError(e?.message ?? "Erro ao carregar contas.");
+      toast.error(e?.message ?? "Erro ao carregar contas.");
     } finally {
       setLoading(false);
     }
@@ -217,83 +254,134 @@ function ContasML() {
 
   return (
     <EcommerceLayout>
-      <div className="mx-auto max-w-7xl space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Contas Mercado Livre da ROBOMIX
-          </h1>
-          <p className="mt-1 text-slate-500">
-            Gerencie as contas conectadas, acompanhe autorizações e visualize o status de
-            sincronização.
-          </p>
-        </div>
-
-        {error && (
-          <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-            <AlertCircle className="mt-0.5 h-4 w-4" />
-            <span>{error}</span>
+      <TooltipProvider delayDuration={200}>
+        <div className="mx-auto max-w-7xl space-y-6">
+          {/* Cabeçalho */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground">
+                Contas Mercado Livre da ROBOMIX
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Gerencie as contas conectadas, acompanhe autorizações e o status de
+                sincronização.
+              </p>
+            </div>
+            <Button
+              className="gap-2 shadow-sm"
+              onClick={() =>
+                toast.info(
+                  "A autorização de novas contas Mercado Livre será liberada em breve.",
+                )
+              }
+            >
+              <Plus className="h-4 w-4" />
+              Conectar Nova Conta
+            </Button>
           </div>
-        )}
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <SummaryCard
-            label="Total de contas"
-            value={loading ? "—" : String(summary.total)}
-            icon={<Store className="h-4 w-4 text-blue-600" />}
-            tone="blue"
-          />
-          <SummaryCard
-            label="Conectadas"
-            value={loading ? "—" : String(summary.connected)}
-            icon={<CheckCircle2 className="h-4 w-4 text-emerald-600" />}
-            tone="emerald"
-          />
-          <SummaryCard
-            label="Pendentes"
-            value={loading ? "—" : String(summary.pending)}
-            icon={<Clock className="h-4 w-4 text-amber-600" />}
-            tone="amber"
-          />
-          <SummaryCard
-            label="Última sincronização"
-            value={loading ? "—" : formatDateTime(summary.lastSync)}
-            icon={<RefreshCw className="h-4 w-4 text-slate-600" />}
-            tone="slate"
-            small
-          />
-        </div>
+          {/* KPI summary bar */}
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-3 rounded-xl border border-border bg-card px-5 py-3.5 shadow-sm">
+            <div className="flex items-center gap-2">
+              <Store className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Total de contas
+              </span>
+              <span className="text-sm font-bold text-foreground">
+                {loading ? "—" : summary.total}
+              </span>
+            </div>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="border-b border-slate-200 bg-slate-50/50">
-                <tr>
-                  <th className="px-6 py-4 font-semibold text-slate-900">Conta</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900">Marketplace</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900">Nickname</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900">Status</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900">Integração</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900">ML User ID</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900">Última sincronização</th>
-                  <th className="px-6 py-4 font-semibold text-slate-900">Observações</th>
-                  <th className="px-6 py-4 text-right font-semibold text-slate-900">Ações</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {loading && (
-                  <tr>
-                    <td colSpan={9} className="px-6 py-10 text-center text-slate-500">
-                      Carregando contas…
-                    </td>
-                  </tr>
-                )}
+            <div className="hidden h-5 w-px bg-border sm:block" />
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Conectadas
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">
+                <CheckCircle2 className="h-3 w-3" />
+                {loading ? "—" : summary.connected}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Pendentes
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-700">
+                <Clock className="h-3 w-3" />
+                {loading ? "—" : summary.pending}
+              </span>
+            </div>
+
+            <div className="hidden h-5 w-px bg-border sm:block" />
+
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <RefreshCw className="h-3.5 w-3.5" />
+              Última sincronização:{" "}
+              <span className="font-medium">
+                {loading ? "—" : formatDateTime(summary.lastSync)}
+              </span>
+            </div>
+          </div>
+
+          {/* Tabela */}
+          <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40 hover:bg-muted/40">
+                  <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider">
+                    Conta / Nickname
+                  </TableHead>
+                  <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider">
+                    Status
+                  </TableHead>
+                  <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider">
+                    Integração
+                  </TableHead>
+                  <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider">
+                    ML User ID
+                  </TableHead>
+                  <TableHead className="h-10 text-xs font-semibold uppercase tracking-wider">
+                    Última sincronização
+                  </TableHead>
+                  <TableHead className="h-10 text-right text-xs font-semibold uppercase tracking-wider">
+                    Ações
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading &&
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <TableRow key={`sk-${i}`}>
+                      {Array.from({ length: 6 }).map((__, j) => (
+                        <TableCell key={j} className="py-3">
+                          <Skeleton className="h-4 w-full max-w-[160px]" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+
                 {!loading && accounts.length === 0 && (
-                  <tr>
-                    <td colSpan={9} className="px-6 py-10 text-center text-slate-500">
-                      Nenhuma conta Mercado Livre encontrada para esta empresa.
-                    </td>
-                  </tr>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell colSpan={6} className="py-16">
+                      <div className="flex flex-col items-center gap-3 text-center">
+                        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted">
+                          <Store className="h-5 w-5 text-muted-foreground" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">
+                            Nenhuma conta vinculada
+                          </p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Clique em “Conectar Nova Conta” para começar.
+                          </p>
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                 )}
+
                 {!loading &&
                   accounts.map((acc) => {
                     const integration = acc.id
@@ -301,125 +389,138 @@ function ContasML() {
                       : undefined;
                     const connected = isConnected(acc, integration);
                     const nickname =
-                      acc.nickname ?? integration?.external_nickname ?? "—";
+                      acc.nickname ?? integration?.external_nickname ?? null;
                     const mlUserId =
                       acc.ml_user_id ?? integration?.external_user_id ?? "—";
                     const lastSync =
                       acc.last_sync_at ?? integration?.last_sync_at ?? null;
+                    const isSyncing = syncingId === acc.id;
                     return (
-                      <tr key={acc.id} className="transition-colors hover:bg-slate-50/50">
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 ring-1 ring-blue-100">
-                              <UserCog className="h-4 w-4 text-blue-600" />
-                            </div>
-                            <span className="font-bold text-slate-900">
+                      <TableRow key={acc.id} className="group">
+                        <TableCell className="py-3">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold text-foreground">
                               {acc.account_name ?? "Sem nome"}
                             </span>
+                            <span className="text-xs text-muted-foreground">
+                              {nickname ?? "Sem nickname"}
+                            </span>
                           </div>
-                        </td>
-                        <td className="px-6 py-4 text-slate-700">Mercado Livre</td>
-                        <td className="px-6 py-4 text-slate-700">{nickname}</td>
-                        <td className="px-6 py-4">
+                        </TableCell>
+                        <TableCell className="py-3">
                           {connected ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
                               <CheckCircle2 className="h-3 w-3" />
                               Conectada
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">
                               <Clock className="h-3 w-3" />
-                              Aguardando autorização
+                              Requer atenção
                             </span>
                           )}
-                        </td>
-                        <td className="px-6 py-4 text-slate-700">
+                        </TableCell>
+                        <TableCell className="py-3 text-sm text-muted-foreground">
                           {integration?.integration_status ?? "—"}
-                        </td>
-                        <td className="px-6 py-4 font-mono text-xs text-slate-700">
+                        </TableCell>
+                        <TableCell className="py-3 font-mono text-xs text-muted-foreground">
                           {mlUserId}
-                        </td>
-                        <td className="px-6 py-4 text-slate-700">
+                        </TableCell>
+                        <TableCell className="py-3 text-sm text-muted-foreground">
                           {formatDateTime(lastSync)}
-                        </td>
-                        <td
-                          className="px-6 py-4 text-slate-600"
-                          title={acc.integration_notes ?? ""}
-                        >
-                          <span className="line-clamp-2 max-w-[220px] text-xs">
-                            {acc.integration_notes ?? "—"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          {connected ? (
-                            <div className="flex items-center justify-end gap-2">
-                              <span className="text-[11px] font-medium text-emerald-700">
-                                Conta conectada
-                              </span>
-                              <button
-                                onClick={() => handleSyncAccount(acc.id)}
-                                disabled={syncingId === acc.id}
-                                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-                              >
-                                <RefreshCw
-                                  className={`h-3.5 w-3.5 ${syncingId === acc.id ? "animate-spin" : ""}`}
-                                />
-                                {syncingId === acc.id ? "Sincronizando…" : "Sincronizar produtos"}
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
-                              <Link2 className="h-3.5 w-3.5" />
-                              Conectar Mercado Livre
-                            </span>
-                          )}
-                        </td>
-                      </tr>
+                        </TableCell>
+                        <TableCell className="py-3">
+                          <div className="flex items-center justify-end gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  disabled={!connected || isSyncing}
+                                  onClick={() => handleSyncAccount(acc.id)}
+                                >
+                                  <RefreshCw
+                                    className={`h-4 w-4 ${isSyncing ? "animate-spin" : ""}`}
+                                  />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {connected
+                                  ? "Sincronizar produtos"
+                                  : "Conta aguardando autorização"}
+                              </TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={() =>
+                                    toast.info(
+                                      "Configurações avançadas desta conta em breve.",
+                                    )
+                                  }
+                                >
+                                  <Settings2 className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Configurações</TooltipContent>
+                            </Tooltip>
+
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    toast.info(
+                                      "Reautorização via Mercado Livre em breve.",
+                                    )
+                                  }
+                                >
+                                  <Link2 className="mr-2 h-4 w-4" />
+                                  Reautorizar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    toast.info(
+                                      acc.integration_notes ??
+                                        "Sem observações registradas para esta conta.",
+                                    )
+                                  }
+                                >
+                                  <ShieldCheck className="mr-2 h-4 w-4" />
+                                  Ver observações
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() =>
+                                    toast.info(
+                                      "Desconectar contas exige confirmação do administrador.",
+                                    )
+                                  }
+                                >
+                                  <Unlink className="mr-2 h-4 w-4" />
+                                  Desconectar
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </TableCell>
+                      </TableRow>
                     );
                   })}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </div>
-      </div>
+      </TooltipProvider>
     </EcommerceLayout>
-  );
-}
-
-function SummaryCard({
-  label,
-  value,
-  icon,
-  tone,
-  small,
-}: {
-  label: string;
-  value: string;
-  icon: React.ReactNode;
-  tone: "blue" | "emerald" | "amber" | "slate";
-  small?: boolean;
-}) {
-  const ring =
-    tone === "blue"
-      ? "ring-blue-100 bg-blue-50"
-      : tone === "emerald"
-        ? "ring-emerald-100 bg-emerald-50"
-        : tone === "amber"
-          ? "ring-amber-100 bg-amber-50"
-          : "ring-slate-200 bg-slate-50";
-  return (
-    <div className="rounded-2xl border border-slate-200 bg-card p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-          {label}
-        </p>
-        <div className={`rounded-full p-1.5 ring-1 ${ring}`}>{icon}</div>
-      </div>
-      <p
-        className={`mt-3 font-bold text-slate-900 ${small ? "text-base" : "text-2xl"}`}
-      >
-        {value}
-      </p>
-    </div>
   );
 }

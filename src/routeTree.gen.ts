@@ -36,6 +36,7 @@ import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produt
 import { Route as EcommercePrioridadesRouteImport } from './routes/ecommerce/prioridades'
 import { Route as EcommerceMapaVendasRouteImport } from './routes/ecommerce/mapa-vendas'
 import { Route as EcommerceLoginRouteImport } from './routes/ecommerce/login'
+import { Route as EcommerceFeedInteligenteRouteImport } from './routes/ecommerce/feed-inteligente'
 import { Route as EcommerceEstoqueRouteImport } from './routes/ecommerce/estoque'
 import { Route as EcommerceDashboardRouteImport } from './routes/ecommerce/dashboard'
 import { Route as EcommerceCustosMargemRouteImport } from './routes/ecommerce/custos-margem'
@@ -44,6 +45,7 @@ import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
 import { Route as EcommerceConsultorIaRouteImport } from './routes/ecommerce/consultor-ia'
 import { Route as EcommerceConfiguracoesRouteImport } from './routes/ecommerce/configuracoes'
 import { Route as EcommerceConcorrenciaRouteImport } from './routes/ecommerce/concorrencia'
+import { Route as EcommerceChatConsultivoIaRouteImport } from './routes/ecommerce/chat-consultivo-ia'
 import { Route as EcommerceBaseIaRouteImport } from './routes/ecommerce/base-ia'
 import { Route as EcommerceAdsRouteImport } from './routes/ecommerce/ads'
 import { Route as EcommerceAcademiaRouteImport } from './routes/ecommerce/academia'
@@ -195,6 +197,12 @@ const EcommerceLoginRoute = EcommerceLoginRouteImport.update({
   path: '/ecommerce/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceFeedInteligenteRoute =
+  EcommerceFeedInteligenteRouteImport.update({
+    id: '/ecommerce/feed-inteligente',
+    path: '/ecommerce/feed-inteligente',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const EcommerceEstoqueRoute = EcommerceEstoqueRouteImport.update({
   id: '/ecommerce/estoque',
   path: '/ecommerce/estoque',
@@ -235,6 +243,12 @@ const EcommerceConcorrenciaRoute = EcommerceConcorrenciaRouteImport.update({
   path: '/ecommerce/concorrencia',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EcommerceChatConsultivoIaRoute =
+  EcommerceChatConsultivoIaRouteImport.update({
+    id: '/ecommerce/chat-consultivo-ia',
+    path: '/ecommerce/chat-consultivo-ia',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const EcommerceBaseIaRoute = EcommerceBaseIaRouteImport.update({
   id: '/ecommerce/base-ia',
   path: '/ecommerce/base-ia',
@@ -332,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce/academia': typeof EcommerceAcademiaRouteWithChildren
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/base-ia': typeof EcommerceBaseIaRoute
+  '/ecommerce/chat-consultivo-ia': typeof EcommerceChatConsultivoIaRoute
   '/ecommerce/concorrencia': typeof EcommerceConcorrenciaRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -340,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/ecommerce/custos-margem': typeof EcommerceCustosMargemRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
+  '/ecommerce/feed-inteligente': typeof EcommerceFeedInteligenteRoute
   '/ecommerce/login': typeof EcommerceLoginRoute
   '/ecommerce/mapa-vendas': typeof EcommerceMapaVendasRoute
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
@@ -382,6 +398,7 @@ export interface FileRoutesByTo {
   '/ecommerce/academia': typeof EcommerceAcademiaRouteWithChildren
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/base-ia': typeof EcommerceBaseIaRoute
+  '/ecommerce/chat-consultivo-ia': typeof EcommerceChatConsultivoIaRoute
   '/ecommerce/concorrencia': typeof EcommerceConcorrenciaRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -390,6 +407,7 @@ export interface FileRoutesByTo {
   '/ecommerce/custos-margem': typeof EcommerceCustosMargemRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
+  '/ecommerce/feed-inteligente': typeof EcommerceFeedInteligenteRoute
   '/ecommerce/login': typeof EcommerceLoginRoute
   '/ecommerce/mapa-vendas': typeof EcommerceMapaVendasRoute
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
@@ -433,6 +451,7 @@ export interface FileRoutesById {
   '/ecommerce/academia': typeof EcommerceAcademiaRouteWithChildren
   '/ecommerce/ads': typeof EcommerceAdsRoute
   '/ecommerce/base-ia': typeof EcommerceBaseIaRoute
+  '/ecommerce/chat-consultivo-ia': typeof EcommerceChatConsultivoIaRoute
   '/ecommerce/concorrencia': typeof EcommerceConcorrenciaRoute
   '/ecommerce/configuracoes': typeof EcommerceConfiguracoesRoute
   '/ecommerce/consultor-ia': typeof EcommerceConsultorIaRoute
@@ -441,6 +460,7 @@ export interface FileRoutesById {
   '/ecommerce/custos-margem': typeof EcommerceCustosMargemRoute
   '/ecommerce/dashboard': typeof EcommerceDashboardRoute
   '/ecommerce/estoque': typeof EcommerceEstoqueRoute
+  '/ecommerce/feed-inteligente': typeof EcommerceFeedInteligenteRoute
   '/ecommerce/login': typeof EcommerceLoginRoute
   '/ecommerce/mapa-vendas': typeof EcommerceMapaVendasRoute
   '/ecommerce/prioridades': typeof EcommercePrioridadesRoute
@@ -485,6 +505,7 @@ export interface FileRouteTypes {
     | '/ecommerce/academia'
     | '/ecommerce/ads'
     | '/ecommerce/base-ia'
+    | '/ecommerce/chat-consultivo-ia'
     | '/ecommerce/concorrencia'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -493,6 +514,7 @@ export interface FileRouteTypes {
     | '/ecommerce/custos-margem'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
+    | '/ecommerce/feed-inteligente'
     | '/ecommerce/login'
     | '/ecommerce/mapa-vendas'
     | '/ecommerce/prioridades'
@@ -535,6 +557,7 @@ export interface FileRouteTypes {
     | '/ecommerce/academia'
     | '/ecommerce/ads'
     | '/ecommerce/base-ia'
+    | '/ecommerce/chat-consultivo-ia'
     | '/ecommerce/concorrencia'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -543,6 +566,7 @@ export interface FileRouteTypes {
     | '/ecommerce/custos-margem'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
+    | '/ecommerce/feed-inteligente'
     | '/ecommerce/login'
     | '/ecommerce/mapa-vendas'
     | '/ecommerce/prioridades'
@@ -585,6 +609,7 @@ export interface FileRouteTypes {
     | '/ecommerce/academia'
     | '/ecommerce/ads'
     | '/ecommerce/base-ia'
+    | '/ecommerce/chat-consultivo-ia'
     | '/ecommerce/concorrencia'
     | '/ecommerce/configuracoes'
     | '/ecommerce/consultor-ia'
@@ -593,6 +618,7 @@ export interface FileRouteTypes {
     | '/ecommerce/custos-margem'
     | '/ecommerce/dashboard'
     | '/ecommerce/estoque'
+    | '/ecommerce/feed-inteligente'
     | '/ecommerce/login'
     | '/ecommerce/mapa-vendas'
     | '/ecommerce/prioridades'
@@ -636,6 +662,7 @@ export interface RootRouteChildren {
   EcommerceAcademiaRoute: typeof EcommerceAcademiaRouteWithChildren
   EcommerceAdsRoute: typeof EcommerceAdsRoute
   EcommerceBaseIaRoute: typeof EcommerceBaseIaRoute
+  EcommerceChatConsultivoIaRoute: typeof EcommerceChatConsultivoIaRoute
   EcommerceConcorrenciaRoute: typeof EcommerceConcorrenciaRoute
   EcommerceConfiguracoesRoute: typeof EcommerceConfiguracoesRoute
   EcommerceConsultorIaRoute: typeof EcommerceConsultorIaRoute
@@ -644,6 +671,7 @@ export interface RootRouteChildren {
   EcommerceCustosMargemRoute: typeof EcommerceCustosMargemRoute
   EcommerceDashboardRoute: typeof EcommerceDashboardRoute
   EcommerceEstoqueRoute: typeof EcommerceEstoqueRoute
+  EcommerceFeedInteligenteRoute: typeof EcommerceFeedInteligenteRoute
   EcommerceLoginRoute: typeof EcommerceLoginRoute
   EcommerceMapaVendasRoute: typeof EcommerceMapaVendasRoute
   EcommercePrioridadesRoute: typeof EcommercePrioridadesRoute
@@ -848,6 +876,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EcommerceLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ecommerce/feed-inteligente': {
+      id: '/ecommerce/feed-inteligente'
+      path: '/ecommerce/feed-inteligente'
+      fullPath: '/ecommerce/feed-inteligente'
+      preLoaderRoute: typeof EcommerceFeedInteligenteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ecommerce/estoque': {
       id: '/ecommerce/estoque'
       path: '/ecommerce/estoque'
@@ -902,6 +937,13 @@ declare module '@tanstack/react-router' {
       path: '/ecommerce/concorrencia'
       fullPath: '/ecommerce/concorrencia'
       preLoaderRoute: typeof EcommerceConcorrenciaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/chat-consultivo-ia': {
+      id: '/ecommerce/chat-consultivo-ia'
+      path: '/ecommerce/chat-consultivo-ia'
+      fullPath: '/ecommerce/chat-consultivo-ia'
+      preLoaderRoute: typeof EcommerceChatConsultivoIaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ecommerce/base-ia': {
@@ -1038,6 +1080,7 @@ const rootRouteChildren: RootRouteChildren = {
   EcommerceAcademiaRoute: EcommerceAcademiaRouteWithChildren,
   EcommerceAdsRoute: EcommerceAdsRoute,
   EcommerceBaseIaRoute: EcommerceBaseIaRoute,
+  EcommerceChatConsultivoIaRoute: EcommerceChatConsultivoIaRoute,
   EcommerceConcorrenciaRoute: EcommerceConcorrenciaRoute,
   EcommerceConfiguracoesRoute: EcommerceConfiguracoesRoute,
   EcommerceConsultorIaRoute: EcommerceConsultorIaRoute,
@@ -1046,6 +1089,7 @@ const rootRouteChildren: RootRouteChildren = {
   EcommerceCustosMargemRoute: EcommerceCustosMargemRoute,
   EcommerceDashboardRoute: EcommerceDashboardRoute,
   EcommerceEstoqueRoute: EcommerceEstoqueRoute,
+  EcommerceFeedInteligenteRoute: EcommerceFeedInteligenteRoute,
   EcommerceLoginRoute: EcommerceLoginRoute,
   EcommerceMapaVendasRoute: EcommerceMapaVendasRoute,
   EcommercePrioridadesRoute: EcommercePrioridadesRoute,
@@ -1061,3 +1105,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

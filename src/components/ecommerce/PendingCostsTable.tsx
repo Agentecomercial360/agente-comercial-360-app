@@ -193,14 +193,10 @@ export function PendingCostsTable({ rows, loading, companyId, scopeLabel, onSave
               <thead>
                 <tr className="bg-slate-50 text-[11px] uppercase tracking-wider text-slate-600">
                   <th className="text-left px-3 py-3 font-semibold">Produto</th>
-                  <th className="text-left px-3 py-3 font-semibold">SKU</th>
-                  <th className="text-left px-3 py-3 font-semibold">Conta ML</th>
-                  <th className="text-right px-3 py-3 font-semibold">Qtd vendida</th>
+                  <th className="text-right px-3 py-3 font-semibold">Vendas</th>
                   <th className="text-right px-3 py-3 font-semibold">Faturamento afetado</th>
-                  <th className="text-right px-3 py-3 font-semibold">Custo atual</th>
                   <th className="text-right px-3 py-3 font-semibold">Novo custo (R$)</th>
-                  <th className="text-center px-3 py-3 font-semibold">Status</th>
-                  <th className="text-right px-3 py-3 font-semibold">Ação</th>
+                  <th className="text-right px-3 py-3 font-semibold">Ações</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -210,43 +206,26 @@ export function PendingCostsTable({ rows, loading, companyId, scopeLabel, onSave
                   const parsed = parseBRLInput(inputVal);
                   return (
                     <tr key={r.product_id} className="hover:bg-slate-50/60 transition">
-                      <td className="px-3 py-3">
-                        <div className="font-semibold text-slate-900 leading-tight">
+                      <td className="max-w-[280px] px-3 py-3">
+                        <p className="truncate text-[13px] font-semibold text-slate-900" title={r.product_name ?? "Produto sem nome"}>
                           {r.product_name ?? "Produto sem nome"}
-                        </div>
+                        </p>
+                        <p className="mt-0.5 truncate font-mono text-[11px] text-slate-400">
+                          {r.sku || "sem SKU"}
+                        </p>
                       </td>
-                      <td className="px-3 py-3 font-mono text-xs text-slate-500">
-                        {r.sku ?? "—"}
+                      <td className="whitespace-nowrap px-3 py-3 text-right tabular-nums">
+                        <p className="text-[13px] font-semibold text-slate-900">
+                          {r.units.toLocaleString("pt-BR")} un
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-slate-500">
+                          {r.orders.toLocaleString("pt-BR")} {r.orders === 1 ? "pedido" : "pedidos"}
+                        </p>
                       </td>
-                      <td className="px-3 py-3 text-xs">
-                        {r.accountNames.length === 0 ? (
-                          <span className="text-slate-400">—</span>
-                        ) : (
-                          <div className="flex flex-wrap gap-1">
-                            {r.accountNames.slice(0, 2).map((n, i) => (
-                              <span
-                                key={i}
-                                className="rounded-md border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] text-slate-700"
-                              >
-                                {n}
-                              </span>
-                            ))}
-                            {r.accountNames.length > 2 && (
-                              <span className="text-[10px] text-slate-500">
-                                +{r.accountNames.length - 2}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-3 py-3 text-right tabular-nums">
-                        {r.units.toLocaleString("pt-BR")}
-                      </td>
-                      <td className="px-3 py-3 text-right tabular-nums font-semibold text-rose-700 whitespace-nowrap">
-                        {formatBRL(r.revenue)}
-                      </td>
-                      <td className="px-3 py-3 text-right tabular-nums text-slate-500">
-                        {r.cost_price && r.cost_price > 0 ? formatBRL(r.cost_price) : "—"}
+                      <td className="whitespace-nowrap px-3 py-3 text-right tabular-nums">
+                        <span className="text-[13px] font-bold text-slate-900">
+                          {formatBRL(r.revenue)}
+                        </span>
                       </td>
                       <td className="px-3 py-3 text-right">
                         <input
@@ -259,30 +238,47 @@ export function PendingCostsTable({ rows, loading, companyId, scopeLabel, onSave
                           onKeyDown={(e) => {
                             if (e.key === "Enter" && parsed != null) void handleSave(r);
                           }}
+                          onBlur={() => {
+                            if (parsed != null && !isSaving) void handleSave(r);
+                          }}
                           placeholder="0,00"
                           disabled={isSaving}
+                          aria-label={`Novo custo para ${r.product_name || r.sku || "produto"}`}
                           className="w-28 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-right text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                         />
                       </td>
-                      <td className="px-3 py-3 text-center">
-                        <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                          <AlertTriangle className="h-3 w-3" />
-                          Pendente
-                        </span>
-                      </td>
-                      <td className="px-3 py-3 text-right">
+                      <td className="px-3 py-3">
+                        <div className="flex items-center justify-end gap-2">
+                          {isSaving ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              Salvando
+                            </span>
+                          ) : parsed != null ? (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                              <CheckCircle2 className="h-3 w-3" />
+                              Pronto
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
+                              <AlertTriangle className="h-3 w-3" />
+                              Pendente
+                            </span>
+                          )}
                         <button
                           onClick={() => handleSave(r)}
                           disabled={isSaving || parsed == null}
-                          className="inline-flex items-center gap-1.5 rounded-md bg-blue-700 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-blue-800 disabled:opacity-50 transition"
+                          title="Salvar custo"
+                          aria-label={`Salvar custo de ${r.product_name || r.sku || "produto"}`}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-40"
                         >
                           {isSaving ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           ) : (
-                            <Save className="h-3 w-3" />
+                            <Save className="h-3.5 w-3.5" />
                           )}
-                          Salvar custo
                         </button>
+                        </div>
                       </td>
                     </tr>
                   );

@@ -264,6 +264,7 @@ function CustosMargemContent() {
   const [blockingProducts, setBlockingProducts] = useState<BlockingProduct[]>([]);
   const [blockingLoading, setBlockingLoading] = useState(false);
   const [impactReloadKey, setImpactReloadKey] = useState(0);
+  const [activeTab, setActiveTab] = useState<"preenchimento" | "analise">("preenchimento");
   const [dailySeries, setDailySeries] = useState<DailyPoint[]>([]);
   const [dailyLoading, setDailyLoading] = useState(false);
   const selectedAccountId = activeAccountId ?? null;
@@ -773,36 +774,22 @@ function CustosMargemContent() {
   return (
     <>
       <div className="space-y-6">
-        <header className="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50/60 to-blue-50/40 px-6 py-7 md:px-8 md:py-9 shadow-[var(--shadow-soft)]">
-          <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-blue-600/10 blur-2xl" aria-hidden />
-          <div className="absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-slate-900/5 blur-2xl" aria-hidden />
-          <div className="relative space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-700">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                Dados reais do Mercado Livre
-              </span>
-              {isFilteringByAccount && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-                  Conta conectada
-                </span>
-              )}
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-700">
-                Lucro aguardando custo
-              </span>
-            </div>
-            <h1 className="font-display text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
+        <header className="rounded-2xl border border-slate-200 bg-white px-5 py-5 md:px-6 shadow-[var(--shadow-soft)]">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-1 min-w-0">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+                Custos e Margem · {selectedAccountName}
+              </p>
+            <h1 className="font-display text-2xl md:text-[26px] font-bold tracking-tight text-slate-900">
               {isFilteringByAccount
                 ? `Conta em Foco: ${selectedAccountName}`
-                : "Central de Lucro Real — Todas as contas"}
+                : "Central de Lucro Real"}
             </h1>
-            <p className="text-sm md:text-base text-slate-600 max-w-3xl leading-relaxed">
-              {isFilteringByAccount
-                ? "Diagnóstico real da conta selecionada com pedidos, produtos vendidos e lucro aguardando cadastro de custo."
-                : "Visão consolidada das contas conectadas, com lucro aguardando cadastro de custo em toda a operação."}
+            <p className="text-[13px] text-slate-600 max-w-2xl leading-relaxed">
+              Cadastre o custo dos SKUs prioritários para liberar margem real e lucro por pedido.
             </p>
+            </div>
           </div>
-        </header>
 
         {/* KPIs da conta selecionada */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">

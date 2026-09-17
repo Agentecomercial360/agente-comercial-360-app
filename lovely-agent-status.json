@@ -10,6 +10,15 @@
     {
       "stage": "plugin-created",
       "at": "2026-09-17T14:37:57.893Z"
+    },
+    {
+      "stage": "configResolved",
+      "at": "2026-09-17T14:37:59.114Z"
+    },
+    {
+      "stage": "configureServer",
+      "at": "2026-09-17T14:37:59.948Z"
     }
-  ]
+  ],
+  "root": "/dev-server"
 }

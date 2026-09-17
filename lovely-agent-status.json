@@ -14,6 +14,10 @@
     {
       "stage": "configResolved",
       "at": "2026-09-17T14:38:17.234Z"
+    },
+    {
+      "stage": "configureServer",
+      "at": "2026-09-17T14:38:18.544Z"
     }
   ],
   "root": "/dev-server"

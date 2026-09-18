@@ -1,23 +1,23 @@
 {
   "message": "Estou funcionando",
-  "pid": 223,
+  "pid": 650,
   "cwd": "/dev-server",
   "stages": [
     {
       "stage": "module-loaded",
-      "at": "2026-09-18T00:49:02.550Z"
+      "at": "2026-09-18T00:49:12.975Z"
     },
     {
       "stage": "plugin-created",
-      "at": "2026-09-18T00:49:02.551Z"
+      "at": "2026-09-18T00:49:12.977Z"
     },
     {
       "stage": "configResolved",
-      "at": "2026-09-18T00:49:03.719Z"
+      "at": "2026-09-18T00:49:14.186Z"
     },
     {
       "stage": "configureServer",
-      "at": "2026-09-18T00:49:04.252Z"
+      "at": "2026-09-18T00:49:14.653Z"
     }
   ],
   "root": "/dev-server"

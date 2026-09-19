@@ -1,0 +1,24 @@
+{
+  "message": "Estou funcionando",
+  "pid": 211,
+  "cwd": "/dev-server",
+  "stages": [
+    {
+      "stage": "module-loaded",
+      "at": "2026-09-19T00:39:56.668Z"
+    },
+    {
+      "stage": "plugin-created",
+      "at": "2026-09-19T00:39:56.669Z"
+    },
+    {
+      "stage": "configResolved",
+      "at": "2026-09-19T00:39:58.304Z"
+    },
+    {
+      "stage": "configureServer",
+      "at": "2026-09-19T00:39:59.179Z"
+    }
+  ],
+  "root": "/dev-server"
+}

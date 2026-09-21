@@ -490,14 +490,16 @@ function DashboardContent() {
           value={brl.format(totals.gross)}
           loading={loading}
           highlight
+          tone="blue"
         />
-        <Metric label="Total de pedidos" value={num.format(totals.count)} loading={loading} />
-        <Metric label="Ticket médio" value={brl.format(totals.ticket)} loading={loading} />
+        <Metric label="Total de pedidos" value={num.format(totals.count)} loading={loading} tone="slate" />
+        <Metric label="Ticket médio" value={brl.format(totals.ticket)} loading={loading} tone="emerald" />
         <Metric
           label="Resultado parcial"
           value={brl.format(totals.netParcial)}
           sublabel="Antes do custo do produto"
           loading={loading}
+          tone="green"
         />
         <Metric
           label="Taxas Mercado Livre"
@@ -776,19 +778,39 @@ function Metric({
   sublabel?: string;
   loading?: boolean;
   highlight?: boolean;
-  tone?: "default" | "warn" | "muted";
+  tone?: "default" | "warn" | "muted" | "blue" | "slate" | "emerald" | "green";
 }) {
   const valueTone =
     tone === "warn"
-      ? "text-rose-700"
+      ? "text-rose-700 font-bold"
       : tone === "muted"
         ? "text-muted-foreground"
-        : "text-foreground";
+        : tone === "blue"
+          ? "text-blue-600 dark:text-blue-400 font-bold"
+          : tone === "slate"
+            ? "text-slate-900 dark:text-slate-100 font-bold"
+            : tone === "emerald"
+              ? "text-emerald-600 dark:text-emerald-400 font-bold"
+              : tone === "green"
+                ? "text-green-600 dark:text-green-400 font-bold"
+                : "text-foreground";
+  const cardTone =
+    tone === "blue"
+      ? "border-blue-200/70 bg-blue-50/50 dark:border-blue-900/40 dark:bg-blue-950/20"
+      : tone === "slate"
+        ? "border-slate-200/70 bg-slate-50/50 dark:border-slate-800 dark:bg-slate-900/20"
+        : tone === "emerald"
+          ? "border-emerald-200/70 bg-emerald-50/50 dark:border-emerald-900/40 dark:bg-emerald-950/20"
+          : tone === "green"
+            ? "border-green-200/70 bg-green-50/50 dark:border-green-900/40 dark:bg-green-950/20"
+            : highlight
+              ? "border-border/90"
+              : "border-border/70";
   return (
     <div
       className={cn(
         "group rounded-lg border bg-card p-4 transition-colors hover:border-border/90",
-        highlight ? "border-border/90" : "border-border/70",
+        cardTone,
       )}
     >
       <div className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">

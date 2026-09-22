@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useHydrated } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BarChart3,
@@ -10,15 +10,13 @@ import {
   ShieldCheck,
   Rocket,
   History,
-  Lightbulb,
   Info,
-  Activity,
-  AlertTriangle,
-  Eye,
-  ClipboardCheck,
   HelpCircle,
   Loader2,
   ExternalLink,
+  ClipboardCheck,
+  Eye,
+  Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
@@ -31,6 +29,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -170,17 +184,17 @@ function bucketOf(status: string | null | undefined): ImpactBucket {
 }
 
 const IMPACT_LABEL: Record<ImpactBucket, string> = {
-  positive: "Melhorou",
-  neutral: "Sem mudança",
-  negative: "Queda / alerta",
-  pending: "Aguardando medição",
+  positive: "Impacto Positivo",
+  neutral: "Sem Impacto",
+  negative: "Impacto Negativo",
+  pending: "Aguardando Medição",
 };
 
-const IMPACT_STYLE: Record<ImpactBucket, string> = {
-  positive: "border-emerald-200 bg-emerald-50 text-emerald-700",
-  neutral: "border-slate-200 bg-slate-50 text-slate-700",
-  negative: "border-rose-200 bg-rose-50 text-rose-700",
-  pending: "border-amber-200 bg-amber-50 text-amber-700",
+const IMPACT_VARIANT: Record<ImpactBucket, "default" | "secondary" | "destructive" | "outline"> = {
+  positive: "default",
+  neutral: "secondary",
+  negative: "destructive",
+  pending: "outline",
 };
 
 const IMPACT_ICON: Record<ImpactBucket, typeof TrendingUp> = {
@@ -190,12 +204,11 @@ const IMPACT_ICON: Record<ImpactBucket, typeof TrendingUp> = {
   pending: HelpCircle,
 };
 
+const isDev = import.meta.env.DEV;
+
 // ---------------- Component ----------------
 
 function ResultadosAcoes() {
-  // Renderiza o Layout (que expõe o provider de conta ativa) e o conteúdo
-  // real como filho para que useEcommerceActiveAccount leia o MESMO context
-  // usado pelo header/topbar (fonte única da conta ativa).
   return (
     <EcommerceLayout>
       <ResultadosAcoesContent />
@@ -215,6 +228,7 @@ function ResultadosAcoesContent() {
   const [resultsAvailable, setResultsAvailable] = useState<boolean>(true);
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
   const [lastError, setLastError] = useState<string | null>(null);
+  const hydrated = useHydrated();
 
   const loadAll = useCallback(async () => {
     if (accLoading) return;
@@ -229,7 +243,6 @@ function ResultadosAcoesContent() {
     setLoading(true);
     setLastError(null);
     try {
-      // Total de tarefas da conta (qualquer status) — para debug
       const { count: totalCount, error: totErr } = await supabase
         .from("ecommerce_tasks")
         .select("id", { count: "exact", head: true })
@@ -243,7 +256,6 @@ function ResultadosAcoesContent() {
         setTotalTasksCount(totalCount ?? 0);
       }
 
-      // Contagem dedicada de tarefas concluídas — fonte real do KPI.
       const { count: cCount, error: cErr } = await supabase
         .from("ecommerce_tasks")
         .select("id", { count: "exact", head: true })
@@ -258,7 +270,6 @@ function ResultadosAcoesContent() {
         setCompletedCount(cCount ?? 0);
       }
 
-      // Concluded tasks (full rows for listing)
       const { data: tData, error: tErr } = await supabase
         .from("ecommerce_tasks")
         .select(
@@ -277,7 +288,6 @@ function ResultadosAcoesContent() {
         setTasks((tData as CompletedTask[]) ?? []);
       }
 
-      // Action results (view — tem account_id via join).
       const { data: rData, error: rErr } = await supabase
         .from("vw_ecommerce_action_results")
         .select("*")
@@ -301,7 +311,6 @@ function ResultadosAcoesContent() {
     void loadAll();
   }, [loadAll]);
 
-  // Index results by task
   const resultsByTask = useMemo(() => {
     const m = new Map<string, ActionResult>();
     for (const r of results) {
@@ -310,9 +319,6 @@ function ResultadosAcoesContent() {
     return m;
   }, [results]);
 
-  // Separação por vínculo com tarefa concluída (regra de negócio):
-  // KPIs principais consideram somente resultados cuja tarefa está completed.
-  // Resultados de tarefas ainda em andamento aparecem em seção separada.
   const completedTaskIds = useMemo(
     () => new Set(tasks.map((t) => t.id)),
     [tasks],
@@ -338,7 +344,6 @@ function ResultadosAcoesContent() {
     [results, completedTaskIds],
   );
 
-  // KPIs — somente resultados de tarefas concluídas.
   const kpis = useMemo(() => {
     const completed = Math.max(completedCount, tasks.length);
     let positive = 0;
@@ -377,50 +382,46 @@ function ResultadosAcoesContent() {
   const detailResult = detailTask ? resultsByTask.get(detailTask.id) ?? null : null;
 
   return (
-    <>
+    <TooltipProvider delayDuration={200}>
       <div className="space-y-6">
         {/* Header */}
-        <header className="space-y-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-            <Activity className="h-3.5 w-3.5" />
-            Medição de Impacto
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-1.5">
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+              <BarChart3 className="h-3.5 w-3.5" />
+              Medição de Impacto
+            </div>
+            <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">
+              Resultados das Ações
+            </h1>
+            <p className="max-w-2xl text-sm text-muted-foreground md:text-[15px]">
+              Acompanhe o impacto real das ações concluídas pela operação —
+              vendas, estoque, anúncios e desempenho dos produtos.
+            </p>
           </div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-            Resultados das Ações
-          </h1>
-          <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
-            Acompanhe o impacto real das ações concluídas pela operação —
-            vendas, estoque, anúncios e desempenho dos produtos da conta{" "}
-            <strong className="text-foreground">
-              {activeAccount?.account_name ?? "Mercado Livre"}
-            </strong>
-            .
-          </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <RegistrarResultadoDialog
+              tasks={tasks}
+              activeAccountId={activeAccountId}
+              measuredTaskIds={resultsByTask}
+              onSaved={loadAll}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 rounded-full"
+              onClick={() => void loadAll()}
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <History className="mr-1.5 h-3.5 w-3.5" />
+              )}
+              Atualizar
+            </Button>
+          </div>
         </header>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <RegistrarResultadoDialog
-            tasks={tasks}
-            activeAccountId={activeAccountId}
-            measuredTaskIds={resultsByTask}
-            onSaved={loadAll}
-          />
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 rounded-full"
-            onClick={() => void loadAll()}
-            disabled={loading}
-          >
-            {loading ? (
-              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Activity className="mr-1.5 h-3.5 w-3.5" />
-            )}
-            Atualizar
-          </Button>
-        </div>
 
         {!accLoading && !activeAccountId && (
           <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50/60 p-3 text-xs text-rose-900">
@@ -429,7 +430,6 @@ function ResultadosAcoesContent() {
           </div>
         )}
 
-        {/* Aviso de contexto */}
         {hasCompleted && !hasResults && (
           <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-xs text-amber-900">
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -459,7 +459,7 @@ function ResultadosAcoesContent() {
                 vinculado(s) a tarefa(s) ainda não concluída(s). Esses valores
                 <strong> não entram</strong> nos KPIs principais.
               </div>
-              <ul className="list-disc pl-4 space-y-0.5">
+              <ul className="list-disc space-y-0.5 pl-4">
                 {resultsPending.slice(0, 5).map((r) => (
                   <li key={r.id}>
                     <span className="font-medium">{r.task_title ?? "Tarefa"}</span>
@@ -474,309 +474,227 @@ function ResultadosAcoesContent() {
           </div>
         )}
 
-        {/* KPIs */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          <KpiCard
-            label="Ações concluídas"
-            value={String(kpis.completed)}
-            icon={CheckCircle2}
-            accent="from-emerald-600 to-emerald-800"
-          />
-          <KpiCard
-            label="Ações com impacto positivo"
-            value={String(kpis.positive)}
-            icon={TrendingUp}
-            accent="from-emerald-700 to-green-900"
-            hint={
-              !hasResults && hasCompleted
-                ? "Sem medição registrada ainda."
-                : undefined
-            }
-          />
-          <KpiCard
-            label="Ações sem impacto"
-            value={String(kpis.neutral)}
-            icon={Minus}
-            accent="from-slate-600 to-slate-800"
-            hint={
-              !hasResults && hasCompleted
-                ? "Sem medição registrada ainda."
-                : undefined
-            }
-          />
-          <KpiCard
-            label="Receita estimada gerada"
-            value={fmtMoney(kpis.revenue)}
-            icon={DollarSign}
-            accent="from-blue-700 to-blue-900"
-            hint={
-              kpis.revenue === 0
-                ? "Ainda sem receita estimada registrada."
-                : undefined
-            }
-          />
-          <KpiCard
-            label="Estoque protegido"
-            value={String(kpis.stockCount)}
-            icon={ShieldCheck}
-            accent="from-indigo-600 to-indigo-800"
-            hint={
-              kpis.stockCount === 0
-                ? "Sem ações de estoque concluídas."
-                : undefined
-            }
-          />
-          <KpiCard
-            label="Campanhas otimizadas"
-            value={String(kpis.adsCount)}
-            icon={Rocket}
-            accent="from-violet-600 to-violet-800"
-            hint={
-              kpis.adsCount === 0
-                ? "Sem ações de Ads concluídas."
-                : undefined
-            }
-          />
+        {/* Métricas de Impacto */}
+        <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          {/* Card de destaque — Receita estimada gerada */}
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/80 to-white p-6 shadow-[var(--shadow-soft)] lg:col-span-2">
+            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-400/10" />
+            <div className="relative flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+              <div className="space-y-2">
+                <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-emerald-800">
+                  <DollarSign className="h-3.5 w-3.5" />
+                  Receita estimada gerada
+                </div>
+                <div className="font-display text-3xl font-bold text-emerald-900 md:text-4xl">
+                  {fmtMoney(kpis.revenue)}
+                </div>
+                <p className="max-w-md text-xs text-emerald-800/80">
+                  Soma das diferenças positivas de faturamento registradas nas
+                  ações com impacto positivo.
+                </p>
+              </div>
+              <div className="flex min-w-[140px] flex-col gap-1 rounded-xl border border-emerald-100/80 bg-white/70 p-3 backdrop-blur-sm">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-800/70">
+                  Estoque protegido
+                </div>
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-4 w-4 text-emerald-700" />
+                  <span className="font-display text-xl font-bold text-emerald-900">
+                    {kpis.stockCount}
+                  </span>
+                  <span className="text-xs text-emerald-800/70">ações</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Grid secundário compacto */}
+          <div className="grid grid-cols-2 gap-3">
+            <CompactKpi label="Ações concluídas" value={String(kpis.completed)} />
+            <CompactKpi label="Impacto positivo" value={String(kpis.positive)} accent="emerald" />
+            <CompactKpi label="Sem impacto" value={String(kpis.neutral)} accent="slate" />
+            <CompactKpi label="Campanhas otimizadas" value={String(kpis.adsCount)} accent="violet" />
+          </div>
         </section>
 
         {/* Histórico de ações executadas */}
-        <section className="rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)] overflow-hidden">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
+        <section className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)]">
+          <div className="flex flex-col gap-3 border-b border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-2">
               <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 text-white">
                 <History className="h-3.5 w-3.5" />
               </div>
               <div>
-                <h2 className="font-display text-lg font-bold text-foreground">
-                  Histórico de ações executadas
-                </h2>
-                <p className="text-xs text-muted-foreground max-w-2xl">
+                <div className="flex items-center gap-2">
+                  <h2 className="font-display text-lg font-bold text-foreground">
+                    Histórico de ações executadas
+                  </h2>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button type="button" className="text-muted-foreground hover:text-foreground">
+                        <Info className="h-3.5 w-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-xs text-xs">
+                      Toda medição registrada aqui é interna e não altera nada no
+                      Mercado Livre. O objetivo é aprender com os dados e melhorar as
+                      próximas recomendações.
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+                <p className="text-xs text-muted-foreground">
                   Tarefas concluídas na operação e o impacto medido, quando já
                   registrado.
                 </p>
               </div>
             </div>
           </div>
+
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  <th className="px-4 py-3 text-left font-semibold">Tarefa</th>
-                  <th className="px-4 py-3 text-left font-semibold">Origem</th>
-                  <th className="px-4 py-3 text-left font-semibold">Produto / Anúncio</th>
-                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">
-                    Concluída em
-                  </th>
-                  <th className="px-4 py-3 text-left font-semibold">Resultado</th>
-                  <th className="px-4 py-3 text-left font-semibold">Impacto</th>
-                  <th className="px-4 py-3 text-right font-semibold">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="w-[26%] pl-5">Tarefa</TableHead>
+                  <TableHead className="w-[12%]">Origem</TableHead>
+                  <TableHead className="w-[20%]">Produto / Anúncio</TableHead>
+                  <TableHead className="w-[13%] whitespace-nowrap">Concluída em</TableHead>
+                  <TableHead className="w-[14%]">Resultado / Impacto</TableHead>
+                  <TableHead className="w-[10%] text-right pr-5">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {loading ? (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-16 text-center">
-                      <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
-                    </td>
-                  </tr>
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i} className="hover:bg-transparent">
+                      <TableCell className="pl-5">
+                        <div className="space-y-1.5">
+                          <Skeleton className="h-4 w-[80%]" />
+                          <Skeleton className="h-3 w-[40%]" />
+                        </div>
+                      </TableCell>
+                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+                      <TableCell>
+                        <div className="space-y-1.5">
+                          <Skeleton className="h-4 w-[90%]" />
+                          <Skeleton className="h-3 w-20" />
+                        </div>
+                      </TableCell>
+                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                      <TableCell><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
+                      <TableCell className="pr-5 text-right"><Skeleton className="ml-auto h-8 w-20" /></TableCell>
+                    </TableRow>
+                  ))
                 ) : tasks.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-16 text-center">
-                      <div className="mx-auto max-w-md space-y-3">
-                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-700">
-                          <CheckCircle2 className="h-6 w-6" />
-                        </div>
-                        <div className="font-display text-base font-semibold text-foreground">
-                          Nenhuma ação concluída ainda
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          Quando a equipe concluir tarefas em{" "}
-                          <em>Tarefas da Operação</em>, o histórico aparecerá
-                          aqui com o impacto observado.
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
+                  <TableRow className="hover:bg-transparent">
+                    <TableCell colSpan={6} className="py-14 text-center">
+                      <EmptyState />
+                    </TableCell>
+                  </TableRow>
                 ) : (
                   tasks.map((t) => {
                     const r = resultsByTask.get(t.id);
                     const b = bucketOf(r?.result_status);
                     const Icon = IMPACT_ICON[b];
-                    const productLabel =
-                      r?.product_name ??
-                      r?.listing_title ??
-                      t.listing_id ??
-                      t.product_id ??
-                      "—";
+                    const productName =
+                      r?.product_name ?? r?.listing_title ?? t.task_title ?? "—";
+                    const productCode =
+                      t.listing_id ?? t.product_id ?? r?.listing_id ?? r?.product_id ?? null;
                     return (
-                      <tr key={t.id} className="border-t border-border/50 hover:bg-muted/30">
-                        <td className="px-4 py-3">
-                          <div className="font-medium text-foreground">
-                            {t.task_title ?? "Tarefa sem título"}
+                      <TableRow key={t.id} className="group">
+                        <TableCell className="pl-5">
+                          <div className="space-y-0.5">
+                            <div className="font-medium text-foreground line-clamp-1">
+                              {t.task_title ?? "Tarefa sem título"}
+                            </div>
+                            {t.responsible_name && (
+                              <div className="text-xs text-muted-foreground">
+                                Resp. {t.responsible_name}
+                              </div>
+                            )}
                           </div>
-                          {t.responsible_name && (
-                            <div className="text-xs text-muted-foreground">
-                              Responsável: {t.responsible_name}
+                        </TableCell>
+                        <TableCell className="text-muted-foreground">
+                          <span className="text-xs">{originLabel(t)}</span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-0.5">
+                            <div className="max-w-[220px] truncate text-sm text-foreground" title={productName}>
+                              {productName}
                             </div>
-                          )}
-                          {r && (
-                            <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-medium text-emerald-700">
-                              <ClipboardCheck className="h-3 w-3" />
-                              Medição registrada
-                            </div>
-                          )}
-                        </td>
-
-                        <td className="px-4 py-3 text-muted-foreground">
-                          {originLabel(t)}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground max-w-[240px] truncate">
-                          {productLabel}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                            {productCode && (
+                              <div className="font-mono text-[10px] text-muted-foreground">
+                                {productCode}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
                           {formatDate(t.completed_at ?? t.created_at)}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground max-w-[260px]">
-                          <span className="line-clamp-2">
-                            {t.result_summary ??
-                              r?.result_summary ??
-                              "—"}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${IMPACT_STYLE[b]}`}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={IMPACT_VARIANT[b]}
+                            className="gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
                           >
                             <Icon className="h-3 w-3" />
                             {IMPACT_LABEL[b]}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-right">
+                          </Badge>
+                          {r?.result_summary && (
+                            <div className="mt-1.5 max-w-[200px] truncate text-[11px] text-muted-foreground" title={r.result_summary}>
+                              {r.result_summary}
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className="pr-5 text-right">
                           <Button
                             size="sm"
-                            variant="outline"
+                            variant="ghost"
+                            className="h-8 text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
                             onClick={() => setDetailTaskId(t.id)}
                           >
                             <Eye className="mr-1.5 h-3.5 w-3.5" />
-                            Ver detalhes
+                            Detalhes
                           </Button>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     );
                   })
                 )}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         </section>
 
-        {/* Classificação */}
-        <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
-          <div className="mb-4">
-            <h2 className="font-display text-lg font-bold text-foreground">
-              Classificação do resultado
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              Como o sistema classifica cada ação após avaliar o impacto.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
-            {(
-              [
-                {
-                  label: "Impacto positivo",
-                  desc: "A ação melhorou vendas, margem, estoque ou eficiência.",
-                  ring: "border-emerald-200 bg-emerald-50/60",
-                  badge: "text-emerald-700",
-                  dot: "bg-emerald-600",
-                  icon: TrendingUp,
-                },
-                {
-                  label: "Sem impacto",
-                  desc: "A ação foi executada, mas ainda não apresentou melhora relevante.",
-                  ring: "border-slate-200 bg-slate-50/60",
-                  badge: "text-slate-700",
-                  dot: "bg-slate-500",
-                  icon: Minus,
-                },
-                {
-                  label: "Impacto negativo",
-                  desc: "A ação pode ter reduzido desempenho e exige revisão.",
-                  ring: "border-rose-200 bg-rose-50/60",
-                  badge: "text-rose-700",
-                  dot: "bg-rose-600",
-                  icon: AlertTriangle,
-                },
-                {
-                  label: "Aguardando medição",
-                  desc: "Ação concluída, mas ainda sem resultado registrado.",
-                  ring: "border-amber-200 bg-amber-50/60",
-                  badge: "text-amber-700",
-                  dot: "bg-amber-500",
-                  icon: Eye,
-                },
-              ] as const
-            ).map((c) => {
-              const Icon = c.icon;
-              return (
-                <div key={c.label} className={`rounded-xl border p-4 ${c.ring}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`h-2 w-2 rounded-full ${c.dot}`} />
-                    <span
-                      className={`text-xs font-bold uppercase tracking-wider ${c.badge}`}
-                    >
-                      {c.label}
-                    </span>
-                    <Icon className={`ml-auto h-3.5 w-3.5 ${c.badge}`} />
-                  </div>
-                  <p className="text-sm text-foreground/80 leading-snug">
-                    {c.desc}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/60 to-transparent p-4 shadow-[var(--shadow-soft)]">
-          <div className="flex items-start gap-2">
-            <Lightbulb className="mt-0.5 h-4 w-4 text-blue-700 shrink-0" />
-            <p className="text-sm text-foreground/80 leading-relaxed">
-              Toda medição registrada aqui é interna e não altera nada no
-              Mercado Livre. O objetivo é aprender com os dados e melhorar as
-              próximas recomendações.
-            </p>
-          </div>
-        </div>
-
-        {/* Debug operacional da medição — diagnóstico técnico, não altera dados */}
-        <details className="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-3 text-[11px] text-slate-700">
-          <summary className="cursor-pointer font-semibold uppercase tracking-wider text-slate-600">
-            Debug operacional da medição
-          </summary>
-          <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 font-mono">
-            <div><span className="text-slate-500">company_id:</span> {ECOMMERCE_COMPANY_ID}</div>
-            <div><span className="text-slate-500">account_id:</span> {activeAccountId ?? "—"}</div>
-            <div><span className="text-slate-500">conta ativa:</span> {activeAccount?.account_name ?? activeAccount?.nickname ?? "—"}</div>
-            <div><span className="text-slate-500">total de tarefas encontradas:</span> {totalTasksCount}</div>
-            <div><span className="text-slate-500">total de tarefas completed encontradas:</span> {completedCount}</div>
-            <div><span className="text-slate-500">total de resultados medidos:</span> {results.length}</div>
-            <div><span className="text-slate-500">fonte Ações concluídas:</span> ecommerce_tasks (status=completed)</div>
-            <div><span className="text-slate-500">fonte impactos:</span> vw_ecommerce_action_results</div>
-            <div className="md:col-span-2">
-              <span className="text-slate-500">último erro Supabase:</span>{" "}
-              {lastError ? <span className="text-rose-700">{lastError}</span> : "nenhum"}
+        {/* Debug operacional da medição — apenas em desenvolvimento */}
+        {isDev && hydrated && (
+          <details className="rounded-xl border border-dashed border-slate-300 bg-slate-50/60 p-3 text-[11px] text-slate-700">
+            <summary className="cursor-pointer font-semibold uppercase tracking-wider text-slate-600">
+              Debug operacional da medição
+            </summary>
+            <div className="mt-2 grid grid-cols-1 gap-x-6 gap-y-1 font-mono md:grid-cols-2">
+              <div><span className="text-slate-500">company_id:</span> {ECOMMERCE_COMPANY_ID}</div>
+              <div><span className="text-slate-500">account_id:</span> {activeAccountId ?? "—"}</div>
+              <div><span className="text-slate-500">conta ativa:</span> {activeAccount?.account_name ?? activeAccount?.nickname ?? "—"}</div>
+              <div><span className="text-slate-500">total de tarefas encontradas:</span> {totalTasksCount}</div>
+              <div><span className="text-slate-500">total de tarefas completed encontradas:</span> {completedCount}</div>
+              <div><span className="text-slate-500">total de resultados medidos:</span> {results.length}</div>
+              <div><span className="text-slate-500">fonte Ações concluídas:</span> ecommerce_tasks (status=completed)</div>
+              <div><span className="text-slate-500">fonte impactos:</span> vw_ecommerce_action_results</div>
+              <div className="md:col-span-2">
+                <span className="text-slate-500">último erro Supabase:</span>{" "}
+                {lastError ? <span className="text-rose-700">{lastError}</span> : "nenhum"}
+              </div>
             </div>
-          </div>
-          <p className="mt-2 text-[10px] text-slate-500">
-            Bloco de diagnóstico apenas leitura. Não altera dados, não cria registros, não envia nada ao Mercado Livre.
-          </p>
-        </details>
+            <p className="mt-2 text-[10px] text-slate-500">
+              Bloco de diagnóstico apenas leitura. Não altera dados, não cria registros, não envia nada ao Mercado Livre.
+            </p>
+          </details>
+        )}
       </div>
 
       {/* Drawer de detalhes */}
       <Sheet open={!!detailTaskId} onOpenChange={(v) => !v && setDetailTaskId(null)}>
-        <SheetContent className="sm:max-w-lg overflow-y-auto">
+        <SheetContent className="overflow-y-auto sm:max-w-lg">
           {detailTask && (
             <>
               <SheetHeader>
@@ -813,7 +731,7 @@ function ResultadosAcoesContent() {
                 />
                 {detailTask.result_summary && (
                   <div>
-                    <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Resultado registrado na tarefa
                     </div>
                     <p className="rounded-lg border border-border/60 bg-muted/30 p-3 text-foreground/80">
@@ -879,48 +797,51 @@ function ResultadosAcoesContent() {
           )}
         </SheetContent>
       </Sheet>
-    </>
+    </TooltipProvider>
   );
 }
 
 // ---------------- UI bits ----------------
 
-function KpiCard({
+function CompactKpi({
   label,
   value,
-  icon: Icon,
-  accent,
-  hint,
+  accent = "slate",
 }: {
   label: string;
   value: string;
-  icon: typeof BarChart3;
-  accent: string;
-  hint?: string;
+  accent?: "slate" | "emerald" | "violet";
 }) {
+  const color =
+    accent === "emerald"
+      ? "border-emerald-100 bg-emerald-50/60 text-emerald-900"
+      : accent === "violet"
+        ? "border-violet-100 bg-violet-50/60 text-violet-900"
+        : "border-slate-100 bg-slate-50/60 text-slate-900";
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-soft)]">
-      <div
-        className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${accent} opacity-10`}
-      />
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1.5">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {label}
-          </div>
-          <div className="font-display text-3xl font-bold text-foreground">
-            {value}
-          </div>
-          {hint && (
-            <div className="text-xs text-muted-foreground">{hint}</div>
-          )}
-        </div>
-        <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${accent} text-white shadow-md`}
-        >
-          <Icon className="h-5 w-5" />
-        </div>
+    <div className={`rounded-xl border p-4 ${color}`}>
+      <div className="text-[10px] font-semibold uppercase tracking-wider opacity-70">
+        {label}
       </div>
+      <div className="mt-1 font-display text-2xl font-bold">{value}</div>
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="mx-auto max-w-md space-y-3">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+        <CheckCircle2 className="h-6 w-6" />
+      </div>
+      <div className="font-display text-base font-semibold text-foreground">
+        Nenhuma ação concluída ainda
+      </div>
+      <p className="text-sm text-muted-foreground">
+        Quando a equipe concluir tarefas em{" "}
+        <em>Tarefas da Operação</em>, o histórico aparecerá aqui com o impacto
+        observado.
+      </p>
     </div>
   );
 }
@@ -928,7 +849,7 @@ function KpiCard({
 function MetaLine({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline gap-2">
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground min-w-[110px]">
+      <span className="min-w-[110px] text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         {label}
       </span>
       <span className="text-sm text-foreground">{value}</span>
@@ -982,7 +903,6 @@ function MetricBlock({
       </div>
     </div>
   );
-
 }
 
 // ---------------- Registrar resultado manual ----------------
@@ -1017,7 +937,6 @@ function RegistrarResultadoDialog({
   measuredTaskIds: Map<string, ActionResult>;
   onSaved: () => void | Promise<void>;
 }) {
-
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -1056,15 +975,12 @@ function RegistrarResultadoDialog({
       return;
     }
     const before = parseNum(form.before);
-
     const after = parseNum(form.after);
     const revenue = parseNum(form.revenue);
     const evaluatedAt = form.date
       ? new Date(form.date + "T12:00:00").toISOString()
       : new Date().toISOString();
 
-    // NOTE: ecommerce_action_results does NOT have account_id.
-    // account_id é resolvido via view vw_ecommerce_action_results (join por task_id).
     const payload: Record<string, unknown> = {
       company_id: ECOMMERCE_COMPANY_ID,
       task_id: t.id,
@@ -1075,7 +991,6 @@ function RegistrarResultadoDialog({
       evaluation_date: evaluatedAt.slice(0, 10),
     };
 
-    // Map metric to before/after columns when applicable
     if (form.metric === "visitas") {
       payload.before_visits = before;
       payload.after_visits = after;
@@ -1086,7 +1001,6 @@ function RegistrarResultadoDialog({
       payload.before_revenue = before;
       payload.after_revenue = after;
     } else if (form.metric === "conversao") {
-      // convert % to fraction if user provided >1
       const b = before != null && before > 1 ? before / 100 : before;
       const a = after != null && after > 1 ? after / 100 : after;
       payload.before_conversion_rate = b;
@@ -1094,7 +1008,6 @@ function RegistrarResultadoDialog({
     }
 
     if (revenue != null && payload.before_revenue == null && payload.after_revenue == null) {
-      // Store estimated revenue as after − before with before = 0
       payload.before_revenue = 0;
       payload.after_revenue = revenue;
     }
@@ -1133,9 +1046,10 @@ function RegistrarResultadoDialog({
       <DialogTrigger asChild>
         <Button
           size="sm"
-          className="h-9 rounded-full bg-gradient-to-br from-blue-700 to-blue-900 px-4 text-xs font-semibold text-white shadow-md hover:opacity-95"
+          variant="outline"
+          className="h-9 rounded-full border-border/70 bg-card/60 px-4 text-xs font-semibold text-foreground/80 hover:bg-muted/60"
         >
-          <ClipboardCheck className="mr-1.5 h-3.5 w-3.5" />
+          <Plus className="mr-1.5 h-3.5 w-3.5" />
           Registrar resultado manual
         </Button>
       </DialogTrigger>
@@ -1148,7 +1062,7 @@ function RegistrarResultadoDialog({
           </DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <div className="sm:col-span-2 space-y-1.5">
+          <div className="space-y-1.5 sm:col-span-2">
             <Label>Tarefa concluída</Label>
             <Select
               value={form.taskId}
@@ -1192,7 +1106,7 @@ function RegistrarResultadoDialog({
             )}
           </div>
           {!hasPending && (
-            <div className="sm:col-span-2 rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-4 text-sm text-amber-900">
+            <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-4 py-4 text-sm text-amber-900 sm:col-span-2">
               <p className="font-semibold">Nenhuma medição pendente</p>
               <p className="mt-1 text-xs text-amber-900/80">
                 Todas as tarefas concluídas desta conta já possuem resultado registrado. Para registrar uma nova medição, conclua uma nova tarefa primeiro.
@@ -1277,7 +1191,7 @@ function RegistrarResultadoDialog({
               onChange={(e) => setForm({ ...form, date: e.target.value })}
             />
           </div>
-          <div className="sm:col-span-2 space-y-1.5">
+          <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="r-obs">Observação</Label>
             <Textarea
               id="r-obs"

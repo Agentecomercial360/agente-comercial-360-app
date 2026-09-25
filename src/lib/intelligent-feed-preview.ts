@@ -9,8 +9,6 @@ import { supabase } from "@/lib/supabase";
  * O token JWT nunca é logado nem exposto.
  */
 
-const DEFAULT_API_BASE_URL = "https://ac360-mercadolivre-api-production.up.railway.app";
-
 export type FeedStatusKey =
   | "critical"
   | "attention"
@@ -370,8 +368,18 @@ export async function getIntelligentFeedPreview({
     );
   }
 
-  const configuredBaseUrl = String(import.meta.env.VITE_AC360_API_URL ?? "").trim();
-  const apiBaseUrl = (configuredBaseUrl || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
+  const apiBaseUrl = String(import.meta.env.VITE_AC360_API_URL ?? "")
+    .trim()
+    .replace(/\/+$/, "");
+
+  if (!apiBaseUrl) {
+    throw new IntelligentFeedError(
+      "VITE_AC360_API_URL não está configurada. Verifique o arquivo .env.local.",
+      "unavailable",
+      500,
+    );
+  }
+
   const url = new URL(`${apiBaseUrl}/api/ecommerce/intelligent-feed/preview`);
   url.searchParams.set("company_id", companyId);
   url.searchParams.set("account_id", accountId);

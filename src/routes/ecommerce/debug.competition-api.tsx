@@ -8,7 +8,9 @@ export const Route = createFileRoute("/ecommerce/debug/competition-api")({
   component: DebugCompetitionApiRoute,
 });
 
-const API_BASE = "https://ac360-mercadolivre-api-production.up.railway.app";
+const API_BASE = String(import.meta.env.VITE_AC360_API_URL ?? "")
+  .trim()
+  .replace(/\/+$/, "");
 
 type SessionState = "checking" | "authenticated" | "missing";
 

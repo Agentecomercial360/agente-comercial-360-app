@@ -23,10 +23,7 @@ import {
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
-import {
-  ECOMMERCE_COMPANY_ID,
-  useEcommerceActiveAccount,
-} from "@/lib/ecommerce-active-account";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -106,7 +103,13 @@ type Rule = {
   updated_at: string;
 };
 
-type LoadStatus = "loading" | "connected" | "empty" | "table_missing" | "error";
+type LoadStatus =
+  | "loading"
+  | "connected"
+  | "empty"
+  | "table_missing"
+  | "missing_context"
+  | "error";
 
 const TABLE = "ecommerce_ai_knowledge_base";
 
@@ -211,7 +214,19 @@ const APPLIES_TO_META: Record<AppliesTo, { label: string; placeholder: string }>
 // ---------------------------------------------------------------------------
 
 function BaseIaPage() {
-  const { activeAccount } = useEcommerceActiveAccount();
+  return (
+    <EcommerceLayout>
+      <BaseIaContent />
+    </EcommerceLayout>
+  );
+}
+
+function BaseIaContent() {
+  const {
+    companyId,
+    activeAccount,
+    loading: accountLoading,
+  } = useEcommerceActiveAccount();
 
   const [status, setStatus] = useState<LoadStatus>("loading");
   const [rules, setRules] = useState<Rule[]>([]);
@@ -227,12 +242,23 @@ function BaseIaPage() {
   const [deleting, setDeleting] = useState<Rule | null>(null);
 
   const reload = useCallback(async () => {
+    if (accountLoading) {
+      setStatus("loading");
+      return;
+    }
+
+    if (!companyId) {
+      setRules([]);
+      setStatus("missing_context");
+      return;
+    }
+
     setStatus("loading");
     try {
       const { data, error } = await supabase
         .from(TABLE)
         .select("*")
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .order("updated_at", { ascending: false });
 
       if (error) {
@@ -253,7 +279,7 @@ function BaseIaPage() {
       setStatus("error");
       setRules([]);
     }
-  }, []);
+  }, [accountLoading, companyId]);
 
   useEffect(() => {
     void reload();
@@ -299,6 +325,7 @@ function BaseIaPage() {
     connected: { label: "Base ativa", cls: "border-emerald-200 bg-emerald-50 text-emerald-700", dot: "bg-emerald-500" },
     empty: { label: "Base preparada — sem regras", cls: "border-blue-200 bg-blue-50 text-blue-700", dot: "bg-blue-500" },
     table_missing: { label: "Migração pendente", cls: "border-amber-200 bg-amber-50 text-amber-700", dot: "bg-amber-500" },
+    missing_context: { label: "Empresa não identificada", cls: "border-amber-200 bg-amber-50 text-amber-700", dot: "bg-amber-500" },
     error: { label: "Falha ao carregar", cls: "border-rose-200 bg-rose-50 text-rose-700", dot: "bg-rose-500" },
   }[status];
 
@@ -312,12 +339,17 @@ function BaseIaPage() {
   };
 
   const toggleStatus = async (r: Rule) => {
+    if (!companyId) {
+      toast.error("Não foi possível identificar a empresa ativa.");
+      return;
+    }
+
     const next: Status = r.status === "active" ? "paused" : "active";
     const { error } = await supabase
       .from(TABLE)
       .update({ status: next })
       .eq("id", r.id)
-      .eq("company_id", ECOMMERCE_COMPANY_ID);
+      .eq("company_id", companyId);
     if (error) {
       toast.error("Não foi possível alterar o status.");
       return;
@@ -328,11 +360,15 @@ function BaseIaPage() {
 
   const confirmDelete = async () => {
     if (!deleting) return;
+    if (!companyId) {
+      toast.error("Não foi possível identificar a empresa ativa.");
+      return;
+    }
     const { error } = await supabase
       .from(TABLE)
       .delete()
       .eq("id", deleting.id)
-      .eq("company_id", ECOMMERCE_COMPANY_ID);
+      .eq("company_id", companyId);
     setDeleting(null);
     if (error) {
       toast.error("Não foi possível excluir a regra.");
@@ -343,7 +379,7 @@ function BaseIaPage() {
   };
 
   return (
-    <EcommerceLayout>
+    <>
       <div className="space-y-6">
         {/* Hero */}
         <section
@@ -386,7 +422,7 @@ function BaseIaPage() {
             <div className="flex items-center gap-2">
               <Button
                 onClick={openNew}
-                disabled={status === "table_missing"}
+                disabled={status === "table_missing" || !companyId}
                 className="bg-blue-700 hover:bg-blue-800 text-white shadow-sm"
               >
                 <Plus className="h-4 w-4 mr-1.5" />
@@ -404,6 +440,18 @@ function BaseIaPage() {
           <StatCard icon={Clock} label="Última atualização" value={status === "loading" ? "—" : lastLabel} />
         </section>
 
+        {status === "missing_context" && (
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-semibold">Empresa ativa não identificada.</p>
+              <p className="mt-0.5">
+                A base de regras só é carregada quando o contexto da empresa autenticada está disponível.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Migração pendente */}
         {status === "table_missing" && (
           <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -419,7 +467,7 @@ function BaseIaPage() {
         )}
 
         {/* Info banner */}
-        {status !== "table_missing" && (
+        {status !== "table_missing" && status !== "missing_context" && (
           <div className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
             <Info className="h-4 w-4 mt-0.5 shrink-0" />
             <p>
@@ -553,6 +601,12 @@ function BaseIaPage() {
               </div>
             )}
 
+            {status === "missing_context" && (
+              <div className="py-10 text-center text-sm text-amber-700">
+                Selecione uma empresa válida para carregar as regras da operação.
+              </div>
+            )}
+
             {(status === "empty" || status === "table_missing") && (
               <EmptyState onNew={openNew} disabled={status === "table_missing"} />
             )}
@@ -600,6 +654,7 @@ function BaseIaPage() {
         open={sheetOpen}
         onOpenChange={setSheetOpen}
         editing={editing}
+        companyId={companyId}
         accountId={activeAccount?.id ?? null}
         onSaved={() => {
           setSheetOpen(false);
@@ -631,7 +686,7 @@ function BaseIaPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </EcommerceLayout>
+    </>
   );
 }
 
@@ -816,12 +871,14 @@ function RuleSheet({
   open,
   onOpenChange,
   editing,
+  companyId,
   accountId,
   onSaved,
 }: {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   editing: Rule | null;
+  companyId: string | null;
   accountId: string | null;
   onSaved: () => void;
 }) {
@@ -849,6 +906,9 @@ function RuleSheet({
   const requiresValue = form.applies_to_type !== "operation";
 
   const submit = async () => {
+    if (!companyId) {
+      return toast.error("Não foi possível identificar a empresa ativa.");
+    }
     if (!form.title.trim()) return toast.error("Informe o título da regra.");
     if (!form.description.trim()) return toast.error("Informe a descrição.");
     if (requiresValue && !form.applies_to_value.trim()) {
@@ -857,7 +917,7 @@ function RuleSheet({
     setSaving(true);
     try {
       const payload = {
-        company_id: ECOMMERCE_COMPANY_ID,
+        company_id: companyId,
         account_id: accountId,
         title: form.title.trim(),
         category: form.category,
@@ -873,7 +933,7 @@ function RuleSheet({
           .from(TABLE)
           .update(payload)
           .eq("id", editing.id)
-          .eq("company_id", ECOMMERCE_COMPANY_ID);
+          .eq("company_id", companyId);
         if (error) throw error;
         toast.success("Regra atualizada.");
       } else {

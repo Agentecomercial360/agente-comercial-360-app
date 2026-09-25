@@ -29,10 +29,7 @@ import {
   Copy,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
-import {
-  ECOMMERCE_COMPANY_ID,
-  useEcommerceActiveAccount,
-} from "@/lib/ecommerce-active-account";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import {
@@ -85,8 +82,6 @@ export const Route = createFileRoute("/ecommerce/radar-ia")({
     meta: [{ title: "Diagnóstico Inteligente | Agente Comercial 360" }],
   }),
 });
-
-const FALLBACK_ACCOUNT_ID = "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4";
 
 type Insight = {
   id: string;
@@ -483,8 +478,14 @@ type ListingInfo = {
 };
 
 function RadarIAContent() {
-  const { activeAccountId, activeAccount } = useEcommerceActiveAccount();
-  const accountId = activeAccountId || FALLBACK_ACCOUNT_ID;
+  const {
+    companyId,
+    activeAccountId,
+    activeAccount,
+    loading: accountsLoading,
+  } = useEcommerceActiveAccount();
+
+  const accountId = activeAccountId ?? activeAccount?.id ?? null;
   const accountLabel =
     activeAccount?.account_name ||
     activeAccount?.nickname ||
@@ -503,6 +504,14 @@ function RadarIAContent() {
   }, []);
 
   const load = useCallback(async () => {
+    if (accountsLoading) return;
+
+    if (!companyId || !accountId) {
+      setInsights([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const baseCols =
@@ -515,7 +524,7 @@ function RadarIAContent() {
         const res = await supabase
           .from("ecommerce_ai_insights")
           .select(`${baseCols}, model`)
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .eq("account_id", accountId)
           .order("created_at", { ascending: false });
         data = res.data as unknown[] | null;
@@ -525,7 +534,7 @@ function RadarIAContent() {
         const res = await supabase
           .from("ecommerce_ai_insights")
           .select(baseCols)
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .eq("account_id", accountId)
           .order("created_at", { ascending: false });
         data = res.data as unknown[] | null;
@@ -540,7 +549,7 @@ function RadarIAContent() {
     } finally {
       setLoading(false);
     }
-  }, [accountId]);
+  }, [accountsLoading, companyId, accountId]);
 
   useEffect(() => {
     void load();
@@ -548,6 +557,12 @@ function RadarIAContent() {
 
   // Lookups complementares — produtos e anúncios vinculados aos insights
   useEffect(() => {
+    if (!companyId) {
+      setProductMap({});
+      setListingMap({});
+      return;
+    }
+
     const productIds = Array.from(
       new Set(insights.map((i) => i.product_id).filter((v): v is string => !!v)),
     );
@@ -563,7 +578,7 @@ function RadarIAContent() {
           const { data, error } = await supabase
             .from("ecommerce_products")
             .select("id, name, sku")
-            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .eq("company_id", companyId)
             .in("id", productIds);
           if (error) throw error;
           const map: Record<string, ProductInfo> = {};
@@ -584,7 +599,7 @@ function RadarIAContent() {
           const { data, error } = await supabase
             .from("ecommerce_listings")
             .select("id, ml_item_id, status, title")
-            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .eq("company_id", companyId)
             .in("id", listingIds);
           if (error) throw error;
           const map: Record<string, ListingInfo> = {};
@@ -596,7 +611,7 @@ function RadarIAContent() {
         }
       })();
     }
-  }, [insights]);
+  }, [companyId, insights]);
 
   // Impacto das Ações
   const [actionResults, setActionResults] = useState<ActionResult[]>([]);
@@ -604,13 +619,21 @@ function RadarIAContent() {
   const [selectedResult, setSelectedResult] = useState<ActionResult | null>(null);
 
   const loadActionResults = useCallback(async () => {
+    if (accountsLoading) return;
+
+    if (!companyId || !accountId) {
+      setActionResults([]);
+      setLoadingResults(false);
+      return;
+    }
+
     setLoadingResults(true);
     try {
       console.log("[Impacto das Ações] activeAccountId:", accountId);
       const { data, error } = await supabase
         .from("vw_ecommerce_action_results")
         .select("*")
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("account_id", accountId);
       if (error) {
         console.error("[Impacto das Ações] Erro Supabase:", {
@@ -633,7 +656,7 @@ function RadarIAContent() {
     } finally {
       setLoadingResults(false);
     }
-  }, [accountId]);
+  }, [accountsLoading, companyId, accountId]);
 
   useEffect(() => {
     void loadActionResults();
@@ -653,6 +676,15 @@ function RadarIAContent() {
   const [kbAvailable, setKbAvailable] = useState(true);
 
   const loadKb = useCallback(async () => {
+    if (accountsLoading) return;
+
+    if (!companyId || !accountId) {
+      setKbRules([]);
+      setKbAvailable(false);
+      setKbLoading(false);
+      return;
+    }
+
     setKbLoading(true);
     try {
       let q = supabase
@@ -660,7 +692,7 @@ function RadarIAContent() {
         .select(
           "id, company_id, account_id, category, title, description, priority, status, updated_at",
         )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("status", "active");
       // Regras da conta ativa OU regras globais (account_id null)
       q = q.or(`account_id.is.null,account_id.eq.${accountId}`);
@@ -677,7 +709,7 @@ function RadarIAContent() {
     } finally {
       setKbLoading(false);
     }
-  }, [accountId]);
+  }, [accountsLoading, companyId, accountId]);
 
   useEffect(() => {
     void loadKb();
@@ -709,12 +741,17 @@ function RadarIAContent() {
   const navigate = useNavigate();
 
   const runEnginePreview = useCallback(async () => {
+    if (!companyId || !accountId) {
+      toast.error("Não foi possível identificar a empresa ou a conta ativa.");
+      return;
+    }
+
     setPreviewOpen(true);
     setPreviewLoading(true);
     setPreviewData(null);
     try {
       const result = await runInsightsEnginePreview({
-        companyId: ECOMMERCE_COMPANY_ID,
+        companyId: companyId,
         accountId: accountId,
       });
       setPreviewData(result);
@@ -725,16 +762,21 @@ function RadarIAContent() {
     } finally {
       setPreviewLoading(false);
     }
-  }, [accountId]);
+  }, [companyId, accountId]);
 
 
   const runAnalysis = useCallback(async () => {
+    if (!companyId || !accountId) {
+      toast.error("Não foi possível identificar a empresa ou a conta ativa.");
+      return;
+    }
+
     setRunning(true);
     try {
       const { data, error } = await supabase.rpc(
         "generate_ecommerce_insights_v1",
         {
-          p_company_id: ECOMMERCE_COMPANY_ID,
+          p_company_id: companyId,
           p_account_id: accountId,
         },
       );
@@ -778,7 +820,7 @@ function RadarIAContent() {
     } finally {
       setRunning(false);
     }
-  }, [accountId, load, kbRules]);
+  }, [companyId, accountId, load, kbRules]);
 
 
   const openTaskForInsight = useCallback(
@@ -788,8 +830,8 @@ function RadarIAContent() {
         const { data, error } = await supabase
           .from("ecommerce_tasks")
           .select("id")
-          .eq("company_id", insight.company_id)
-          .eq("account_id", insight.account_id)
+          .eq("company_id", companyId)
+          .eq("account_id", insight.account_id ?? accountId)
           .eq("insight_id", insight.id)
           .limit(1);
         if (error) {
@@ -818,20 +860,25 @@ function RadarIAContent() {
         setOpeningId(null);
       }
     },
-    [navigate],
+    [companyId, accountId, navigate],
   );
 
 
   const createTaskFromInsight = useCallback(
     async (insight: Insight) => {
+      if (!companyId || !accountId) {
+        toast.error("Não foi possível identificar a empresa ou a conta ativa.");
+        return;
+      }
+
       setCreatingId(insight.id);
       try {
         // 1. Check existing
         const { data: existing, error: existErr } = await supabase
           .from("ecommerce_tasks")
           .select("id")
-          .eq("company_id", insight.company_id)
-          .eq("account_id", insight.account_id)
+          .eq("company_id", companyId)
+          .eq("account_id", insight.account_id ?? accountId)
           .eq("insight_id", insight.id)
           .limit(1);
         if (existErr) {
@@ -853,7 +900,9 @@ function RadarIAContent() {
                 status: "converted_to_task",
                 updated_at: new Date().toISOString(),
               })
-              .eq("id", insight.id);
+              .eq("id", insight.id)
+              .eq("company_id", companyId)
+              .eq("account_id", insight.account_id ?? accountId);
             await load();
           }
           return;
@@ -861,8 +910,8 @@ function RadarIAContent() {
 
         // 2. Insert
         const payload = {
-          company_id: insight.company_id,
-          account_id: insight.account_id,
+          company_id: companyId,
+          account_id: insight.account_id ?? accountId,
           product_id: insight.product_id,
           listing_id: insight.listing_id,
           insight_id: insight.id,
@@ -899,7 +948,9 @@ function RadarIAContent() {
             status: "converted_to_task",
             updated_at: new Date().toISOString(),
           })
-          .eq("id", insight.id);
+          .eq("id", insight.id)
+          .eq("company_id", companyId)
+          .eq("account_id", insight.account_id ?? accountId);
         if (updErr) {
           console.error("Erro ao atualizar insight:", {
             message: updErr.message,
@@ -920,7 +971,7 @@ function RadarIAContent() {
         setCreatingId(null);
       }
     },
-    [load],
+    [companyId, accountId, load],
   );
 
   const [approvingId, setApprovingId] = useState<string | null>(null);
@@ -934,11 +985,15 @@ function RadarIAContent() {
   // a UI mostra toast claro e não quebra.
   const updateInsightStatus = useCallback(
     async (insight: Insight, next: string): Promise<{ ok: boolean; error?: string; code?: string }> => {
+      if (!companyId) {
+        return { ok: false, error: "Empresa não identificada." };
+      }
+
       let q = supabase
         .from("ecommerce_ai_insights")
         .update({ status: next, updated_at: new Date().toISOString() })
         .eq("id", insight.id)
-        .eq("company_id", ECOMMERCE_COMPANY_ID);
+        .eq("company_id", companyId);
       if (insight.account_id) q = q.eq("account_id", insight.account_id);
       const { error } = await q;
       if (error) {
@@ -952,7 +1007,7 @@ function RadarIAContent() {
       setSelected((prev) => (prev && prev.id === insight.id ? { ...prev, status: next } : prev));
       return { ok: true };
     },
-    [],
+    [companyId],
   );
 
   const isCheckConstraintError = (code?: string, msg?: string) => {
@@ -1148,7 +1203,7 @@ function RadarIAContent() {
           <Button
             variant="outline"
             onClick={runEnginePreview}
-            disabled={previewLoading}
+            disabled={previewLoading || accountsLoading || !companyId || !accountId}
             title="Executa apenas uma prévia do contexto (dry-run). Não cria insights."
           >
             {previewLoading ? (
@@ -1165,7 +1220,7 @@ function RadarIAContent() {
           </Button>
           <Button
             onClick={runAnalysis}
-            disabled={running}
+            disabled={running || accountsLoading || !companyId || !accountId}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
           >
             {running ? (

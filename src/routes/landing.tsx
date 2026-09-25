@@ -300,7 +300,7 @@ function HeroMockup() {
   const revenue = [42, 55, 48, 70, 64, 88, 96, 110, 128];
   const accounts = [
     { name: "ML — Robomix", value: "R$ 38.420", pct: 92 },
-    { name: "ML — Nightled", value: "R$ 21.180", pct: 64 },
+    { name: "ML — Conta Principal", value: "R$ 21.180", pct: 64 },
     { name: "ML — WGCar Matriz", value: "R$ 14.760", pct: 48 },
     { name: "ML — Express", value: "R$ 9.940", pct: 34 },
     { name: "ML — Duck", value: "R$ 6.220", pct: 22 },
@@ -492,7 +492,7 @@ function HeroMockup() {
               <div className="flex items-center gap-1 font-semibold text-rose-300">
                 <TrendingDown className="size-3" /> Margem caindo
               </div>
-              <p className="mt-0.5 text-rose-200/80">Kit Farol — Nightled</p>
+              <p className="mt-0.5 text-rose-200/80">Kit Farol — Conta Principal</p>
             </div>
             <div className="rounded-md bg-emerald-400/10 p-2 ring-1 ring-emerald-300/30">
               <div className="flex items-center gap-1 font-semibold text-emerald-300">

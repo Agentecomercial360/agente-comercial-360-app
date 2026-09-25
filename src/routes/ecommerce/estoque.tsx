@@ -13,6 +13,7 @@ import {
   Store,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
 
 export const Route = createFileRoute("/ecommerce/estoque")({
@@ -22,9 +23,7 @@ export const Route = createFileRoute("/ecommerce/estoque")({
   }),
 });
 
-const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
-
-type StockStatus =
+ type StockStatus =
   | "risk_of_stockout"
   | "low_stock"
   | "excess_stock"
@@ -156,6 +155,19 @@ function marketplaceLabel(m: string | null | undefined): string {
 }
 
 function EstoqueCompras() {
+  return (
+    <EcommerceLayout>
+      <EstoqueComprasInner />
+    </EcommerceLayout>
+  );
+}
+
+function EstoqueComprasInner() {
+  const {
+    companyId,
+    loading: loadingAccount,
+  } = useEcommerceActiveAccount();
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inventory, setInventory] = useState<InventoryRow[]>([]);
@@ -165,6 +177,18 @@ function EstoqueCompras() {
   const [filter, setFilter] = useState<FilterKey>("all");
 
   useEffect(() => {
+    if (loadingAccount) return;
+
+    if (!companyId) {
+      setInventory([]);
+      setProducts(new Map());
+      setListings([]);
+      setAccounts(new Map());
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     let cancel = false;
     async function load() {
       setLoading(true);
@@ -175,7 +199,7 @@ function EstoqueCompras() {
           .select(
             "id,product_id,total_stock,available_stock,reserved_stock,incoming_stock,average_monthly_sales,coverage_days,days_without_sale,estimated_stock_value,stock_status,last_sale_at",
           )
-          .eq("company_id", COMPANY_ID);
+          .eq("company_id", companyId);
         if (ei) throw ei;
         const invRows = (inv || []) as InventoryRow[];
         if (cancel) return;
@@ -197,17 +221,17 @@ function EstoqueCompras() {
             supabase
               .from("ecommerce_products")
               .select("id,sku,product_name,category")
-              .eq("company_id", COMPANY_ID)
+              .eq("company_id", companyId)
               .in("id", productIds),
             supabase
               .from("ecommerce_listings")
               .select("id,product_id,account_id,title,status")
-              .eq("company_id", COMPANY_ID)
+              .eq("company_id", companyId)
               .in("product_id", productIds),
             supabase
               .from("ecommerce_accounts")
               .select("id,account_name,marketplace,nickname")
-              .eq("company_id", COMPANY_ID),
+              .eq("company_id", companyId),
           ]);
         if (ep) throw ep;
         if (el) throw el;
@@ -233,7 +257,7 @@ function EstoqueCompras() {
     return () => {
       cancel = true;
     };
-  }, []);
+  }, [loadingAccount, companyId]);
 
   const listingsByProduct = useMemo(() => {
     const m = new Map<string, ListingRow[]>();
@@ -318,8 +342,7 @@ function EstoqueCompras() {
   ];
 
   return (
-    <EcommerceLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         <header className="space-y-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
             <PackageCheck className="h-3.5 w-3.5" />
@@ -376,6 +399,12 @@ function EstoqueCompras() {
         {error && (
           <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
             {error}
+          </div>
+        )}
+
+        {!loadingAccount && !companyId && (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Não foi possível identificar a empresa ativa para carregar os dados de estoque.
           </div>
         )}
 
@@ -562,8 +591,7 @@ function EstoqueCompras() {
             empresa. Produtos sem registro de estoque não aparecem nesta visão.
           </span>
         </div>
-      </div>
-    </EcommerceLayout>
+    </div>
   );
 }
 

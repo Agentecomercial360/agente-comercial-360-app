@@ -20,10 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
-import {
-  ECOMMERCE_COMPANY_ID,
-  useEcommerceActiveAccount,
-} from "@/lib/ecommerce-active-account";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -217,8 +214,12 @@ function ResultadosAcoes() {
 }
 
 function ResultadosAcoesContent() {
-  const { activeAccountId, activeAccount, loading: accLoading } =
-    useEcommerceActiveAccount();
+  const {
+    companyId,
+    activeAccountId,
+    activeAccount,
+    loading: accLoading,
+  } = useEcommerceActiveAccount();
 
   const [tasks, setTasks] = useState<CompletedTask[]>([]);
   const [completedCount, setCompletedCount] = useState<number>(0);
@@ -232,7 +233,7 @@ function ResultadosAcoesContent() {
 
   const loadAll = useCallback(async () => {
     if (accLoading) return;
-    if (!activeAccountId) {
+    if (!companyId || !activeAccountId) {
       setTasks([]);
       setResults([]);
       setCompletedCount(0);
@@ -246,7 +247,7 @@ function ResultadosAcoesContent() {
       const { count: totalCount, error: totErr } = await supabase
         .from("ecommerce_tasks")
         .select("id", { count: "exact", head: true })
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("account_id", activeAccountId);
       if (totErr) {
         console.error("[resultados] total tasks count error", totErr);
@@ -259,7 +260,7 @@ function ResultadosAcoesContent() {
       const { count: cCount, error: cErr } = await supabase
         .from("ecommerce_tasks")
         .select("id", { count: "exact", head: true })
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("account_id", activeAccountId)
         .eq("status", "completed");
       if (cErr) {
@@ -275,7 +276,7 @@ function ResultadosAcoesContent() {
         .select(
           "id, company_id, account_id, product_id, listing_id, insight_id, task_title, task_type, responsible_name, result_summary, created_by, completed_at, created_at",
         )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("account_id", activeAccountId)
         .eq("status", "completed")
         .order("completed_at", { ascending: false });
@@ -291,7 +292,7 @@ function ResultadosAcoesContent() {
       const { data: rData, error: rErr } = await supabase
         .from("vw_ecommerce_action_results")
         .select("*")
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("account_id", activeAccountId);
       if (rErr) {
         console.warn("[resultados] action results indisponível:", rErr.message);
@@ -305,7 +306,7 @@ function ResultadosAcoesContent() {
     } finally {
       setLoading(false);
     }
-  }, [accLoading, activeAccountId]);
+  }, [accLoading, companyId, activeAccountId]);
 
   useEffect(() => {
     void loadAll();
@@ -402,6 +403,7 @@ function ResultadosAcoesContent() {
           <div className="flex flex-wrap items-center gap-2">
             <RegistrarResultadoDialog
               tasks={tasks}
+              companyId={companyId}
               activeAccountId={activeAccountId}
               measuredTaskIds={resultsByTask}
               onSaved={loadAll}
@@ -423,7 +425,7 @@ function ResultadosAcoesContent() {
           </div>
         </header>
 
-        {!accLoading && !activeAccountId && (
+        {!accLoading && (!companyId || !activeAccountId) && (
           <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50/60 p-3 text-xs text-rose-900">
             <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
             <span>Conta ativa não identificada para medição de resultados.</span>
@@ -672,7 +674,7 @@ function ResultadosAcoesContent() {
               Debug operacional da medição
             </summary>
             <div className="mt-2 grid grid-cols-1 gap-x-6 gap-y-1 font-mono md:grid-cols-2">
-              <div><span className="text-slate-500">company_id:</span> {ECOMMERCE_COMPANY_ID}</div>
+              <div><span className="text-slate-500">company_id:</span> {companyId}</div>
               <div><span className="text-slate-500">account_id:</span> {activeAccountId ?? "—"}</div>
               <div><span className="text-slate-500">conta ativa:</span> {activeAccount?.account_name ?? activeAccount?.nickname ?? "—"}</div>
               <div><span className="text-slate-500">total de tarefas encontradas:</span> {totalTasksCount}</div>
@@ -928,11 +930,13 @@ const METRIC_OPTIONS: { value: MetricKind; label: string }[] = [
 
 function RegistrarResultadoDialog({
   tasks,
+  companyId,
   activeAccountId,
   measuredTaskIds,
   onSaved,
 }: {
   tasks: CompletedTask[];
+  companyId: string | null;
   activeAccountId: string | null;
   measuredTaskIds: Map<string, ActionResult>;
   onSaved: () => void | Promise<void>;
@@ -969,6 +973,11 @@ function RegistrarResultadoDialog({
   };
 
   const onSubmit = async () => {
+    if (!companyId || !activeAccountId) {
+      toast.error("Não foi possível identificar a empresa ou a conta ativa.");
+      return;
+    }
+
     const t = tasks.find((x) => x.id === form.taskId);
     if (!t || measuredTaskIds.has(t.id)) {
       toast.error("Selecione uma tarefa concluída sem medição registrada.");
@@ -982,7 +991,8 @@ function RegistrarResultadoDialog({
       : new Date().toISOString();
 
     const payload: Record<string, unknown> = {
-      company_id: ECOMMERCE_COMPANY_ID,
+      company_id: companyId,
+      account_id: activeAccountId,
       task_id: t.id,
       product_id: t.product_id,
       listing_id: t.listing_id,

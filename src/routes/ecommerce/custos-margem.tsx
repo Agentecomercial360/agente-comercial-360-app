@@ -37,8 +37,6 @@ export const Route = createFileRoute("/ecommerce/custos-margem")({
   }),
 });
 
-const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
-
 type ProductRow = {
   id: string;
   sku: string | null;
@@ -239,6 +237,7 @@ function CustosMargem() {
 
 function CustosMargemContent() {
   const {
+    companyId,
     activeAccountId,
     activeAccount,
     loading: accountsLoading,
@@ -280,6 +279,18 @@ function CustosMargemContent() {
 
   const load = useCallback(async () => {
     if (accountsLoading) return;
+    if (!companyId) {
+      setProducts([]);
+      setListings([]);
+      setAccounts(new Map());
+      setOrderItems([]);
+      setOrdersById(new Map());
+      setPendingCostOrders(0);
+      setHighConfOrders(0);
+      setError(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -288,17 +299,17 @@ function CustosMargemContent() {
           supabase
             .from("ecommerce_products")
             .select("id,sku,product_name,category,sale_price,cost_price,status")
-            .eq("company_id", COMPANY_ID)
+            .eq("company_id", companyId)
             .limit(50000),
           supabase
             .from("ecommerce_listings")
             .select("id,product_id,account_id,status")
-            .eq("company_id", COMPANY_ID)
+            .eq("company_id", companyId)
             .limit(50000),
           supabase
             .from("ecommerce_accounts")
             .select("id,account_name,marketplace,nickname")
-            .eq("company_id", COMPANY_ID),
+            .eq("company_id", companyId),
         ]);
       if (ep) throw ep;
       if (el) throw el;
@@ -313,7 +324,7 @@ function CustosMargemContent() {
       let ordersQuery = supabase
         .from("ecommerce_orders")
         .select("id,account_id")
-        .eq("company_id", COMPANY_ID)
+        .eq("company_id", companyId)
         .limit(20000);
       if (selectedAccountId) ordersQuery = ordersQuery.eq("account_id", selectedAccountId);
       const { data: ords, error: eo } = await ordersQuery;
@@ -337,7 +348,7 @@ function CustosMargemContent() {
             supabase
               .from("ecommerce_order_items")
               .select("order_id,product_id,quantity,unit_price,total_price")
-              .eq("company_id", COMPANY_ID)
+              .eq("company_id", companyId)
               .in("order_id", c)
               .limit(50000),
           ),
@@ -355,7 +366,7 @@ function CustosMargemContent() {
         supabase
           .from("ecommerce_orders")
           .select("id", { count: "exact", head: true })
-          .eq("company_id", COMPANY_ID);
+          .eq("company_id", companyId);
       const pendQ = baseCount().eq("profit_confidence", "pending_cost");
       const highQ = baseCount().eq("profit_confidence", "high");
       const [pendingResult, highResult] = await Promise.all([
@@ -371,7 +382,7 @@ function CustosMargemContent() {
     } finally {
       setLoading(false);
     }
-  }, [accountsLoading, selectedAccountId]);
+  }, [accountsLoading, companyId, selectedAccountId]);
 
   useEffect(() => {
     void load();
@@ -380,12 +391,17 @@ function CustosMargemContent() {
   // Impacto financeiro bloqueado por falta de custo — somente via RPC.
   useEffect(() => {
     if (accountsLoading) return;
+    if (!companyId) {
+      setImpactSummary(null);
+      setImpactLoading(false);
+      return;
+    }
     let cancelled = false;
     const p_account_id = isAllAccounts ? null : selectedAccountId;
     setImpactLoading(true);
     supabase
       .rpc("get_ecommerce_cost_impact_summary_v1", {
-        p_company_id: COMPANY_ID,
+        p_company_id: companyId,
         p_account_id,
       })
 
@@ -412,17 +428,22 @@ function CustosMargemContent() {
     return () => {
       cancelled = true;
     };
-  }, [accountsLoading, selectedAccountId, isAllAccounts, selectedAccountName, impactReloadKey]);
+  }, [accountsLoading, companyId, selectedAccountId, isAllAccounts, selectedAccountName, impactReloadKey]);
 
   // Produtos que mais bloqueiam lucro real — somente via RPC.
   useEffect(() => {
     if (accountsLoading) return;
+    if (!companyId) {
+      setBlockingProducts([]);
+      setBlockingLoading(false);
+      return;
+    }
     let cancelled = false;
     const p_account_id = isAllAccounts ? null : selectedAccountId;
     setBlockingLoading(true);
     supabase
       .rpc("get_ecommerce_cost_blocking_products_v1", {
-        p_company_id: COMPANY_ID,
+        p_company_id: companyId,
         p_account_id,
         p_limit: 20,
       })
@@ -439,17 +460,22 @@ function CustosMargemContent() {
     return () => {
       cancelled = true;
     };
-  }, [accountsLoading, selectedAccountId, isAllAccounts, impactReloadKey]);
+  }, [accountsLoading, companyId, selectedAccountId, isAllAccounts, impactReloadKey]);
 
   // Evolução do lucro bloqueado — somente via RPC.
   useEffect(() => {
     if (accountsLoading) return;
+    if (!companyId) {
+      setDailySeries([]);
+      setDailyLoading(false);
+      return;
+    }
     let cancelled = false;
     const p_account_id = isAllAccounts ? null : selectedAccountId;
     setDailyLoading(true);
     supabase
       .rpc("get_ecommerce_cost_blocking_daily_v1", {
-        p_company_id: COMPANY_ID,
+        p_company_id: companyId,
         p_account_id,
         p_days: null,
       })
@@ -479,7 +505,7 @@ function CustosMargemContent() {
     return () => {
       cancelled = true;
     };
-  }, [accountsLoading, selectedAccountId, isAllAccounts, impactReloadKey]);
+  }, [accountsLoading, companyId, selectedAccountId, isAllAccounts, impactReloadKey]);
 
 
 
@@ -770,6 +796,16 @@ function CustosMargemContent() {
     { key: "paused", label: "Pausados" },
   ];
 
+  if (!companyId) {
+    return (
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-6 text-sm text-amber-800">
+        {accountsLoading
+          ? "Identificando a empresa da conta autenticada…"
+          : "Não foi possível identificar a empresa desta sessão."}
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="space-y-6">
@@ -981,7 +1017,7 @@ function CustosMargemContent() {
                 <PendingCostsTable
                   rows={pendingRows}
                   loading={loading}
-                  companyId={COMPANY_ID}
+                  companyId={companyId}
                   scopeLabel={selectedAccountName}
                   onSaved={async () => {
                     setImpactReloadKey((k) => k + 1);
@@ -1717,6 +1753,7 @@ function CustosMargemContent() {
       {editing && (
         <EditCostModal
           product={editing}
+          companyId={companyId}
           onClose={() => setEditing(null)}
           onSaved={async () => {
             setEditing(null);
@@ -1731,10 +1768,12 @@ function CustosMargemContent() {
 
 function EditCostModal({
   product,
+  companyId,
   onClose,
   onSaved,
 }: {
   product: ProductRow;
+  companyId: string;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -1780,11 +1819,11 @@ function EditCostModal({
           updated_at: new Date().toISOString(),
         })
         .eq("id", product.id)
-        .eq("company_id", COMPANY_ID);
+        .eq("company_id", companyId);
       if (update.error) throw update.error;
 
       const recalc = await supabase.rpc("recalculate_ecommerce_profit_v1", {
-        p_company_id: COMPANY_ID,
+        p_company_id: companyId,
         p_product_id: product.id,
       });
 

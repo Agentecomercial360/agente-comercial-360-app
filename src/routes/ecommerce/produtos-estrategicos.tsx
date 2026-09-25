@@ -16,10 +16,7 @@ import {
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
-import {
-  useEcommerceActiveAccount,
-  ECOMMERCE_COMPANY_ID,
-} from "@/lib/ecommerce-active-account";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 
 export const Route = createFileRoute("/ecommerce/produtos-estrategicos")({
   component: ProdutosEstrategicosPage,
@@ -99,6 +96,7 @@ function ProdutosEstrategicosPage() {
 
 function ProdutosEstrategicosInner() {
   const {
+    companyId,
     activeAccount,
     activeAccountId,
     isActiveConnected,
@@ -113,9 +111,12 @@ function ProdutosEstrategicosInner() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    if (!activeAccountId) {
+    if (loadingAccount) return;
+
+    if (!companyId || !activeAccountId) {
       setListings([]);
       setProducts([]);
+      setError(null);
       setLoading(false);
       return;
     }
@@ -129,7 +130,7 @@ function ProdutosEstrategicosInner() {
           .select(
             "id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at",
           )
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .eq("account_id", activeAccountId)
           .order("price", { ascending: false });
         if (el) throw el;
@@ -144,7 +145,7 @@ function ProdutosEstrategicosInner() {
           const { data: pr, error: ep } = await supabase
             .from("ecommerce_products")
             .select("id,sku,product_name,category,brand,is_active,updated_at")
-            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .eq("company_id", companyId)
             .in("id", productIds);
           if (ep) throw ep;
           productsData = (pr || []) as Product[];
@@ -162,7 +163,7 @@ function ProdutosEstrategicosInner() {
     return () => {
       cancelled = true;
     };
-  }, [activeAccountId]);
+  }, [loadingAccount, companyId, activeAccountId]);
 
   const productById = useMemo(() => {
     const m = new Map<string, Product>();
@@ -241,9 +242,16 @@ function ProdutosEstrategicosInner() {
     { k: "consistent", label: "Cadastro consistente" },
   ];
 
-  const showPendingState = !loadingAccount && activeAccount && !isActiveConnected;
+  const showMissingContext = !loadingAccount && (!companyId || !activeAccountId);
+  const showPendingState =
+    !showMissingContext && !loadingAccount && activeAccount && !isActiveConnected;
   const showEmptyState =
-    !loading && !showPendingState && activeAccount && isActiveConnected && allRows.length === 0;
+    !loading &&
+    !showMissingContext &&
+    !showPendingState &&
+    activeAccount &&
+    isActiveConnected &&
+    allRows.length === 0;
 
   return (
     <div className="space-y-6">
@@ -327,7 +335,19 @@ function ProdutosEstrategicosInner() {
         })}
       </section>
 
-      {showPendingState ? (
+      {showMissingContext ? (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50/50 p-8 text-center shadow-[var(--shadow-soft)]">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+            <Link2 className="h-6 w-6" />
+          </div>
+          <div className="mt-3 font-display text-lg font-bold text-foreground">
+            Empresa ou conta ativa não identificada.
+          </div>
+          <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+            Selecione uma conta válida para visualizar os produtos estratégicos.
+          </p>
+        </section>
+      ) : showPendingState ? (
         <section className="rounded-2xl border border-dashed border-border bg-card p-10 text-center shadow-[var(--shadow-soft)]">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-700 mb-3">
             <Link2 className="h-6 w-6" />

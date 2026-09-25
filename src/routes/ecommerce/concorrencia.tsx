@@ -14,10 +14,7 @@ import {
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { RankingRadar } from "@/components/ecommerce/RankingRadar";
-import {
-  ECOMMERCE_COMPANY_ID,
-  useEcommerceActiveAccount,
-} from "@/lib/ecommerce-active-account";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,8 +52,12 @@ export const Route = createFileRoute("/ecommerce/concorrencia")({
   }),
 });
 
+const API_BASE_URL = String(import.meta.env.VITE_AC360_API_URL ?? "")
+  .trim()
+  .replace(/\/+$/, "");
+
 const SYNC_ITEM_ENDPOINT =
-  "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/competition/sync-item";
+  `${API_BASE_URL}/api/mercadolivre/competition/sync-item`;
 
 type Listing = {
   id: string;
@@ -432,7 +433,12 @@ const EMPTY_MANUAL: ManualFormState = {
 };
 
 function ConcorrenciaInner() {
-  const { activeAccountId, activeAccount } = useEcommerceActiveAccount();
+  const {
+    companyId,
+    activeAccountId,
+    activeAccount,
+    loading: accountLoading,
+  } = useEcommerceActiveAccount();
   const [loadingBase, setLoadingBase] = useState(false);
   const [baseProducts, setBaseProducts] = useState<BaseProduct[]>([]);
   const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
@@ -456,9 +462,12 @@ function ConcorrenciaInner() {
   );
 
   useEffect(() => {
-    if (!activeAccountId) {
+    if (accountLoading) return;
+
+    if (!companyId || !activeAccountId) {
       setBaseProducts([]);
       setSelectedListingId(null);
+      setLoadingBase(false);
       return;
     }
     let cancelled = false;
@@ -470,7 +479,7 @@ function ConcorrenciaInner() {
           .select(
             "id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at",
           )
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .eq("account_id", activeAccountId)
           .order("updated_at", { ascending: false })
           .limit(500);
@@ -484,7 +493,7 @@ function ConcorrenciaInner() {
           const { data: prod } = await supabase
             .from("ecommerce_products")
             .select("id,sku,product_name,sale_price")
-            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .eq("company_id", companyId)
             .in("id", productIds);
           for (const p of (prod || []) as ProductRow[]) productsById.set(p.id, p);
         }
@@ -510,7 +519,7 @@ function ConcorrenciaInner() {
     return () => {
       cancelled = true;
     };
-  }, [activeAccountId]);
+  }, [accountLoading, companyId, activeAccountId]);
 
   const filteredBase = useMemo(() => {
     const q = baseSearch.trim().toLowerCase();
@@ -568,8 +577,8 @@ function ConcorrenciaInner() {
       toast.error("Cole o link ou código MLB do concorrente.");
       return;
     }
-    if (!activeAccountId) {
-      toast.error("Selecione uma conta Mercado Livre ativa.");
+    if (!companyId || !activeAccountId) {
+      toast.error("Não foi possível identificar a empresa ou a conta Mercado Livre ativa.");
       return;
     }
     const extractedId = extractItemId(trimmed);
@@ -586,7 +595,7 @@ function ConcorrenciaInner() {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
-          company_id: ECOMMERCE_COMPANY_ID,
+          company_id: companyId,
           account_id: activeAccountId,
           item_id: extractedId,
           item_url: trimmed,
@@ -656,7 +665,7 @@ function ConcorrenciaInner() {
     } finally {
       setLoading(false);
     }
-  }, [url, activeAccountId, selectedBase, openManualNew]);
+  }, [url, companyId, activeAccountId, selectedBase, openManualNew]);
 
   const handleManualSave = useCallback(() => {
     if (!selectedBase) {
@@ -919,6 +928,12 @@ function ConcorrenciaInner() {
         </p>
       </div>
 
+      {!accountLoading && (!companyId || !activeAccountId) && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Não foi possível identificar a empresa ou a conta Mercado Livre ativa.
+        </div>
+      )}
+
       {/* Base product picker */}
       <Card>
         <CardHeader>
@@ -1111,7 +1126,7 @@ function ConcorrenciaInner() {
             />
             <Button
               onClick={handleAdd}
-              disabled={loading || !selectedBase || !activeAccountId || !url.trim()}
+              disabled={loading || !selectedBase || !companyId || !activeAccountId || !url.trim()}
             >
               {loading ? (
                 <>

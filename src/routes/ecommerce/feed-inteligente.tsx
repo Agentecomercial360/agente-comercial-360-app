@@ -31,6 +31,7 @@ import {
   ServerOff,
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -66,9 +67,7 @@ export const Route = createFileRoute("/ecommerce/feed-inteligente")({
   }),
 });
 
-const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
-const ACCOUNT_ID = "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4";
-/** Quantidade solicitada ao GET (o backend pode reduzir internamente). */
+ /** Quantidade solicitada ao GET (o backend pode reduzir internamente). */
 const FEED_FETCH_LIMIT = 60;
 /** Quantidade exibida na tela para preservar performance. */
 const FEED_DISPLAY_LIMIT = 20;
@@ -1040,15 +1039,42 @@ function PriorityStrip({ entries }: { entries: PriorityEntry[] }) {
 }
 
 function FeedInteligente() {
+  return (
+    <EcommerceLayout>
+      <FeedInteligenteInner />
+    </EcommerceLayout>
+  );
+}
+
+function FeedInteligenteInner() {
+  const {
+    companyId,
+    activeAccountId,
+    loading: loadingAccount,
+  } = useEcommerceActiveAccount();
+
   const [data, setData] = useState<IntelligentFeedPreview | null>(null);
   const [loading, setLoading] = useState(true);
-  const [errorKind, setErrorKind] = useState<"auth" | "unavailable" | null>(null);
+  const [errorKind, setErrorKind] = useState<"context" | "auth" | "unavailable" | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const abortRef = useRef<AbortController | null>(null);
 
   const load = useCallback(async () => {
     abortRef.current?.abort();
+
+    if (loadingAccount) {
+      setLoading(true);
+      return;
+    }
+
+    if (!companyId || !activeAccountId) {
+      setData(null);
+      setErrorKind("context");
+      setLoading(false);
+      return;
+    }
+
     const controller = new AbortController();
     abortRef.current = controller;
     setLoading(true);
@@ -1056,8 +1082,8 @@ function FeedInteligente() {
     try {
       // SOMENTE LEITURA: apenas GET /intelligent-feed/preview.
       const preview = await getIntelligentFeedPreview({
-        companyId: COMPANY_ID,
-        accountId: ACCOUNT_ID,
+        companyId,
+        accountId: activeAccountId,
         limit: FEED_FETCH_LIMIT,
         signal: controller.signal,
       });
@@ -1077,7 +1103,7 @@ function FeedInteligente() {
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
-  }, []);
+  }, [loadingAccount, companyId, activeAccountId]);
 
   useEffect(() => {
     void load();
@@ -1157,8 +1183,7 @@ function FeedInteligente() {
   const revenueTone = summary?.revenueAvailable ? "positive" : "pending";
 
   return (
-    <EcommerceLayout>
-      <div className="-m-4 bg-white p-4 sm:-m-6 sm:p-6">
+    <div className="-m-4 bg-white p-4 sm:-m-6 sm:p-6">
         <div className="space-y-6">
           {/* Cabeçalho */}
           <div className="flex flex-col gap-5">
@@ -1192,7 +1217,7 @@ function FeedInteligente() {
                 <Button
                   type="button"
                   onClick={() => void load()}
-                  disabled={loading}
+                  disabled={loading || loadingAccount || !companyId || !activeAccountId}
                   className="h-11 shrink-0 gap-2 rounded-full bg-gradient-to-r from-[#1E5EFF] to-[#0A1F44] px-6 text-[13px] font-semibold text-white shadow-[0_12px_28px_-14px_rgba(30,94,255,0.9)] transition hover:opacity-95"
                 >
                   <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
@@ -1304,6 +1329,15 @@ function FeedInteligente() {
                   <FeedCardSkeleton />
                   <FeedCardSkeleton />
                 </div>
+              )}
+
+              {!loading && errorKind === "context" && (
+                <FeedStateCard
+                  icon={ServerOff}
+                  tone="warning"
+                  title="Empresa ou conta ativa não identificada."
+                  description="Selecione uma conta válida para carregar o Feed Inteligente da operação."
+                />
               )}
 
               {!loading && errorKind === "auth" && (
@@ -1617,8 +1651,7 @@ function FeedInteligente() {
               </Card>
             </div>
           </div>
-        </div>
       </div>
-    </EcommerceLayout>
+    </div>
   );
 }

@@ -1,7 +1,5 @@
 import { supabase } from "@/lib/supabase";
 
-const DEFAULT_API_BASE_URL = "https://ac360-mercadolivre-api-production.up.railway.app";
-
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -260,8 +258,18 @@ export async function getStudioIaContextPreview({
     );
   }
 
-  const configuredBaseUrl = String(import.meta.env.VITE_AC360_API_URL ?? "").trim();
-  const apiBaseUrl = (configuredBaseUrl || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
+  const apiBaseUrl = String(import.meta.env.VITE_AC360_API_URL ?? "")
+    .trim()
+    .replace(/\/+$/, "");
+
+  if (!apiBaseUrl) {
+    throw new StudioIaPreviewError(
+      "VITE_AC360_API_URL não está configurada. Verifique o arquivo .env.local.",
+      "unavailable",
+      500,
+    );
+  }
+
   const url = new URL(`${apiBaseUrl}/api/ecommerce/studio-ia/context-preview`);
   url.searchParams.set("company_id", companyId);
   url.searchParams.set("account_id", accountId);

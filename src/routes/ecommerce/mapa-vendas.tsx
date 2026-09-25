@@ -20,10 +20,7 @@ import {
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { SalesMap, type CityPoint } from "@/components/ecommerce/SalesMap";
 import { supabase } from "@/lib/supabase";
-import {
-  ECOMMERCE_COMPANY_ID,
-  useEcommerceActiveAccount,
-} from "@/lib/ecommerce-active-account";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import { normalizeLocation, cityKey, type CanonicalLocation } from "@/lib/br-locations";
 import {
   aggregateOrderMetrics,
@@ -143,8 +140,13 @@ function MapaVendas() {
 }
 
 function MapaVendasContent() {
-  const { accounts, activeAccountId, activeAccount, loading: accLoading } =
-    useEcommerceActiveAccount();
+  const {
+    companyId,
+    accounts,
+    activeAccountId,
+    activeAccount,
+    loading: accLoading,
+  } = useEcommerceActiveAccount();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -166,13 +168,31 @@ function MapaVendasContent() {
   const [productQuery, setProductQuery] = useState("");
 
   useEffect(() => {
+    if (accLoading) return;
+
+    if (!companyId) {
+      setOrders([]);
+      setItems([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeAccountId, period]);
+  }, [accLoading, companyId, activeAccountId, period]);
 
   const range = useMemo(() => getPeriodRange(period), [period]);
 
   async function load() {
+    if (!companyId) {
+      setOrders([]);
+      setItems([]);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -182,7 +202,7 @@ function MapaVendasContent() {
         .select(
           "id, account_id, external_order_id, order_date, buyer_name, buyer_nickname, buyer_city, buyer_state, order_status, payment_status, shipping_status, total_amount, profit_status, profit_confidence",
         )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .gte("order_date", range.sinceISO)
         .lte("order_date", range.untilISO)
         .order("order_date", { ascending: false })
@@ -583,6 +603,13 @@ function MapaVendasContent() {
         <div className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
           <span>{error}</span>
+        </div>
+      )}
+
+      {!accLoading && !companyId && (
+        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>Não foi possível identificar a empresa ativa para carregar o mapa de vendas.</span>
         </div>
       )}
 

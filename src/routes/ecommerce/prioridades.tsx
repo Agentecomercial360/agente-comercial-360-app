@@ -18,10 +18,7 @@ import {
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
-import {
-  useEcommerceActiveAccount,
-  ECOMMERCE_COMPANY_ID,
-} from "@/lib/ecommerce-active-account";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 
 export const Route = createFileRoute("/ecommerce/prioridades")({
   component: CentralAcoesPage,
@@ -246,6 +243,7 @@ function CentralAcoesPage() {
 
 function CentralAcoesInner() {
   const {
+    companyId,
     activeAccount,
     activeAccountId,
     isActiveConnected,
@@ -263,11 +261,15 @@ function CentralAcoesInner() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    if (!activeAccountId) {
+    if (loadingAccount) return;
+
+    if (!companyId || !activeAccountId) {
       setListings([]);
       setProducts([]);
       setOrderItems([]);
       setOrdersById(new Map());
+      setAccountsMap(new Map());
+      setError(null);
       setLoading(false);
       return;
     }
@@ -282,13 +284,13 @@ function CentralAcoesInner() {
             .select(
               "id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at,account_id",
             )
-            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .eq("company_id", companyId)
             .eq("account_id", activeAccountId)
             .order("updated_at", { ascending: false }),
           supabase
             .from("ecommerce_accounts")
             .select("id,account_name,nickname")
-            .eq("company_id", ECOMMERCE_COMPANY_ID),
+            .eq("company_id", companyId),
         ]);
         if (el) throw el;
         if (ea) throw ea;
@@ -299,7 +301,7 @@ function CentralAcoesInner() {
         const { data: pr, error: ep } = await supabase
           .from("ecommerce_products")
           .select("id,sku,product_name,is_active,cost_price,updated_at")
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .limit(50000);
         if (ep) throw ep;
         const productsData = (pr || []) as Product[];
@@ -307,7 +309,7 @@ function CentralAcoesInner() {
         const { data: ords, error: eo } = await supabase
           .from("ecommerce_orders")
           .select("id,account_id")
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .eq("account_id", activeAccountId)
           .limit(20000);
         if (eo) throw eo;
@@ -325,7 +327,7 @@ function CentralAcoesInner() {
               supabase
                 .from("ecommerce_order_items")
                 .select("order_id,product_id,quantity,unit_price,total_price")
-                .eq("company_id", ECOMMERCE_COMPANY_ID)
+                .eq("company_id", companyId)
                 .in("order_id", c)
                 .limit(50000),
             ),
@@ -351,7 +353,7 @@ function CentralAcoesInner() {
     return () => {
       cancelled = true;
     };
-  }, [activeAccountId]);
+  }, [loadingAccount, companyId, activeAccountId]);
 
   const productById = useMemo(() => {
     const m = new Map<string, Product>();
@@ -574,9 +576,16 @@ function CentralAcoesInner() {
     { k: "paused", label: "Pausados" },
   ];
 
-  const showPendingState = !loadingAccount && activeAccount && !isActiveConnected;
+  const showMissingContext = !loadingAccount && (!companyId || !activeAccountId);
+  const showPendingState =
+    !showMissingContext && !loadingAccount && activeAccount && !isActiveConnected;
   const showEmptyState =
-    !loading && !showPendingState && activeAccount && isActiveConnected && allActions.length === 0;
+    !loading &&
+    !showMissingContext &&
+    !showPendingState &&
+    activeAccount &&
+    isActiveConnected &&
+    allActions.length === 0;
 
   const accountLabel = loadingAccount
     ? "Carregando…"
@@ -657,7 +666,19 @@ function CentralAcoesInner() {
         </div>
       </section>
 
-      {showPendingState ? (
+      {showMissingContext ? (
+        <section className="rounded-2xl border border-amber-200 bg-amber-50/50 p-8 text-center shadow-[var(--shadow-soft)]">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+            <AlertTriangle className="h-6 w-6" />
+          </div>
+          <div className="mt-3 font-display text-lg font-bold text-foreground">
+            Empresa ou conta ativa não identificada.
+          </div>
+          <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+            Selecione uma conta válida para carregar a Central de Ações.
+          </p>
+        </section>
+      ) : showPendingState ? (
         <section className="rounded-2xl border border-dashed border-border bg-card p-10 text-center shadow-[var(--shadow-soft)]">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-700 mb-3">
             <Link2 className="h-6 w-6" />

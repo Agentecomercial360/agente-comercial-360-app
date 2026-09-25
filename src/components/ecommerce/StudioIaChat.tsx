@@ -27,7 +27,7 @@ import {
   Sparkles,
   Store,
 } from "lucide-react";
-import { ECOMMERCE_COMPANY_ID, useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import {
   getStudioIaDiagnosticPreview,
   StudioIaDiagnosticError,
@@ -733,17 +733,29 @@ function ConsultiveChat({
 }
 
 export function StudioIaChatSection() {
-  const { activeAccountId, activeAccount, loading: accountsLoading } = useEcommerceActiveAccount();
+  const {
+    companyId,
+    activeAccountId,
+    activeAccount,
+    loading: accountsLoading,
+  } = useEcommerceActiveAccount();
 
   const query = useQuery<StudioIaDiagnosticPreview, Error>({
-    queryKey: ["studio-ia-diagnostic-preview", ECOMMERCE_COMPANY_ID, activeAccountId],
+    queryKey: [
+      "studio-ia-diagnostic-preview",
+      companyId,
+      activeAccountId,
+    ],
     queryFn: ({ signal }: { signal: AbortSignal }) =>
       getStudioIaDiagnosticPreview({
-        companyId: ECOMMERCE_COMPANY_ID,
+        companyId: companyId as string,
         accountId: activeAccountId as string,
         signal,
       }),
-    enabled: !accountsLoading && Boolean(activeAccountId),
+    enabled:
+      !accountsLoading &&
+      Boolean(companyId) &&
+      Boolean(activeAccountId),
     retry: false,
     refetchOnWindowFocus: false,
     staleTime: 60_000,
@@ -772,7 +784,7 @@ export function StudioIaChatSection() {
         <button
           type="button"
           onClick={() => void query.refetch()}
-          disabled={!activeAccountId || query.isFetching}
+          disabled={!companyId || !activeAccountId || query.isFetching}
           className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#1E5EFF] to-[#0A1F44] px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#1E5EFF]/25 transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <RefreshCw className={`h-3.5 w-3.5 ${query.isFetching ? "animate-spin" : ""}`} />
@@ -783,18 +795,18 @@ export function StudioIaChatSection() {
       <div className="relative mt-5" aria-live="polite">
         {accountsLoading && (
           <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-            <LoaderCircle className="h-4 w-4 animate-spin" /> Identificando a conta ativa...
+            <LoaderCircle className="h-4 w-4 animate-spin" />
+            Identificando a conta ativa...
           </div>
         )}
 
-        {!accountsLoading && !activeAccountId && (
+        {!accountsLoading && (!companyId || !activeAccountId) && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Selecione uma conta Mercado Livre específica no topo da tela para carregar o
-            diagnóstico.
+            Selecione uma conta Mercado Livre específica no topo da tela para carregar o diagnóstico.
           </div>
         )}
 
-        {query.isPending && activeAccountId && !accountsLoading && (
+        {query.isPending && companyId && activeAccountId && !accountsLoading && (
           <div className="grid gap-3 lg:grid-cols-[238px_minmax(0,1fr)_282px]">
             <div className="h-72 animate-pulse rounded-[22px] border border-slate-200 bg-slate-50" />
             <div className="h-72 animate-pulse rounded-[22px] border border-slate-200 bg-slate-50" />
@@ -815,9 +827,15 @@ export function StudioIaChatSection() {
             <div className="flex items-start gap-3">
               <Clock3 className="mt-0.5 h-5 w-5 shrink-0" />
               <div>
-                <p className="font-semibold">Não foi possível carregar o diagnóstico</p>
-                <p className="mt-1 opacity-90">{query.error.message}</p>
-                <p className="mt-2 text-xs">Nenhum dado foi alterado.</p>
+                <p className="font-semibold">
+                  Não foi possível carregar o diagnóstico
+                </p>
+                <p className="mt-1 opacity-90">
+                  {query.error.message}
+                </p>
+                <p className="mt-2 text-xs">
+                  Nenhum dado foi alterado.
+                </p>
               </div>
             </div>
           </div>
@@ -827,7 +845,9 @@ export function StudioIaChatSection() {
           <ConsultiveChat
             data={data}
             accountLabel={
-              activeAccount?.account_name || activeAccount?.nickname || "Mercado Livre - Nightled"
+              activeAccount?.account_name ||
+              activeAccount?.nickname ||
+              "Mercado Livre"
             }
           />
         )}

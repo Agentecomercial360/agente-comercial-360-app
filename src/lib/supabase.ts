@@ -16,6 +16,24 @@ const supabaseUrl =
 const supabaseAnonKey =
   (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? FALLBACK_SUPABASE_ANON_KEY;
 
+const invitationUrlParams =
+  typeof window !== "undefined"
+    ? new URLSearchParams(window.location.hash.replace(/^#/, ""))
+    : new URLSearchParams();
+
+export const inviteLinkAccessToken =
+  invitationUrlParams.get("type") === "invite" &&
+  invitationUrlParams.get("refresh_token")
+    ? invitationUrlParams.get("access_token")
+    : null;
+
+export const inviteLinkDetected = !!inviteLinkAccessToken;
+
+export const inviteLinkError =
+  invitationUrlParams.get("error_description") ||
+  (typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("error_description")
+    : null);
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
@@ -29,7 +47,7 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKe
 // Tratamento global de sessão expirada (JWT expired)
 // ---------------------------------------------------------------------------
 // Rotas públicas onde NÃO devemos redirecionar para /login automaticamente.
-const PUBLIC_PATHS = new Set<string>(["/", "/login", "/landing"]);
+const PUBLIC_PATHS = new Set<string>(["/", "/login", "/landing", "/admin/redefinir-senha", "/aceitar-convite"]);
 
 function isPublicPath(pathname: string): boolean {
   if (PUBLIC_PATHS.has(pathname)) return true;

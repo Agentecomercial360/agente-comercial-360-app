@@ -684,23 +684,26 @@ function EcosystemSection() {
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900 antialiased">
-      {/* ============== HEADER + HERO V2 ============== */}
-      <section id="top" className="relative overflow-hidden bg-[#f7fbff]">
+      {/* ============== HEADER + HERO V2.1 ============== */}
+      <section id="top" className="relative overflow-hidden bg-[#f8fbff]">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0"
+          className="pointer-events-none absolute inset-0 scale-[1.015]"
           style={{
             backgroundImage: `url(${heroAirplane})`,
             backgroundSize: "cover",
-            backgroundPosition: "68% center",
+            backgroundPosition: "65% center",
+            filter: "saturate(1.07) contrast(1.04)",
           }}
         />
+
+        {/* Localized readability veil — keeps the aircraft/photo natural */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "linear-gradient(90deg, rgba(255,255,255,0.99) 0%, rgba(255,255,255,0.96) 28%, rgba(255,255,255,0.82) 47%, rgba(255,255,255,0.22) 70%, rgba(255,255,255,0.04) 100%), linear-gradient(180deg, rgba(247,251,255,0.12) 0%, rgba(247,251,255,0.10) 72%, rgba(247,251,255,0.97) 100%)",
+              "linear-gradient(90deg, rgba(255,255,255,0.985) 0%, rgba(255,255,255,0.94) 24%, rgba(255,255,255,0.68) 41%, rgba(255,255,255,0.18) 57%, rgba(255,255,255,0) 72%), linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 74%, rgba(248,251,255,0.94) 100%)",
           }}
         />
 
@@ -731,7 +734,7 @@ export function LandingPage() {
             <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 to="/ecommerce/login"
-                className="hidden rounded-full border border-slate-300 bg-white/80 px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm backdrop-blur transition-all hover:border-blue-300 hover:text-blue-700 sm:inline-flex"
+                className="hidden rounded-full border border-slate-300/80 bg-white/55 px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm backdrop-blur-md transition-all hover:border-blue-300 hover:bg-white/80 hover:text-blue-700 sm:inline-flex"
               >
                 Entrar no painel
               </Link>
@@ -746,23 +749,23 @@ export function LandingPage() {
             </div>
           </header>
 
-          <div className="mx-auto grid min-h-[650px] max-w-7xl items-center px-6 pb-20 pt-12 lg:min-h-[720px] lg:grid-cols-[0.92fr_1.08fr] lg:px-10 lg:pb-24 lg:pt-16">
-            <Reveal className="max-w-[680px]">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-white/80 px-4 py-2 shadow-sm backdrop-blur">
+          <div className="mx-auto grid min-h-[660px] max-w-7xl items-center px-6 pb-24 pt-10 lg:min-h-[720px] lg:grid-cols-[0.88fr_1.12fr] lg:px-10 lg:pb-24 lg:pt-12">
+            <Reveal className="max-w-[650px]">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-white/72 px-4 py-2 shadow-sm backdrop-blur-md">
                 <span className="size-2 rounded-full bg-[#f6c400]" />
                 <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-600">
                   Inteligência para vendedores do Mercado Livre
                 </span>
               </div>
 
-              <h1 className="font-display text-[44px] font-bold leading-[0.98] tracking-[-0.045em] text-[#071b45] sm:text-[58px] lg:text-[70px]">
+              <h1 className="font-display text-[40px] font-bold leading-[1.01] tracking-[-0.043em] text-[#071b45] sm:text-[54px] lg:text-[62px]">
                 Do dado ao lucro:
                 <br />
                 acelere sua operação no{" "}
                 <span className="text-[#1478ff]">Mercado Livre.</span>
               </h1>
 
-              <p className="mt-6 max-w-[590px] text-base leading-relaxed text-slate-700 sm:text-lg">
+              <p className="mt-6 max-w-[575px] text-base leading-relaxed text-slate-700 sm:text-[17px]">
                 Reúna dados de vendas, margem, estoque e anúncios em uma central inteligente.
                 O AC360 prioriza o que importa no Feed Inteligente e permite aprofundar cada decisão
                 com o Chat AC360.
@@ -783,116 +786,67 @@ export function LandingPage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="h-14 rounded-full border-slate-300 bg-white/80 px-8 text-base font-semibold text-slate-800 shadow-sm backdrop-blur hover:border-blue-300 hover:bg-white hover:text-blue-700"
+                    className="h-14 rounded-full border-slate-300/90 bg-white/66 px-8 text-base font-semibold text-slate-800 shadow-sm backdrop-blur-md hover:border-blue-300 hover:bg-white/90 hover:text-blue-700"
                   >
                     Conhecer a plataforma
                   </Button>
                 </a>
               </div>
 
-              <div className="mt-8 flex flex-wrap gap-2.5">
+              {/* One clean capability line */}
+              <div className="mt-7 inline-flex max-w-full flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-white/75 bg-white/58 px-4 py-3 shadow-sm backdrop-blur-lg">
                 {[
                   { icon: Radar, label: "Feed Inteligente" },
                   { icon: Brain, label: "Chat AC360" },
                   { icon: DollarSign, label: "Margem e lucro" },
-                  { icon: Layers, label: "Visão multi-conta" },
-                ].map(({ icon: Ic, label }) => (
-                  <span
-                    key={label}
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur"
-                  >
+                  { icon: Layers, label: "Multi-conta" },
+                ].map(({ icon: Ic, label }, index) => (
+                  <div key={label} className="flex items-center gap-2">
+                    {index > 0 && <span className="hidden h-4 w-px bg-slate-300/80 sm:block" />}
                     <Ic className="size-3.5 text-blue-600" />
-                    {label}
-                  </span>
+                    <span className="text-xs font-semibold text-slate-700">{label}</span>
+                  </div>
                 ))}
               </div>
             </Reveal>
 
+            {/* Only the two core intelligence layers remain over the aircraft */}
             <div className="relative hidden min-h-[560px] lg:block">
-              <div className="absolute right-0 top-16 w-[230px] rounded-2xl border border-white/80 bg-white/[0.82] p-4 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.28)] backdrop-blur-xl">
+              <div className="absolute right-4 top-20 w-[205px] rounded-2xl border border-white/65 bg-white/[0.58] p-3.5 shadow-[0_18px_48px_-24px_rgba(15,23,42,0.35)] backdrop-blur-xl">
                 <div className="flex items-center gap-3">
-                  <span className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                    <Radar className="size-5" />
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/70 text-blue-600 shadow-sm">
+                    <Radar className="size-4.5" />
                   </span>
                   <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
                       Feed Inteligente
                     </p>
-                    <p className="mt-0.5 text-sm font-semibold text-slate-800">
+                    <p className="mt-0.5 text-[13px] font-semibold leading-snug text-slate-800">
                       Prioridades da operação
                     </p>
                   </div>
                 </div>
+                <span className="absolute -left-9 top-1/2 h-px w-9 bg-white/75" />
+                <span className="absolute -left-[39px] top-[calc(50%-2px)] size-1.5 rounded-full bg-white shadow" />
               </div>
 
-              <div className="absolute bottom-28 right-10 w-[230px] rounded-2xl border border-white/80 bg-white/[0.82] p-4 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.28)] backdrop-blur-xl">
+              <div className="absolute bottom-24 right-10 w-[205px] rounded-2xl border border-white/65 bg-white/[0.58] p-3.5 shadow-[0_18px_48px_-24px_rgba(15,23,42,0.35)] backdrop-blur-xl">
                 <div className="flex items-center gap-3">
-                  <span className="flex size-10 items-center justify-center rounded-xl bg-amber-50 text-amber-500">
-                    <Brain className="size-5" />
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/70 text-amber-500 shadow-sm">
+                    <Brain className="size-4.5" />
                   </span>
                   <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
                       Chat AC360
                     </p>
-                    <p className="mt-0.5 text-sm font-semibold text-slate-800">
+                    <p className="mt-0.5 text-[13px] font-semibold leading-snug text-slate-800">
                       Pergunte. Analise. Decida.
                     </p>
                   </div>
                 </div>
+                <span className="absolute -left-9 top-1/2 h-px w-9 bg-white/75" />
+                <span className="absolute -left-[39px] top-[calc(50%-2px)] size-1.5 rounded-full bg-white shadow" />
               </div>
-
-              <div className="absolute bottom-10 left-6 w-[235px] rounded-2xl border border-white/80 bg-white/[0.82] p-4 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.28)] backdrop-blur-xl">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                    <TrendingUp className="size-5" />
-                  </span>
-                  <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400">
-                      Decisão orientada
-                    </p>
-                    <p className="mt-0.5 text-sm font-semibold text-slate-800">
-                      Mais controle. Mais margem.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative mx-auto max-w-7xl px-6 pb-10 lg:px-10">
-            <div className="grid gap-3 rounded-3xl border border-white/80 bg-white/[0.88] p-4 shadow-[0_22px_70px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl sm:grid-cols-2 lg:grid-cols-4">
-              {[
-                {
-                  icon: Plug,
-                  title: "Integração via API",
-                  desc: "Dados conectados à operação do Mercado Livre.",
-                },
-                {
-                  icon: Radar,
-                  title: "Feed Inteligente",
-                  desc: "O que merece atenção aparece primeiro.",
-                },
-                {
-                  icon: Brain,
-                  title: "Chat AC360",
-                  desc: "Contexto para aprofundar decisões e oportunidades.",
-                },
-                {
-                  icon: Layers,
-                  title: "Operação centralizada",
-                  desc: "Contas, indicadores e análises em uma única visão.",
-                },
-              ].map(({ icon: Ic, title, desc }) => (
-                <div key={title} className="flex items-start gap-3 rounded-2xl px-3 py-2">
-                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                    <Ic className="size-4" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-bold text-slate-900">{title}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-500">{desc}</p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>

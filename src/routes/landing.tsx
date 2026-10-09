@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
 import heroAirplane from "@/assets/ac360-hero-airplane.png";
+import heroWarehouse from "@/assets/hero-warehouse.jpg";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -533,147 +534,124 @@ function IntegrationBar() {
 
 /* ---------- Ecosystem section (below hero) ---------- */
 function EcosystemSection() {
-  const partners = [
+  const valueItems = [
     {
-      name: "Mercado Livre",
-      desc: "Sincronize contas, produtos, anúncios, pedidos e performance em uma visão multi-conta.",
-      badge: "Integração principal",
-      badgeTone: "primary",
-      icon: Store,
+      icon: ShieldCheck,
+      title: "Conta ativa",
+      desc: "Acompanhe sinais importantes da operação antes que pequenos desvios virem problemas.",
     },
     {
-      name: "Mercado Pago",
-      desc: "Base para acompanhar pagamentos, taxas, repasses e rentabilidade real por venda.",
-      badge: "Financeiro",
-      badgeTone: "neutral",
       icon: DollarSign,
+      title: "Margem e resultado",
+      desc: "Tenha mais clareza sobre vendas, taxas, rentabilidade e eficiência da operação.",
     },
     {
-      name: "Mercado Envios",
-      desc: "Estrutura para análise logística, envio, região do comprador e performance por estado.",
-      badge: "Logística",
-      badgeTone: "neutral",
-      icon: Truck,
+      icon: Target,
+      title: "Execução inteligente",
+      desc: "Priorize o que merece atenção em anúncios, estoque e rotina comercial.",
     },
-    {
-      name: "Shopee",
-      desc: "Preparado para expansão multi-marketplace e consolidação futura das vendas.",
-      badge: "Marketplace futuro",
-      badgeTone: "soft",
-      icon: ShoppingBag,
-    },
-    {
-      name: "Bling",
-      desc: "Conexão estratégica para ERP, estoque, cadastro de produtos, compras e operação interna.",
-      badge: "ERP",
-      badgeTone: "neutral",
-      icon: Boxes,
-    },
-    {
-      name: "Tiny",
-      desc: "Integração futura para centralizar dados operacionais, estoque, pedidos e produtos.",
-      badge: "ERP futuro",
-      badgeTone: "soft",
-      icon: Workflow,
-    },
-  ] as const;
-
-  const badgeClass = (tone: string) =>
-    tone === "primary"
-      ? "border-blue-200 bg-blue-50 text-blue-700"
-      : tone === "soft"
-        ? "border-slate-200 bg-slate-50 text-slate-500"
-        : "border-slate-200 bg-white text-slate-600";
-
-  const highlights = [
-    { label: "Multi-conta", icon: Layers },
-    { label: "Marketplace + ERP", icon: Plug },
-    { label: "Dados preparados para IA", icon: Brain },
   ];
 
   return (
-    <section className="relative overflow-hidden border-y border-slate-200/70 bg-white py-24 sm:py-32">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.04]"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(0deg, #0f172a 0 1px, transparent 1px 56px), repeating-linear-gradient(90deg, #0f172a 0 1px, transparent 1px 56px)",
-        }}
-      />
+    <section
+      id="solucoes"
+      className="relative overflow-hidden border-y border-slate-200/70 bg-[#f7f9fc] py-20 sm:py-24"
+    >
       <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
-        <Reveal>
-          <div className="mx-auto max-w-2xl text-center">
-            <SectionLabel>Ecossistema Integrado</SectionLabel>
-            <h2 className="mt-3 text-3xl font-bold tracking-[-0.025em] text-slate-900 sm:text-4xl">
-              Um ecossistema conectado para controlar toda a operação
+        <div className="grid items-center gap-10 lg:grid-cols-[0.88fr_1.12fr] lg:gap-14">
+          <Reveal>
+            <SectionLabel>Operação com mais controle</SectionLabel>
+
+            <h2 className="mt-3 max-w-xl text-3xl font-bold tracking-[-0.035em] text-[#071b45] sm:text-4xl lg:text-[46px] lg:leading-[1.02]">
+              Uma operação mais organizada, lucrativa e previsível.
             </h2>
-            <p className="mt-4 text-base text-slate-500">
-              Integre marketplace, pagamentos, logística e ERP em uma única central de
-              inteligência operacional.
+
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
+              Centralize os pontos mais importantes da sua operação no Mercado Livre e transforme
+              informação em ação com mais clareza.
             </p>
-          </div>
-        </Reveal>
 
-        <Reveal delay={120}>
-          <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {partners.map(({ name, desc, badge, badgeTone, icon: Icon }) => (
-              <div
-                key={name}
-                className="group relative flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-blue-400/70 hover:shadow-[0_18px_40px_-18px_rgba(37,99,235,0.35)]"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white text-blue-600 transition-colors group-hover:border-blue-200 group-hover:text-blue-700">
-                    <Icon className="h-5 w-5" strokeWidth={2.2} />
-                  </div>
-                  <span
-                    className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${badgeClass(badgeTone)}`}
-                  >
-                    {badge}
-                  </span>
-                </div>
-                <h3
-                  className="mt-5 text-lg font-bold tracking-[-0.02em] text-slate-900"
-                  style={{ fontFamily: "var(--font-display)" }}
+            <div className="mt-8 space-y-3">
+              {valueItems.map(({ icon: Icon, title, desc }) => (
+                <div
+                  key={title}
+                  className="group flex gap-4 rounded-2xl border border-slate-200/80 bg-white/88 p-4 shadow-[0_12px_34px_-24px_rgba(15,23,42,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_18px_44px_-24px_rgba(37,99,235,0.28)]"
                 >
-                  {name}
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-500">{desc}</p>
-                <div className="mt-5 h-px w-full bg-gradient-to-r from-transparent via-slate-200 to-transparent" />
-                <div className="mt-4 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-400 transition-colors group-hover:text-blue-600">
-                  Conectado ao AC360
-                  <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
+                  <div className="mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                    <Icon className="size-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold tracking-[-0.015em] text-slate-900">
+                      {title}
+                    </h3>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-500">{desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Reveal>
+
+          <Reveal delay={120}>
+            <div className="relative">
+              <div className="relative min-h-[430px] overflow-hidden rounded-[30px] border border-white/80 bg-slate-900 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.48)] sm:min-h-[500px]">
+                <img
+                  src={heroWarehouse}
+                  alt="Operação logística e comercial de e-commerce"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+
+                <div
+                  aria-hidden
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(180deg, rgba(7,27,69,0.05) 0%, rgba(7,27,69,0.08) 45%, rgba(7,27,69,0.58) 100%)",
+                  }}
+                />
+
+                <div className="absolute inset-x-5 bottom-5 sm:inset-x-6 sm:bottom-6">
+                  <div className="rounded-2xl border border-white/25 bg-slate-950/42 p-4 text-white shadow-xl backdrop-blur-xl sm:p-5">
+                    <div className="flex items-center gap-2">
+                      <span className="size-2 rounded-full bg-[#f6c400]" />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+                        Da operação à decisão
+                      </span>
+                    </div>
+
+                    <p className="mt-2 max-w-lg text-lg font-semibold leading-snug sm:text-xl">
+                      Menos dispersão de dados. Mais visão sobre o que realmente movimenta o resultado.
+                    </p>
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {["Vendas", "Margem", "Estoque", "Anúncios"].map((label) => (
+                        <span
+                          key={label}
+                          className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/88"
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </Reveal>
 
-        <Reveal delay={200}>
-          <div className="mt-14 rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 via-white to-blue-50/40 p-6 sm:p-8">
-            <div className="grid items-center gap-6 lg:grid-cols-[1fr_auto]">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                {highlights.map(({ label, icon: Icon }) => (
-                  <div
-                    key={label}
-                    className="flex items-center gap-3 rounded-xl border border-slate-200/80 bg-white px-4 py-3"
-                  >
-                    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-600">
-                      <Icon className="h-4 w-4" strokeWidth={2.4} />
-                    </div>
-                    <span className="text-sm font-semibold tracking-[-0.01em] text-slate-800">
-                      {label}
-                    </span>
+              <div className="absolute -right-3 -top-3 hidden rounded-2xl border border-white/80 bg-white/88 px-4 py-3 shadow-[0_16px_40px_-22px_rgba(15,23,42,0.32)] backdrop-blur-xl sm:block">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    <Radar className="size-4" />
                   </div>
-                ))}
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                      AC360
+                    </p>
+                    <p className="text-sm font-semibold text-slate-800">Dados que viram prioridade</p>
+                  </div>
+                </div>
               </div>
-              <p className="max-w-sm text-sm leading-relaxed text-slate-600 lg:text-right">
-                <span className="font-semibold text-slate-900">Do anúncio ao lucro:</span> o AC360
-                conecta os pontos críticos da operação para transformar dados em decisão.
-              </p>
             </div>
-          </div>
-        </Reveal>
+          </Reveal>
+        </div>
       </div>
     </section>
   );

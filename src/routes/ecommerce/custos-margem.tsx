@@ -790,6 +790,7 @@ function CustosMargemContent() {
             </p>
             </div>
           </div>
+        </header>
 
         {/* KPIs da conta selecionada */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">

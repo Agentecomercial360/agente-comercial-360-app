@@ -9,128 +9,58 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as WhatsappOficialRouteImport } from './routes/whatsapp-oficial'
-import { Route as ResponsaveisRouteImport } from './routes/responsaveis'
-import { Route as RelatoriosRouteImport } from './routes/relatorios'
-import { Route as ProdutosRouteImport } from './routes/produtos'
-import { Route as ModulosRouteImport } from './routes/modulos'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as LeadsRouteImport } from './routes/leads'
-import { Route as LandingRouteImport } from './routes/landing'
-import { Route as IaRouteImport } from './routes/ia'
-import { Route as Gestao360RouteImport } from './routes/gestao-360'
-import { Route as FollowupsRouteImport } from './routes/followups'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as ConversasRouteImport } from './routes/conversas'
-import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
-import { Route as BaseConhecimentoRouteImport } from './routes/base-conhecimento'
-import { Route as AtendimentosRouteImport } from './routes/atendimentos'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as EcommerceIndexRouteImport } from './routes/ecommerce/index'
-import { Route as EcommerceTarefasRouteImport } from './routes/ecommerce/tarefas'
-import { Route as EcommerceResultadosRouteImport } from './routes/ecommerce/resultados'
-import { Route as EcommerceRadarIaRouteImport } from './routes/ecommerce/radar-ia'
-import { Route as EcommerceProdutosTravadosRouteImport } from './routes/ecommerce/produtos-travados'
-import { Route as EcommerceProdutosEstrategicosRouteImport } from './routes/ecommerce/produtos-estrategicos'
-import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produtos'
-import { Route as EcommercePrioridadesRouteImport } from './routes/ecommerce/prioridades'
-import { Route as EcommerceMapaVendasRouteImport } from './routes/ecommerce/mapa-vendas'
-import { Route as EcommerceLoginRouteImport } from './routes/ecommerce/login'
-import { Route as EcommerceEstoqueRouteImport } from './routes/ecommerce/estoque'
-import { Route as EcommerceDashboardRouteImport } from './routes/ecommerce/dashboard'
-import { Route as EcommerceCustosMargemRouteImport } from './routes/ecommerce/custos-margem'
-import { Route as EcommerceCurvaAbcRouteImport } from './routes/ecommerce/curva-abc'
-import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
-import { Route as EcommerceConsultorIaRouteImport } from './routes/ecommerce/consultor-ia'
-import { Route as EcommerceConfiguracoesRouteImport } from './routes/ecommerce/configuracoes'
-import { Route as EcommerceConcorrenciaRouteImport } from './routes/ecommerce/concorrencia'
-import { Route as EcommerceBaseIaRouteImport } from './routes/ecommerce/base-ia'
-import { Route as EcommerceAdsRouteImport } from './routes/ecommerce/ads'
-import { Route as EcommerceAcademiaRouteImport } from './routes/ecommerce/academia'
-import { Route as AdminUsuariosRouteImport } from './routes/admin/usuarios'
-import { Route as AdminPlanosRouteImport } from './routes/admin/planos'
-import { Route as AdminModulosRouteImport } from './routes/admin/modulos'
-import { Route as AdminLoginRouteImport } from './routes/admin/login'
-import { Route as AdminEmpresasRouteImport } from './routes/admin/empresas'
-import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
-import { Route as AdminConfiguracoesRouteImport } from './routes/admin/configuracoes'
+import { Route as AtendimentosRouteImport } from './routes/atendimentos'
+import { Route as BaseConhecimentoRouteImport } from './routes/base-conhecimento'
+import { Route as ConfiguracoesRouteImport } from './routes/configuracoes'
+import { Route as ConversasRouteImport } from './routes/conversas'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as FollowupsRouteImport } from './routes/followups'
+import { Route as Gestao360RouteImport } from './routes/gestao-360'
+import { Route as IaRouteImport } from './routes/ia'
+import { Route as LandingRouteImport } from './routes/landing'
+import { Route as LeadsRouteImport } from './routes/leads'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as ModulosRouteImport } from './routes/modulos'
+import { Route as ProdutosRouteImport } from './routes/produtos'
+import { Route as RelatoriosRouteImport } from './routes/relatorios'
+import { Route as ResponsaveisRouteImport } from './routes/responsaveis'
+import { Route as WhatsappOficialRouteImport } from './routes/whatsapp-oficial'
 import { Route as AdminAcessosRouteImport } from './routes/admin/acessos'
+import { Route as AdminConfiguracoesRouteImport } from './routes/admin/configuracoes'
+import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminEmpresasRouteImport } from './routes/admin/empresas'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
+import { Route as AdminModulosRouteImport } from './routes/admin/modulos'
+import { Route as AdminPlanosRouteImport } from './routes/admin/planos'
+import { Route as AdminUsuariosRouteImport } from './routes/admin/usuarios'
+import { Route as EcommerceIndexRouteImport } from './routes/ecommerce/index'
+import { Route as EcommerceAcademiaRouteImport } from './routes/ecommerce/academia'
+import { Route as EcommerceAdsRouteImport } from './routes/ecommerce/ads'
+import { Route as EcommerceBaseIaRouteImport } from './routes/ecommerce/base-ia'
+import { Route as EcommerceConcorrenciaRouteImport } from './routes/ecommerce/concorrencia'
+import { Route as EcommerceConfiguracoesRouteImport } from './routes/ecommerce/configuracoes'
+import { Route as EcommerceConsultorIaRouteImport } from './routes/ecommerce/consultor-ia'
+import { Route as EcommerceContasRouteImport } from './routes/ecommerce/contas'
+import { Route as EcommerceCurvaAbcRouteImport } from './routes/ecommerce/curva-abc'
+import { Route as EcommerceCustosMargemRouteImport } from './routes/ecommerce/custos-margem'
+import { Route as EcommerceDashboardRouteImport } from './routes/ecommerce/dashboard'
+import { Route as EcommerceEstoqueRouteImport } from './routes/ecommerce/estoque'
+import { Route as EcommerceLoginRouteImport } from './routes/ecommerce/login'
+import { Route as EcommerceMapaVendasRouteImport } from './routes/ecommerce/mapa-vendas'
+import { Route as EcommercePrioridadesRouteImport } from './routes/ecommerce/prioridades'
+import { Route as EcommerceProdutosRouteImport } from './routes/ecommerce/produtos'
+import { Route as EcommerceProdutosEstrategicosRouteImport } from './routes/ecommerce/produtos-estrategicos'
+import { Route as EcommerceProdutosTravadosRouteImport } from './routes/ecommerce/produtos-travados'
+import { Route as EcommerceRadarIaRouteImport } from './routes/ecommerce/radar-ia'
+import { Route as EcommerceResultadosRouteImport } from './routes/ecommerce/resultados'
+import { Route as EcommerceTarefasRouteImport } from './routes/ecommerce/tarefas'
 import { Route as EcommerceDebugCompetitionApiRouteImport } from './routes/ecommerce/debug.competition-api'
 import { Route as EcommerceAcademiaGuiasVisaoGeralRouteImport } from './routes/ecommerce/academia.guias.visao-geral'
 
-const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
-  id: '/whatsapp-oficial',
-  path: '/whatsapp-oficial',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResponsaveisRoute = ResponsaveisRouteImport.update({
-  id: '/responsaveis',
-  path: '/responsaveis',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RelatoriosRoute = RelatoriosRouteImport.update({
-  id: '/relatorios',
-  path: '/relatorios',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProdutosRoute = ProdutosRouteImport.update({
-  id: '/produtos',
-  path: '/produtos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ModulosRoute = ModulosRouteImport.update({
-  id: '/modulos',
-  path: '/modulos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LeadsRoute = LeadsRouteImport.update({
-  id: '/leads',
-  path: '/leads',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LandingRoute = LandingRouteImport.update({
-  id: '/landing',
-  path: '/landing',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IaRoute = IaRouteImport.update({
-  id: '/ia',
-  path: '/ia',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Gestao360Route = Gestao360RouteImport.update({
-  id: '/gestao-360',
-  path: '/gestao-360',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const FollowupsRoute = FollowupsRouteImport.update({
-  id: '/followups',
-  path: '/followups',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConversasRoute = ConversasRouteImport.update({
-  id: '/conversas',
-  path: '/conversas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
-  id: '/configuracoes',
-  path: '/configuracoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BaseConhecimentoRoute = BaseConhecimentoRouteImport.update({
-  id: '/base-conhecimento',
-  path: '/base-conhecimento',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AtendimentosRoute = AtendimentosRouteImport.update({
@@ -138,146 +68,84 @@ const AtendimentosRoute = AtendimentosRouteImport.update({
   path: '/atendimentos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const BaseConhecimentoRoute = BaseConhecimentoRouteImport.update({
+  id: '/base-conhecimento',
+  path: '/base-conhecimento',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceIndexRoute = EcommerceIndexRouteImport.update({
-  id: '/ecommerce/',
-  path: '/ecommerce/',
+const ConfiguracoesRoute = ConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceTarefasRoute = EcommerceTarefasRouteImport.update({
-  id: '/ecommerce/tarefas',
-  path: '/ecommerce/tarefas',
+const ConversasRoute = ConversasRouteImport.update({
+  id: '/conversas',
+  path: '/conversas',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceResultadosRoute = EcommerceResultadosRouteImport.update({
-  id: '/ecommerce/resultados',
-  path: '/ecommerce/resultados',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceRadarIaRoute = EcommerceRadarIaRouteImport.update({
-  id: '/ecommerce/radar-ia',
-  path: '/ecommerce/radar-ia',
+const FollowupsRoute = FollowupsRouteImport.update({
+  id: '/followups',
+  path: '/followups',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceProdutosTravadosRoute =
-  EcommerceProdutosTravadosRouteImport.update({
-    id: '/ecommerce/produtos-travados',
-    path: '/ecommerce/produtos-travados',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const EcommerceProdutosEstrategicosRoute =
-  EcommerceProdutosEstrategicosRouteImport.update({
-    id: '/ecommerce/produtos-estrategicos',
-    path: '/ecommerce/produtos-estrategicos',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const EcommerceProdutosRoute = EcommerceProdutosRouteImport.update({
-  id: '/ecommerce/produtos',
-  path: '/ecommerce/produtos',
+const Gestao360Route = Gestao360RouteImport.update({
+  id: '/gestao-360',
+  path: '/gestao-360',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommercePrioridadesRoute = EcommercePrioridadesRouteImport.update({
-  id: '/ecommerce/prioridades',
-  path: '/ecommerce/prioridades',
+const IaRoute = IaRouteImport.update({
+  id: '/ia',
+  path: '/ia',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceMapaVendasRoute = EcommerceMapaVendasRouteImport.update({
-  id: '/ecommerce/mapa-vendas',
-  path: '/ecommerce/mapa-vendas',
+const LandingRoute = LandingRouteImport.update({
+  id: '/landing',
+  path: '/landing',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceLoginRoute = EcommerceLoginRouteImport.update({
-  id: '/ecommerce/login',
-  path: '/ecommerce/login',
+const LeadsRoute = LeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceEstoqueRoute = EcommerceEstoqueRouteImport.update({
-  id: '/ecommerce/estoque',
-  path: '/ecommerce/estoque',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceDashboardRoute = EcommerceDashboardRouteImport.update({
-  id: '/ecommerce/dashboard',
-  path: '/ecommerce/dashboard',
+const ModulosRoute = ModulosRouteImport.update({
+  id: '/modulos',
+  path: '/modulos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceCustosMargemRoute = EcommerceCustosMargemRouteImport.update({
-  id: '/ecommerce/custos-margem',
-  path: '/ecommerce/custos-margem',
+const ProdutosRoute = ProdutosRouteImport.update({
+  id: '/produtos',
+  path: '/produtos',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceCurvaAbcRoute = EcommerceCurvaAbcRouteImport.update({
-  id: '/ecommerce/curva-abc',
-  path: '/ecommerce/curva-abc',
+const RelatoriosRoute = RelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceContasRoute = EcommerceContasRouteImport.update({
-  id: '/ecommerce/contas',
-  path: '/ecommerce/contas',
+const ResponsaveisRoute = ResponsaveisRouteImport.update({
+  id: '/responsaveis',
+  path: '/responsaveis',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceConsultorIaRoute = EcommerceConsultorIaRouteImport.update({
-  id: '/ecommerce/consultor-ia',
-  path: '/ecommerce/consultor-ia',
+const WhatsappOficialRoute = WhatsappOficialRouteImport.update({
+  id: '/whatsapp-oficial',
+  path: '/whatsapp-oficial',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EcommerceConfiguracoesRoute = EcommerceConfiguracoesRouteImport.update({
-  id: '/ecommerce/configuracoes',
-  path: '/ecommerce/configuracoes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EcommerceConcorrenciaRoute = EcommerceConcorrenciaRouteImport.update({
-  id: '/ecommerce/concorrencia',
-  path: '/ecommerce/concorrencia',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EcommerceBaseIaRoute = EcommerceBaseIaRouteImport.update({
-  id: '/ecommerce/base-ia',
-  path: '/ecommerce/base-ia',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EcommerceAdsRoute = EcommerceAdsRouteImport.update({
-  id: '/ecommerce/ads',
-  path: '/ecommerce/ads',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EcommerceAcademiaRoute = EcommerceAcademiaRouteImport.update({
-  id: '/ecommerce/academia',
-  path: '/ecommerce/academia',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
-  id: '/admin/usuarios',
-  path: '/admin/usuarios',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminPlanosRoute = AdminPlanosRouteImport.update({
-  id: '/admin/planos',
-  path: '/admin/planos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminModulosRoute = AdminModulosRouteImport.update({
-  id: '/admin/modulos',
-  path: '/admin/modulos',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/admin/login',
-  path: '/admin/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminEmpresasRoute = AdminEmpresasRouteImport.update({
-  id: '/admin/empresas',
-  path: '/admin/empresas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminDashboardRoute = AdminDashboardRouteImport.update({
-  id: '/admin/dashboard',
-  path: '/admin/dashboard',
+const AdminAcessosRoute = AdminAcessosRouteImport.update({
+  id: '/admin/acessos',
+  path: '/admin/acessos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
@@ -285,9 +153,141 @@ const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
   path: '/admin/configuracoes',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminAcessosRoute = AdminAcessosRouteImport.update({
-  id: '/admin/acessos',
-  path: '/admin/acessos',
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEmpresasRoute = AdminEmpresasRouteImport.update({
+  id: '/admin/empresas',
+  path: '/admin/empresas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminModulosRoute = AdminModulosRouteImport.update({
+  id: '/admin/modulos',
+  path: '/admin/modulos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminPlanosRoute = AdminPlanosRouteImport.update({
+  id: '/admin/planos',
+  path: '/admin/planos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsuariosRoute = AdminUsuariosRouteImport.update({
+  id: '/admin/usuarios',
+  path: '/admin/usuarios',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceIndexRoute = EcommerceIndexRouteImport.update({
+  id: '/ecommerce/',
+  path: '/ecommerce/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceAcademiaRoute = EcommerceAcademiaRouteImport.update({
+  id: '/ecommerce/academia',
+  path: '/ecommerce/academia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceAdsRoute = EcommerceAdsRouteImport.update({
+  id: '/ecommerce/ads',
+  path: '/ecommerce/ads',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceBaseIaRoute = EcommerceBaseIaRouteImport.update({
+  id: '/ecommerce/base-ia',
+  path: '/ecommerce/base-ia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceConcorrenciaRoute = EcommerceConcorrenciaRouteImport.update({
+  id: '/ecommerce/concorrencia',
+  path: '/ecommerce/concorrencia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceConfiguracoesRoute = EcommerceConfiguracoesRouteImport.update({
+  id: '/ecommerce/configuracoes',
+  path: '/ecommerce/configuracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceConsultorIaRoute = EcommerceConsultorIaRouteImport.update({
+  id: '/ecommerce/consultor-ia',
+  path: '/ecommerce/consultor-ia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceContasRoute = EcommerceContasRouteImport.update({
+  id: '/ecommerce/contas',
+  path: '/ecommerce/contas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceCurvaAbcRoute = EcommerceCurvaAbcRouteImport.update({
+  id: '/ecommerce/curva-abc',
+  path: '/ecommerce/curva-abc',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceCustosMargemRoute = EcommerceCustosMargemRouteImport.update({
+  id: '/ecommerce/custos-margem',
+  path: '/ecommerce/custos-margem',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceDashboardRoute = EcommerceDashboardRouteImport.update({
+  id: '/ecommerce/dashboard',
+  path: '/ecommerce/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceEstoqueRoute = EcommerceEstoqueRouteImport.update({
+  id: '/ecommerce/estoque',
+  path: '/ecommerce/estoque',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceLoginRoute = EcommerceLoginRouteImport.update({
+  id: '/ecommerce/login',
+  path: '/ecommerce/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceMapaVendasRoute = EcommerceMapaVendasRouteImport.update({
+  id: '/ecommerce/mapa-vendas',
+  path: '/ecommerce/mapa-vendas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommercePrioridadesRoute = EcommercePrioridadesRouteImport.update({
+  id: '/ecommerce/prioridades',
+  path: '/ecommerce/prioridades',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceProdutosRoute = EcommerceProdutosRouteImport.update({
+  id: '/ecommerce/produtos',
+  path: '/ecommerce/produtos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceProdutosEstrategicosRoute =
+  EcommerceProdutosEstrategicosRouteImport.update({
+    id: '/ecommerce/produtos-estrategicos',
+    path: '/ecommerce/produtos-estrategicos',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const EcommerceProdutosTravadosRoute =
+  EcommerceProdutosTravadosRouteImport.update({
+    id: '/ecommerce/produtos-travados',
+    path: '/ecommerce/produtos-travados',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const EcommerceRadarIaRoute = EcommerceRadarIaRouteImport.update({
+  id: '/ecommerce/radar-ia',
+  path: '/ecommerce/radar-ia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceResultadosRoute = EcommerceResultadosRouteImport.update({
+  id: '/ecommerce/resultados',
+  path: '/ecommerce/resultados',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EcommerceTarefasRoute = EcommerceTarefasRouteImport.update({
+  id: '/ecommerce/tarefas',
+  path: '/ecommerce/tarefas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EcommerceDebugCompetitionApiRoute =
@@ -659,109 +659,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/whatsapp-oficial': {
-      id: '/whatsapp-oficial'
-      path: '/whatsapp-oficial'
-      fullPath: '/whatsapp-oficial'
-      preLoaderRoute: typeof WhatsappOficialRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/responsaveis': {
-      id: '/responsaveis'
-      path: '/responsaveis'
-      fullPath: '/responsaveis'
-      preLoaderRoute: typeof ResponsaveisRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/relatorios': {
-      id: '/relatorios'
-      path: '/relatorios'
-      fullPath: '/relatorios'
-      preLoaderRoute: typeof RelatoriosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/produtos': {
-      id: '/produtos'
-      path: '/produtos'
-      fullPath: '/produtos'
-      preLoaderRoute: typeof ProdutosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/modulos': {
-      id: '/modulos'
-      path: '/modulos'
-      fullPath: '/modulos'
-      preLoaderRoute: typeof ModulosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/leads': {
-      id: '/leads'
-      path: '/leads'
-      fullPath: '/leads'
-      preLoaderRoute: typeof LeadsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/landing': {
-      id: '/landing'
-      path: '/landing'
-      fullPath: '/landing'
-      preLoaderRoute: typeof LandingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ia': {
-      id: '/ia'
-      path: '/ia'
-      fullPath: '/ia'
-      preLoaderRoute: typeof IaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/gestao-360': {
-      id: '/gestao-360'
-      path: '/gestao-360'
-      fullPath: '/gestao-360'
-      preLoaderRoute: typeof Gestao360RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/followups': {
-      id: '/followups'
-      path: '/followups'
-      fullPath: '/followups'
-      preLoaderRoute: typeof FollowupsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/conversas': {
-      id: '/conversas'
-      path: '/conversas'
-      fullPath: '/conversas'
-      preLoaderRoute: typeof ConversasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/configuracoes': {
-      id: '/configuracoes'
-      path: '/configuracoes'
-      fullPath: '/configuracoes'
-      preLoaderRoute: typeof ConfiguracoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/base-conhecimento': {
-      id: '/base-conhecimento'
-      path: '/base-conhecimento'
-      fullPath: '/base-conhecimento'
-      preLoaderRoute: typeof BaseConhecimentoRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/atendimentos': {
@@ -771,200 +673,116 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AtendimentosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/base-conhecimento': {
+      id: '/base-conhecimento'
+      path: '/base-conhecimento'
+      fullPath: '/base-conhecimento'
+      preLoaderRoute: typeof BaseConhecimentoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/': {
-      id: '/ecommerce/'
-      path: '/ecommerce'
-      fullPath: '/ecommerce/'
-      preLoaderRoute: typeof EcommerceIndexRouteImport
+    '/configuracoes': {
+      id: '/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof ConfiguracoesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/tarefas': {
-      id: '/ecommerce/tarefas'
-      path: '/ecommerce/tarefas'
-      fullPath: '/ecommerce/tarefas'
-      preLoaderRoute: typeof EcommerceTarefasRouteImport
+    '/conversas': {
+      id: '/conversas'
+      path: '/conversas'
+      fullPath: '/conversas'
+      preLoaderRoute: typeof ConversasRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/resultados': {
-      id: '/ecommerce/resultados'
-      path: '/ecommerce/resultados'
-      fullPath: '/ecommerce/resultados'
-      preLoaderRoute: typeof EcommerceResultadosRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/radar-ia': {
-      id: '/ecommerce/radar-ia'
-      path: '/ecommerce/radar-ia'
-      fullPath: '/ecommerce/radar-ia'
-      preLoaderRoute: typeof EcommerceRadarIaRouteImport
+    '/followups': {
+      id: '/followups'
+      path: '/followups'
+      fullPath: '/followups'
+      preLoaderRoute: typeof FollowupsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/produtos-travados': {
-      id: '/ecommerce/produtos-travados'
-      path: '/ecommerce/produtos-travados'
-      fullPath: '/ecommerce/produtos-travados'
-      preLoaderRoute: typeof EcommerceProdutosTravadosRouteImport
+    '/gestao-360': {
+      id: '/gestao-360'
+      path: '/gestao-360'
+      fullPath: '/gestao-360'
+      preLoaderRoute: typeof Gestao360RouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/produtos-estrategicos': {
-      id: '/ecommerce/produtos-estrategicos'
-      path: '/ecommerce/produtos-estrategicos'
-      fullPath: '/ecommerce/produtos-estrategicos'
-      preLoaderRoute: typeof EcommerceProdutosEstrategicosRouteImport
+    '/ia': {
+      id: '/ia'
+      path: '/ia'
+      fullPath: '/ia'
+      preLoaderRoute: typeof IaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/produtos': {
-      id: '/ecommerce/produtos'
-      path: '/ecommerce/produtos'
-      fullPath: '/ecommerce/produtos'
-      preLoaderRoute: typeof EcommerceProdutosRouteImport
+    '/landing': {
+      id: '/landing'
+      path: '/landing'
+      fullPath: '/landing'
+      preLoaderRoute: typeof LandingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/prioridades': {
-      id: '/ecommerce/prioridades'
-      path: '/ecommerce/prioridades'
-      fullPath: '/ecommerce/prioridades'
-      preLoaderRoute: typeof EcommercePrioridadesRouteImport
+    '/leads': {
+      id: '/leads'
+      path: '/leads'
+      fullPath: '/leads'
+      preLoaderRoute: typeof LeadsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/mapa-vendas': {
-      id: '/ecommerce/mapa-vendas'
-      path: '/ecommerce/mapa-vendas'
-      fullPath: '/ecommerce/mapa-vendas'
-      preLoaderRoute: typeof EcommerceMapaVendasRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/login': {
-      id: '/ecommerce/login'
-      path: '/ecommerce/login'
-      fullPath: '/ecommerce/login'
-      preLoaderRoute: typeof EcommerceLoginRouteImport
+    '/modulos': {
+      id: '/modulos'
+      path: '/modulos'
+      fullPath: '/modulos'
+      preLoaderRoute: typeof ModulosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/estoque': {
-      id: '/ecommerce/estoque'
-      path: '/ecommerce/estoque'
-      fullPath: '/ecommerce/estoque'
-      preLoaderRoute: typeof EcommerceEstoqueRouteImport
+    '/produtos': {
+      id: '/produtos'
+      path: '/produtos'
+      fullPath: '/produtos'
+      preLoaderRoute: typeof ProdutosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/dashboard': {
-      id: '/ecommerce/dashboard'
-      path: '/ecommerce/dashboard'
-      fullPath: '/ecommerce/dashboard'
-      preLoaderRoute: typeof EcommerceDashboardRouteImport
+    '/relatorios': {
+      id: '/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof RelatoriosRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/custos-margem': {
-      id: '/ecommerce/custos-margem'
-      path: '/ecommerce/custos-margem'
-      fullPath: '/ecommerce/custos-margem'
-      preLoaderRoute: typeof EcommerceCustosMargemRouteImport
+    '/responsaveis': {
+      id: '/responsaveis'
+      path: '/responsaveis'
+      fullPath: '/responsaveis'
+      preLoaderRoute: typeof ResponsaveisRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/curva-abc': {
-      id: '/ecommerce/curva-abc'
-      path: '/ecommerce/curva-abc'
-      fullPath: '/ecommerce/curva-abc'
-      preLoaderRoute: typeof EcommerceCurvaAbcRouteImport
+    '/whatsapp-oficial': {
+      id: '/whatsapp-oficial'
+      path: '/whatsapp-oficial'
+      fullPath: '/whatsapp-oficial'
+      preLoaderRoute: typeof WhatsappOficialRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/ecommerce/contas': {
-      id: '/ecommerce/contas'
-      path: '/ecommerce/contas'
-      fullPath: '/ecommerce/contas'
-      preLoaderRoute: typeof EcommerceContasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ecommerce/consultor-ia': {
-      id: '/ecommerce/consultor-ia'
-      path: '/ecommerce/consultor-ia'
-      fullPath: '/ecommerce/consultor-ia'
-      preLoaderRoute: typeof EcommerceConsultorIaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ecommerce/configuracoes': {
-      id: '/ecommerce/configuracoes'
-      path: '/ecommerce/configuracoes'
-      fullPath: '/ecommerce/configuracoes'
-      preLoaderRoute: typeof EcommerceConfiguracoesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ecommerce/concorrencia': {
-      id: '/ecommerce/concorrencia'
-      path: '/ecommerce/concorrencia'
-      fullPath: '/ecommerce/concorrencia'
-      preLoaderRoute: typeof EcommerceConcorrenciaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ecommerce/base-ia': {
-      id: '/ecommerce/base-ia'
-      path: '/ecommerce/base-ia'
-      fullPath: '/ecommerce/base-ia'
-      preLoaderRoute: typeof EcommerceBaseIaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ecommerce/ads': {
-      id: '/ecommerce/ads'
-      path: '/ecommerce/ads'
-      fullPath: '/ecommerce/ads'
-      preLoaderRoute: typeof EcommerceAdsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ecommerce/academia': {
-      id: '/ecommerce/academia'
-      path: '/ecommerce/academia'
-      fullPath: '/ecommerce/academia'
-      preLoaderRoute: typeof EcommerceAcademiaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/usuarios': {
-      id: '/admin/usuarios'
-      path: '/admin/usuarios'
-      fullPath: '/admin/usuarios'
-      preLoaderRoute: typeof AdminUsuariosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/planos': {
-      id: '/admin/planos'
-      path: '/admin/planos'
-      fullPath: '/admin/planos'
-      preLoaderRoute: typeof AdminPlanosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/modulos': {
-      id: '/admin/modulos'
-      path: '/admin/modulos'
-      fullPath: '/admin/modulos'
-      preLoaderRoute: typeof AdminModulosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/login': {
-      id: '/admin/login'
-      path: '/admin/login'
-      fullPath: '/admin/login'
-      preLoaderRoute: typeof AdminLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/empresas': {
-      id: '/admin/empresas'
-      path: '/admin/empresas'
-      fullPath: '/admin/empresas'
-      preLoaderRoute: typeof AdminEmpresasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/dashboard': {
-      id: '/admin/dashboard'
-      path: '/admin/dashboard'
-      fullPath: '/admin/dashboard'
-      preLoaderRoute: typeof AdminDashboardRouteImport
+    '/admin/acessos': {
+      id: '/admin/acessos'
+      path: '/admin/acessos'
+      fullPath: '/admin/acessos'
+      preLoaderRoute: typeof AdminAcessosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/configuracoes': {
@@ -974,11 +792,193 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminConfiguracoesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/acessos': {
-      id: '/admin/acessos'
-      path: '/admin/acessos'
-      fullPath: '/admin/acessos'
-      preLoaderRoute: typeof AdminAcessosRouteImport
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/empresas': {
+      id: '/admin/empresas'
+      path: '/admin/empresas'
+      fullPath: '/admin/empresas'
+      preLoaderRoute: typeof AdminEmpresasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/modulos': {
+      id: '/admin/modulos'
+      path: '/admin/modulos'
+      fullPath: '/admin/modulos'
+      preLoaderRoute: typeof AdminModulosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/planos': {
+      id: '/admin/planos'
+      path: '/admin/planos'
+      fullPath: '/admin/planos'
+      preLoaderRoute: typeof AdminPlanosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/usuarios': {
+      id: '/admin/usuarios'
+      path: '/admin/usuarios'
+      fullPath: '/admin/usuarios'
+      preLoaderRoute: typeof AdminUsuariosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/': {
+      id: '/ecommerce/'
+      path: '/ecommerce'
+      fullPath: '/ecommerce/'
+      preLoaderRoute: typeof EcommerceIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/academia': {
+      id: '/ecommerce/academia'
+      path: '/ecommerce/academia'
+      fullPath: '/ecommerce/academia'
+      preLoaderRoute: typeof EcommerceAcademiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/ads': {
+      id: '/ecommerce/ads'
+      path: '/ecommerce/ads'
+      fullPath: '/ecommerce/ads'
+      preLoaderRoute: typeof EcommerceAdsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/base-ia': {
+      id: '/ecommerce/base-ia'
+      path: '/ecommerce/base-ia'
+      fullPath: '/ecommerce/base-ia'
+      preLoaderRoute: typeof EcommerceBaseIaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/concorrencia': {
+      id: '/ecommerce/concorrencia'
+      path: '/ecommerce/concorrencia'
+      fullPath: '/ecommerce/concorrencia'
+      preLoaderRoute: typeof EcommerceConcorrenciaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/configuracoes': {
+      id: '/ecommerce/configuracoes'
+      path: '/ecommerce/configuracoes'
+      fullPath: '/ecommerce/configuracoes'
+      preLoaderRoute: typeof EcommerceConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/consultor-ia': {
+      id: '/ecommerce/consultor-ia'
+      path: '/ecommerce/consultor-ia'
+      fullPath: '/ecommerce/consultor-ia'
+      preLoaderRoute: typeof EcommerceConsultorIaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/contas': {
+      id: '/ecommerce/contas'
+      path: '/ecommerce/contas'
+      fullPath: '/ecommerce/contas'
+      preLoaderRoute: typeof EcommerceContasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/curva-abc': {
+      id: '/ecommerce/curva-abc'
+      path: '/ecommerce/curva-abc'
+      fullPath: '/ecommerce/curva-abc'
+      preLoaderRoute: typeof EcommerceCurvaAbcRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/custos-margem': {
+      id: '/ecommerce/custos-margem'
+      path: '/ecommerce/custos-margem'
+      fullPath: '/ecommerce/custos-margem'
+      preLoaderRoute: typeof EcommerceCustosMargemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/dashboard': {
+      id: '/ecommerce/dashboard'
+      path: '/ecommerce/dashboard'
+      fullPath: '/ecommerce/dashboard'
+      preLoaderRoute: typeof EcommerceDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/estoque': {
+      id: '/ecommerce/estoque'
+      path: '/ecommerce/estoque'
+      fullPath: '/ecommerce/estoque'
+      preLoaderRoute: typeof EcommerceEstoqueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/login': {
+      id: '/ecommerce/login'
+      path: '/ecommerce/login'
+      fullPath: '/ecommerce/login'
+      preLoaderRoute: typeof EcommerceLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/mapa-vendas': {
+      id: '/ecommerce/mapa-vendas'
+      path: '/ecommerce/mapa-vendas'
+      fullPath: '/ecommerce/mapa-vendas'
+      preLoaderRoute: typeof EcommerceMapaVendasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/prioridades': {
+      id: '/ecommerce/prioridades'
+      path: '/ecommerce/prioridades'
+      fullPath: '/ecommerce/prioridades'
+      preLoaderRoute: typeof EcommercePrioridadesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/produtos': {
+      id: '/ecommerce/produtos'
+      path: '/ecommerce/produtos'
+      fullPath: '/ecommerce/produtos'
+      preLoaderRoute: typeof EcommerceProdutosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/produtos-estrategicos': {
+      id: '/ecommerce/produtos-estrategicos'
+      path: '/ecommerce/produtos-estrategicos'
+      fullPath: '/ecommerce/produtos-estrategicos'
+      preLoaderRoute: typeof EcommerceProdutosEstrategicosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/produtos-travados': {
+      id: '/ecommerce/produtos-travados'
+      path: '/ecommerce/produtos-travados'
+      fullPath: '/ecommerce/produtos-travados'
+      preLoaderRoute: typeof EcommerceProdutosTravadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/radar-ia': {
+      id: '/ecommerce/radar-ia'
+      path: '/ecommerce/radar-ia'
+      fullPath: '/ecommerce/radar-ia'
+      preLoaderRoute: typeof EcommerceRadarIaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/resultados': {
+      id: '/ecommerce/resultados'
+      path: '/ecommerce/resultados'
+      fullPath: '/ecommerce/resultados'
+      preLoaderRoute: typeof EcommerceResultadosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ecommerce/tarefas': {
+      id: '/ecommerce/tarefas'
+      path: '/ecommerce/tarefas'
+      fullPath: '/ecommerce/tarefas'
+      preLoaderRoute: typeof EcommerceTarefasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ecommerce/debug/competition-api': {
@@ -1061,3 +1061,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

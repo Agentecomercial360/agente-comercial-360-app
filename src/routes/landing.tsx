@@ -34,7 +34,7 @@ import {
   ShieldCheck as ShieldIcon,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
-import heroWarehouse from "@/assets/hero-warehouse.jpg";
+import heroAirplane from "@/assets/ac360-hero-airplane.png";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -684,81 +684,61 @@ function EcosystemSection() {
 export function LandingPage() {
   return (
     <div className="min-h-screen bg-white text-slate-900 antialiased">
-      {/* ============== HEADER + HERO ============== */}
-      <section
-        id="top"
-        className="relative overflow-hidden"
-        style={{ background: NAVY_INK }}
-      >
-        {/* Warehouse photo background */}
+      {/* ============== HEADER + HERO V2 ============== */}
+      <section id="top" className="relative overflow-hidden bg-[#f7fbff]">
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-0"
+          className="pointer-events-none absolute inset-0"
           style={{
-            backgroundImage: `url(${heroWarehouse})`,
+            backgroundImage: `url(${heroAirplane})`,
             backgroundSize: "cover",
-            backgroundPosition: "center",
-            filter: "blur(2px)",
-            transform: "scale(1.05)",
+            backgroundPosition: "68% center",
           }}
         />
-        {/* Dark gradient overlay for legibility */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 -z-0"
+          className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "linear-gradient(90deg, rgba(5,8,16,0.97) 0%, rgba(6,10,20,0.92) 45%, rgba(6,10,20,0.72) 100%), radial-gradient(900px 500px at 80% 10%, oklch(0.45 0.18 255 / 0.32), transparent 60%)",
-          }}
-        />
-        {/* Subtle tech grid */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 -z-0 opacity-[0.07]"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(90deg, #ffffff 0 1px, transparent 1px 80px), repeating-linear-gradient(0deg, #ffffff 0 1px, transparent 1px 28px)",
-            maskImage:
-              "radial-gradient(ellipse at 70% 30%, black 0%, transparent 70%)",
-            WebkitMaskImage:
-              "radial-gradient(ellipse at 70% 30%, black 0%, transparent 70%)",
+              "linear-gradient(90deg, rgba(255,255,255,0.99) 0%, rgba(255,255,255,0.96) 28%, rgba(255,255,255,0.82) 47%, rgba(255,255,255,0.22) 70%, rgba(255,255,255,0.04) 100%), linear-gradient(180deg, rgba(247,251,255,0.12) 0%, rgba(247,251,255,0.10) 72%, rgba(247,251,255,0.97) 100%)",
           }}
         />
 
         <div className="relative z-10">
-          {/* Header */}
           <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
             <a href="#top" className="flex items-center gap-2.5">
-              <img src={acLogo} alt="Agente Comercial 360" className="h-9 w-auto brightness-0 invert" />
+              <img src={acLogo} alt="AC360" className="h-9 w-auto" />
             </a>
-            <nav className="hidden items-center gap-8 text-sm font-medium text-slate-300 md:flex">
-              <a href="#problemas" className="transition-colors hover:text-white">
+
+            <nav className="hidden items-center gap-8 text-sm font-semibold text-slate-700 md:flex">
+              <a href="#problemas" className="transition-colors hover:text-blue-700">
                 Problemas
               </a>
-              <a href="#solucoes" className="transition-colors hover:text-white">
+              <a href="#solucoes" className="transition-colors hover:text-blue-700">
                 Inteligência
               </a>
-              <a href="#como-funciona" className="transition-colors hover:text-white">
+              <a href="#como-funciona" className="transition-colors hover:text-blue-700">
                 Método
               </a>
-              <a href="#planos" className="transition-colors hover:text-white">
+              <a href="#planos" className="transition-colors hover:text-blue-700">
                 Planos
               </a>
-              <a href="#faq" className="transition-colors hover:text-white">
+              <a href="#faq" className="transition-colors hover:text-blue-700">
                 FAQ
               </a>
             </nav>
-            <div className="flex items-center gap-3">
+
+            <div className="flex items-center gap-2 sm:gap-3">
               <Link
                 to="/ecommerce/login"
-                className="hidden text-sm font-medium text-slate-300 transition-colors hover:text-white sm:inline-block"
+                className="hidden rounded-full border border-slate-300 bg-white/80 px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm backdrop-blur transition-all hover:border-blue-300 hover:text-blue-700 sm:inline-flex"
               >
                 Entrar no painel
               </Link>
               <a href="#cta-final">
                 <Button
-                  className="h-10 rounded-full px-5 text-sm font-semibold text-white shadow-lg shadow-blue-900/40"
-                  style={{ background: BLUE }}
+                  className="h-10 rounded-full px-5 text-sm font-semibold text-white shadow-lg shadow-blue-900/15"
+                  style={{ background: "linear-gradient(135deg, #0b63e5, #0d87ff)" }}
                 >
                   Solicitar demonstração
                 </Button>
@@ -766,47 +746,36 @@ export function LandingPage() {
             </div>
           </header>
 
-          {/* Hero */}
-          <div className="mx-auto grid max-w-5xl items-center gap-12 px-6 pt-16 pb-24 lg:px-10 lg:pt-24 lg:pb-32">
-            <Reveal>
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 shadow-sm backdrop-blur">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
-                </span>
-                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-200">
-                  Inteligência para Mercado Livre
+          <div className="mx-auto grid min-h-[650px] max-w-7xl items-center px-6 pb-20 pt-12 lg:min-h-[720px] lg:grid-cols-[0.92fr_1.08fr] lg:px-10 lg:pb-24 lg:pt-16">
+            <Reveal className="max-w-[680px]">
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-white/80 px-4 py-2 shadow-sm backdrop-blur">
+                <span className="size-2 rounded-full bg-[#f6c400]" />
+                <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-600">
+                  Inteligência para vendedores do Mercado Livre
                 </span>
               </div>
 
-              <h1 className="font-display text-[42px] font-bold leading-[1.05] tracking-[-0.035em] text-white sm:text-[56px] lg:text-[64px] lg:leading-[1.03]">
-                A Central de Inteligência que transforma dados do{" "}
-                <span
-                  style={{
-                    backgroundImage: `linear-gradient(135deg, ${CYAN}, ${NEON})`,
-                    WebkitBackgroundClip: "text",
-                    backgroundClip: "text",
-                    color: "transparent",
-                  }}
-                >
-                  Mercado Livre
-                </span>{" "}
-                em lucro real.
+              <h1 className="font-display text-[44px] font-bold leading-[0.98] tracking-[-0.045em] text-[#071b45] sm:text-[58px] lg:text-[70px]">
+                Do dado ao lucro:
+                <br />
+                acelere sua operação no{" "}
+                <span className="text-[#1478ff]">Mercado Livre.</span>
               </h1>
 
-              <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-300">
-                Gerencie múltiplas contas, controle sua margem e monitore a concorrência com a
-                plataforma de inteligência operacional feita para vendedores profissionais.
+              <p className="mt-6 max-w-[590px] text-base leading-relaxed text-slate-700 sm:text-lg">
+                Reúna dados de vendas, margem, estoque e anúncios em uma central inteligente.
+                O AC360 prioriza o que importa no Feed Inteligente e permite aprofundar cada decisão
+                com o Chat AC360.
               </p>
 
-              <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row sm:gap-4">
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <a href="#cta-final">
                   <Button
                     size="lg"
-                    className="ac-btn-glow h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-900/40 transition-all hover:-translate-y-0.5"
-                    style={{ background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})` }}
+                    className="h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-900/20 transition-all hover:-translate-y-0.5"
+                    style={{ background: "linear-gradient(135deg, #0b63e5, #0d87ff)" }}
                   >
-                    Solicitar Demonstração Gratuita
+                    Solicitar demonstração
                     <ArrowRight className="ml-2 size-4" />
                   </Button>
                 </a>
@@ -814,61 +783,116 @@ export function LandingPage() {
                   <Button
                     size="lg"
                     variant="outline"
-                    className="ac-btn-glow h-14 rounded-full border-white/25 bg-white/5 px-8 text-base font-semibold text-white backdrop-blur hover:bg-white/10 hover:text-white"
+                    className="h-14 rounded-full border-slate-300 bg-white/80 px-8 text-base font-semibold text-slate-800 shadow-sm backdrop-blur hover:border-blue-300 hover:bg-white hover:text-blue-700"
                   >
-                    Ver Funcionalidades de Inteligência
+                    Conhecer a plataforma
                   </Button>
                 </a>
               </div>
 
-              {/* Metric chips */}
-              <div className="mt-7 flex flex-wrap items-center gap-2.5">
+              <div className="mt-8 flex flex-wrap gap-2.5">
                 {[
-                  { icon: Plug, label: "API oficial" },
-                  { icon: Layers, label: "Multi-conta" },
-                  { icon: Radar, label: "Diagnóstico Inteligente" },
+                  { icon: Radar, label: "Feed Inteligente" },
+                  { icon: Brain, label: "Chat AC360" },
+                  { icon: DollarSign, label: "Margem e lucro" },
+                  { icon: Layers, label: "Visão multi-conta" },
                 ].map(({ icon: Ic, label }) => (
                   <span
                     key={label}
-                    className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3.5 py-1.5 backdrop-blur"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur"
                   >
-                    <Ic className="size-3.5" style={{ color: NEON }} />
-                    <span className="text-[11.5px] font-medium tracking-[-0.005em] text-slate-200">
-                      {label}
-                    </span>
+                    <Ic className="size-3.5 text-blue-600" />
+                    {label}
                   </span>
                 ))}
               </div>
-
-              {/* Social proof */}
-              <p className="mt-5 text-[13.5px] font-light leading-relaxed text-slate-300/90">
-                <span style={{ color: CYAN }} className="font-medium">
-                  Mais de R$ 5M
-                </span>{" "}
-                em faturamento mensal monitorados pela nossa inteligência.
-              </p>
             </Reveal>
 
+            <div className="relative hidden min-h-[560px] lg:block">
+              <div className="absolute right-0 top-16 w-[230px] rounded-2xl border border-white/80 bg-white/[0.82] p-4 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.28)] backdrop-blur-xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    <Radar className="size-5" />
+                  </span>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                      Feed Inteligente
+                    </p>
+                    <p className="mt-0.5 text-sm font-semibold text-slate-800">
+                      Prioridades da operação
+                    </p>
+                  </div>
+                </div>
+              </div>
 
+              <div className="absolute bottom-28 right-10 w-[230px] rounded-2xl border border-white/80 bg-white/[0.82] p-4 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.28)] backdrop-blur-xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-amber-50 text-amber-500">
+                    <Brain className="size-5" />
+                  </span>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                      Chat AC360
+                    </p>
+                    <p className="mt-0.5 text-sm font-semibold text-slate-800">
+                      Pergunte. Analise. Decida.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-
+              <div className="absolute bottom-10 left-6 w-[235px] rounded-2xl border border-white/80 bg-white/[0.82] p-4 shadow-[0_24px_70px_-20px_rgba(15,23,42,0.28)] backdrop-blur-xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    <TrendingUp className="size-5" />
+                  </span>
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                      Decisão orientada
+                    </p>
+                    <p className="mt-0.5 text-sm font-semibold text-slate-800">
+                      Mais controle. Mais margem.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* Certification seal — hero signature */}
-          <div className="relative z-10 mx-auto flex max-w-7xl justify-center px-6 pb-8 lg:px-10">
-            <div className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/[0.04] px-4 py-2 backdrop-blur-md">
-              <span
-                className="inline-flex size-5 items-center justify-center rounded-full text-white"
-                style={{
-                  background: `linear-gradient(135deg, ${BLUE}, ${CYAN})`,
-                  boxShadow: `0 0 10px -2px ${NEON}`,
-                }}
-              >
-                <ShieldCheck className="size-3" />
-              </span>
-              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-slate-300/90">
-                Plataforma Certificada · Integração Oficial via API Mercado Livre
-              </span>
+          <div className="relative mx-auto max-w-7xl px-6 pb-10 lg:px-10">
+            <div className="grid gap-3 rounded-3xl border border-white/80 bg-white/[0.88] p-4 shadow-[0_22px_70px_-28px_rgba(15,23,42,0.35)] backdrop-blur-xl sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                {
+                  icon: Plug,
+                  title: "Integração via API",
+                  desc: "Dados conectados à operação do Mercado Livre.",
+                },
+                {
+                  icon: Radar,
+                  title: "Feed Inteligente",
+                  desc: "O que merece atenção aparece primeiro.",
+                },
+                {
+                  icon: Brain,
+                  title: "Chat AC360",
+                  desc: "Contexto para aprofundar decisões e oportunidades.",
+                },
+                {
+                  icon: Layers,
+                  title: "Operação centralizada",
+                  desc: "Contas, indicadores e análises em uma única visão.",
+                },
+              ].map(({ icon: Ic, title, desc }) => (
+                <div key={title} className="flex items-start gap-3 rounded-2xl px-3 py-2">
+                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    <Ic className="size-4" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">{title}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">{desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

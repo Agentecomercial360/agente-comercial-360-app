@@ -534,21 +534,64 @@ function IntegrationBar() {
 
 /* ---------- Ecosystem section (below hero) ---------- */
 function EcosystemSection() {
+  const operationViews = [
+    {
+      key: "vendas",
+      label: "Vendas",
+      icon: BarChart3,
+      title: "Entenda o ritmo das vendas e onde o resultado está sendo construído.",
+      supporting: "Pedidos, faturamento e ticket em uma leitura mais direta da operação.",
+      tags: ["Pedidos", "Faturamento", "Ticket médio"],
+      imageStyle: { objectPosition: "52% center", filter: "saturate(1.02) contrast(1.04) brightness(0.93)" },
+    },
+    {
+      key: "margem",
+      label: "Margem",
+      icon: DollarSign,
+      title: "Veja onde a margem aperta antes de descobrir isso no fim do mês.",
+      supporting: "Receita, taxas e rentabilidade organizadas para apoiar decisões mais seguras.",
+      tags: ["Receita", "Taxas", "Rentabilidade"],
+      imageStyle: { objectPosition: "38% center", filter: "saturate(0.92) contrast(1.08) brightness(0.86)" },
+    },
+    {
+      key: "estoque",
+      label: "Estoque",
+      icon: Boxes,
+      title: "Identifique o que exige reposição ou atenção antes da ruptura.",
+      supporting: "Giro, cobertura e sinais de estoque reunidos para orientar a rotina operacional.",
+      tags: ["Giro", "Cobertura", "Risco de ruptura"],
+      imageStyle: { objectPosition: "68% center", filter: "saturate(1.08) contrast(1.08) brightness(0.9)" },
+    },
+    {
+      key: "anuncios",
+      label: "Anúncios",
+      icon: Target,
+      title: "Saiba quais anúncios merecem ajuste antes de aumentar o investimento.",
+      supporting: "Visibilidade, conversão e eficiência para priorizar o que realmente merece ação.",
+      tags: ["Conversão", "Visibilidade", "Eficiência"],
+      imageStyle: { objectPosition: "82% center", filter: "saturate(0.96) contrast(1.12) brightness(0.84)" },
+    },
+  ];
+
+  const [activeOperation, setActiveOperation] = useState("vendas");
+  const activeView =
+    operationViews.find((item) => item.key === activeOperation) ?? operationViews[0];
+
   const valueItems = [
     {
       icon: ShieldCheck,
       title: "Conta ativa",
-      desc: "Acompanhe sinais importantes da operação antes que pequenos desvios virem problemas.",
+      desc: "Acompanhe alertas e sinais importantes da saúde da operação.",
     },
     {
       icon: DollarSign,
       title: "Margem e resultado",
-      desc: "Tenha mais clareza sobre vendas, taxas, rentabilidade e eficiência da operação.",
+      desc: "Entenda como vendas, taxas e custos impactam o resultado da operação.",
     },
     {
       icon: Target,
       title: "Execução inteligente",
-      desc: "Priorize o que merece atenção em anúncios, estoque e rotina comercial.",
+      desc: "Saiba onde agir primeiro em estoque, anúncios e rotina comercial.",
     },
   ];
 
@@ -567,8 +610,8 @@ function EcosystemSection() {
             </h2>
 
             <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
-              Centralize os pontos mais importantes da sua operação no Mercado Livre e transforme
-              informação em ação com mais clareza.
+              O AC360 organiza sinais de vendas, margem, estoque e anúncios para você enxergar o
+              que exige atenção e agir com mais clareza.
             </p>
 
             <div className="mt-8 space-y-3">
@@ -593,42 +636,85 @@ function EcosystemSection() {
 
           <Reveal delay={120}>
             <div className="relative">
-              <div className="relative min-h-[430px] overflow-hidden rounded-[30px] border border-white/80 bg-slate-900 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.48)] sm:min-h-[500px]">
+              <div className="relative min-h-[445px] overflow-hidden rounded-[30px] border border-white/80 bg-slate-950 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.48)] sm:min-h-[520px]">
                 <img
+                  key={activeView.key}
                   src={heroWarehouse}
-                  alt="Operação logística e comercial de e-commerce"
-                  className="absolute inset-0 h-full w-full object-cover"
+                  alt={`Visual da operação: ${activeView.label}`}
+                  className="absolute inset-0 h-full w-full scale-[1.02] object-cover transition-all duration-500 ease-out"
+                  style={activeView.imageStyle}
                 />
 
                 <div
                   aria-hidden
-                  className="absolute inset-0"
+                  className="absolute inset-0 transition-all duration-500"
                   style={{
                     background:
-                      "linear-gradient(180deg, rgba(7,27,69,0.05) 0%, rgba(7,27,69,0.08) 45%, rgba(7,27,69,0.58) 100%)",
+                      activeView.key === "margem"
+                        ? "linear-gradient(180deg, rgba(3,15,38,0.08) 0%, rgba(3,15,38,0.20) 42%, rgba(3,15,38,0.76) 100%)"
+                        : activeView.key === "estoque"
+                          ? "linear-gradient(180deg, rgba(7,27,69,0.02) 0%, rgba(7,27,69,0.12) 48%, rgba(7,27,69,0.68) 100%)"
+                          : activeView.key === "anuncios"
+                            ? "linear-gradient(180deg, rgba(8,19,46,0.08) 0%, rgba(8,19,46,0.26) 48%, rgba(8,19,46,0.78) 100%)"
+                            : "linear-gradient(180deg, rgba(7,27,69,0.02) 0%, rgba(7,27,69,0.10) 45%, rgba(7,27,69,0.66) 100%)",
                   }}
                 />
 
-                <div className="absolute inset-x-5 bottom-5 sm:inset-x-6 sm:bottom-6">
-                  <div className="rounded-2xl border border-white/25 bg-slate-950/42 p-4 text-white shadow-xl backdrop-blur-xl sm:p-5">
+                <div className="absolute left-5 top-5 sm:left-6 sm:top-6">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-slate-950/35 px-3.5 py-2 text-white shadow-lg backdrop-blur-xl">
+                    <span className="size-2 rounded-full bg-[#f6c400]" />
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">
+                      Visão operacional AC360
+                    </span>
+                  </div>
+                </div>
+
+                <div className="absolute inset-x-4 bottom-4 sm:inset-x-6 sm:bottom-6">
+                  <div className="rounded-[24px] border border-white/20 bg-slate-950/58 p-4 text-white shadow-2xl backdrop-blur-2xl sm:p-5">
                     <div className="flex items-center gap-2">
                       <span className="size-2 rounded-full bg-[#f6c400]" />
-                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/65">
                         Da operação à decisão
                       </span>
                     </div>
 
-                    <p className="mt-2 max-w-lg text-lg font-semibold leading-snug sm:text-xl">
-                      Menos dispersão de dados. Mais visão sobre o que realmente movimenta o resultado.
-                    </p>
+                    <div className="mt-3 min-h-[92px]">
+                      <p className="max-w-[570px] text-lg font-semibold leading-snug sm:text-[21px]">
+                        {activeView.title}
+                      </p>
+                      <p className="mt-2 max-w-[560px] text-sm leading-relaxed text-white/65">
+                        {activeView.supporting}
+                      </p>
+                    </div>
 
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {["Vendas", "Margem", "Estoque", "Anúncios"].map((label) => (
-                        <span
-                          key={label}
-                          className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-medium text-white/88"
-                        >
-                          {label}
+                    <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Áreas da operação">
+                      {operationViews.map(({ key, label, icon: Icon }) => {
+                        const isActive = key === activeOperation;
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            role="tab"
+                            aria-selected={isActive}
+                            onClick={() => setActiveOperation(key)}
+                            className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition-all duration-300 ${
+                              isActive
+                                ? "border-white bg-white text-slate-900 shadow-lg"
+                                : "border-white/20 bg-white/10 text-white/80 hover:border-white/40 hover:bg-white/16 hover:text-white"
+                            }`}
+                          >
+                            <Icon className={`size-3.5 ${isActive ? "text-blue-600" : "text-white/75"}`} />
+                            {label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-white/10 pt-4">
+                      {activeView.tags.map((tag) => (
+                        <span key={tag} className="inline-flex items-center gap-2 text-xs font-medium text-white/65">
+                          <CheckCircle2 className="size-3.5 text-blue-300" />
+                          {tag}
                         </span>
                       ))}
                     </div>
@@ -636,7 +722,7 @@ function EcosystemSection() {
                 </div>
               </div>
 
-              <div className="absolute -right-3 -top-3 hidden rounded-2xl border border-white/80 bg-white/88 px-4 py-3 shadow-[0_16px_40px_-22px_rgba(15,23,42,0.32)] backdrop-blur-xl sm:block">
+              <div className="absolute -right-3 -top-3 hidden rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-[0_16px_40px_-22px_rgba(15,23,42,0.32)] backdrop-blur-xl sm:block">
                 <div className="flex items-center gap-3">
                   <div className="flex size-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                     <Radar className="size-4" />

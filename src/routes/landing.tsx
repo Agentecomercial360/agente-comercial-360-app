@@ -34,7 +34,6 @@ import {
   ShieldCheck as ShieldIcon,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
-import heroAirplane from "@/assets/ac360-hero-airplane.png";
 import heroWarehouse from "@/assets/hero-warehouse.jpg";
 import { Button } from "@/components/ui/button";
 import {
@@ -808,66 +807,103 @@ function EcosystemSection() {
 /* ------------------------------------------------------------------ */
 
 export function LandingPage() {
+  const commerceAreas = [
+    {
+      key: "vendas",
+      label: "Vendas",
+      icon: BarChart3,
+      title: "Vendas com contexto, não só volume.",
+      description:
+        "Enxergue o movimento comercial da operação e conecte faturamento, pedidos e ticket àquilo que realmente precisa de atenção.",
+      bullets: ["Pedidos e faturamento", "Ticket e evolução", "Leitura comercial"],
+    },
+    {
+      key: "margem",
+      label: "Margem",
+      icon: DollarSign,
+      title: "Lucro precisa aparecer antes do fechamento do mês.",
+      description:
+        "Organize taxas, custos e rentabilidade para identificar onde a operação ganha eficiência e onde a margem começa a escapar.",
+      bullets: ["Rentabilidade", "Taxas e custos", "Eficiência por venda"],
+    },
+    {
+      key: "estoque",
+      label: "Estoque",
+      icon: Boxes,
+      title: "Estoque certo para vender sem travar a operação.",
+      description:
+        "Transforme sinais de giro, cobertura e ruptura em prioridades claras para compra, reposição e acompanhamento.",
+      bullets: ["Giro de estoque", "Cobertura", "Risco de ruptura"],
+    },
+    {
+      key: "anuncios",
+      label: "Anúncios",
+      icon: Target,
+      title: "Priorize o anúncio que realmente merece ação.",
+      description:
+        "Conecte visibilidade, conversão e desempenho para saber onde ajustar a operação antes de simplesmente aumentar investimento.",
+      bullets: ["Conversão", "Visibilidade", "Eficiência"],
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-white text-slate-900 antialiased">
-      {/* ============== HEADER + HERO V2.1 ============== */}
-      <section id="top" className="relative overflow-hidden bg-[#f8fbff]">
+    <div className="min-h-screen bg-[#080b10] text-white antialiased">
+      {/* ==================== HERO — E-COMMERCE INTELLIGENCE ==================== */}
+      <section id="top" className="relative min-h-[760px] overflow-hidden bg-[#080b10]">
+        <img
+          src={heroWarehouse}
+          alt="Operação de e-commerce e logística"
+          className="absolute inset-0 h-full w-full scale-[1.04] object-cover object-center"
+          style={{ filter: "saturate(0.92) contrast(1.12) brightness(0.74)" }}
+        />
+
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 scale-[1.015]"
+          className="absolute inset-0"
           style={{
-            backgroundImage: `url(${heroAirplane})`,
-            backgroundSize: "cover",
-            backgroundPosition: "65% center",
-            filter: "saturate(1.07) contrast(1.04)",
+            background:
+              "linear-gradient(90deg, rgba(4,7,12,0.98) 0%, rgba(5,8,14,0.94) 34%, rgba(5,9,16,0.68) 58%, rgba(5,9,16,0.28) 82%, rgba(5,9,16,0.44) 100%), linear-gradient(180deg, rgba(3,7,13,0.48) 0%, rgba(3,7,13,0.05) 55%, rgba(3,7,13,0.92) 100%)",
           }}
         />
 
-        {/* Localized readability veil — keeps the aircraft/photo natural */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0"
+          className="absolute inset-0 opacity-[0.12]"
           style={{
-            background:
-              "linear-gradient(90deg, rgba(255,255,255,0.985) 0%, rgba(255,255,255,0.94) 24%, rgba(255,255,255,0.68) 41%, rgba(255,255,255,0.18) 57%, rgba(255,255,255,0) 72%), linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 74%, rgba(248,251,255,0.94) 100%)",
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px)",
+            backgroundSize: "72px 72px",
+            maskImage: "linear-gradient(90deg, transparent 0%, black 48%, black 100%)",
+            WebkitMaskImage: "linear-gradient(90deg, transparent 0%, black 48%, black 100%)",
           }}
         />
 
         <div className="relative z-10">
-          <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-            <a href="#top" className="flex items-center gap-2.5">
-              <img src={acLogo} alt="AC360" className="h-9 w-auto" />
+          <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10">
+            <a href="#top" className="flex items-center gap-3">
+              <img src={acLogo} alt="AC360" className="h-9 w-auto brightness-0 invert" />
+              <span className="hidden border-l border-white/20 pl-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50 sm:block">
+                E-commerce Intelligence
+              </span>
             </a>
 
-            <nav className="hidden items-center gap-8 text-sm font-semibold text-slate-700 md:flex">
-              <a href="#problemas" className="transition-colors hover:text-blue-700">
-                Problemas
-              </a>
-              <a href="#solucoes" className="transition-colors hover:text-blue-700">
-                Inteligência
-              </a>
-              <a href="#como-funciona" className="transition-colors hover:text-blue-700">
-                Método
-              </a>
-              <a href="#planos" className="transition-colors hover:text-blue-700">
-                Planos
-              </a>
-              <a href="#faq" className="transition-colors hover:text-blue-700">
-                FAQ
-              </a>
+            <nav className="hidden items-center gap-8 text-sm font-medium text-white/60 md:flex">
+              <a href="#operacao" className="transition-colors hover:text-white">Operação</a>
+              <a href="#inteligencia" className="transition-colors hover:text-white">Inteligência</a>
+              <a href="#cta-final" className="transition-colors hover:text-white">Demonstração</a>
             </nav>
 
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-3">
               <Link
                 to="/ecommerce/login"
-                className="hidden rounded-full border border-slate-300/80 bg-white/55 px-5 py-2.5 text-sm font-semibold text-slate-800 shadow-sm backdrop-blur-md transition-all hover:border-blue-300 hover:bg-white/80 hover:text-blue-700 sm:inline-flex"
+                className="hidden rounded-full border border-white/15 bg-white/[0.06] px-5 py-2.5 text-sm font-semibold text-white/85 backdrop-blur-xl transition-all hover:border-white/30 hover:bg-white/[0.10] sm:inline-flex"
               >
                 Entrar no painel
               </Link>
               <a href="#cta-final">
                 <Button
-                  className="h-10 rounded-full px-5 text-sm font-semibold text-white shadow-lg shadow-blue-900/15"
-                  style={{ background: "linear-gradient(135deg, #0b63e5, #0d87ff)" }}
+                  className="h-10 rounded-full px-5 text-sm font-semibold text-white shadow-lg shadow-blue-950/40"
+                  style={{ background: "linear-gradient(135deg, #0867f2, #1b8cff)" }}
                 >
                   Solicitar demonstração
                 </Button>
@@ -875,676 +911,432 @@ export function LandingPage() {
             </div>
           </header>
 
-          <div className="mx-auto grid min-h-[660px] max-w-7xl items-center px-6 pb-24 pt-10 lg:min-h-[720px] lg:grid-cols-[0.88fr_1.12fr] lg:px-10 lg:pb-24 lg:pt-12">
-            <Reveal className="max-w-[650px]">
-              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-white/72 px-4 py-2 shadow-sm backdrop-blur-md">
-                <span className="size-2 rounded-full bg-[#f6c400]" />
-                <span className="text-[11px] font-bold uppercase tracking-[0.22em] text-slate-600">
-                  Inteligência para vendedores do Mercado Livre
+          <div className="mx-auto grid min-h-[660px] max-w-7xl items-center gap-12 px-6 pb-24 pt-14 lg:grid-cols-[0.9fr_1.1fr] lg:px-10 lg:pb-28 lg:pt-20">
+            <Reveal className="max-w-[690px]">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 backdrop-blur-xl">
+                <span className="size-2 rounded-full bg-[#f4c400] shadow-[0_0_16px_rgba(244,196,0,.65)]" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/65">
+                  Inteligência para operação no Mercado Livre
                 </span>
               </div>
 
-              <h1 className="font-display text-[40px] font-bold leading-[1.01] tracking-[-0.043em] text-[#071b45] sm:text-[54px] lg:text-[62px]">
-                Do dado ao lucro:
+              <h1 className="font-display text-[44px] font-bold leading-[0.98] tracking-[-0.045em] text-white sm:text-[60px] lg:text-[72px]">
+                Sua operação vende.
                 <br />
-                acelere sua operação no{" "}
-                <span className="text-[#1478ff]">Mercado Livre.</span>
+                O AC360 mostra{" "}
+                <span className="text-[#ffbf31]">onde está o lucro.</span>
               </h1>
 
-              <p className="mt-6 max-w-[575px] text-base leading-relaxed text-slate-700 sm:text-[17px]">
-                Reúna dados de vendas, margem, estoque e anúncios em uma central inteligente.
-                O AC360 prioriza o que importa no Feed Inteligente e permite aprofundar cada decisão
-                com o Chat AC360.
+              <p className="mt-6 max-w-[610px] text-base leading-relaxed text-white/68 sm:text-lg">
+                Vendas, margem, estoque e anúncios conectados em uma central de inteligência
+                que transforma dados da operação em prioridades claras para agir.
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <a href="#cta-final">
                   <Button
                     size="lg"
-                    className="h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-900/20 transition-all hover:-translate-y-0.5"
-                    style={{ background: "linear-gradient(135deg, #0b63e5, #0d87ff)" }}
+                    className="h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-950/35 transition-all hover:-translate-y-0.5"
+                    style={{ background: "linear-gradient(135deg, #0867f2, #1b8cff)" }}
                   >
                     Solicitar demonstração
                     <ArrowRight className="ml-2 size-4" />
                   </Button>
                 </a>
-                <a href="#solucoes">
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="h-14 rounded-full border-slate-300/90 bg-white/66 px-8 text-base font-semibold text-slate-800 shadow-sm backdrop-blur-md hover:border-blue-300 hover:bg-white/90 hover:text-blue-700"
-                  >
-                    Conhecer a plataforma
-                  </Button>
+
+                <a
+                  href="#operacao"
+                  className="inline-flex h-14 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] px-8 text-base font-semibold text-white/85 backdrop-blur-xl transition-all hover:border-white/30 hover:bg-white/[0.10] hover:text-white"
+                >
+                  Explorar a operação
                 </a>
               </div>
 
-              {/* One clean capability line */}
-              <div className="mt-7 inline-flex max-w-full flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-white/75 bg-white/58 px-4 py-3 shadow-sm backdrop-blur-lg">
-                {[
-                  { icon: Radar, label: "Feed Inteligente" },
-                  { icon: Brain, label: "Chat AC360" },
-                  { icon: DollarSign, label: "Margem e lucro" },
-                  { icon: Layers, label: "Multi-conta" },
-                ].map(({ icon: Ic, label }, index) => (
-                  <div key={label} className="flex items-center gap-2">
-                    {index > 0 && <span className="hidden h-4 w-px bg-slate-300/80 sm:block" />}
-                    <Ic className="size-3.5 text-blue-600" />
-                    <span className="text-xs font-semibold text-slate-700">{label}</span>
-                  </div>
+              <div className="mt-8 flex flex-wrap gap-2">
+                {["Vendas", "Margem", "Estoque", "Anúncios"].map((label) => (
+                  <span
+                    key={label}
+                    className="rounded-full border border-white/10 bg-black/20 px-3.5 py-2 text-xs font-medium text-white/60 backdrop-blur-lg"
+                  >
+                    {label}
+                  </span>
                 ))}
               </div>
             </Reveal>
 
-            {/* Only the two core intelligence layers remain over the aircraft */}
             <div className="relative hidden min-h-[560px] lg:block">
-              <div className="absolute right-4 top-20 w-[205px] rounded-2xl border border-white/65 bg-white/[0.58] p-3.5 shadow-[0_18px_48px_-24px_rgba(15,23,42,0.35)] backdrop-blur-xl">
+              <div className="absolute left-12 top-12 w-[245px] rounded-2xl border border-white/12 bg-black/34 p-4 shadow-2xl backdrop-blur-2xl">
                 <div className="flex items-center gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/70 text-blue-600 shadow-sm">
-                    <Radar className="size-4.5" />
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300 ring-1 ring-blue-300/15">
+                    <Radar className="size-5" />
                   </span>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
-                      Feed Inteligente
-                    </p>
-                    <p className="mt-0.5 text-[13px] font-semibold leading-snug text-slate-800">
-                      Prioridades da operação
-                    </p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">Feed Inteligente</p>
+                    <p className="mt-1 text-sm font-semibold text-white">Prioridades da operação</p>
                   </div>
                 </div>
-                <span className="absolute -left-9 top-1/2 h-px w-9 bg-white/75" />
-                <span className="absolute -left-[39px] top-[calc(50%-2px)] size-1.5 rounded-full bg-white shadow" />
               </div>
 
-              <div className="absolute bottom-24 right-10 w-[205px] rounded-2xl border border-white/65 bg-white/[0.58] p-3.5 shadow-[0_18px_48px_-24px_rgba(15,23,42,0.35)] backdrop-blur-xl">
+              <div className="absolute right-4 top-40 w-[230px] rounded-2xl border border-white/12 bg-black/34 p-4 shadow-2xl backdrop-blur-2xl">
                 <div className="flex items-center gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-white/70 text-amber-500 shadow-sm">
-                    <Brain className="size-4.5" />
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300 ring-1 ring-amber-300/15">
+                    <DollarSign className="size-5" />
                   </span>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-500">
-                      Chat AC360
-                    </p>
-                    <p className="mt-0.5 text-[13px] font-semibold leading-snug text-slate-800">
-                      Pergunte. Analise. Decida.
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">Margem</p>
+                    <p className="mt-1 text-sm font-semibold text-white">Rentabilidade sob controle</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute bottom-28 left-4 w-[230px] rounded-2xl border border-white/12 bg-black/34 p-4 shadow-2xl backdrop-blur-2xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-300/15">
+                    <Boxes className="size-5" />
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">Estoque</p>
+                    <p className="mt-1 text-sm font-semibold text-white">Ruptura antes de acontecer</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute bottom-14 right-10 w-[235px] rounded-2xl border border-white/12 bg-black/34 p-4 shadow-2xl backdrop-blur-2xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-10 items-center justify-center rounded-xl bg-fuchsia-500/15 text-fuchsia-200 ring-1 ring-fuchsia-300/15">
+                    <Target className="size-5" />
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">Anúncios</p>
+                    <p className="mt-1 text-sm font-semibold text-white">Onde agir primeiro</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute left-1/2 top-1/2 flex size-[310px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.08] bg-black/10 backdrop-blur-[2px]">
+                <div className="flex size-[220px] items-center justify-center rounded-full border border-white/[0.10] bg-blue-500/[0.04] shadow-[0_0_100px_rgba(30,120,255,.12)]">
+                  <div className="text-center">
+                    <div className="mx-auto flex size-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl">
+                      <img src={acLogo} alt="" className="h-9 w-auto brightness-0 invert" />
+                    </div>
+                    <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
+                      Central de inteligência
                     </p>
                   </div>
                 </div>
-                <span className="absolute -left-9 top-1/2 h-px w-9 bg-white/75" />
-                <span className="absolute -left-[39px] top-[calc(50%-2px)] size-1.5 rounded-full bg-white shadow" />
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ============== ECOSSISTEMA INTEGRADO ============== */}
-      <EcosystemSection />
-
-
-
-      {/* ============== O PROBLEMA — DARK ============== */}
+      {/* ==================== OPERAÇÃO — IMMERSIVE PANELS ==================== */}
       <section
-        id="problemas"
-        className="relative overflow-hidden py-28 sm:py-32"
-        style={{ background: NAVY_INK }}
+        id="operacao"
+        className="relative overflow-hidden border-y border-white/[0.06] bg-[#0b0d12] py-24 sm:py-28"
+        data-commerce-areas
       >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(700px 400px at 15% 0%, oklch(0.45 0.22 258 / 0.18), transparent 60%), radial-gradient(700px 400px at 100% 100%, oklch(0.55 0.18 220 / 0.14), transparent 60%)",
-          }}
-        />
-        <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
+        <style>{`
+          [data-commerce-areas] .commerce-copy,
+          [data-commerce-areas] .commerce-ambient {
+            display: none;
+          }
+
+          #commerce-vendas:checked ~ .commerce-stage .copy-vendas,
+          #commerce-vendas:checked ~ .commerce-stage .ambient-vendas,
+          #commerce-margem:checked ~ .commerce-stage .copy-margem,
+          #commerce-margem:checked ~ .commerce-stage .ambient-margem,
+          #commerce-estoque:checked ~ .commerce-stage .copy-estoque,
+          #commerce-estoque:checked ~ .commerce-stage .ambient-estoque,
+          #commerce-anuncios:checked ~ .commerce-stage .copy-anuncios,
+          #commerce-anuncios:checked ~ .commerce-stage .ambient-anuncios {
+            display: block;
+          }
+
+          [data-commerce-areas] .commerce-tab {
+            color: rgba(255,255,255,.42);
+            border-color: rgba(255,255,255,.10);
+            background: rgba(255,255,255,.035);
+          }
+
+          #commerce-vendas:checked ~ .commerce-stage label[for="commerce-vendas"],
+          #commerce-margem:checked ~ .commerce-stage label[for="commerce-margem"],
+          #commerce-estoque:checked ~ .commerce-stage label[for="commerce-estoque"],
+          #commerce-anuncios:checked ~ .commerce-stage label[for="commerce-anuncios"] {
+            color: white;
+            border-color: rgba(255,255,255,.28);
+            background: rgba(255,255,255,.10);
+            box-shadow: 0 20px 60px rgba(0,0,0,.24);
+            transform: translateY(-4px);
+          }
+        `}</style>
+
+        <input id="commerce-vendas" name="commerce-area" type="radio" defaultChecked className="sr-only" />
+        <input id="commerce-margem" name="commerce-area" type="radio" className="sr-only" />
+        <input id="commerce-estoque" name="commerce-area" type="radio" className="sr-only" />
+        <input id="commerce-anuncios" name="commerce-area" type="radio" className="sr-only" />
+
+        <div className="commerce-stage relative mx-auto max-w-7xl px-6 lg:px-10">
+          <div className="ambient-vendas commerce-ambient pointer-events-none absolute -left-24 top-20 h-[420px] w-[420px] rounded-full bg-blue-600/15 blur-[120px]" />
+          <div className="ambient-margem commerce-ambient pointer-events-none absolute left-1/4 top-10 h-[420px] w-[420px] rounded-full bg-amber-500/13 blur-[120px]" />
+          <div className="ambient-estoque commerce-ambient pointer-events-none absolute right-1/4 top-10 h-[420px] w-[420px] rounded-full bg-cyan-500/13 blur-[120px]" />
+          <div className="ambient-anuncios commerce-ambient pointer-events-none absolute -right-24 top-20 h-[420px] w-[420px] rounded-full bg-fuchsia-600/13 blur-[120px]" />
+
           <Reveal>
-            <div className="mx-auto max-w-2xl text-center">
-              <SectionLabel tone="dark">O problema do vendedor profissional</SectionLabel>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Pare de queimar margem com anúncios cegos e falta de controle operacional.
+            <div className="mx-auto max-w-3xl text-center">
+              <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#ffbf31]">
+                Da operação à decisão
+              </span>
+              <h2 className="mt-4 text-3xl font-bold tracking-[-0.04em] text-white sm:text-5xl">
+                Explore a operação por aquilo que realmente movimenta o resultado.
               </h2>
-              <p className="mt-4 text-base text-white/70">
-                A maioria dos vendedores profissionais opera no improviso — sem visão de margem,
-                sem controle de estoque e sem inteligência sobre a concorrência. O{" "}
-                <span className="font-semibold text-white">Motor de Insights AC360®</span> existe
-                para encerrar esse ciclo.
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/50">
+                Selecione uma frente e veja como o AC360 organiza os sinais que merecem atenção.
               </p>
             </div>
           </Reveal>
 
-          <div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: Layers,
-                title: "Contas espalhadas",
-                desc: "Múltiplas contas Mercado Livre sem visão consolidada de faturamento e desempenho.",
-              },
-              {
-                icon: TrendingDown,
-                title: "Margem engolida",
-                desc: "Lucro real corroído por taxas, impostos e fretes — e você só descobre no fim do mês.",
-              },
-              {
-                icon: Boxes,
-                title: "Estoque parado",
-                desc: "Produtos travados gerando prejuízo enquanto outros entram em ruptura sem aviso.",
-              },
-              {
-                icon: Eye,
-                title: "Concorrência invisível",
-                desc: "Concorrentes baixam preço, ganham buy box e você só percebe quando as vendas caem.",
-              },
-            ].map((p, i) => (
-              <Reveal key={p.title} delay={i * 80}>
-                <div
-                  className="group flex h-full flex-col rounded-2xl p-7 ring-1 ring-white/10 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:ring-white/25"
-                  style={{ background: "rgba(255,255,255,0.03)" }}
+          <div className="mt-12 grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              {commerceAreas.map(({ key, label, icon: Icon }) => (
+                <label
+                  key={key}
+                  htmlFor={`commerce-${key}`}
+                  className="commerce-tab group flex cursor-pointer items-center justify-between rounded-2xl border px-5 py-5 transition-all duration-300"
                 >
-                  <div
-                    className="mb-5 inline-flex size-12 items-center justify-center rounded-xl shadow-lg"
-                    style={{
-                      background: `linear-gradient(135deg, ${BLUE}, ${CYAN})`,
-                      boxShadow: `0 12px 30px -10px ${BLUE}`,
-                    }}
-                  >
-                    <p.icon className="size-5 text-white" />
+                  <div className="flex items-center gap-4">
+                    <span className="flex size-11 items-center justify-center rounded-xl border border-white/10 bg-black/20 text-current">
+                      <Icon className="size-5" />
+                    </span>
+                    <div>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] opacity-50">Área da operação</p>
+                      <p className="mt-1 text-base font-semibold">{label}</p>
+                    </div>
                   </div>
-                  <h3 className="text-base font-semibold text-white">{p.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/65">{p.desc}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============== 4 PILARES — INTELIGÊNCIA ============== */}
-      <section id="solucoes" className="bg-white py-28 sm:py-32">
-        <div className="mx-auto max-w-7xl px-6 lg:px-10">
-          <Reveal>
-            <div className="mx-auto max-w-2xl text-center">
-              <SectionLabel>Os pilares da inteligência</SectionLabel>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                Uma plataforma feita para vender com método e margem
-              </h2>
-              <p className="mt-4 text-base text-slate-600">
-                Quatro camadas de inteligência operando juntas para transformar dados em lucro
-                líquido previsível.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="mt-16 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                icon: Layers,
-                title: "Inteligência Multi-conta",
-                description:
-                  "Visualize todas as suas contas Mercado Livre em um único painel centralizado.",
-                bullets: [
-                  "Mapa de vendas consolidado",
-                  "Faturamento por conta e marketplace",
-                  "Comparativo de performance entre filiais",
-                ],
-                accent: "blue" as const,
-              },
-              {
-                icon: Radar,
-                title: "Diagnóstico Inteligente Financeiro",
-                description:
-                  "Diagnósticos automáticos do Motor de Insights AC360® que identificam riscos de ruptura, queda de margem e oportunidades de kit.",
-                bullets: [
-                  "Alertas de ruptura antes que aconteça",
-                  "Detecção de queda de conversão",
-                  "Sugestões de kits e bundles",
-                ],
-                accent: "navy" as const,
-              },
-              {
-                icon: DollarSign,
-                title: "Controle de Margem e Lucro",
-                description:
-                  "Saiba o seu lucro líquido real por anúncio, descontando taxas, impostos e fretes automaticamente.",
-                bullets: [
-                  "Lucro líquido por SKU e anúncio",
-                  "Curva ABC financeira real",
-                  "Custos sincronizados e versionados",
-                ],
-                accent: "blue" as const,
-              },
-              {
-                icon: Eye,
-                title: "Espionagem de Mercado",
-                description:
-                  "Monitore preços e estoques dos concorrentes em tempo real e aja estrategicamente.",
-                bullets: [
-                  "Preço e buy box monitorados por hora",
-                  "Histórico de estoque dos concorrentes",
-                  "Alertas de movimento agressivo",
-                ],
-                accent: "navy" as const,
-              },
-            ].map((p, i) => (
-              <Reveal key={p.title} delay={i * 80}>
-                <PillarCard {...p} />
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============== SEGMENTOS — Marketplaces ============== */}
-      <section className="border-y border-slate-100 bg-slate-50/60 py-16 sm:py-20">
-        <div className="mx-auto max-w-7xl px-6 lg:px-10">
-          <Reveal>
-            <p className="text-center text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
-              Construído para vendedores profissionais de marketplace
-            </p>
-            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-              {[
-                { label: "Mercado Livre", icon: Store },
-                { label: "Mercado Ads", icon: Target },
-                { label: "Mercado Envios", icon: Truck },
-                { label: "Catálogo & Kits", icon: PackageSearch },
-                { label: "Shopee (em breve)", icon: ShoppingBag },
-                { label: "Multi-CNPJ", icon: Layers },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className="group inline-flex items-center gap-2.5 rounded-full border border-slate-200/80 bg-white px-5 py-2.5 text-sm font-medium text-slate-600 shadow-[0_2px_8px_-2px_rgba(15,23,42,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-slate-300 hover:text-slate-900"
-                >
-                  <s.icon className="size-4 text-slate-400 transition-colors duration-300 group-hover:text-blue-600" />
-                  <span>{s.label}</span>
-                </div>
+                  <ArrowRight className="size-4 opacity-40 transition-transform group-hover:translate-x-1" />
+                </label>
               ))}
             </div>
-          </Reveal>
-        </div>
-      </section>
 
-      {/* ============== COMO FUNCIONA — MÉTODO ============== */}
-      <section id="como-funciona" className="bg-white py-28 sm:py-32">
-        <div className="mx-auto max-w-7xl px-6 lg:px-10">
-          <Reveal>
-            <div className="mx-auto max-w-2xl text-center">
-              <SectionLabel>O método</SectionLabel>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                Da conexão à escala lucrativa em 4 passos
-              </h2>
-              <p className="mt-4 text-base text-slate-600">
-                Um processo claro para transformar dados brutos em decisões operacionais
-                mensuráveis.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                number: "01",
-                icon: Plug,
-                title: "Conexão via API oficial",
-                description:
-                  "Conecte as suas contas Mercado Livre com total segurança em segundos, via API oficial.",
-              },
-              {
-                number: "02",
-                icon: Brain,
-                title: "Diagnóstico automático",
-                description:
-                  "Nossa IA analisa o seu histórico e identifica gargalos de lucro, conversão e estoque.",
-              },
-              {
-                number: "03",
-                icon: Workflow,
-                title: "Ação direcionada",
-                description:
-                  "Receba tarefas claras para os seus operadores de Ads, Catálogo e Compras.",
-              },
-              {
-                number: "04",
-                icon: Rocket,
-                title: "Escala lucrativa",
-                description:
-                  "Acompanhe o impacto real das ações no seu faturamento e na sua margem líquida.",
-              },
-            ].map((s, i) => (
-              <Reveal key={s.number} delay={i * 80}>
-                <JourneyStep {...s} />
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============== PLANOS — DARK ============== */}
-      <section
-        id="planos"
-        className="relative overflow-hidden py-28 sm:py-32"
-        style={{ background: NAVY_INK }}
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(700px 400px at 50% 0%, oklch(0.55 0.22 258 / 0.20), transparent 60%), radial-gradient(600px 350px at 100% 100%, oklch(0.78 0.18 215 / 0.12), transparent 60%)",
-          }}
-        />
-        <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
-          <Reveal>
-            <div className="mx-auto max-w-2xl text-center">
-              <SectionLabel tone="dark">Planos</SectionLabel>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Escolha o plano certo para a sua operação
-              </h2>
-              <p className="mt-4 text-base text-white/70">
-                Implantação assistida e suporte humano em todos os planos.
-              </p>
-            </div>
-          </Reveal>
-
-          <div className="mt-16 grid gap-6 md:grid-cols-3">
-            {[
-              {
-                name: "Starter",
-                price: "R$ 497",
-                description: "Para vendedores começando a profissionalizar a operação.",
-                features: [
-                  "Até 2 contas Mercado Livre",
-                  "Mapa de vendas consolidado",
-                  "Controle de custo e margem básica",
-                  "Relatórios essenciais",
-                ],
-              },
-              {
-                name: "Growth",
-                price: "R$ 1.197",
-                description:
-                  "Para operações multi-conta que precisam escalar com inteligência.",
-                features: [
-                  "Até 10 contas Mercado Livre",
-                  "Diagnóstico Inteligente de performance",
-                  "Lucro líquido real por anúncio",
-                  "Espionagem de preço e estoque",
-                  "Curva ABC financeira",
-                ],
-                highlighted: true,
-              },
-              {
-                name: "Scale",
-                price: "Sob consulta",
-                description: "Para grupos com múltiplos CNPJs e alto volume.",
-                features: [
-                  "Contas ilimitadas",
-                  "Multi-CNPJ e multi-filial",
-                  "Integrações ERP personalizadas",
-                  "Gestor de sucesso dedicado",
-                  "SLA empresarial",
-                ],
-              },
-            ].map((p, i) => (
-              <Reveal key={p.name} delay={i * 100}>
-                <PlanCard {...p} />
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============== CREDIBILIDADE ============== */}
-      <section className="bg-white py-28 sm:py-32">
-        <div className="mx-auto max-w-7xl px-6 lg:px-10">
-          <div className="grid gap-10 lg:grid-cols-3">
-            {[
-              {
-                icon: ShieldCheck,
-                title: "Segurança e conformidade",
-                desc: "Conexão via API oficial do Mercado Livre, LGPD e dados criptografados ponta a ponta.",
-              },
-              {
-                icon: Sparkles,
-                title: "Implantação assistida",
-                desc: "Setup guiado, conexão das contas, importação de custos e treinamento da equipe.",
-              },
-              {
-                icon: HeadphonesIcon,
-                title: "Suporte especializado",
-                desc: "Atendimento direto com quem entende de operação de marketplace — não apenas tickets.",
-              },
-            ].map(({ icon: Icon, title, desc }, i) => (
-              <Reveal key={title} delay={i * 80}>
-                <div className="flex h-full flex-col rounded-2xl bg-slate-50/60 p-7 ring-1 ring-slate-200/60">
-                  <div
-                    className="mb-5 inline-flex size-12 items-center justify-center rounded-xl text-white shadow-lg"
-                    style={{
-                      background: `linear-gradient(135deg, ${BLUE}, ${CYAN})`,
-                      boxShadow: `0 10px 25px -10px ${BLUE}`,
-                    }}
-                  >
-                    <Icon className="size-6" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600">{desc}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ============== FAQ ============== */}
-      <section id="faq" className="bg-slate-50/70 py-28 sm:py-32">
-        <div className="mx-auto max-w-3xl px-6 lg:px-10">
-          <Reveal>
-            <div className="text-center">
-              <SectionLabel>Dúvidas frequentes</SectionLabel>
-              <h2 className="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-                Tudo o que você precisa saber
-              </h2>
-            </div>
-          </Reveal>
-
-          <Accordion type="single" collapsible className="mt-10 space-y-3">
-            {[
-              {
-                q: "A conexão com o Mercado Livre é oficial?",
-                a: "Sim. Conectamos via API oficial do Mercado Livre, com OAuth seguro. Você autoriza em segundos e mantém total controle.",
-              },
-              {
-                q: "Quantas contas posso conectar?",
-                a: "Depende do plano. O Starter aceita até 2 contas, o Growth até 10 e o Scale é ilimitado, incluindo múltiplos CNPJs e filiais.",
-              },
-              {
-                q: "Como o lucro líquido é calculado?",
-                a: "A plataforma desconta automaticamente taxas do Mercado Livre, frete subsidiado, impostos e o custo do produto cadastrado, mostrando a margem real por anúncio.",
-              },
-              {
-                q: "O que o Diagnóstico Inteligente faz na prática?",
-                a: "A IA monitora seu histórico e identifica riscos de ruptura, quedas de conversão, anúncios travados, oportunidades de kit e movimentos agressivos da concorrência.",
-              },
-              {
-                q: "Vocês monitoram a concorrência?",
-                a: "Sim. Rastreamos preço, buy box e estoque dos concorrentes que você escolher acompanhar, com alertas em tempo real.",
-              },
-              {
-                q: "Existe fidelidade?",
-                a: "Não. Os planos são mensais e você pode cancelar quando quiser. Trabalhamos para entregar resultado mensurável em margem.",
-              },
-            ].map(({ q, a }, i) => (
-              <AccordionItem
-                key={q}
-                value={`item-${i}`}
-                className="rounded-xl border border-slate-200/70 bg-white px-5"
-              >
-                <AccordionTrigger className="text-left text-base font-semibold text-slate-900 hover:no-underline">
-                  {q}
-                </AccordionTrigger>
-                <AccordionContent className="text-sm leading-relaxed text-slate-600">
-                  {a}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-      </section>
-
-      {/* ============== CTA FINAL ============== */}
-      <section id="cta-final" className="relative overflow-hidden bg-white py-28 sm:py-32">
-        <div className="mx-auto max-w-6xl px-6 lg:px-10">
-          <Reveal>
-            <div
-              className="relative overflow-hidden rounded-3xl p-10 sm:p-16 text-center shadow-2xl"
-              style={{
-                background: `linear-gradient(135deg, ${NAVY_INK} 0%, ${NAVY} 50%, ${BLUE_DEEP} 100%)`,
-              }}
-            >
+            <div className="relative min-h-[440px] overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#10131a] p-6 shadow-2xl sm:p-8">
               <div
-                className="absolute inset-0 opacity-40"
+                aria-hidden
+                className="absolute inset-0 opacity-[0.09]"
                 style={{
-                  background:
-                    "radial-gradient(ellipse at top right, oklch(0.62 0.22 255 / 0.7), transparent 60%), radial-gradient(ellipse at bottom left, oklch(0.78 0.18 215 / 0.4), transparent 60%)",
+                  backgroundImage:
+                    "linear-gradient(rgba(255,255,255,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.10) 1px, transparent 1px)",
+                  backgroundSize: "42px 42px",
                 }}
               />
-              <div className="relative">
-                <h2 className="mx-auto max-w-3xl text-3xl font-bold tracking-tight text-white sm:text-5xl">
-                  Pronto para vender com inteligência e margem?
-                </h2>
-                <p className="mx-auto mt-5 max-w-2xl text-base text-white/80 sm:text-lg">
-                  Agende uma demonstração e veja como transformar os dados do seu Mercado Livre em
-                  lucro líquido real.
-                </p>
-                <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
-                  <a href="https://wa.me/" target="_blank" rel="noreferrer">
-                    <Button
-                      size="lg"
-                      className="h-12 rounded-full bg-white px-8 text-sm font-semibold text-slate-900 shadow-lg hover:bg-white/90"
-                    >
-                      Solicitar Demonstração Gratuita
-                      <ArrowRight className="ml-1 size-4" />
-                    </Button>
-                  </a>
-                  <Link to="/ecommerce/login">
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      className="h-12 rounded-full border-white/30 bg-transparent px-8 text-sm font-semibold text-white hover:bg-white/10 hover:text-white"
-                    >
-                      Entrar no painel
-                    </Button>
-                  </Link>
+
+              <div className="relative z-10">
+                {commerceAreas.map(({ key, icon: Icon, title, description, bullets }) => (
+                  <div key={key} className={`commerce-copy copy-${key}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex size-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-[#ffbf31]">
+                        <Icon className="size-6" />
+                      </div>
+                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">
+                        AC360 intelligence layer
+                      </span>
+                    </div>
+
+                    <h3 className="mt-10 max-w-2xl text-3xl font-bold tracking-[-0.035em] text-white sm:text-4xl">
+                      {title}
+                    </h3>
+                    <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/55">
+                      {description}
+                    </p>
+
+                    <div className="mt-10 grid gap-3 sm:grid-cols-3">
+                      {bullets.map((bullet) => (
+                        <div
+                          key={bullet}
+                          className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4"
+                        >
+                          <CheckCircle2 className="size-4 text-blue-300" />
+                          <p className="mt-3 text-sm font-semibold text-white/75">{bullet}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-8 flex items-center gap-3 border-t border-white/[0.08] pt-6 text-xs text-white/35">
+                      <Radar className="size-4 text-blue-300/70" />
+                      O objetivo não é mostrar mais dados. É mostrar o que merece atenção primeiro.
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ==================== DIFERENCIAL — FEED + CHAT ==================== */}
+      <section id="inteligencia" className="relative overflow-hidden bg-[#111216] py-24 sm:py-28">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(650px 420px at 20% 30%, rgba(18,105,255,.12), transparent 65%), radial-gradient(650px 420px at 85% 55%, rgba(255,173,27,.08), transparent 65%)",
+          }}
+        />
+
+        <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
+          <Reveal>
+            <div className="max-w-3xl">
+              <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#ffbf31]">
+                O diferencial AC360
+              </span>
+              <h2 className="mt-4 text-3xl font-bold tracking-[-0.04em] text-white sm:text-5xl">
+                Menos painel para interpretar. Mais direção para executar.
+              </h2>
+            </div>
+          </Reveal>
+
+          <div className="mt-12 grid gap-5 lg:grid-cols-2">
+            <Reveal>
+              <div className="group relative min-h-[420px] overflow-hidden rounded-[30px] border border-white/[0.08] bg-[#0c1018] p-7 shadow-2xl sm:p-9">
+                <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-blue-600/10 blur-[90px]" />
+                <div className="relative">
+                  <div className="flex size-14 items-center justify-center rounded-2xl border border-blue-300/15 bg-blue-500/10 text-blue-300">
+                    <Radar className="size-6" />
+                  </div>
+                  <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.2em] text-blue-300/70">Feed Inteligente</p>
+                  <h3 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-white">
+                    O que precisa da sua atenção aparece primeiro.
+                  </h3>
+                  <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/50">
+                    O AC360 organiza sinais da operação e transforma dispersão de dados em prioridades mais claras para o dia.
+                  </p>
+
+                  <div className="mt-8 space-y-3">
+                    {[
+                      ["Margem", "Rentabilidade merece revisão"],
+                      ["Estoque", "Item exige acompanhamento"],
+                      ["Anúncios", "Eficiência pode melhorar"],
+                    ].map(([title, textValue]) => (
+                      <div
+                        key={title}
+                        className="flex items-center justify-between rounded-2xl border border-white/[0.08] bg-white/[0.035] px-4 py-3"
+                      >
+                        <div>
+                          <p className="text-xs font-semibold text-white/45">{title}</p>
+                          <p className="mt-1 text-sm font-medium text-white/80">{textValue}</p>
+                        </div>
+                        <span className="size-2 rounded-full bg-[#ffbf31]" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
+            </Reveal>
+
+            <Reveal delay={100}>
+              <div className="group relative min-h-[420px] overflow-hidden rounded-[30px] border border-white/[0.08] bg-[#0c1018] p-7 shadow-2xl sm:p-9">
+                <div className="absolute -left-10 bottom-0 h-56 w-56 rounded-full bg-amber-500/[0.08] blur-[90px]" />
+                <div className="relative">
+                  <div className="flex size-14 items-center justify-center rounded-2xl border border-amber-300/15 bg-amber-500/[0.08] text-amber-300">
+                    <Brain className="size-6" />
+                  </div>
+                  <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/70">Chat AC360</p>
+                  <h3 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-white">
+                    Pergunte sobre a operação. Aprofunde a decisão.
+                  </h3>
+                  <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/50">
+                    Use o contexto da sua operação para investigar causas, oportunidades e próximos passos sem começar a análise do zero.
+                  </p>
+
+                  <div className="mt-8 rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/65">
+                        <UserCircle2 className="size-4" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-semibold text-white/40">Você</p>
+                        <p className="mt-1 text-sm text-white/80">
+                          Onde devo concentrar minha atenção hoje?
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4 flex items-start gap-3 border-t border-white/[0.07] pt-4">
+                      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-500/12 text-blue-300">
+                        <Brain className="size-4" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-semibold text-blue-300/70">AC360</p>
+                        <p className="mt-1 text-sm leading-relaxed text-white/72">
+                          Comece pelas prioridades do Feed Inteligente e aprofunde a causa antes de executar.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+        </div>
+      </section>
+
+      {/* ==================== CTA FINAL ==================== */}
+      <section id="cta-final" className="relative overflow-hidden bg-[#f7f8fb] py-24 text-slate-900 sm:py-28">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.35]"
+          style={{
+            background:
+              "radial-gradient(600px 300px at 18% 0%, rgba(35,117,255,.16), transparent 70%), radial-gradient(500px 300px at 90% 100%, rgba(255,191,49,.14), transparent 70%)",
+          }}
+        />
+
+        <div className="relative mx-auto max-w-5xl px-6 text-center lg:px-10">
+          <Reveal>
+            <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-blue-600">
+              Próximo passo
+            </span>
+            <h2 className="mx-auto mt-4 max-w-4xl text-4xl font-bold tracking-[-0.045em] text-[#071b45] sm:text-6xl">
+              Sua operação já gera dados.
+              <br />
+              O AC360 transforma esses dados em decisão.
+            </h2>
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
+              Conheça como a plataforma pode organizar a leitura da sua operação no Mercado Livre e apoiar decisões mais rápidas.
+            </p>
+
+            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <a href="mailto:contato@agentecomercial360.com.br?subject=Quero conhecer o AC360">
+                <Button
+                  size="lg"
+                  className="h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-900/15"
+                  style={{ background: "linear-gradient(135deg, #0867f2, #1b8cff)" }}
+                >
+                  Quero conhecer o AC360
+                  <ArrowRight className="ml-2 size-4" />
+                </Button>
+              </a>
+
+              <Link
+                to="/ecommerce/login"
+                className="inline-flex h-14 items-center justify-center rounded-full border border-slate-300 bg-white px-8 text-base font-semibold text-slate-800 shadow-sm transition-all hover:border-blue-300 hover:text-blue-700"
+              >
+                Entrar no painel
+              </Link>
             </div>
           </Reveal>
         </div>
       </section>
 
-      {/* ============== FOOTER — ENTERPRISE ============== */}
-      <footer
-        className="relative overflow-hidden text-white"
-        style={{ background: `linear-gradient(180deg, ${NAVY_INK} 0%, #05080f 100%)` }}
-      >
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 opacity-[0.06]"
-          style={{
-            backgroundImage:
-              "repeating-linear-gradient(90deg, #ffffff 0 1px, transparent 1px 80px), repeating-linear-gradient(0deg, #ffffff 0 1px, transparent 1px 80px)",
-            maskImage: "radial-gradient(ellipse at 50% 0%, black, transparent 70%)",
-            WebkitMaskImage: "radial-gradient(ellipse at 50% 0%, black, transparent 70%)",
-          }}
-        />
-        <div className="relative mx-auto max-w-7xl px-6 py-20 lg:px-10">
-          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4">
-            {/* Col 1 — Brand */}
-            <div>
-              <div className="flex items-center gap-3">
-                <img src={acLogo} alt="Agente Comercial 360" className="h-10 w-auto" />
-                <span className="text-base font-semibold tracking-[-0.01em] text-white">
-                  AC360
-                </span>
-              </div>
-              <p className="mt-5 max-w-xs text-sm leading-relaxed text-white/65">
-                A central de inteligência comercial definitiva para vendedores profissionais.
-              </p>
-              <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5">
-                <ShieldIcon className="size-3.5" style={{ color: CYAN }} />
-                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-white/70">
-                  API Oficial Mercado Livre
-                </span>
-              </div>
-            </div>
-
-            {/* Col 2 — Funcionalidades */}
-            <div>
-              <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
-                Funcionalidades
-              </h4>
-              <ul className="mt-5 space-y-3 text-sm text-white/75">
-                <li><a href="#solucoes" className="transition-colors hover:text-white">Inteligência Multi-conta</a></li>
-                <li><a href="#solucoes" className="transition-colors hover:text-white">Diagnóstico Inteligente Financeiro</a></li>
-                <li><a href="#solucoes" className="transition-colors hover:text-white">Controle de Margem</a></li>
-                <li><a href="#solucoes" className="transition-colors hover:text-white">Espionagem de Mercado</a></li>
-              </ul>
-            </div>
-
-            {/* Col 3 — Suporte */}
-            <div>
-              <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
-                Suporte
-              </h4>
-              <ul className="mt-5 space-y-3 text-sm text-white/75">
-                <li><a href="#faq" className="transition-colors hover:text-white">FAQ</a></li>
-                <li><a href="#cta-final" className="transition-colors hover:text-white">Central de Ajuda</a></li>
-                <li><a href="#cta-final" className="transition-colors hover:text-white">Solicitar Demo</a></li>
-                <li><Link to="/login" className="transition-colors hover:text-white">Área do Cliente</Link></li>
-              </ul>
-            </div>
-
-            {/* Col 4 — Institucional */}
-            <div>
-              <h4 className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/50">
-                Institucional
-              </h4>
-              <ul className="mt-5 space-y-3 text-sm text-white/75">
-                <li><a href="#" className="transition-colors hover:text-white">Termos de Uso</a></li>
-                <li><a href="#" className="transition-colors hover:text-white">Privacidade</a></li>
-                <li><a href="#" className="transition-colors hover:text-white">Blog</a></li>
-                <li><a href="#" className="transition-colors hover:text-white">API Oficial</a></li>
-              </ul>
-            </div>
+      {/* ==================== FOOTER ==================== */}
+      <footer className="border-t border-white/[0.06] bg-[#080b10]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-10">
+          <div className="flex items-center gap-3">
+            <img src={acLogo} alt="AC360" className="h-8 w-auto brightness-0 invert" />
+            <span className="text-xs text-white/35">E-commerce Intelligence</span>
           </div>
-
-          {/* Bottom row */}
-          <div className="mt-16 flex flex-col items-center justify-between gap-5 border-t border-white/10 pt-8 sm:flex-row">
-            <div className="flex flex-col items-center gap-1 sm:items-start">
-              <p className="text-xs text-white/50">
-                © {new Date().getFullYear()} Agente Comercial 360. Todos os direitos reservados.
-              </p>
-              <p className="text-[11px] font-medium uppercase tracking-[0.18em]" style={{ color: CYAN }}>
-                Feito para quem escala com inteligência.
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {[
-                { icon: Linkedin, href: "#", label: "LinkedIn" },
-                { icon: Instagram, href: "#", label: "Instagram" },
-                { icon: Youtube, href: "#", label: "YouTube" },
-                { icon: Mail, href: "mailto:contato@agentecomercial360.com.br", label: "E-mail" },
-              ].map(({ icon: Icon, href, label }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="inline-flex size-9 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white/70 transition-all duration-300 hover:border-white/30 hover:text-white hover:-translate-y-0.5"
-                >
-                  <Icon className="size-4" />
-                </a>
-              ))}
-            </div>
-          </div>
+          <p className="text-xs text-white/30">
+            Inteligência operacional para vendedores do Mercado Livre.
+          </p>
         </div>
       </footer>
     </div>

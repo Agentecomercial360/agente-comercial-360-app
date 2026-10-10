@@ -878,24 +878,38 @@ export function LandingPage() {
 
         <div className="relative z-10">
           <div className="fixed inset-x-0 top-0 z-50 shadow-[0_12px_35px_-28px_rgba(10,31,68,.45)]">
-            <div className="border-b border-blue-300/10 bg-[linear-gradient(90deg,#071a43_0%,#0b2b66_45%,#071a43_100%)] text-white">
-              <div className="mx-auto flex min-h-10 max-w-7xl items-center justify-center gap-3 px-4 py-2 text-center sm:px-6 lg:px-10">
-                <span className="hidden rounded-full border border-blue-300/20 bg-white/[0.07] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-blue-100 sm:inline-flex">
+            <div className="relative overflow-hidden border-b border-blue-200/15 bg-[linear-gradient(90deg,#06152f_0%,#0b2b66_48%,#06152f_100%)] text-white">
+              <style>{`
+                @keyframes acAnnouncementShimmer {
+                  0% { transform: translateX(-130%); opacity: 0; }
+                  18% { opacity: .45; }
+                  50% { opacity: .16; }
+                  100% { transform: translateX(230%); opacity: 0; }
+                }
+              `}</style>
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-y-0 left-0 w-40 rotate-12 bg-gradient-to-r from-transparent via-cyan-200/20 to-transparent blur-md"
+                style={{ animation: "acAnnouncementShimmer 6.5s ease-in-out infinite" }}
+              />
+              <div className="relative mx-auto flex min-h-12 max-w-7xl items-center justify-center gap-3 px-4 py-2.5 text-center sm:px-6 lg:px-10">
+                <span className="hidden items-center gap-2 rounded-full border border-blue-200/20 bg-white/[0.08] px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-blue-50 shadow-[0_0_22px_rgba(96,165,250,.10)] sm:inline-flex">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#ffbf31] shadow-[0_0_12px_rgba(255,191,49,.9)]" />
                   Exclusivo AC360
                 </span>
-                <p className="text-[10px] font-medium text-white/78 sm:text-[11px]">
+                <p className="text-[10.5px] font-semibold text-white/88 sm:text-[11.5px]">
                   Diagnóstico estratégico para vendedores do Mercado Livre
-                  <span className="hidden text-white/45 md:inline"> · </span>
-                  <span className="hidden text-white/68 md:inline">
+                  <span className="hidden text-white/40 lg:inline"> · </span>
+                  <span className="hidden font-medium text-white/68 lg:inline">
                     Descubra onde sua operação perde margem e o que priorizar primeiro.
                   </span>
                 </p>
                 <a
                   href="#cta-final"
-                  className="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-bold text-cyan-200 transition hover:text-white sm:text-[11px]"
+                  className="group inline-flex shrink-0 items-center gap-2 rounded-full border border-cyan-200/20 bg-white/[0.07] px-3.5 py-1.5 text-[10px] font-bold text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,.08)] transition hover:border-cyan-200/35 hover:bg-white/[0.11] hover:text-white sm:text-[11px]"
                 >
                   Solicitar diagnóstico
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                 </a>
               </div>
             </div>

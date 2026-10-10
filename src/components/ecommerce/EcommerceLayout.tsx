@@ -74,7 +74,7 @@ const navGroups = [
     items: [
       { label: "Diagnóstico Inteligente", to: "/ecommerce/radar-ia", icon: Radar },
       { label: "Assistente Estratégico", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
-      { label: "Chat Consultivo IA", to: "/ecommerce/chat-consultivo-ia", icon: MessageSquare },
+      { label: "Studio de Imagens IA", to: "/ecommerce/chat-consultivo-ia", icon: MessageSquare },
       { label: "Regras da Operação", to: "/ecommerce/base-ia", icon: BookOpen },
     ],
   },

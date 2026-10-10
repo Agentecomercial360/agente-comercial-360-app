@@ -451,58 +451,63 @@ function ResultadosAcoesContent() {
         )}
 
         {resultsPending.length > 0 && (
-          <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/50 p-3 text-xs text-amber-900">
-            <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-            <div className="space-y-1">
-              <div>
-                Existem <strong>{resultsPending.length}</strong> resultado(s) medido(s)
-                vinculado(s) a tarefa(s) ainda não concluída(s). Esses valores
-                <strong> não entram</strong> nos KPIs principais.
-              </div>
-              <ul className="list-disc space-y-0.5 pl-4">
+          <details className="group rounded-2xl border border-amber-200/80 bg-amber-50/45 px-4 py-3 text-xs text-amber-900">
+            <summary className="flex cursor-pointer list-none items-center gap-2 font-medium">
+              <Info className="h-3.5 w-3.5 shrink-0" />
+              <span>
+                <strong>{resultsPending.length}</strong> resultado(s) ainda está(ão) vinculado(s) a ação(ões) em andamento.
+              </span>
+              <span className="ml-auto text-[10px] font-semibold uppercase tracking-wider text-amber-700/70 group-open:hidden">
+                Ver detalhes
+              </span>
+            </summary>
+            <div className="mt-3 border-t border-amber-200/70 pt-3">
+              <p className="mb-2 text-[11px] text-amber-800/80">
+                Esses valores não entram nos KPIs principais enquanto as tarefas não forem concluídas.
+              </p>
+              <ul className="space-y-1.5">
                 {resultsPending.slice(0, 5).map((r) => (
-                  <li key={r.id}>
+                  <li key={r.id} className="rounded-lg bg-white/65 px-3 py-2">
                     <span className="font-medium">{r.task_title ?? "Tarefa"}</span>
-                    {" — status: "}
-                    <span className="uppercase">{r.task_status ?? "—"}</span>
-                    {" · resultado: "}
-                    <span>{IMPACT_LABEL[bucketOf(r.result_status)]}</span>
+                    <span className="text-amber-800/70">
+                      {" · "}{(r.task_status ?? "—").toUpperCase()}{" · "}{IMPACT_LABEL[bucketOf(r.result_status)]}
+                    </span>
                   </li>
                 ))}
               </ul>
             </div>
-          </div>
+          </details>
         )}
 
         {/* Métricas de Impacto */}
         <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           {/* Card de destaque — Receita estimada gerada */}
-          <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/80 to-white p-6 shadow-[var(--shadow-soft)] lg:col-span-2">
-            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-400/10" />
+          <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-white p-6 shadow-[0_18px_44px_-36px_rgba(10,31,68,.45)] lg:col-span-2">
+            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-400/[0.07]" />
             <div className="relative flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-emerald-800">
+                <div className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                   <DollarSign className="h-3.5 w-3.5" />
                   Receita estimada gerada
                 </div>
-                <div className="font-display text-3xl font-bold text-emerald-900 md:text-4xl">
+                <div className="font-display text-3xl font-bold tracking-tight text-emerald-700 md:text-4xl">
                   {fmtMoney(kpis.revenue)}
                 </div>
-                <p className="max-w-md text-xs text-emerald-800/80">
+                <p className="max-w-md text-xs text-muted-foreground">
                   Soma das diferenças positivas de faturamento registradas nas
                   ações com impacto positivo.
                 </p>
               </div>
-              <div className="flex min-w-[140px] flex-col gap-1 rounded-xl border border-emerald-100/80 bg-white/70 p-3 backdrop-blur-sm">
-                <div className="text-[10px] font-semibold uppercase tracking-wider text-emerald-800/70">
+              <div className="flex min-w-[140px] flex-col gap-1 rounded-xl border border-border/60 bg-slate-50/70 p-3">
+                <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                   Estoque protegido
                 </div>
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-4 w-4 text-emerald-700" />
-                  <span className="font-display text-xl font-bold text-emerald-900">
+                  <span className="font-display text-xl font-bold text-[#0A1F44]">
                     {kpis.stockCount}
                   </span>
-                  <span className="text-xs text-emerald-800/70">ações</span>
+                  <span className="text-xs text-muted-foreground">ações</span>
                 </div>
               </div>
             </div>
@@ -812,18 +817,18 @@ function CompactKpi({
   value: string;
   accent?: "slate" | "emerald" | "violet";
 }) {
-  const color =
+  const valueColor =
     accent === "emerald"
-      ? "border-emerald-100 bg-emerald-50/60 text-emerald-900"
+      ? "text-emerald-700"
       : accent === "violet"
-        ? "border-violet-100 bg-violet-50/60 text-violet-900"
-        : "border-slate-100 bg-slate-50/60 text-slate-900";
+        ? "text-violet-700"
+        : "text-[#0A1F44]";
   return (
-    <div className={`rounded-xl border p-4 ${color}`}>
-      <div className="text-[10px] font-semibold uppercase tracking-wider opacity-70">
+    <div className="rounded-xl border border-border/60 bg-white p-4 shadow-[0_12px_30px_-28px_rgba(10,31,68,.38)]">
+      <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
         {label}
       </div>
-      <div className="mt-1 font-display text-2xl font-bold">{value}</div>
+      <div className={`mt-1.5 font-display text-2xl font-bold ${valueColor}`}>{value}</div>
     </div>
   );
 }

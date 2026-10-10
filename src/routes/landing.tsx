@@ -983,21 +983,12 @@ export function LandingPage() {
                 mais impactam o resultado e transforma esses sinais em prioridades claras para agir.
               </p>
 
-              <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
-                {["Vendas", "Margem", "Estoque", "Ads", "Prioridades"].map((label) => (
-                  <span
-                    key={label}
-                    className="rounded-full border border-white/16 bg-white/[0.055] px-4 py-2 text-xs font-medium text-white/78 backdrop-blur-lg"
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
+
             </Reveal>
 
-            <Reveal delay={110} className="mt-10 w-full max-w-4xl">
-              <div className="overflow-hidden rounded-[28px] border border-white/16 bg-[#061329]/88 text-left shadow-[0_32px_100px_-42px_rgba(0,0,0,.9)] backdrop-blur-2xl">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4 sm:px-6">
+            <Reveal delay={110} className="mt-10 w-full max-w-5xl">
+              <div className="overflow-hidden rounded-[30px] border border-white/14 bg-[#061329]/90 text-left shadow-[0_34px_110px_-46px_rgba(0,0,0,.92)] backdrop-blur-2xl">
+                <div className="flex flex-col gap-4 border-b border-white/10 px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.07] text-blue-200">
                       <Brain className="h-5 w-5" />
@@ -1011,13 +1002,28 @@ export function LandingPage() {
                       </p>
                     </div>
                   </div>
-                  <span className="rounded-full border border-emerald-300/15 bg-emerald-300/[0.08] px-3 py-1.5 text-[9px] font-semibold text-emerald-200">
-                    Operação conectada
-                  </span>
+
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {["Visão geral", "Margem", "Estoque", "Ads"].map((label, index) => (
+                      <span
+                        key={label}
+                        className={`rounded-full px-3 py-1.5 text-[9px] font-semibold ${
+                          index === 0
+                            ? "bg-white text-[#0A1F44]"
+                            : "border border-white/10 bg-white/[0.04] text-white/48"
+                        }`}
+                      >
+                        {label}
+                      </span>
+                    ))}
+                    <span className="ml-1 rounded-full border border-emerald-300/15 bg-emerald-300/[0.08] px-3 py-1.5 text-[9px] font-semibold text-emerald-200">
+                      Operação analisada
+                    </span>
+                  </div>
                 </div>
 
                 <div className="p-5 sm:p-6">
-                  <div className="ml-auto max-w-[680px] rounded-[18px] rounded-br-md border border-blue-300/15 bg-blue-500/[0.12] px-4 py-3 text-[12.5px] font-medium leading-relaxed text-white/90">
+                  <div className="ml-auto max-w-[720px] rounded-[18px] rounded-br-md border border-blue-300/15 bg-blue-500/[0.12] px-4 py-3 text-[12.5px] font-medium leading-relaxed text-white/90">
                     AC360, o que está prejudicando meu resultado hoje?
                   </div>
 
@@ -1025,62 +1031,120 @@ export function LandingPage() {
                     <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg shadow-blue-950/35">
                       <Sparkles className="h-3.5 w-3.5" />
                     </span>
-                    <div className="flex-1 rounded-[18px] rounded-tl-md border border-white/10 bg-white/[0.055] p-4">
-                      <p className="text-[12px] leading-relaxed text-white/72">
-                        Encontrei três frentes que merecem atenção. Comece pelas ações com maior
-                        impacto financeiro e valide a causa antes de executar.
-                      </p>
 
-                      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                        <div className="rounded-2xl border border-rose-300/10 bg-rose-400/[0.06] p-3.5">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-400/10 text-rose-200">
-                              <DollarSign className="h-4 w-4" />
-                            </span>
-                            <span className="text-[8px] font-bold uppercase tracking-[0.13em] text-rose-200/75">
-                              Prioridade
-                            </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="rounded-[20px] rounded-tl-md border border-white/10 bg-white/[0.055] p-4">
+                        <p className="text-[12px] leading-relaxed text-white/72">
+                          Encontrei 3 pontos que merecem atenção. O primeiro envolve margem,
+                          porque custos pendentes estão impedindo uma leitura confiável do resultado.
+                          Depois disso, revise estoque e campanhas.
+                        </p>
+                      </div>
+
+                      <div className="mt-4 grid gap-3 lg:grid-cols-[1.35fr_.65fr]">
+                        <div className="relative overflow-hidden rounded-[22px] border border-rose-300/15 bg-gradient-to-br from-rose-400/[0.10] via-white/[0.055] to-white/[0.035] p-5">
+                          <div
+                            aria-hidden
+                            className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-rose-400/[0.10] blur-3xl"
+                          />
+                          <div className="relative">
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                              <div className="flex items-center gap-2">
+                                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-400/10 text-rose-200">
+                                  <DollarSign className="h-4 w-4" />
+                                </span>
+                                <div>
+                                  <p className="text-[8.5px] font-bold uppercase tracking-[0.14em] text-rose-200/75">
+                                    Prioridade #1
+                                  </p>
+                                  <p className="mt-1 text-[15px] font-semibold text-white">
+                                    Margem comprometida
+                                  </p>
+                                </div>
+                              </div>
+                              <span className="rounded-full border border-rose-300/15 bg-rose-400/[0.08] px-2.5 py-1 text-[8.5px] font-bold text-rose-200">
+                                Resolver primeiro
+                              </span>
+                            </div>
+
+                            <p className="mt-4 text-[12px] leading-relaxed text-white/68">
+                              Produtos com vendas estão sem custo confiável, impedindo uma leitura
+                              real de rentabilidade.
+                            </p>
+
+                            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                              <div className="rounded-2xl border border-white/10 bg-black/[0.10] p-3.5">
+                                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-white/36">
+                                  Por que isso importa
+                                </p>
+                                <p className="mt-2 text-[10.5px] leading-relaxed text-white/66">
+                                  Sem o custo correto, você pode escalar produtos que faturam bem,
+                                  mas entregam pouca margem.
+                                </p>
+                              </div>
+
+                              <div className="rounded-2xl border border-white/10 bg-black/[0.10] p-3.5">
+                                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-white/36">
+                                  Próximo passo
+                                </p>
+                                <p className="mt-2 text-[10.5px] leading-relaxed text-white/66">
+                                  Validar os custos dos SKUs prioritários antes de aumentar investimento.
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="mt-4 flex justify-end">
+                              <Link
+                                to="/ecommerce/prioridades"
+                                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[10.5px] font-bold text-[#0A1F44] transition hover:-translate-y-0.5 hover:shadow-lg"
+                              >
+                                Ir para Central de Ações
+                                <ArrowRight className="h-3.5 w-3.5" />
+                              </Link>
+                            </div>
                           </div>
-                          <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">
-                            Margem
-                          </p>
-                          <p className="mt-1 text-[11.5px] font-semibold text-white">
-                            Custos pendentes bloqueiam uma leitura confiável.
-                          </p>
                         </div>
 
-                        <div className="rounded-2xl border border-amber-300/10 bg-amber-400/[0.06] p-3.5">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/10 text-amber-200">
-                              <Boxes className="h-4 w-4" />
-                            </span>
-                            <span className="text-[8px] font-bold uppercase tracking-[0.13em] text-amber-200/75">
-                              Atenção
-                            </span>
+                        <div className="grid gap-3">
+                          <div className="rounded-[20px] border border-amber-300/12 bg-amber-400/[0.055] p-4">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/10 text-amber-200">
+                                <Boxes className="h-4 w-4" />
+                              </span>
+                              <span className="text-[8px] font-bold uppercase tracking-[0.13em] text-amber-200/70">
+                                Atenção
+                              </span>
+                            </div>
+                            <p className="mt-4 text-[9px] font-bold uppercase tracking-[0.12em] text-white/38">
+                              Estoque
+                            </p>
+                            <p className="mt-1 text-[12px] font-semibold leading-relaxed text-white">
+                              Itens com giro relevante entram em zona de risco.
+                            </p>
+                            <p className="mt-2 text-[9.5px] leading-relaxed text-white/45">
+                              Antecipe reposição antes da ruptura.
+                            </p>
                           </div>
-                          <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">
-                            Estoque
-                          </p>
-                          <p className="mt-1 text-[11.5px] font-semibold text-white">
-                            Itens com giro relevante entram em zona de risco.
-                          </p>
-                        </div>
 
-                        <div className="rounded-2xl border border-blue-300/10 bg-blue-400/[0.06] p-3.5">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-400/10 text-blue-200">
-                              <Target className="h-4 w-4" />
-                            </span>
-                            <span className="text-[8px] font-bold uppercase tracking-[0.13em] text-blue-200/75">
-                              Oportunidade
-                            </span>
+                          <div className="rounded-[20px] border border-blue-300/12 bg-blue-400/[0.055] p-4">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-400/10 text-blue-200">
+                                <Target className="h-4 w-4" />
+                              </span>
+                              <span className="text-[8px] font-bold uppercase tracking-[0.13em] text-blue-200/70">
+                                Oportunidade
+                              </span>
+                            </div>
+                            <p className="mt-4 text-[9px] font-bold uppercase tracking-[0.12em] text-white/38">
+                              Ads
+                            </p>
+                            <p className="mt-1 text-[12px] font-semibold leading-relaxed text-white">
+                              Campanhas e produtos com espaço para revisão ou escala.
+                            </p>
+                            <p className="mt-2 text-[9.5px] leading-relaxed text-white/45">
+                              Diferencie correção de oportunidade.
+                            </p>
                           </div>
-                          <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">
-                            Anúncios
-                          </p>
-                          <p className="mt-1 text-[11.5px] font-semibold text-white">
-                            Campanhas e produtos com espaço para revisão ou escala.
-                          </p>
                         </div>
                       </div>
 
@@ -1090,9 +1154,9 @@ export function LandingPage() {
                         </p>
                         <a
                           href="#operacao"
-                          className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[10.5px] font-bold text-[#0A1F44] transition hover:-translate-y-0.5"
+                          className="inline-flex items-center gap-2 text-[10.5px] font-semibold text-blue-200 transition hover:text-white"
                         >
-                          Ver como o AC360 funciona
+                          Entender o método AC360
                           <ArrowRight className="h-3.5 w-3.5" />
                         </a>
                       </div>
@@ -1100,7 +1164,7 @@ export function LandingPage() {
                   </div>
                 </div>
               </div>
-            </Reveal>
+            </Reveal>Reveal>
           </div>
         </div>
       </section>

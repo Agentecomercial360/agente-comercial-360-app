@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { createAc360ApiUrl, getAc360AccessToken } from "@/lib/ac360-api";
 
 const DEFAULT_API_BASE_URL = "https://ac360-mercadolivre-api-production.up.railway.app";
 
@@ -279,9 +279,8 @@ export async function getStudioIaDiagnosticPreview({
     throw new StudioIaDiagnosticError("Empresa ou conta ativa inválida.", "invalid_response");
   }
 
-  const { data, error } = await supabase.auth.getSession();
-  const accessToken = data?.session?.access_token;
-  if (error || !accessToken) {
+  const accessToken = await getAc360AccessToken();
+  if (!accessToken) {
     throw new StudioIaDiagnosticError(
       "Sua sessão expirou. Entre novamente para carregar o diagnóstico.",
       "unauthenticated",
@@ -289,11 +288,10 @@ export async function getStudioIaDiagnosticPreview({
     );
   }
 
-  const configuredBaseUrl = String(import.meta.env.VITE_AC360_API_URL ?? "").trim();
-  const apiBaseUrl = (configuredBaseUrl || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
-  const url = new URL(`${apiBaseUrl}/api/ecommerce/studio-ia/diagnostic-preview`);
-  url.searchParams.set("company_id", companyId);
-  url.searchParams.set("account_id", accountId);
+  const url = createAc360ApiUrl("/api/ecommerce/studio-ia/diagnostic-preview", {
+    company_id: companyId,
+    account_id: accountId,
+  });
 
   let response: Response;
   try {

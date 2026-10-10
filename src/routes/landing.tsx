@@ -849,12 +849,12 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-[#080b10] text-white antialiased">
       {/* ==================== HERO — E-COMMERCE INTELLIGENCE ==================== */}
-      <section id="top" className="relative min-h-[760px] overflow-hidden bg-[#080b10]">
+      <section id="top" className="relative min-h-[850px] overflow-hidden bg-[#071630]">
         <img
           src={heroWarehouse}
           alt="Operação de e-commerce e logística"
-          className="absolute inset-0 h-full w-full scale-[1.04] object-cover object-center"
-          style={{ filter: "saturate(0.92) contrast(1.12) brightness(0.74)" }}
+          className="absolute inset-0 h-full w-full scale-[1.03] object-cover object-center"
+          style={{ filter: "saturate(0.82) contrast(1.08) brightness(0.55)" }}
         />
 
         <div
@@ -862,19 +862,15 @@ export function LandingPage() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(90deg, rgba(4,7,12,0.98) 0%, rgba(5,8,14,0.94) 34%, rgba(5,9,16,0.68) 58%, rgba(5,9,16,0.28) 82%, rgba(5,9,16,0.44) 100%), linear-gradient(180deg, rgba(3,7,13,0.48) 0%, rgba(3,7,13,0.05) 55%, rgba(3,7,13,0.92) 100%)",
+              "linear-gradient(180deg, rgba(5,19,48,0.90) 0%, rgba(6,24,56,0.86) 42%, rgba(5,20,48,0.94) 100%)",
           }}
         />
-
         <div
           aria-hidden
-          className="absolute inset-0 opacity-[0.12]"
+          className="absolute inset-0"
           style={{
-            backgroundImage:
-              "linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px)",
-            backgroundSize: "72px 72px",
-            maskImage: "linear-gradient(90deg, transparent 0%, black 48%, black 100%)",
-            WebkitMaskImage: "linear-gradient(90deg, transparent 0%, black 48%, black 100%)",
+            background:
+              "radial-gradient(circle at 50% 45%, rgba(30,94,255,.18), transparent 34%), radial-gradient(circle at 72% 66%, rgba(56,189,248,.08), transparent 28%)",
           }}
         />
 
@@ -882,81 +878,61 @@ export function LandingPage() {
           <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10">
             <a href="#top" className="flex items-center gap-3">
               <img src={acLogo} alt="AC360" className="h-9 w-auto brightness-0 invert" />
-              <span className="hidden border-l border-white/20 pl-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50 sm:block">
+              <span className="hidden border-l border-white/20 pl-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/55 sm:block">
                 E-commerce Intelligence
               </span>
             </a>
 
-            <nav className="hidden items-center gap-8 text-sm font-medium text-white/60 md:flex">
-              <a href="#operacao" className="transition-colors hover:text-white">Operação</a>
+            <nav className="hidden items-center gap-8 text-[13px] font-medium text-white/68 lg:flex">
+              <a href="#operacao" className="transition-colors hover:text-white">Soluções</a>
               <a href="#inteligencia" className="transition-colors hover:text-white">Inteligência</a>
-              <a href="#cta-final" className="transition-colors hover:text-white">Demonstração</a>
+              <a href="#cta-final" className="transition-colors hover:text-white">Consultoria</a>
+              <a href="#solucoes" className="transition-colors hover:text-white">Plataforma</a>
             </nav>
 
             <div className="flex items-center gap-3">
               <Link
                 to="/ecommerce/login"
-                className="hidden rounded-full border border-white/15 bg-white/[0.06] px-5 py-2.5 text-sm font-semibold text-white/85 backdrop-blur-xl transition-all hover:border-white/30 hover:bg-white/[0.10] sm:inline-flex"
+                className="hidden rounded-full px-4 py-2.5 text-sm font-semibold text-white/72 transition-colors hover:text-white sm:inline-flex"
               >
-                Entrar no painel
+                Login
               </Link>
-              <a href="#cta-final">
-                <Button
-                  className="h-10 rounded-full px-5 text-sm font-semibold text-white shadow-lg shadow-blue-950/40"
-                  style={{ background: "linear-gradient(135deg, #0867f2, #1b8cff)" }}
-                >
-                  Solicitar diagnóstico
-                </Button>
+              <a
+                href="#cta-final"
+                className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-[#0A1F44] shadow-[0_12px_35px_-18px_rgba(255,255,255,.55)] transition hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                Solicitar diagnóstico
+                <ArrowRight className="h-4 w-4" />
               </a>
             </div>
           </header>
 
-          <div className="mx-auto grid min-h-[660px] max-w-7xl items-center gap-12 px-6 pb-24 pt-14 lg:grid-cols-[0.9fr_1.1fr] lg:px-10 lg:pb-28 lg:pt-20">
-            <Reveal className="max-w-[690px]">
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 backdrop-blur-xl">
-                <span className="size-2 rounded-full bg-[#f4c400] shadow-[0_0_16px_rgba(244,196,0,.65)]" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/65">
-                  Inteligência + consultoria para vendedores no Mercado Livre
+          <div className="mx-auto flex max-w-7xl flex-col items-center px-6 pb-20 pt-20 text-center lg:px-10 lg:pt-24">
+            <Reveal className="mx-auto flex max-w-5xl flex-col items-center">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 backdrop-blur-xl">
+                <span className="h-2 w-2 rounded-full bg-[#ffbf31] shadow-[0_0_16px_rgba(255,191,49,.65)]" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.20em] text-white/70">
+                  AC360 · Inteligência para vendedores do Mercado Livre
                 </span>
               </div>
 
-              <h1 className="font-display text-[44px] font-bold leading-[0.98] tracking-[-0.045em] text-white sm:text-[60px] lg:text-[72px]">
-                Sua operação vende.
-                <br />
-                O AC360 mostra{" "}
-                <span className="text-[#ffbf31]">onde está o lucro.</span>
+              <h1 className="mt-7 max-w-5xl font-display text-[44px] font-bold leading-[0.98] tracking-[-0.045em] text-white sm:text-[58px] lg:text-[68px]">
+                Transforme os dados da sua operação
+                <span className="mt-2 block text-[#73A7FF]">
+                  em decisões que aumentam resultado.
+                </span>
               </h1>
 
-              <p className="mt-6 max-w-[610px] text-base leading-relaxed text-white/68 sm:text-lg">
-                Tecnologia proprietária e acompanhamento consultivo para transformar dados do
-                Mercado Livre em prioridades claras, ações objetivas e resultado mensurável.
+              <p className="mt-6 max-w-3xl text-base leading-relaxed text-white/68 sm:text-lg">
+                O AC360 conecta vendas, margem, estoque e anúncios para mostrar o que merece
+                atenção, onde agir primeiro e por quê.
               </p>
 
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a href="#cta-final">
-                  <Button
-                    size="lg"
-                    className="h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-950/35 transition-all hover:-translate-y-0.5"
-                    style={{ background: "linear-gradient(135deg, #0867f2, #1b8cff)" }}
-                  >
-                    Solicitar diagnóstico
-                    <ArrowRight className="ml-2 size-4" />
-                  </Button>
-                </a>
-
-                <a
-                  href="#operacao"
-                  className="inline-flex h-14 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] px-8 text-base font-semibold text-white/85 backdrop-blur-xl transition-all hover:border-white/30 hover:bg-white/[0.10] hover:text-white"
-                >
-                  Conhecer os benefícios
-                </a>
-              </div>
-
-              <div className="mt-8 flex flex-wrap gap-2">
-                {["Margem", "Estoque", "Feed Inteligente", "Ações", "Resultados"].map((label) => (
+              <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
+                {["Vendas", "Margem", "Estoque", "Anúncios", "Performance"].map((label) => (
                   <span
                     key={label}
-                    className="rounded-full border border-white/10 bg-black/20 px-3.5 py-2 text-xs font-medium text-white/60 backdrop-blur-lg"
+                    className="rounded-full border border-white/16 bg-white/[0.055] px-4 py-2 text-xs font-medium text-white/78 backdrop-blur-lg"
                   >
                     {label}
                   </span>
@@ -964,163 +940,112 @@ export function LandingPage() {
               </div>
             </Reveal>
 
-            <div className="relative hidden min-h-[560px] lg:block" data-intelligence-cluster>
-              <style>{`
-                [data-intelligence-cluster] .intel-float-a {
-                  animation: intelFloatA 6s ease-in-out infinite;
-                }
-                [data-intelligence-cluster] .intel-float-b {
-                  animation: intelFloatB 7s ease-in-out infinite;
-                }
-                [data-intelligence-cluster] .intel-float-c {
-                  animation: intelFloatC 6.5s ease-in-out infinite;
-                }
-                [data-intelligence-cluster] .intel-float-d {
-                  animation: intelFloatD 7.5s ease-in-out infinite;
-                }
-                [data-intelligence-cluster] .intel-ring {
-                  animation: intelPulse 5s ease-in-out infinite;
-                }
-                [data-intelligence-cluster] .intel-dot {
-                  animation: intelDot 2.8s ease-in-out infinite;
-                }
-
-                @keyframes intelFloatA {
-                  0%, 100% { transform: translate3d(0,0,0); }
-                  50% { transform: translate3d(8px,-10px,0); }
-                }
-                @keyframes intelFloatB {
-                  0%, 100% { transform: translate3d(0,0,0); }
-                  50% { transform: translate3d(-9px,8px,0); }
-                }
-                @keyframes intelFloatC {
-                  0%, 100% { transform: translate3d(0,0,0); }
-                  50% { transform: translate3d(7px,9px,0); }
-                }
-                @keyframes intelFloatD {
-                  0%, 100% { transform: translate3d(0,0,0); }
-                  50% { transform: translate3d(-8px,-8px,0); }
-                }
-                @keyframes intelPulse {
-                  0%, 100% { opacity: .42; transform: scale(1); }
-                  50% { opacity: .72; transform: scale(1.035); }
-                }
-                @keyframes intelDot {
-                  0%, 100% { opacity: .35; }
-                  50% { opacity: 1; }
-                }
-
-                @media (prefers-reduced-motion: reduce) {
-                  [data-intelligence-cluster] .intel-float-a,
-                  [data-intelligence-cluster] .intel-float-b,
-                  [data-intelligence-cluster] .intel-float-c,
-                  [data-intelligence-cluster] .intel-float-d,
-                  [data-intelligence-cluster] .intel-ring,
-                  [data-intelligence-cluster] .intel-dot {
-                    animation: none !important;
-                  }
-                }
-              `}</style>
-
-              {/* subtle network behind the cards */}
-              <div className="pointer-events-none absolute left-1/2 top-1/2 h-[360px] w-[360px] -translate-x-1/2 -translate-y-1/2">
-                <div className="intel-ring absolute inset-0 rounded-full border border-white/[0.08]" />
-                <div className="intel-ring absolute inset-[54px] rounded-full border border-blue-300/[0.10]" style={{ animationDelay: "700ms" }} />
-                <div className="absolute left-1/2 top-1/2 h-px w-[330px] -translate-x-1/2 -translate-y-1/2 rotate-[24deg] bg-gradient-to-r from-transparent via-white/[0.10] to-transparent" />
-                <div className="absolute left-1/2 top-1/2 h-px w-[330px] -translate-x-1/2 -translate-y-1/2 -rotate-[31deg] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
-              </div>
-
-              {/* robust compact hub */}
-              <div className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
-                <div className="relative flex size-[188px] items-center justify-center rounded-full border border-white/[0.12] bg-black/28 shadow-[0_30px_90px_-25px_rgba(0,0,0,.8)] backdrop-blur-xl">
-                  <div className="absolute inset-[18px] rounded-full border border-blue-300/[0.10] bg-blue-500/[0.035]" />
-                  <div className="relative text-center">
-                    <div className="mx-auto flex size-14 items-center justify-center rounded-2xl border border-white/12 bg-white/[0.07] shadow-[0_14px_40px_-16px_rgba(0,0,0,.9)] backdrop-blur-xl">
-                      <img src={acLogo} alt="" className="h-8 w-auto brightness-0 invert" />
+            <Reveal delay={110} className="mt-10 w-full max-w-4xl">
+              <div className="overflow-hidden rounded-[28px] border border-white/16 bg-[#061329]/88 text-left shadow-[0_32px_100px_-42px_rgba(0,0,0,.9)] backdrop-blur-2xl">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 px-5 py-4 sm:px-6">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.07] text-blue-200">
+                      <Brain className="h-5 w-5" />
+                    </span>
+                    <div>
+                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/40">
+                        AC360 Intelligence
+                      </p>
+                      <p className="mt-1 text-[13px] font-semibold text-white">
+                        Sua operação transformada em prioridade
+                      </p>
                     </div>
-                    <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">
-                      Central AC360
-                    </p>
-                    <p className="mt-1 text-[11px] font-medium text-white/72">
-                      Dados → Prioridades
-                    </p>
                   </div>
-
-                  <span className="intel-dot absolute -left-1 top-1/2 size-2 rounded-full bg-blue-300 shadow-[0_0_18px_rgba(125,211,252,.8)]" />
-                  <span className="intel-dot absolute -right-1 top-1/2 size-2 rounded-full bg-amber-300 shadow-[0_0_18px_rgba(252,211,77,.8)]" style={{ animationDelay: "500ms" }} />
-                  <span className="intel-dot absolute left-1/2 -top-1 size-2 rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(103,232,249,.8)]" style={{ animationDelay: "900ms" }} />
-                  <span className="intel-dot absolute bottom-[-4px] left-1/2 size-2 rounded-full bg-fuchsia-300 shadow-[0_0_18px_rgba(240,171,252,.8)]" style={{ animationDelay: "1300ms" }} />
-                </div>
-              </div>
-
-              <div className="intel-float-a absolute left-8 top-12 z-30 w-[210px] rounded-2xl border border-white/12 bg-black/46 p-3.5 shadow-[0_22px_55px_-24px_rgba(0,0,0,.9)] backdrop-blur-2xl">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300 ring-1 ring-blue-300/15">
-                    <Radar className="size-4.5" />
+                  <span className="rounded-full border border-emerald-300/15 bg-emerald-300/[0.08] px-3 py-1.5 text-[9px] font-semibold text-emerald-200">
+                    Operação conectada
                   </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/38">Feed Inteligente</p>
-                      <span className="size-1.5 rounded-full bg-blue-300" />
-                    </div>
-                    <p className="mt-1 text-[13px] font-semibold leading-snug text-white">
-                      Prioridades da operação
-                    </p>
-                  </div>
                 </div>
-              </div>
 
-              <div className="intel-float-b absolute right-0 top-36 z-30 w-[205px] rounded-2xl border border-white/12 bg-black/46 p-3.5 shadow-[0_22px_55px_-24px_rgba(0,0,0,.9)] backdrop-blur-2xl">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300 ring-1 ring-amber-300/15">
-                    <DollarSign className="size-4.5" />
-                  </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/38">Margem</p>
-                      <span className="size-1.5 rounded-full bg-amber-300" />
-                    </div>
-                    <p className="mt-1 text-[13px] font-semibold leading-snug text-white">
-                      Rentabilidade sob controle
-                    </p>
+                <div className="p-5 sm:p-6">
+                  <div className="ml-auto max-w-[680px] rounded-[18px] rounded-br-md border border-blue-300/15 bg-blue-500/[0.12] px-4 py-3 text-[12.5px] font-medium leading-relaxed text-white/90">
+                    AC360, onde minha operação está deixando dinheiro na mesa hoje?
                   </div>
-                </div>
-              </div>
 
-              <div className="intel-float-c absolute bottom-24 left-3 z-30 w-[205px] rounded-2xl border border-white/12 bg-black/46 p-3.5 shadow-[0_22px_55px_-24px_rgba(0,0,0,.9)] backdrop-blur-2xl">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-300/15">
-                    <Boxes className="size-4.5" />
-                  </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/38">Estoque</p>
-                      <span className="size-1.5 rounded-full bg-cyan-300" />
-                    </div>
-                    <p className="mt-1 text-[13px] font-semibold leading-snug text-white">
-                      Ruptura antes de acontecer
-                    </p>
-                  </div>
-                </div>
-              </div>
+                  <div className="mt-4 flex items-start gap-3">
+                    <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg shadow-blue-950/35">
+                      <Sparkles className="h-3.5 w-3.5" />
+                    </span>
+                    <div className="flex-1 rounded-[18px] rounded-tl-md border border-white/10 bg-white/[0.055] p-4">
+                      <p className="text-[12px] leading-relaxed text-white/72">
+                        Encontrei três frentes que merecem atenção. Comece pelas ações com maior
+                        impacto financeiro e valide a causa antes de executar.
+                      </p>
 
-              <div className="intel-float-d absolute bottom-12 right-7 z-30 w-[205px] rounded-2xl border border-white/12 bg-black/46 p-3.5 shadow-[0_22px_55px_-24px_rgba(0,0,0,.9)] backdrop-blur-2xl">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-fuchsia-500/15 text-fuchsia-200 ring-1 ring-fuchsia-300/15">
-                    <Target className="size-4.5" />
-                  </span>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/38">Anúncios</p>
-                      <span className="size-1.5 rounded-full bg-fuchsia-300" />
+                      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                        <div className="rounded-2xl border border-rose-300/10 bg-rose-400/[0.06] p-3.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-400/10 text-rose-200">
+                              <DollarSign className="h-4 w-4" />
+                            </span>
+                            <span className="text-[8px] font-bold uppercase tracking-[0.13em] text-rose-200/75">
+                              Prioridade
+                            </span>
+                          </div>
+                          <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">
+                            Margem
+                          </p>
+                          <p className="mt-1 text-[11.5px] font-semibold text-white">
+                            Custos pendentes bloqueiam uma leitura confiável.
+                          </p>
+                        </div>
+
+                        <div className="rounded-2xl border border-amber-300/10 bg-amber-400/[0.06] p-3.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-400/10 text-amber-200">
+                              <Boxes className="h-4 w-4" />
+                            </span>
+                            <span className="text-[8px] font-bold uppercase tracking-[0.13em] text-amber-200/75">
+                              Atenção
+                            </span>
+                          </div>
+                          <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">
+                            Estoque
+                          </p>
+                          <p className="mt-1 text-[11.5px] font-semibold text-white">
+                            Itens com giro relevante entram em zona de risco.
+                          </p>
+                        </div>
+
+                        <div className="rounded-2xl border border-blue-300/10 bg-blue-400/[0.06] p-3.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-400/10 text-blue-200">
+                              <Target className="h-4 w-4" />
+                            </span>
+                            <span className="text-[8px] font-bold uppercase tracking-[0.13em] text-blue-200/75">
+                              Oportunidade
+                            </span>
+                          </div>
+                          <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.12em] text-white/40">
+                            Anúncios
+                          </p>
+                          <p className="mt-1 text-[11.5px] font-semibold text-white">
+                            Campanhas e produtos com espaço para revisão ou escala.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
+                        <p className="text-[10.5px] text-white/42">
+                          Dados → diagnóstico → prioridade → ação → resultado
+                        </p>
+                        <a
+                          href="#operacao"
+                          className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[10.5px] font-bold text-[#0A1F44] transition hover:-translate-y-0.5"
+                        >
+                          Ver como o AC360 funciona
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </a>
+                      </div>
                     </div>
-                    <p className="mt-1 text-[13px] font-semibold leading-snug text-white">
-                      Onde agir primeiro
-                    </p>
                   </div>
                 </div>
               </div>
-            </div>
+            </Reveal>
           </div>
         </div>
       </section>

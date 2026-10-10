@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
+  Play,
   CheckCircle2,
   ShieldCheck,
   HeadphonesIcon,
@@ -849,13 +850,13 @@ export function LandingPage() {
   return (
     <div className="min-h-screen bg-[#080b10] text-white antialiased">
       {/* ==================== HERO — E-COMMERCE INTELLIGENCE ==================== */}
-      <section id="top" className="relative min-h-[850px] overflow-hidden bg-[#071630]">
+      <section id="top" className="relative overflow-hidden bg-[#061a4f]">
         <div
           aria-hidden
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at 50% 0%, rgba(42,116,255,.92) 0%, rgba(18,72,177,.84) 26%, rgba(8,35,88,.96) 62%, #06152f 100%)",
+              "radial-gradient(circle at 50% -8%, rgba(30,116,255,1) 0%, rgba(14,82,214,.97) 26%, rgba(8,49,132,.98) 55%, #061a4f 100%)",
           }}
         />
         <div
@@ -863,81 +864,46 @@ export function LandingPage() {
           className="absolute inset-0"
           style={{
             background:
-              "radial-gradient(circle at 12% 88%, rgba(0,132,255,.42), transparent 27%), radial-gradient(circle at 88% 84%, rgba(0,119,255,.34), transparent 30%)",
+              "radial-gradient(circle at 8% 84%, rgba(0,149,255,.34), transparent 25%), radial-gradient(circle at 92% 82%, rgba(0,174,255,.28), transparent 27%), radial-gradient(circle at 50% 48%, rgba(20,110,255,.18), transparent 38%)",
           }}
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-[360px] -left-[260px] h-[760px] w-[760px] rounded-full border border-blue-300/20"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-[390px] -right-[220px] h-[720px] w-[720px] rounded-full border border-cyan-300/15"
         />
 
+        <div className="pointer-events-none absolute -left-[330px] top-[110px] h-[700px] w-[700px] rounded-full border border-cyan-300/25 shadow-[0_0_55px_rgba(34,211,238,.20)]" />
+        <div className="pointer-events-none absolute -right-[360px] top-[180px] h-[760px] w-[760px] rounded-full border border-blue-300/25 shadow-[0_0_60px_rgba(59,130,246,.20)]" />
+        <div className="pointer-events-none absolute -bottom-[330px] -left-[220px] h-[620px] w-[620px] rounded-full border border-cyan-300/30 shadow-[0_0_55px_rgba(34,211,238,.22)]" />
+        <div className="pointer-events-none absolute -bottom-[350px] -right-[180px] h-[650px] w-[650px] rounded-full border border-blue-300/28 shadow-[0_0_65px_rgba(37,99,235,.24)]" />
+
+        <span className="pointer-events-none absolute left-[6%] top-[150px] h-2 w-2 rounded-full bg-cyan-300 shadow-[0_0_20px_rgba(103,232,249,.85)]" />
+        <span className="pointer-events-none absolute right-[8%] top-[230px] h-2 w-2 rounded-full bg-blue-300 shadow-[0_0_20px_rgba(147,197,253,.85)]" />
+
         <div className="relative z-10">
-          <div
-            className={
-              "fixed inset-x-0 top-0 z-50 transition-all duration-300 " +
-              "border-b border-slate-200/80 bg-white/95 shadow-[0_12px_35px_-28px_rgba(10,31,68,.45)] backdrop-blur-xl"
-            }
-          >
+          <div className="fixed inset-x-0 top-0 z-50 border-b border-slate-200/80 bg-white/95 shadow-[0_12px_35px_-28px_rgba(10,31,68,.45)] backdrop-blur-xl">
             <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
               <a href="#top" className="flex items-center gap-3">
-                <img
-                  src={acLogo}
-                  alt="AC360"
-                  className={
-                    "h-9 w-auto transition-all duration-300 " +
-                    ""
-                  }
-                />
-                <span
-                  className={
-                    "hidden border-l pl-3 text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors sm:block " +
-                    "border-slate-200 text-slate-500"
-                  }
-                >
+                <img src={acLogo} alt="AC360" className="h-9 w-auto" />
+                <span className="text-xl font-extrabold tracking-[-0.04em] text-[#0A1F44]">AC360</span>
+                <span className="hidden border-l border-slate-200 pl-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 sm:block">
                   E-commerce Intelligence
                 </span>
               </a>
 
-              <nav
-                className={
-                  "hidden items-center gap-8 text-[13px] font-medium transition-colors lg:flex " +
-                  "text-slate-600"
-                }
-              >
-                <a href="#operacao" className="transition-colors hover:text-blue-700">
-                  Soluções
-                </a>
-                <a href="#inteligencia" className="transition-colors hover:text-blue-700">
-                  Inteligência
-                </a>
-                <a href="#cta-final" className="transition-colors hover:text-blue-700">
-                  Consultoria
-                </a>
-                <a href="#solucoes" className="transition-colors hover:text-blue-700">
-                  Plataforma
-                </a>
+              <nav className="hidden items-center gap-8 text-[13px] font-medium text-slate-600 lg:flex">
+                <a href="#operacao" className="transition-colors hover:text-blue-700">Soluções</a>
+                <a href="#inteligencia" className="transition-colors hover:text-blue-700">Inteligência</a>
+                <a href="#cta-final" className="transition-colors hover:text-blue-700">Consultoria</a>
+                <a href="#solucoes" className="transition-colors hover:text-blue-700">Plataforma</a>
               </nav>
 
               <div className="flex items-center gap-3">
                 <Link
                   to="/ecommerce/login"
-                  className={
-                    "hidden rounded-full px-4 py-2.5 text-sm font-semibold transition-colors sm:inline-flex " +
-                    "text-slate-600 hover:text-blue-700"
-                  }
+                  className="hidden rounded-full px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:text-blue-700 sm:inline-flex"
                 >
                   Login
                 </Link>
                 <a
                   href="#cta-final"
-                  className={
-                    "inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold transition hover:-translate-y-0.5 " +
-                    "bg-blue-600 text-white shadow-[0_12px_30px_-18px_rgba(37,99,235,.65)] hover:bg-blue-500"
-                  }
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-blue-600 px-5 text-sm font-semibold text-white shadow-[0_12px_30px_-18px_rgba(37,99,235,.65)] transition hover:-translate-y-0.5 hover:bg-blue-500"
                 >
                   Solicitar diagnóstico
                   <ArrowRight className="h-4 w-4" />
@@ -946,23 +912,23 @@ export function LandingPage() {
             </header>
           </div>
 
-          <div className="mx-auto flex max-w-7xl flex-col items-center px-6 pb-20 pt-36 text-center lg:px-10 lg:pt-40">
-            <Reveal className="mx-auto flex max-w-5xl flex-col items-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 backdrop-blur-xl">
-                <span className="h-2 w-2 rounded-full bg-[#ffbf31] shadow-[0_0_16px_rgba(255,191,49,.65)]" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.20em] text-white/70">
+          <div className="mx-auto flex max-w-7xl flex-col items-center px-6 pb-24 pt-36 text-center lg:px-10 lg:pt-40">
+            <Reveal className="mx-auto flex max-w-6xl flex-col items-center">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/30 bg-white/[0.05] px-4 py-2 shadow-[0_0_28px_rgba(59,130,246,.18)] backdrop-blur-xl">
+                <span className="h-2 w-2 rounded-full bg-[#ffbf31] shadow-[0_0_16px_rgba(255,191,49,.72)]" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.20em] text-white/78">
                   AC360 · Inteligência + consultoria para Mercado Livre
                 </span>
               </div>
 
-              <h1 className="mt-7 max-w-5xl font-display text-[44px] font-bold leading-[0.98] tracking-[-0.045em] text-white sm:text-[58px] lg:text-[68px]">
+              <h1 className="mt-7 max-w-[1080px] font-display text-[44px] font-bold leading-[0.98] tracking-[-0.05em] text-white drop-shadow-[0_6px_32px_rgba(0,0,0,.18)] sm:text-[58px] lg:text-[66px]">
                 Descubra o que trava seu resultado
-                <span className="mt-2 block text-[#73A7FF]">
+                <span className="mt-2 block bg-gradient-to-r from-[#72B8FF] via-[#45C7FF] to-[#74E0FF] bg-clip-text text-transparent">
                   e onde agir primeiro no Mercado Livre.
                 </span>
               </h1>
 
-              <p className="mt-6 max-w-3xl text-base leading-relaxed text-white/78 sm:text-lg">
+              <p className="mt-6 max-w-3xl text-base leading-relaxed text-white/82 sm:text-lg">
                 O AC360 cruza os dados da operação e mostra as prioridades que mais impactam
                 margem, estoque e performance.
               </p>
@@ -970,41 +936,57 @@ export function LandingPage() {
               <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                 <a
                   href="#cta-final"
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-blue-500 px-7 text-[13px] font-bold text-white shadow-[0_16px_38px_-16px_rgba(0,120,255,.82)] transition hover:-translate-y-0.5 hover:bg-blue-400"
+                  className="inline-flex h-14 min-w-[245px] items-center justify-center gap-3 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 px-7 text-[14px] font-bold text-white shadow-[0_0_0_1px_rgba(147,197,253,.45),0_18px_45px_-14px_rgba(0,143,255,.9)] transition hover:-translate-y-0.5 hover:from-blue-400 hover:to-blue-500"
                 >
                   Solicitar diagnóstico
                   <ArrowRight className="h-4 w-4" />
                 </a>
+
                 <a
                   href="#operacao"
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-full border border-white/25 bg-white/[0.04] px-7 text-[13px] font-semibold text-white/90 transition hover:bg-white/[0.08]"
+                  className="inline-flex h-14 min-w-[220px] items-center justify-center gap-3 rounded-full border border-cyan-200/50 bg-[#071a43]/50 px-7 text-[14px] font-semibold text-white shadow-[0_0_28px_rgba(37,99,235,.16)] backdrop-blur transition hover:border-cyan-200/75 hover:bg-white/[0.08]"
                 >
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#0A1F44]">
+                    <Play className="ml-0.5 h-3.5 w-3.5 fill-current" />
+                  </span>
                   Ver como funciona
-                  <ArrowRight className="h-4 w-4" />
                 </a>
               </div>
 
-              <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
-                {["Vendas", "Margem", "Estoque", "Anúncios", "Performance"].map((label) => (
+              <div className="mt-7 flex flex-wrap items-center justify-center gap-2.5">
+                {[
+                  { label: "Vendas", icon: BarChart3 },
+                  { label: "Margem", icon: DollarSign },
+                  { label: "Estoque", icon: Boxes },
+                  { label: "Anúncios", icon: Target },
+                  { label: "Performance", icon: TrendingUp },
+                ].map(({ label, icon: Icon }) => (
                   <span
                     key={label}
-                    className="rounded-full border border-white/18 bg-white/[0.045] px-4 py-2 text-[10px] font-semibold text-white/72"
+                    className="inline-flex items-center gap-2 rounded-full border border-cyan-200/25 bg-[#071a43]/48 px-4 py-2 text-[10.5px] font-semibold text-white/82 shadow-[0_0_20px_rgba(37,99,235,.12)] backdrop-blur"
                   >
+                    <Icon className="h-3.5 w-3.5 text-cyan-200" />
                     {label}
                   </span>
                 ))}
               </div>
             </Reveal>
 
-            <Reveal delay={110} className="mt-10 w-full max-w-5xl">
-              <div className="overflow-hidden rounded-[30px] border border-white/14 bg-[#061329]/90 text-left shadow-[0_34px_110px_-46px_rgba(0,0,0,.92)] backdrop-blur-2xl">
-                <div className="flex flex-col gap-4 border-b border-white/10 px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+            <Reveal delay={110} className="mt-9 w-full max-w-6xl">
+              <div
+                className="overflow-hidden rounded-[30px] border border-cyan-300/35 bg-[#06142F]/92 text-left backdrop-blur-2xl"
+                style={{
+                  boxShadow:
+                    "0 0 0 1px rgba(80,170,255,.08), 0 0 46px rgba(0,138,255,.22), 0 34px 110px -48px rgba(0,0,0,.92)",
+                }}
+              >
+                <div className="flex flex-col gap-4 border-b border-blue-200/12 px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.07] text-blue-200">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl border border-blue-200/20 bg-white/[0.06] text-blue-100 shadow-[0_0_24px_rgba(59,130,246,.14)]">
                       <Brain className="h-5 w-5" />
                     </span>
                     <div>
-                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/40">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/42">
                         AC360 Intelligence
                       </p>
                       <p className="mt-1 text-[13px] font-semibold text-white">
@@ -1014,167 +996,184 @@ export function LandingPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-1.5">
-                    {["Visão geral", "Margem", "Estoque", "Ads"].map((label, index) => (
+                    {["Visão geral", "Margem", "Estoque", "Anúncios", "Performance"].map((label, index) => (
                       <span
                         key={label}
                         className={`rounded-full px-3 py-1.5 text-[9px] font-semibold ${
                           index === 0
                             ? "bg-white text-[#0A1F44]"
-                            : "border border-white/10 bg-white/[0.04] text-white/48"
+                            : "border border-blue-200/14 bg-white/[0.035] text-white/55"
                         }`}
                       >
                         {label}
                       </span>
                     ))}
-                    <span className="ml-1 rounded-full border border-emerald-300/15 bg-emerald-300/[0.08] px-3 py-1.5 text-[9px] font-semibold text-emerald-200">
-                      Operação analisada
-                    </span>
                   </div>
                 </div>
 
-                <div className="p-5 sm:p-6">
-                  <div className="ml-auto max-w-[720px] rounded-[18px] rounded-br-md border border-blue-300/15 bg-blue-500/[0.12] px-4 py-3 text-[12.5px] font-medium leading-relaxed text-white/90">
-                    AC360, o que está prejudicando meu resultado hoje?
+                <div className="px-5 py-5 sm:px-6">
+                  <div className="mx-auto flex max-w-[650px] items-center gap-3 rounded-full border border-blue-300/45 bg-[#0A2A67]/80 px-4 py-2.5 shadow-[0_0_26px_rgba(37,99,235,.18)]">
+                    <Brain className="h-4 w-4 shrink-0 text-blue-100" />
+                    <p className="flex-1 text-[12px] font-medium text-white/88">
+                      AC360, o que está travando meu resultado hoje?
+                    </p>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-[0_0_18px_rgba(37,99,235,.55)]">
+                      <ArrowRight className="h-4 w-4" />
+                    </span>
                   </div>
 
-                  <div className="mt-4 flex items-start gap-3">
-                    <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg shadow-blue-950/35">
-                      <Sparkles className="h-3.5 w-3.5" />
-                    </span>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="rounded-[20px] rounded-tl-md border border-white/10 bg-white/[0.055] p-4">
-                        <p className="text-[12px] leading-relaxed text-white/72">
-                          Encontrei 3 pontos que merecem atenção. O primeiro envolve margem,
-                          porque custos pendentes estão impedindo uma leitura confiável do resultado.
-                          Depois disso, revise estoque e campanhas.
-                        </p>
+                  <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                    <div className="rounded-[18px] border border-rose-300/20 bg-gradient-to-br from-rose-400/[0.12] to-rose-400/[0.035] p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-400/12 text-rose-200">
+                          <DollarSign className="h-4 w-4" />
+                        </span>
+                        <span className="rounded-full bg-rose-400/10 px-2.5 py-1 text-[8px] font-bold text-rose-200">
+                          Alta prioridade
+                        </span>
                       </div>
-
-                      <div className="mt-4 grid gap-3 lg:grid-cols-[1.35fr_.65fr]">
-                        <div className="relative overflow-hidden rounded-[22px] border border-rose-300/15 bg-gradient-to-br from-rose-400/[0.10] via-white/[0.055] to-white/[0.035] p-5">
-                          <div
-                            aria-hidden
-                            className="pointer-events-none absolute -right-10 -top-12 h-32 w-32 rounded-full bg-rose-400/[0.10] blur-3xl"
-                          />
-                          <div className="relative">
-                            <div className="flex flex-wrap items-center justify-between gap-3">
-                              <div className="flex items-center gap-2">
-                                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-400/10 text-rose-200">
-                                  <DollarSign className="h-4 w-4" />
-                                </span>
-                                <div>
-                                  <p className="text-[8.5px] font-bold uppercase tracking-[0.14em] text-rose-200/75">
-                                    Prioridade #1
-                                  </p>
-                                  <p className="mt-1 text-[15px] font-semibold text-white">
-                                    Margem comprometida
-                                  </p>
-                                </div>
-                              </div>
-                              <span className="rounded-full border border-rose-300/15 bg-rose-400/[0.08] px-2.5 py-1 text-[8.5px] font-bold text-rose-200">
-                                Resolver primeiro
-                              </span>
-                            </div>
-
-                            <p className="mt-4 text-[12px] leading-relaxed text-white/68">
-                              Produtos com vendas estão sem custo confiável, impedindo uma leitura
-                              real de rentabilidade.
-                            </p>
-
-                            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                              <div className="rounded-2xl border border-white/10 bg-black/[0.10] p-3.5">
-                                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-white/36">
-                                  Por que isso importa
-                                </p>
-                                <p className="mt-2 text-[10.5px] leading-relaxed text-white/66">
-                                  Sem o custo correto, você pode escalar produtos que faturam bem,
-                                  mas entregam pouca margem.
-                                </p>
-                              </div>
-
-                              <div className="rounded-2xl border border-white/10 bg-black/[0.10] p-3.5">
-                                <p className="text-[8px] font-bold uppercase tracking-[0.14em] text-white/36">
-                                  Próximo passo
-                                </p>
-                                <p className="mt-2 text-[10.5px] leading-relaxed text-white/66">
-                                  Validar os custos dos SKUs prioritários antes de aumentar investimento.
-                                </p>
-                              </div>
-                            </div>
-
-                            <div className="mt-4 flex justify-end">
-                              <Link
-                                to="/ecommerce/prioridades"
-                                className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[10.5px] font-bold text-[#0A1F44] transition hover:-translate-y-0.5 hover:shadow-lg"
-                              >
-                                Ir para Central de Ações
-                                <ArrowRight className="h-3.5 w-3.5" />
-                              </Link>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="grid gap-3">
-                          <div className="rounded-[20px] border border-amber-300/12 bg-amber-400/[0.055] p-4">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/10 text-amber-200">
-                                <Boxes className="h-4 w-4" />
-                              </span>
-                              <span className="text-[8px] font-bold uppercase tracking-[0.13em] text-amber-200/70">
-                                Atenção
-                              </span>
-                            </div>
-                            <p className="mt-4 text-[9px] font-bold uppercase tracking-[0.12em] text-white/38">
-                              Estoque
-                            </p>
-                            <p className="mt-1 text-[12px] font-semibold leading-relaxed text-white">
-                              Itens com giro relevante entram em zona de risco.
-                            </p>
-                            <p className="mt-2 text-[9.5px] leading-relaxed text-white/45">
-                              Antecipe reposição antes da ruptura.
-                            </p>
-                          </div>
-
-                          <div className="rounded-[20px] border border-blue-300/12 bg-blue-400/[0.055] p-4">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-400/10 text-blue-200">
-                                <Target className="h-4 w-4" />
-                              </span>
-                              <span className="text-[8px] font-bold uppercase tracking-[0.13em] text-blue-200/70">
-                                Oportunidade
-                              </span>
-                            </div>
-                            <p className="mt-4 text-[9px] font-bold uppercase tracking-[0.12em] text-white/38">
-                              Ads
-                            </p>
-                            <p className="mt-1 text-[12px] font-semibold leading-relaxed text-white">
-                              Campanhas e produtos com espaço para revisão ou escala.
-                            </p>
-                            <p className="mt-2 text-[9.5px] leading-relaxed text-white/45">
-                              Diferencie correção de oportunidade.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4">
-                        <p className="text-[10.5px] text-white/42">
-                          Dados → diagnóstico → prioridade → ação → resultado
-                        </p>
-                        <a
-                          href="#operacao"
-                          className="inline-flex items-center gap-2 text-[10.5px] font-semibold text-blue-200 transition hover:text-white"
-                        >
-                          Entender o método AC360
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </a>
-                      </div>
+                      <p className="mt-4 text-[12px] font-semibold text-white">Margem</p>
+                      <p className="mt-2 text-[10.5px] leading-relaxed text-white/62">
+                        Custos pendentes podem esconder a margem real dos produtos que mais vendem.
+                      </p>
+                      <a href="#operacao" className="mt-4 inline-flex items-center gap-1.5 text-[9.5px] font-semibold text-rose-200">
+                        Ver detalhes <ArrowRight className="h-3 w-3" />
+                      </a>
                     </div>
+
+                    <div className="rounded-[18px] border border-amber-300/20 bg-gradient-to-br from-amber-400/[0.11] to-amber-400/[0.03] p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/12 text-amber-200">
+                          <Boxes className="h-4 w-4" />
+                        </span>
+                        <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-[8px] font-bold text-amber-200">
+                          Atenção
+                        </span>
+                      </div>
+                      <p className="mt-4 text-[12px] font-semibold text-white">Estoque</p>
+                      <p className="mt-2 text-[10.5px] leading-relaxed text-white/62">
+                        Produtos com giro relevante entram em zona de atenção antes da ruptura.
+                      </p>
+                      <a href="#operacao" className="mt-4 inline-flex items-center gap-1.5 text-[9.5px] font-semibold text-amber-200">
+                        Ver produtos <ArrowRight className="h-3 w-3" />
+                      </a>
+                    </div>
+
+                    <div className="rounded-[18px] border border-blue-300/20 bg-gradient-to-br from-blue-400/[0.12] to-blue-400/[0.035] p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-400/12 text-blue-200">
+                          <Target className="h-4 w-4" />
+                        </span>
+                        <span className="rounded-full bg-blue-400/10 px-2.5 py-1 text-[8px] font-bold text-blue-200">
+                          Oportunidade
+                        </span>
+                      </div>
+                      <p className="mt-4 text-[12px] font-semibold text-white">Anúncios</p>
+                      <p className="mt-2 text-[10.5px] leading-relaxed text-white/62">
+                        Identifique anúncios que merecem correção antes de aumentar investimento.
+                      </p>
+                      <a href="#operacao" className="mt-4 inline-flex items-center gap-1.5 text-[9.5px] font-semibold text-blue-200">
+                        Ver oportunidades <ArrowRight className="h-3 w-3" />
+                      </a>
+                    </div>
+
+                    <div className="rounded-[18px] border border-emerald-300/20 bg-gradient-to-br from-emerald-400/[0.11] to-emerald-400/[0.03] p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-400/12 text-emerald-200">
+                          <TrendingUp className="h-4 w-4" />
+                        </span>
+                        <span className="rounded-full bg-emerald-400/10 px-2.5 py-1 text-[8px] font-bold text-emerald-200">
+                          Em evolução
+                        </span>
+                      </div>
+                      <p className="mt-4 text-[12px] font-semibold text-white">Performance</p>
+                      <p className="mt-2 text-[10.5px] leading-relaxed text-white/62">
+                        Encontre sinais de eficiência e pontos da operação com espaço para ganhar escala.
+                      </p>
+                      <a href="#operacao" className="mt-4 inline-flex items-center gap-1.5 text-[9.5px] font-semibold text-emerald-200">
+                        Ver análise <ArrowRight className="h-3 w-3" />
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="mt-5 grid gap-3 border-t border-blue-200/12 pt-5 sm:grid-cols-5">
+                    {[
+                      { label: "Dados", sub: "Integração segura", icon: Plug },
+                      { label: "Diagnóstico", sub: "Análise com IA", icon: Brain },
+                      { label: "Prioridade", sub: "O que realmente importa", icon: Layers },
+                      { label: "Ação", sub: "Plano prático", icon: Rocket },
+                      { label: "Resultado", sub: "Mais margem e escala", icon: TrendingUp },
+                    ].map(({ label, sub, icon: Icon }, index, list) => (
+                      <div key={label} className="flex items-center gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-200/18 bg-white/[0.04] text-blue-100">
+                          <Icon className="h-4 w-4" />
+                        </span>
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-semibold text-white">{label}</p>
+                          <p className="mt-0.5 text-[8.5px] leading-tight text-white/38">{sub}</p>
+                        </div>
+                        {index < list.length - 1 ? (
+                          <ArrowRight className="ml-auto hidden h-3.5 w-3.5 text-blue-300/60 sm:block" />
+                        ) : null}
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
             </Reveal>
+          </div>
+        </div>
+      </section>
+
+      <section className="relative overflow-hidden bg-white py-20 sm:py-24">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-[92px] left-1/2 h-[130px] w-[118%] -translate-x-1/2 rounded-[50%] bg-white"
+        />
+
+        <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
+          <Reveal className="text-center">
+            <span className="text-[10px] font-bold uppercase tracking-[0.30em] text-blue-500">
+              Do diagnóstico ao resultado
+            </span>
+            <h2 className="mx-auto mt-4 max-w-3xl text-3xl font-bold tracking-[-0.04em] text-[#0A1F44] sm:text-5xl">
+              Inteligência e consultoria para vendedores de Mercado Livre
+            </h2>
+            <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-500">
+              O AC360 combina dados, tecnologia e consultoria prática para ajudar você a tomar
+              decisões mais rápidas e lucrativas no Mercado Livre.
+            </p>
+          </Reveal>
+
+          <div className="mt-10 grid gap-4 md:grid-cols-3">
+            {[
+              {
+                title: "Prioridades da Operação",
+                text: "Descubra exatamente o que está travando seu resultado e o que merece atenção primeiro.",
+                icon: Target,
+              },
+              {
+                title: "Margem sob Controle",
+                text: "Identifique custos esquecidos, rentabilidade comprometida e oportunidades de melhorar o lucro.",
+                icon: DollarSign,
+              },
+              {
+                title: "Feed Inteligente",
+                text: "Transforme sinais de produtos e anúncios em prioridades claras para agir com mais segurança.",
+                icon: Radar,
+              },
+            ].map(({ title, text, icon: Icon }) => (
+              <div
+                key={title}
+                className="rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_18px_55px_-38px_rgba(10,31,68,.35)]"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <h3 className="mt-5 text-lg font-bold text-[#0A1F44]">{title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-slate-500">{text}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

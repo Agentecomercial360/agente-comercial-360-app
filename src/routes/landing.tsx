@@ -877,8 +877,31 @@ export function LandingPage() {
         <span className="pointer-events-none absolute right-[8%] top-[230px] h-2 w-2 rounded-full bg-blue-300 shadow-[0_0_20px_rgba(147,197,253,.85)]" />
 
         <div className="relative z-10">
-          <div className="fixed inset-x-0 top-0 z-50 border-b border-slate-200/80 bg-white/95 shadow-[0_12px_35px_-28px_rgba(10,31,68,.45)] backdrop-blur-xl">
-            <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
+          <div className="fixed inset-x-0 top-0 z-50 shadow-[0_12px_35px_-28px_rgba(10,31,68,.45)]">
+            <div className="border-b border-blue-300/10 bg-[linear-gradient(90deg,#071a43_0%,#0b2b66_45%,#071a43_100%)] text-white">
+              <div className="mx-auto flex min-h-10 max-w-7xl items-center justify-center gap-3 px-4 py-2 text-center sm:px-6 lg:px-10">
+                <span className="hidden rounded-full border border-blue-300/20 bg-white/[0.07] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-blue-100 sm:inline-flex">
+                  Exclusivo AC360
+                </span>
+                <p className="text-[10px] font-medium text-white/78 sm:text-[11px]">
+                  Diagnóstico estratégico para vendedores do Mercado Livre
+                  <span className="hidden text-white/45 md:inline"> · </span>
+                  <span className="hidden text-white/68 md:inline">
+                    Descubra onde sua operação perde margem e o que priorizar primeiro.
+                  </span>
+                </p>
+                <a
+                  href="#cta-final"
+                  className="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-bold text-cyan-200 transition hover:text-white sm:text-[11px]"
+                >
+                  Solicitar diagnóstico
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            </div>
+
+            <div className="border-b border-slate-200/80 bg-white/95 backdrop-blur-xl">
+              <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
               <a href="#top" className="flex items-center gap-3">
                 <img src={acLogo} alt="AC360" className="h-9 w-auto" />
                 <span className="text-xl font-extrabold tracking-[-0.04em] text-[#0A1F44]">AC360</span>
@@ -909,10 +932,11 @@ export function LandingPage() {
                   <ArrowRight className="h-4 w-4" />
                 </a>
               </div>
-            </header>
+              </header>
+            </div>
           </div>
 
-          <div className="mx-auto flex max-w-7xl flex-col items-center px-6 pb-24 pt-36 text-center lg:px-10 lg:pt-40">
+          <div className="mx-auto flex max-w-7xl flex-col items-center px-6 pb-24 pt-48 text-center lg:px-10 lg:pt-52">
             <Reveal className="mx-auto flex max-w-6xl flex-col items-center">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/30 bg-white/[0.05] px-4 py-2 shadow-[0_0_28px_rgba(59,130,246,.18)] backdrop-blur-xl">
                 <span className="h-2 w-2 rounded-full bg-[#ffbf31] shadow-[0_0_16px_rgba(255,191,49,.72)]" />

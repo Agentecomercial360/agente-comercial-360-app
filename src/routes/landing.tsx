@@ -2,19 +2,46 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
-  BarChart3,
-  Boxes,
-  Brain,
   CheckCircle2,
+  ShieldCheck,
+  HeadphonesIcon,
+  Sparkles,
+  BarChart3,
   DollarSign,
+  Brain,
+  Eye,
   Layers,
   Radar,
-  Sparkles,
   Target,
+  Truck,
+  PackageSearch,
+  Boxes,
+  TrendingDown,
   TrendingUp,
+  Plug,
+  Workflow,
+  Rocket,
+  Store,
+  ShoppingBag,
+  AlertTriangle,
+  Bell,
+  UserCircle2,
+  Home,
+  Linkedin,
+  Instagram,
+  Youtube,
+  Mail,
+  ShieldCheck as ShieldIcon,
 } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
 import heroWarehouse from "@/assets/hero-warehouse.jpg";
+import { Button } from "@/components/ui/button";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const SITE_URL = "https://agentecomercial360.com.br";
 const LANDING_TITLE = "AC360 — Inteligência e Performance para Mercado Livre";
@@ -42,682 +69,1304 @@ export const Route = createFileRoute("/landing")({
   }),
 });
 
+/* Tokens — Data Analytics: deep navy + neon blue */
+const NAVY = "oklch(0.20 0.05 262)";
+const NAVY_DEEP = "oklch(0.14 0.04 262)";
+const NAVY_INK = "#0a0e17";
+const BLUE = "oklch(0.62 0.20 255)";
+const BLUE_DEEP = "oklch(0.48 0.20 258)";
+const NEON = "oklch(0.82 0.17 215)";
+const CYAN = "oklch(0.85 0.14 210)";
+
+/* ---------- Reveal on scroll ---------- */
 function Reveal({
   children,
-  className = "",
   delay = 0,
+  className = "",
+  as: Tag = "div",
 }: {
   children: React.ReactNode;
-  className?: string;
   delay?: number;
+  className?: string;
+  as?: React.ElementType;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    const node = ref.current;
-    if (!node) return;
-
+    const el = ref.current;
+    if (!el) return;
     if (typeof IntersectionObserver === "undefined") {
       setVisible(true);
       return;
     }
-
-    const observer = new IntersectionObserver(
+    const obs = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
           setVisible(true);
-          observer.disconnect();
+          obs.disconnect();
         }
       },
-      { threshold: 0.12, rootMargin: "0px 0px -50px 0px" },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" },
     );
-
-    observer.observe(node);
-    return () => observer.disconnect();
+    obs.observe(el);
+    return () => obs.disconnect();
   }, []);
 
   return (
-    <div
-      ref={ref}
-      className={`transition-all duration-700 ease-out ${
+    <Tag
+      ref={ref as React.RefObject<HTMLDivElement>}
+      className={`transition-all duration-700 ease-out will-change-transform ${
         visible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
       } ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
-    </div>
+    </Tag>
   );
 }
 
-function Eyebrow({
+function SectionLabel({
   children,
-  dark = false,
+  tone = "light",
 }: {
   children: React.ReactNode;
-  dark?: boolean;
+  tone?: "light" | "dark";
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] ${
-        dark
-          ? "border-white/10 bg-white/5 text-white/70"
-          : "border-blue-100 bg-blue-50 text-blue-700"
-      }`}
+      className="text-[11px] font-semibold uppercase tracking-[0.22em]"
+      style={{ color: tone === "dark" ? CYAN : BLUE_DEEP }}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${dark ? "bg-amber-300" : "bg-blue-600"}`} />
       {children}
     </span>
   );
 }
 
-function IntelligenceVisual() {
+function PillarCard({
+  icon: Icon,
+  title,
+  description,
+  bullets,
+  accent = "blue",
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  bullets: string[];
+  accent?: "blue" | "navy";
+}) {
   return (
-    <div className="relative mx-auto hidden min-h-[500px] max-w-[560px] lg:block">
-      <div className="absolute left-1/2 top-1/2 h-[350px] w-[350px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/10" />
-      <div className="absolute left-1/2 top-1/2 h-[245px] w-[245px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-blue-300/10" />
-
-      <div className="absolute left-1/2 top-1/2 z-20 flex h-44 w-44 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-white/5 shadow-2xl backdrop-blur">
-        <div className="text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/10">
-            <img src={acLogo} alt="AC360" className="h-8 w-auto brightness-0 invert" />
-          </div>
-          <p className="mt-4 text-[9px] font-bold uppercase tracking-[0.20em] text-white/50">
-            Central AC360
-          </p>
-          <p className="mt-1 text-[11px] text-white/75">Dados → Prioridades</p>
-        </div>
+    <div
+      className="group relative flex flex-col rounded-2xl p-7 sm:p-8 backdrop-blur-xl border border-white/60 shadow-[0_10px_40px_-12px_rgba(15,23,42,0.18)] ring-1 ring-slate-200/50 transition-all duration-300 hover:-translate-y-1 hover:scale-[1.02] hover:shadow-[0_25px_60px_-15px_rgba(56,189,248,0.35)] hover:border-cyan-300/70"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.65) 100%)",
+      }}
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-2xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{
+          boxShadow: `inset 0 0 0 1px ${NEON}, 0 0 28px -6px ${NEON}`,
+        }}
+      />
+      <div
+        className="mb-5 inline-flex size-12 items-center justify-center rounded-xl shadow-lg"
+        style={{
+          background:
+            accent === "navy"
+              ? `linear-gradient(135deg, ${NAVY}, ${BLUE})`
+              : `linear-gradient(135deg, ${BLUE_DEEP}, ${NEON})`,
+          boxShadow: `0 10px 25px -10px ${BLUE}`,
+        }}
+      >
+        <Icon className="size-6 text-white" />
       </div>
-
-      <div className="absolute left-0 top-12 z-30 w-52 rounded-2xl border border-white/10 bg-black/30 p-4 shadow-2xl backdrop-blur">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-400/10 text-blue-200">
-            <Radar className="h-4 w-4" />
-          </span>
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/40">Feed</p>
-            <p className="mt-1 text-[12px] font-semibold text-white">O que merece atenção</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute right-0 top-32 z-30 w-52 rounded-2xl border border-white/10 bg-black/30 p-4 shadow-2xl backdrop-blur">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-400/10 text-amber-200">
-            <DollarSign className="h-4 w-4" />
-          </span>
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/40">Margem</p>
-            <p className="mt-1 text-[12px] font-semibold text-white">Onde o lucro aperta</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-20 left-3 z-30 w-52 rounded-2xl border border-white/10 bg-black/30 p-4 shadow-2xl backdrop-blur">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-200">
-            <Boxes className="h-4 w-4" />
-          </span>
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/40">Estoque</p>
-            <p className="mt-1 text-[12px] font-semibold text-white">Risco antes da ruptura</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="absolute bottom-8 right-4 z-30 w-52 rounded-2xl border border-white/10 bg-black/30 p-4 shadow-2xl backdrop-blur">
-        <div className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-violet-400/10 text-violet-200">
-            <Target className="h-4 w-4" />
-          </span>
-          <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-white/40">Ações</p>
-            <p className="mt-1 text-[12px] font-semibold text-white">Onde agir primeiro</p>
-          </div>
-        </div>
-      </div>
+      <h3 className="mb-2 text-lg font-semibold tracking-[-0.015em] text-slate-900">{title}</h3>
+      <p className="text-sm leading-relaxed text-slate-600">{description}</p>
+      <ul className="mt-5 space-y-2.5">
+        {bullets.map((b) => (
+          <li key={b} className="flex items-start gap-2 text-sm text-slate-700">
+            <CheckCircle2 className="mt-0.5 size-4 shrink-0" style={{ color: BLUE_DEEP }} />
+            <span>{b}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
-function DashboardPreview() {
-  const bars = [34, 48, 42, 58, 54, 68, 80, 74];
-
+function JourneyStep({
+  number,
+  icon: Icon,
+  title,
+  description,
+}: {
+  number: string;
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+}) {
   return (
-    <div className="overflow-hidden rounded-[28px] border border-white/40 bg-white shadow-2xl">
-      <div className="flex h-12 items-center justify-between border-b border-slate-100 px-4">
-        <div className="flex items-center gap-2">
-          <img src={acLogo} alt="" className="h-5 w-auto" />
-          <span className="text-[10px] font-bold text-slate-900">AC360 Intelligence</span>
-        </div>
-        <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[8px] font-bold text-emerald-600">
-          Sincronizado
+    <div className="relative flex flex-col rounded-2xl bg-white p-7 ring-1 ring-slate-200/60 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+      <div className="flex items-center gap-3">
+        <span
+          className="inline-flex size-9 items-center justify-center rounded-lg text-sm font-semibold text-white"
+          style={{ background: `linear-gradient(135deg, ${NAVY}, ${BLUE_DEEP})` }}
+        >
+          {number}
+        </span>
+        <span style={{ color: BLUE_DEEP }} className="inline-flex">
+          <Icon className="size-5" />
         </span>
       </div>
+      <h4 className="mt-4 text-base font-semibold text-slate-900">{title}</h4>
+      <p className="mt-2 text-sm leading-relaxed text-slate-600">{description}</p>
+    </div>
+  );
+}
 
-      <div className="grid gap-3 bg-slate-50 p-4 sm:grid-cols-[1.1fr_.9fr]">
-        <div className="rounded-2xl bg-gradient-to-br from-slate-950 via-blue-900 to-blue-600 p-4 text-white">
-          <p className="text-[8px] font-bold uppercase tracking-[0.12em] text-white/45">Visão executiva</p>
-          <p className="mt-2 text-xl font-bold">Resultado no contexto.</p>
-          <p className="mt-1 text-[9px] leading-relaxed text-white/55">
-            Vendas, pedidos, margem e operação conectados.
-          </p>
-          <div className="mt-7 flex h-20 items-end gap-1.5">
-            {bars.map((height, index) => (
-              <span
-                key={index}
-                className="flex-1 rounded-t bg-white/75"
-                style={{ height: `${height}%` }}
-              />
-            ))}
+function PlanCard({
+  name,
+  price,
+  description,
+  features,
+  highlighted = false,
+}: {
+  name: string;
+  price: string;
+  description: string;
+  features: string[];
+  highlighted?: boolean;
+}) {
+  return (
+    <div
+      className={`relative flex flex-col rounded-2xl p-8 backdrop-blur-2xl border transition-all duration-300 hover:-translate-y-1 ${
+        highlighted
+          ? "text-white shadow-2xl border-white/20"
+          : "text-white shadow-xl border-white/10"
+      }`}
+      style={
+        highlighted
+          ? {
+              background: `linear-gradient(160deg, ${BLUE_DEEP}, ${NAVY} 55%, ${NAVY_DEEP})`,
+              boxShadow: `0 25px 60px -20px ${BLUE}`,
+            }
+          : { background: "rgba(255,255,255,0.06)" }
+      }
+    >
+      {highlighted && (
+        <span
+          className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-white shadow-md"
+          style={{ background: `linear-gradient(135deg, ${BLUE}, ${CYAN})` }}
+        >
+          Mais escolhido
+        </span>
+      )}
+      <h4 className="text-lg font-semibold text-white">{name}</h4>
+      <p className="mt-1 text-sm text-white/65">{description}</p>
+      <div className="mt-6 flex items-baseline gap-1">
+        <span className="text-4xl font-bold tracking-tight text-white">{price}</span>
+        <span className="text-sm text-white/60">/mês</span>
+      </div>
+      <ul className="mt-6 space-y-3 text-sm">
+        {features.map((f) => (
+          <li key={f} className="flex items-start gap-2">
+            <CheckCircle2 className="mt-0.5 size-4 shrink-0" style={{ color: CYAN }} />
+            <span className="text-white/85">{f}</span>
+          </li>
+        ))}
+      </ul>
+      <a href="#cta-final" className="mt-8">
+        <Button
+          size="lg"
+          className={`h-11 w-full rounded-full text-sm font-semibold shadow-md ${
+            highlighted ? "bg-white text-slate-900 hover:bg-white/90" : "text-white"
+          }`}
+          style={
+            highlighted ? undefined : { background: `linear-gradient(135deg, ${BLUE}, ${BLUE_DEEP})` }
+          }
+        >
+          Falar com especialista
+        </Button>
+      </a>
+    </div>
+  );
+}
+
+/* ---------- Glassmorphism dashboard ---------- */
+function HeroMockup() {
+  const revenue = [42, 55, 48, 70, 64, 88, 96, 110, 128];
+  const accounts = [
+    { name: "ML — Robomix", value: "R$ 38.420", pct: 92 },
+    { name: "ML — Nightled", value: "R$ 21.180", pct: 64 },
+    { name: "ML — WGCar Matriz", value: "R$ 14.760", pct: 48 },
+    { name: "ML — Express", value: "R$ 9.940", pct: 34 },
+    { name: "ML — Duck", value: "R$ 6.220", pct: 22 },
+  ];
+
+  return (
+    <div className="relative mx-auto w-full max-w-[760px]">
+      {/* Glass panel */}
+      <div
+        className="relative overflow-hidden rounded-3xl border border-white/20 p-4 sm:p-5 shadow-[0_40px_120px_-30px_rgba(8,12,25,0.85)] backdrop-blur-2xl"
+        style={{
+          background:
+            "linear-gradient(160deg, rgba(15,23,42,0.55) 0%, rgba(8,12,22,0.35) 100%)",
+        }}
+      >
+        {/* subtle inner highlight */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-3xl"
+          style={{
+            boxShadow:
+              "inset 0 1px 0 rgba(255,255,255,0.18), inset 0 0 60px rgba(56,189,248,0.06)",
+          }}
+        />
+
+        {/* Header bar */}
+        <div className="relative flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/15">
+              <img src={acLogo} alt="" className="size-5" />
+            </div>
+            <div>
+              <p className="text-[12px] font-semibold text-white">
+                Central de Inteligência — Mercado Livre
+              </p>
+              <p className="text-[10px] text-white/60">
+                9 contas conectadas · 109 anúncios monitorados
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="flex size-7 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15">
+              <Bell className="size-3.5 text-white/80" />
+            </span>
+            <span className="flex size-7 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15">
+              <UserCircle2 className="size-4 text-white/80" />
+            </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
-          {["Pedidos", "Ticket", "Margem", "Estoque"].map((item, index) => (
-            <div key={item} className="rounded-2xl border border-slate-100 bg-white p-3 shadow-sm">
-              <span
-                className={`flex h-7 w-7 items-center justify-center rounded-lg ${
-                  index === 0
-                    ? "bg-blue-50 text-blue-600"
-                    : index === 1
-                      ? "bg-violet-50 text-violet-600"
-                      : index === 2
-                        ? "bg-emerald-50 text-emerald-600"
-                        : "bg-amber-50 text-amber-600"
+        {/* KPIs */}
+        <div className="relative mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {[
+            { label: "Faturamento", value: "R$ 90.5k", delta: "+22%", up: true },
+            { label: "Lucro Líquido", value: "R$ 18.2k", delta: "+14%", up: true },
+            { label: "Margem média", value: "20,1%", delta: "+1,8 p.p.", up: true },
+            { label: "Risco ruptura", value: "2", delta: "alertas", up: false },
+          ].map((k) => (
+            <div
+              key={k.label}
+              className="rounded-xl border border-white/10 bg-white/5 p-2.5 backdrop-blur"
+            >
+              <p className="text-[10px] font-medium text-white/60">{k.label}</p>
+              <p className="mt-0.5 text-[15px] font-bold tracking-tight text-white">
+                {k.value}
+              </p>
+              <p
+                className={`text-[10px] font-semibold ${
+                  k.up ? "text-emerald-300" : "text-amber-300"
                 }`}
               >
-                {index === 0 ? (
-                  <BarChart3 className="h-3.5 w-3.5" />
-                ) : index === 1 ? (
-                  <TrendingUp className="h-3.5 w-3.5" />
-                ) : index === 2 ? (
-                  <DollarSign className="h-3.5 w-3.5" />
-                ) : (
-                  <Boxes className="h-3.5 w-3.5" />
-                )}
-              </span>
-              <p className="mt-4 text-[9px] font-bold text-slate-900">{item}</p>
-              <p className="mt-1 text-[8px] text-slate-400">Leitura da operação</p>
+                {k.delta}
+              </p>
             </div>
           ))}
         </div>
+
+        {/* Mapa de vendas + Receita */}
+        <div className="relative mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur">
+            <div className="mb-2 flex items-center justify-between">
+              <p className="text-[11px] font-semibold text-white/85">
+                Mapa de Vendas (multi-conta)
+              </p>
+              <span
+                className="rounded-full px-1.5 py-0.5 text-[9px] font-semibold text-white"
+                style={{ background: "rgba(56,189,248,0.18)" }}
+              >
+                9 contas
+              </span>
+            </div>
+            <div className="space-y-1.5">
+              {accounts.map((a) => (
+                <div key={a.name} className="flex items-center gap-2">
+                  <div
+                    className="h-5 rounded-sm"
+                    style={{
+                      width: `${a.pct}%`,
+                      background: `linear-gradient(90deg, ${BLUE}, ${NEON})`,
+                    }}
+                  />
+                  <span className="whitespace-nowrap text-[10px] text-white/70">
+                    {a.name}
+                  </span>
+                  <span className="ml-auto text-[10px] font-semibold text-white">
+                    {a.value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur">
+            <div className="mb-1 flex items-center justify-between">
+              <p className="text-[11px] font-semibold text-white/85">Receita líquida</p>
+              <span className="rounded-full bg-emerald-400/15 px-1.5 py-0.5 text-[9px] font-semibold text-emerald-300">
+                +31%
+              </span>
+            </div>
+            <div className="relative h-24">
+              <svg
+                viewBox="0 0 280 100"
+                preserveAspectRatio="none"
+                className="absolute inset-0 h-full w-full"
+              >
+                <defs>
+                  <linearGradient id="chartFill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor={NEON} stopOpacity="0.55" />
+                    <stop offset="100%" stopColor={NEON} stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                {(() => {
+                  const max = Math.max(...revenue);
+                  const step = 280 / (revenue.length - 1);
+                  const pts = revenue.map(
+                    (v, i) => `${i * step},${100 - (v / max) * 85}`,
+                  );
+                  const line = pts.join(" ");
+                  const area = `0,100 ${line} 280,100`;
+                  return (
+                    <>
+                      <polyline points={area} fill="url(#chartFill)" />
+                      <polyline
+                        points={line}
+                        fill="none"
+                        stroke={NEON}
+                        strokeWidth="2"
+                      />
+                      {revenue.map((v, i) => (
+                        <circle
+                          key={i}
+                          cx={i * step}
+                          cy={100 - (v / max) * 85}
+                          r="2.5"
+                          fill={NEON}
+                        />
+                      ))}
+                    </>
+                  );
+                })()}
+              </svg>
+            </div>
+            <div className="mt-1 flex justify-between text-[9px] text-white/40">
+              {["S1", "S2", "S3", "S4", "S5", "S6", "S7", "S8", "S9"].map((d) => (
+                <span key={d}>{d}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Diagnóstico Inteligente */}
+        <div className="relative mt-3 rounded-xl border border-white/10 bg-white/5 p-3 backdrop-blur">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-[11px] font-semibold text-white/85">
+              Diagnóstico Inteligente — diagnósticos
+            </p>
+            <span className="inline-flex items-center gap-1 rounded-full bg-white/10 px-1.5 py-0.5 text-[9px] font-semibold text-white ring-1 ring-white/15">
+              <Brain className="size-2.5" /> IA ativa
+            </span>
+          </div>
+          <div className="grid grid-cols-3 gap-2 text-[10px]">
+            <div className="rounded-md bg-amber-400/10 p-2 ring-1 ring-amber-300/30">
+              <div className="flex items-center gap-1 font-semibold text-amber-300">
+                <AlertTriangle className="size-3" /> Ruptura em 3 dias
+              </div>
+              <p className="mt-0.5 text-amber-200/80">Lanterna LED — Robomix</p>
+            </div>
+            <div className="rounded-md bg-rose-400/10 p-2 ring-1 ring-rose-300/30">
+              <div className="flex items-center gap-1 font-semibold text-rose-300">
+                <TrendingDown className="size-3" /> Margem caindo
+              </div>
+              <p className="mt-0.5 text-rose-200/80">Kit Farol — Nightled</p>
+            </div>
+            <div className="rounded-md bg-emerald-400/10 p-2 ring-1 ring-emerald-300/30">
+              <div className="flex items-center gap-1 font-semibold text-emerald-300">
+                <TrendingUp className="size-3" /> Oportunidade kit
+              </div>
+              <p className="mt-0.5 text-emerald-200/80">+18% conversão prevista</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function LandingPage() {
-  const diagnosticHref =
-    "mailto:contato@agentecomercial360.com.br?subject=Quero um diagnóstico da minha operação no Mercado Livre";
+/* ---------- Integration logo bar (hero) ---------- */
+function IntegrationBar() {
+  const items = ["Mercado Livre", "Mercado Pago", "Mercado Envios", "Mercado Ads"];
+  return (
+    <div className="mt-10 flex flex-wrap items-center gap-x-7 gap-y-3 opacity-80">
+      <span className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+        <ShieldIcon className="size-3.5" style={{ color: BLUE_DEEP }} />
+        Integração Oficial via API
+      </span>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+        {items.map((label) => (
+          <span
+            key={label}
+            className="text-[13px] font-semibold tracking-[-0.01em] text-slate-400 grayscale transition-colors duration-300 hover:text-slate-700"
+            style={{ fontFamily: "var(--font-display)" }}
+          >
+            {label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Ecosystem section (below hero) ---------- */
+function EcosystemSection() {
+  const valueItems = [
+    {
+      icon: ShieldCheck,
+      title: "Conta ativa",
+      desc: "Acompanhe alertas e sinais importantes da saúde da operação.",
+    },
+    {
+      icon: DollarSign,
+      title: "Margem e resultado",
+      desc: "Entenda como vendas, taxas e custos impactam o resultado da operação.",
+    },
+    {
+      icon: Target,
+      title: "Execução inteligente",
+      desc: "Saiba onde agir primeiro em estoque, anúncios e rotina comercial.",
+    },
+  ];
+
+  const views = [
+    {
+      key: "vendas",
+      label: "Vendas",
+      icon: BarChart3,
+      eyebrow: "Visão de vendas",
+      title: "Entenda o ritmo das vendas e onde o resultado está sendo construído.",
+      supporting: "Pedidos, faturamento e ticket em uma leitura mais direta da operação.",
+      tags: ["Pedidos", "Faturamento", "Ticket médio"],
+      objectPosition: "52% center",
+      filter: "saturate(1.03) contrast(1.05) brightness(0.94)",
+      overlay:
+        "linear-gradient(180deg, rgba(5,35,86,0.03) 0%, rgba(5,35,86,0.10) 48%, rgba(5,35,86,0.70) 100%)",
+    },
+    {
+      key: "margem",
+      label: "Margem",
+      icon: DollarSign,
+      eyebrow: "Visão de margem",
+      title: "Veja onde a margem aperta antes de descobrir isso no fim do mês.",
+      supporting: "Receita, taxas e rentabilidade organizadas para apoiar decisões mais seguras.",
+      tags: ["Receita", "Taxas", "Rentabilidade"],
+      objectPosition: "35% center",
+      filter: "saturate(0.78) contrast(1.12) brightness(0.80)",
+      overlay:
+        "linear-gradient(180deg, rgba(20,12,4,0.04) 0%, rgba(20,12,4,0.22) 44%, rgba(20,12,4,0.78) 100%)",
+    },
+    {
+      key: "estoque",
+      label: "Estoque",
+      icon: Boxes,
+      eyebrow: "Visão de estoque",
+      title: "Identifique o que exige reposição ou atenção antes da ruptura.",
+      supporting: "Giro, cobertura e sinais de estoque reunidos para orientar a rotina operacional.",
+      tags: ["Giro", "Cobertura", "Risco de ruptura"],
+      objectPosition: "73% center",
+      filter: "saturate(1.18) contrast(1.10) brightness(0.88)",
+      overlay:
+        "linear-gradient(180deg, rgba(4,29,24,0.03) 0%, rgba(4,29,24,0.18) 48%, rgba(4,29,24,0.76) 100%)",
+    },
+    {
+      key: "anuncios",
+      label: "Anúncios",
+      icon: Target,
+      eyebrow: "Visão de anúncios",
+      title: "Saiba quais anúncios merecem ajuste antes de aumentar o investimento.",
+      supporting: "Visibilidade, conversão e eficiência para priorizar o que realmente merece ação.",
+      tags: ["Conversão", "Visibilidade", "Eficiência"],
+      objectPosition: "88% center",
+      filter: "saturate(0.92) contrast(1.18) brightness(0.76)",
+      overlay:
+        "linear-gradient(180deg, rgba(18,11,47,0.04) 0%, rgba(18,11,47,0.24) 48%, rgba(18,11,47,0.80) 100%)",
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 antialiased">
-      <section id="top" className="relative overflow-hidden bg-[#061838] text-white">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_34%,rgba(30,94,255,.28),transparent_28%)]" />
-
-        <header className="relative z-30 mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-10">
-          <a href="#top" className="flex items-center gap-3">
-            <img src={acLogo} alt="AC360" className="h-8 w-auto brightness-0 invert" />
-            <div className="hidden sm:block">
-              <p className="text-[11px] font-bold leading-none">AC360</p>
-              <p className="mt-1 text-[9px] uppercase tracking-[0.15em] text-white/45">
-                E-commerce Intelligence
-              </p>
-            </div>
-          </a>
-
-          <nav className="hidden items-center gap-7 text-[12px] font-semibold text-white/65 lg:flex">
-            <a href="#beneficios" className="transition hover:text-white">Benefícios</a>
-            <a href="#inteligencia" className="transition hover:text-white">Inteligência</a>
-            <a href="#consultoria" className="transition hover:text-white">Consultoria</a>
-            <a href="#plataforma" className="transition hover:text-white">Plataforma</a>
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <Link
-              to="/ecommerce/login"
-              className="hidden rounded-full px-4 py-2 text-[11px] font-semibold text-white/70 transition hover:text-white sm:inline-flex"
-            >
-              Login
-            </Link>
-            <a
-              href={diagnosticHref}
-              className="inline-flex h-10 items-center gap-2 rounded-full bg-white px-4 text-[11px] font-bold text-[#0A1F44] transition hover:-translate-y-0.5 hover:shadow-lg"
-            >
-              Solicitar diagnóstico
-              <ArrowRight className="h-3.5 w-3.5" />
-            </a>
-          </div>
-        </header>
-
-        <div className="relative z-10 mx-auto grid min-h-[680px] max-w-7xl items-center gap-12 px-6 pb-20 pt-12 lg:grid-cols-[.92fr_1.08fr] lg:px-10 lg:pb-24 lg:pt-16">
+    <section
+      id="solucoes"
+      className="relative overflow-hidden border-y border-slate-200/70 bg-[#f7f9fc] py-20 sm:py-24"
+    >
+      <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
+        <div className="grid items-center gap-10 lg:grid-cols-[0.88fr_1.12fr] lg:gap-14">
           <Reveal>
-            <Eyebrow dark>Inteligência + consultoria para Mercado Livre</Eyebrow>
+            <SectionLabel>Operação com mais controle</SectionLabel>
 
-            <h1 className="mt-7 max-w-[720px] text-[48px] font-semibold leading-[.96] tracking-[-0.05em] text-white sm:text-[62px] lg:text-[72px]">
-              Sua operação vende.
-              <span className="mt-2 block text-[#73A7FF]">O AC360 mostra onde está o lucro.</span>
-            </h1>
+            <h2 className="mt-3 max-w-xl text-3xl font-bold tracking-[-0.035em] text-[#071b45] sm:text-4xl lg:text-[46px] lg:leading-[1.02]">
+              Uma operação mais organizada, lucrativa e previsível.
+            </h2>
 
-            <p className="mt-7 max-w-[640px] text-[16px] leading-relaxed text-white/65 sm:text-[17px]">
-              Tecnologia proprietária e acompanhamento consultivo para transformar dados do Mercado
-              Livre em prioridades claras, ações objetivas e resultado mensurável.
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-slate-600 sm:text-lg">
+              O AC360 organiza sinais de vendas, margem, estoque e anúncios para você enxergar o
+              que exige atenção e agir com mais clareza.
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <a
-                href={diagnosticHref}
-                className="inline-flex h-14 items-center justify-center rounded-full bg-blue-600 px-7 text-[13px] font-bold text-white shadow-lg shadow-blue-950/30 transition hover:-translate-y-0.5 hover:bg-blue-500"
-              >
-                Solicitar diagnóstico da operação
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </a>
-
-              <a
-                href="#beneficios"
-                className="inline-flex h-14 items-center justify-center rounded-full border border-white/15 bg-white/5 px-7 text-[13px] font-semibold text-white/85 transition hover:bg-white/10"
-              >
-                Conhecer o AC360
-              </a>
-            </div>
-
-            <div className="mt-9 flex flex-wrap gap-2">
-              {["Margem", "Estoque", "Ads", "Feed Inteligente", "Ações", "Resultados"].map((item) => (
-                <span
-                  key={item}
-                  className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-[9.5px] font-semibold text-white/50"
+            <div className="mt-8 space-y-3">
+              {valueItems.map(({ icon: Icon, title, desc }) => (
+                <div
+                  key={title}
+                  className="group flex gap-4 rounded-2xl border border-slate-200/80 bg-white/88 p-4 shadow-[0_12px_34px_-24px_rgba(15,23,42,0.28)] transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-[0_18px_44px_-24px_rgba(37,99,235,0.28)]"
                 >
-                  {item}
-                </span>
+                  <div className="mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100">
+                    <Icon className="size-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold tracking-[-0.015em] text-slate-900">
+                      {title}
+                    </h3>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-500">{desc}</p>
+                  </div>
+                </div>
               ))}
             </div>
           </Reveal>
 
           <Reveal delay={120}>
-            <IntelligenceVisual />
-          </Reveal>
-        </div>
-      </section>
+            <div className="relative" data-operation-tabs>
+              <style>{`
+                [data-operation-tabs] .operation-view,
+                [data-operation-tabs] .operation-copy {
+                  display: none;
+                }
 
-      <section id="plataforma" className="bg-white py-24 sm:py-28">
-        <div className="mx-auto max-w-7xl px-6 lg:px-10">
-          <Reveal className="text-center">
-            <Eyebrow>Visão integrada</Eyebrow>
-            <h2 className="mx-auto mt-5 max-w-4xl text-[38px] font-semibold leading-tight tracking-[-0.035em] text-[#0A1F44] sm:text-[52px]">
-              Tudo que importa na sua operação, conectado à mesma inteligência.
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-[15px] leading-relaxed text-slate-500">
-              Vendas, margem, estoque, anúncios e execução reunidos para facilitar decisão.
-            </p>
-          </Reveal>
+                #op-vendas:checked ~ .operation-shell .view-vendas,
+                #op-vendas:checked ~ .operation-shell .copy-vendas,
+                #op-margem:checked ~ .operation-shell .view-margem,
+                #op-margem:checked ~ .operation-shell .copy-margem,
+                #op-estoque:checked ~ .operation-shell .view-estoque,
+                #op-estoque:checked ~ .operation-shell .copy-estoque,
+                #op-anuncios:checked ~ .operation-shell .view-anuncios,
+                #op-anuncios:checked ~ .operation-shell .copy-anuncios {
+                  display: block;
+                }
 
-          <Reveal delay={100} className="mt-12">
-            <div className="overflow-hidden rounded-[34px] bg-gradient-to-br from-blue-800 via-blue-600 to-blue-400 p-6 shadow-2xl sm:p-10 lg:p-12">
-              <div className="grid items-center gap-10 lg:grid-cols-[.82fr_1.18fr]">
-                <div className="text-white">
-                  <p className="text-[11px] font-semibold text-white/70">AC360 Intelligence</p>
-                  <h3 className="mt-4 max-w-xl text-[34px] font-semibold leading-[1.05] tracking-[-0.035em] sm:text-[44px]">
-                    Uma visão para decidir melhor.
-                  </h3>
-                  <p className="mt-5 max-w-lg text-[14px] leading-relaxed text-white/70">
-                    Em vez de navegar entre relatórios isolados, acompanhe os principais sinais da
-                    operação em um contexto único.
-                  </p>
+                [data-operation-tabs] .operation-tab {
+                  border-color: rgba(255,255,255,.20);
+                  background: rgba(255,255,255,.10);
+                  color: rgba(255,255,255,.78);
+                }
 
-                  <div className="mt-7 flex flex-wrap gap-2">
-                    {["Vendas", "Margem", "Estoque", "Anúncios", "Ads"].map((item) => (
-                      <span
-                        key={item}
-                        className="rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[10px] font-semibold text-white"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
+                #op-vendas:checked ~ .operation-shell label[for="op-vendas"],
+                #op-margem:checked ~ .operation-shell label[for="op-margem"],
+                #op-estoque:checked ~ .operation-shell label[for="op-estoque"],
+                #op-anuncios:checked ~ .operation-shell label[for="op-anuncios"] {
+                  border-color: rgba(255,255,255,.95);
+                  background: rgba(255,255,255,.96);
+                  color: #0f172a;
+                  box-shadow: 0 8px 22px rgba(15,23,42,.20);
+                }
 
-                  <div className="mt-8 rounded-2xl border border-white/15 bg-white/10 p-4">
-                    <p className="text-[9px] font-bold uppercase tracking-[0.13em] text-white/50">
-                      Benefício
-                    </p>
-                    <p className="mt-2 text-[13px] font-semibold text-white">
-                      Menos tempo procurando dados. Mais clareza para decidir onde agir.
-                    </p>
-                  </div>
-                </div>
+                [data-operation-tabs] .operation-tab:hover {
+                  border-color: rgba(255,255,255,.42);
+                  background: rgba(255,255,255,.16);
+                  color: white;
+                }
 
-                <DashboardPreview />
-              </div>
-            </div>
-          </Reveal>
-        </div>
-      </section>
+                #op-vendas:checked ~ .operation-shell label[for="op-vendas"]:hover,
+                #op-margem:checked ~ .operation-shell label[for="op-margem"]:hover,
+                #op-estoque:checked ~ .operation-shell label[for="op-estoque"]:hover,
+                #op-anuncios:checked ~ .operation-shell label[for="op-anuncios"]:hover {
+                  background: white;
+                  color: #0f172a;
+                }
+              `}</style>
 
-      <section id="inteligencia" className="bg-[#061838] py-24 text-white sm:py-28">
-        <div className="mx-auto max-w-7xl px-6 lg:px-10">
-          <Reveal className="mx-auto max-w-4xl text-center">
-            <Eyebrow dark>Inteligência aplicada</Eyebrow>
-            <h2 className="mt-5 text-[38px] font-semibold leading-tight tracking-[-0.04em] sm:text-[54px]">
-              Você não precisa de mais dados.
-              <span className="block text-[#73A7FF]">Precisa saber o que fazer com eles.</span>
-            </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-[15px] leading-relaxed text-white/60">
-              O AC360 transforma sinais da operação em prioridade, contexto e próximo passo.
-            </p>
-          </Reveal>
+              <input id="op-vendas" name="operation-view" type="radio" defaultChecked className="sr-only" />
+              <input id="op-margem" name="operation-view" type="radio" className="sr-only" />
+              <input id="op-estoque" name="operation-view" type="radio" className="sr-only" />
+              <input id="op-anuncios" name="operation-view" type="radio" className="sr-only" />
 
-          <div className="mx-auto mt-12 grid max-w-6xl gap-5 lg:grid-cols-2">
-            <Reveal>
-              <div className="h-full rounded-[30px] border border-white/10 bg-white/5 p-6">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-400/10 text-blue-200">
-                    <Radar className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-white/40">
-                      Feed Inteligente
-                    </p>
-                    <p className="mt-1 text-sm font-bold text-white">O que merece atenção primeiro</p>
-                  </div>
-                </div>
-
-                <div className="mt-7 space-y-3">
-                  {[
-                    ["Crítica", "Produto com custo pendente e faturamento relevante"],
-                    ["Atenção", "Estoque entrando em zona de risco"],
-                    ["Oportunidade", "Boa margem, vendas e estoque disponível"],
-                  ].map(([label, description], index) => (
-                    <div key={label} className="rounded-2xl border border-white/10 bg-black/10 p-4">
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-[8.5px] font-bold ${
-                          index === 0
-                            ? "bg-rose-400/10 text-rose-200"
-                            : index === 1
-                              ? "bg-amber-400/10 text-amber-200"
-                              : "bg-emerald-400/10 text-emerald-200"
-                        }`}
-                      >
-                        {label}
-                      </span>
-                      <p className="mt-3 text-[12px] font-medium text-white/80">{description}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Reveal>
-
-            <Reveal delay={90}>
-              <div className="h-full rounded-[30px] bg-white p-6 text-slate-900 shadow-2xl">
-                <div className="flex items-center gap-3">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                    <Brain className="h-5 w-5" />
-                  </span>
-                  <div>
-                    <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                      Chat AC360
-                    </p>
-                    <p className="mt-1 text-sm font-bold text-slate-900">Pergunte à sua operação</p>
-                  </div>
-                </div>
-
-                <div className="mt-7 space-y-4">
-                  <div className="ml-auto max-w-[86%] rounded-[18px] rounded-br-md bg-slate-950 px-4 py-3 text-[12px] leading-relaxed text-white">
-                    AC360, onde minha operação merece atenção hoje?
-                  </div>
-
-                  <div className="flex items-end gap-2.5">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white">
-                      <Sparkles className="h-3.5 w-3.5" />
-                    </span>
-                    <div className="max-w-[86%] rounded-[18px] rounded-bl-md border border-slate-200 bg-slate-50 px-4 py-3 text-[11.5px] leading-relaxed text-slate-600">
-                      Priorize primeiro os itens com custo pendente e maior faturamento associado.
-                      Depois, revise estoque e campanhas dos produtos com margem confiável.
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6 flex flex-wrap gap-2">
-                  {["Margem", "Estoque", "Ads", "Produtos", "Vendas"].map((item) => (
-                    <span key={item} className="rounded-full border border-slate-200 px-3 py-1.5 text-[9.5px] font-semibold text-slate-500">
-                      {item}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      <section id="beneficios" className="bg-slate-50 py-24 sm:py-28">
-        <div className="mx-auto max-w-7xl px-6 lg:px-10">
-          <Reveal className="text-center">
-            <Eyebrow>Da informação ao resultado</Eyebrow>
-            <h2 className="mx-auto mt-5 max-w-3xl text-[38px] font-semibold leading-tight tracking-[-0.035em] text-[#0A1F44] sm:text-[50px]">
-              Quatro capacidades. Um ciclo de performance.
-            </h2>
-          </Reveal>
-
-          <div className="mt-12 grid gap-4 md:grid-cols-2">
-            {[
-              {
-                number: "01",
-                title: "Enxergar",
-                text: "Entenda vendas, margem, estoque, anúncios e resultado em uma visão executiva.",
-                icon: BarChart3,
-                style: "bg-white text-slate-900",
-              },
-              {
-                number: "02",
-                title: "Priorizar",
-                text: "O Feed Inteligente identifica o que merece atenção primeiro e reduz dispersão.",
-                icon: Radar,
-                style: "bg-slate-950 text-white",
-              },
-              {
-                number: "03",
-                title: "Agir",
-                text: "A Central de Ações converte problemas em próximos passos claros e ordenados por impacto.",
-                icon: Target,
-                style: "bg-gradient-to-br from-blue-800 to-blue-500 text-white",
-              },
-              {
-                number: "04",
-                title: "Medir",
-                text: "Resultados das Ações fecha o ciclo e mostra o impacto observado depois da execução.",
-                icon: TrendingUp,
-                style: "bg-white text-slate-900",
-              },
-            ].map(({ number, title, text, icon: Icon, style }, index) => (
-              <Reveal key={title} delay={index * 60}>
-                <div className={`min-h-[280px] rounded-[30px] p-7 shadow-xl transition hover:-translate-y-1 sm:p-8 ${style}`}>
-                  <div className="flex items-start justify-between">
-                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-black/5">
-                      <Icon className="h-5 w-5" />
-                    </span>
-                    <span className="text-[11px] font-bold opacity-35">{number}</span>
-                  </div>
-                  <h3 className="mt-16 text-[28px] font-semibold tracking-[-0.03em]">{title}</h3>
-                  <p className="mt-3 max-w-lg text-[13px] leading-relaxed opacity-65">{text}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-white py-24 sm:py-28">
-        <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 lg:grid-cols-2 lg:px-10">
-          <Reveal>
-            <Eyebrow>Margem e rentabilidade</Eyebrow>
-            <h2 className="mt-5 text-[40px] font-semibold leading-[1.04] tracking-[-0.04em] text-[#0A1F44] sm:text-[52px]">
-              Faturar mais não significa lucrar mais.
-            </h2>
-            <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-slate-500">
-              O AC360 conecta receita, custos, taxas e operação para ajudar a identificar onde a
-              rentabilidade está saudável e onde precisa de correção.
-            </p>
-
-            <div className="mt-8 space-y-3">
-              {[
-                ["Custos pendentes", "Produtos que impedem uma leitura confiável de margem."],
-                ["Margem comprometida", "Onde faturamento não está se convertendo em resultado."],
-                ["Produtos rentáveis", "Itens com combinação saudável de venda, margem e estoque."],
-              ].map(([title, text]) => (
-                <div key={title} className="flex gap-3 rounded-2xl border border-slate-200 p-4">
-                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-blue-600" />
-                  <div>
-                    <p className="text-[12px] font-bold text-slate-900">{title}</p>
-                    <p className="mt-1 text-[11px] leading-relaxed text-slate-500">{text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Reveal>
-
-          <Reveal delay={90}>
-            <div className="rounded-[32px] bg-blue-50 p-6 shadow-xl">
-              <div className="rounded-[26px] border border-slate-200 bg-white p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-[9px] font-bold uppercase tracking-[0.13em] text-slate-400">
-                      Leitura de rentabilidade
-                    </p>
-                    <p className="mt-1 text-sm font-bold text-slate-900">Resultado por produto</p>
-                  </div>
-                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                    <DollarSign className="h-5 w-5" />
-                  </span>
-                </div>
-
-                <div className="mt-6 grid grid-cols-3 gap-3">
-                  {[
-                    ["Receita", "Disponível"],
-                    ["Custos", "Validar"],
-                    ["Margem", "Confiável"],
-                  ].map(([title, value], index) => (
+              <div className="operation-shell relative min-h-[445px] overflow-hidden rounded-[30px] border border-white/80 bg-slate-950 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.48)] sm:min-h-[520px]">
+                {views.map((view) => (
+                  <div key={view.key} className={`operation-view view-${view.key} absolute inset-0`}>
+                    <img
+                      src={heroWarehouse}
+                      alt={`Visual da operação: ${view.label}`}
+                      className="absolute inset-0 h-full w-full scale-[1.035] object-cover transition-all duration-500"
+                      style={{
+                        objectPosition: view.objectPosition,
+                        filter: view.filter,
+                      }}
+                    />
                     <div
-                      key={title}
-                      className={`rounded-2xl p-4 ${
-                        index === 0
-                          ? "bg-blue-50"
-                          : index === 1
-                            ? "bg-amber-50"
-                            : "bg-emerald-50"
-                      }`}
-                    >
-                      <p className="text-[8.5px] font-bold uppercase tracking-[0.10em] text-slate-400">
-                        {title}
-                      </p>
-                      <p className="mt-2 text-[13px] font-bold text-slate-900">{value}</p>
+                      aria-hidden
+                      className="absolute inset-0"
+                      style={{ background: view.overlay }}
+                    />
+
+                    <div className="absolute left-5 top-5 sm:left-6 sm:top-6">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-white/22 bg-slate-950/40 px-3.5 py-2 text-white shadow-lg backdrop-blur-xl">
+                        <view.icon className="size-3.5 text-white/90" />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/82">
+                          {view.eyebrow}
+                        </span>
+                      </div>
                     </div>
-                  ))}
+                  </div>
+                ))}
+
+                <div className="absolute inset-x-4 bottom-4 z-10 sm:inset-x-6 sm:bottom-6">
+                  <div className="rounded-[24px] border border-white/20 bg-slate-950/62 p-4 text-white shadow-2xl backdrop-blur-2xl sm:p-5">
+                    <div className="flex items-center gap-2">
+                      <span className="size-2 rounded-full bg-[#f6c400]" />
+                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/65">
+                        Tudo conectado à mesma inteligência
+                      </span>
+                    </div>
+
+                    <div className="mt-3 min-h-[108px]">
+                      {views.map((view) => (
+                        <div key={view.key} className={`operation-copy copy-${view.key}`}>
+                          <p className="max-w-[570px] text-lg font-semibold leading-snug sm:text-[21px]">
+                            {view.title}
+                          </p>
+                          <p className="mt-2 max-w-[560px] text-sm leading-relaxed text-white/65">
+                            {view.supporting}
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+                            {view.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="inline-flex items-center gap-2 text-xs font-medium text-white/68"
+                              >
+                                <CheckCircle2 className="size-3.5 text-blue-300" />
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div
+                      className="mt-4 flex flex-wrap gap-2 border-t border-white/10 pt-4"
+                      role="tablist"
+                      aria-label="Áreas da operação"
+                    >
+                      {views.map(({ key, label, icon: Icon }) => (
+                        <label
+                          key={key}
+                          htmlFor={`op-${key}`}
+                          role="tab"
+                          className="operation-tab inline-flex cursor-pointer select-none items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition-all duration-200"
+                        >
+                          <Icon className="size-3.5" />
+                          {label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="absolute -right-3 -top-3 z-20 hidden rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-[0_16px_40px_-22px_rgba(15,23,42,0.32)] backdrop-blur-xl sm:block">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                    <Radar className="size-4" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                      AC360
+                    </p>
+                    <p className="text-sm font-semibold text-slate-800">Clique para explorar a operação</p>
+                  </div>
                 </div>
               </div>
             </div>
           </Reveal>
         </div>
-      </section>
+      </div>
+    </section>
+  );
+}
 
-      <section className="bg-slate-50 py-24 sm:py-28">
-        <div className="mx-auto max-w-7xl px-6 lg:px-10">
-          <Reveal>
-            <div className="grid overflow-hidden rounded-[34px] border border-slate-200 bg-white shadow-xl lg:grid-cols-2">
-              <div className="relative min-h-[420px] overflow-hidden">
-                <img src={heroWarehouse} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/55 via-transparent to-transparent" />
-                <div className="absolute bottom-6 left-6 rounded-2xl border border-white/20 bg-slate-950/60 px-4 py-3 text-white backdrop-blur">
-                  <p className="text-[9px] font-bold uppercase tracking-[0.13em] text-white/50">
-                    Estoque + vendas
-                  </p>
-                  <p className="mt-1 text-[12px] font-semibold">Antecipe risco antes da ruptura.</p>
+/* ------------------------------------------------------------------ */
+
+export function LandingPage() {
+  const commerceAreas = [
+    {
+      key: "vendas",
+      label: "Vendas",
+      icon: BarChart3,
+      title: "Entenda o que realmente está movimentando suas vendas.",
+      description:
+        "Conecte faturamento, pedidos e ticket para enxergar ritmo, mudança de comportamento e pontos que pedem atenção.",
+      bullets: ["Pedidos e faturamento", "Ticket e evolução", "Leitura comercial"],
+    },
+    {
+      key: "margem",
+      label: "Margem",
+      icon: DollarSign,
+      title: "Descubra onde o lucro está escapando antes do fim do mês.",
+      description:
+        "Cruze receita, taxas e custos para identificar produtos saudáveis, margens comprometidas e decisões que precisam de correção.",
+      bullets: ["Rentabilidade", "Taxas e custos", "Eficiência por venda"],
+    },
+    {
+      key: "estoque",
+      label: "Estoque",
+      icon: Boxes,
+      title: "Antecipe ruptura antes que ela vire perda de venda.",
+      description:
+        "Use giro, cobertura e disponibilidade para saber o que proteger, recomprar ou acompanhar com mais atenção.",
+      bullets: ["Giro de estoque", "Cobertura", "Risco de ruptura"],
+    },
+    {
+      key: "anuncios",
+      label: "Anúncios",
+      icon: Target,
+      title: "Saiba onde ajustar antes de simplesmente investir mais.",
+      description:
+        "Conecte desempenho, conversão e eficiência para diferenciar anúncios que precisam de correção daqueles que podem ganhar escala.",
+      bullets: ["Conversão", "Visibilidade", "Eficiência"],
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#080b10] text-white antialiased">
+      {/* ==================== HERO — E-COMMERCE INTELLIGENCE ==================== */}
+      <section id="top" className="relative min-h-[760px] overflow-hidden bg-[#080b10]">
+        <img
+          src={heroWarehouse}
+          alt="Operação de e-commerce e logística"
+          className="absolute inset-0 h-full w-full scale-[1.04] object-cover object-center"
+          style={{ filter: "saturate(0.92) contrast(1.12) brightness(0.74)" }}
+        />
+
+        <div
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(4,7,12,0.98) 0%, rgba(5,8,14,0.94) 34%, rgba(5,9,16,0.68) 58%, rgba(5,9,16,0.28) 82%, rgba(5,9,16,0.44) 100%), linear-gradient(180deg, rgba(3,7,13,0.48) 0%, rgba(3,7,13,0.05) 55%, rgba(3,7,13,0.92) 100%)",
+          }}
+        />
+
+        <div
+          aria-hidden
+          className="absolute inset-0 opacity-[0.12]"
+          style={{
+            backgroundImage:
+              "linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px)",
+            backgroundSize: "72px 72px",
+            maskImage: "linear-gradient(90deg, transparent 0%, black 48%, black 100%)",
+            WebkitMaskImage: "linear-gradient(90deg, transparent 0%, black 48%, black 100%)",
+          }}
+        />
+
+        <div className="relative z-10">
+          <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10">
+            <a href="#top" className="flex items-center gap-3">
+              <img src={acLogo} alt="AC360" className="h-9 w-auto brightness-0 invert" />
+              <span className="hidden border-l border-white/20 pl-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/50 sm:block">
+                E-commerce Intelligence
+              </span>
+            </a>
+
+            <nav className="hidden items-center gap-8 text-sm font-medium text-white/60 md:flex">
+              <a href="#operacao" className="transition-colors hover:text-white">Operação</a>
+              <a href="#inteligencia" className="transition-colors hover:text-white">Inteligência</a>
+              <a href="#cta-final" className="transition-colors hover:text-white">Demonstração</a>
+            </nav>
+
+            <div className="flex items-center gap-3">
+              <Link
+                to="/ecommerce/login"
+                className="hidden rounded-full border border-white/15 bg-white/[0.06] px-5 py-2.5 text-sm font-semibold text-white/85 backdrop-blur-xl transition-all hover:border-white/30 hover:bg-white/[0.10] sm:inline-flex"
+              >
+                Entrar no painel
+              </Link>
+              <a href="#cta-final">
+                <Button
+                  className="h-10 rounded-full px-5 text-sm font-semibold text-white shadow-lg shadow-blue-950/40"
+                  style={{ background: "linear-gradient(135deg, #0867f2, #1b8cff)" }}
+                >
+                  Solicitar diagnóstico
+                </Button>
+              </a>
+            </div>
+          </header>
+
+          <div className="mx-auto grid min-h-[660px] max-w-7xl items-center gap-12 px-6 pb-24 pt-14 lg:grid-cols-[0.9fr_1.1fr] lg:px-10 lg:pb-28 lg:pt-20">
+            <Reveal className="max-w-[690px]">
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 backdrop-blur-xl">
+                <span className="size-2 rounded-full bg-[#f4c400] shadow-[0_0_16px_rgba(244,196,0,.65)]" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/65">
+                  Inteligência + consultoria para vendedores no Mercado Livre
+                </span>
+              </div>
+
+              <h1 className="font-display text-[44px] font-bold leading-[0.98] tracking-[-0.045em] text-white sm:text-[60px] lg:text-[72px]">
+                Sua operação vende.
+                <br />
+                O AC360 mostra{" "}
+                <span className="text-[#ffbf31]">onde está o lucro.</span>
+              </h1>
+
+              <p className="mt-6 max-w-[610px] text-base leading-relaxed text-white/68 sm:text-lg">
+                Tecnologia proprietária e acompanhamento consultivo para transformar dados do
+                Mercado Livre em prioridades claras, ações objetivas e resultado mensurável.
+              </p>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <a href="#cta-final">
+                  <Button
+                    size="lg"
+                    className="h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-950/35 transition-all hover:-translate-y-0.5"
+                    style={{ background: "linear-gradient(135deg, #0867f2, #1b8cff)" }}
+                  >
+                    Solicitar diagnóstico
+                    <ArrowRight className="ml-2 size-4" />
+                  </Button>
+                </a>
+
+                <a
+                  href="#operacao"
+                  className="inline-flex h-14 items-center justify-center rounded-full border border-white/15 bg-white/[0.06] px-8 text-base font-semibold text-white/85 backdrop-blur-xl transition-all hover:border-white/30 hover:bg-white/[0.10] hover:text-white"
+                >
+                  Conhecer os benefícios
+                </a>
+              </div>
+
+              <div className="mt-8 flex flex-wrap gap-2">
+                {["Margem", "Estoque", "Feed Inteligente", "Ações", "Resultados"].map((label) => (
+                  <span
+                    key={label}
+                    className="rounded-full border border-white/10 bg-black/20 px-3.5 py-2 text-xs font-medium text-white/60 backdrop-blur-lg"
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
+            </Reveal>
+
+            <div className="relative hidden min-h-[560px] lg:block" data-intelligence-cluster>
+              <style>{`
+                [data-intelligence-cluster] .intel-float-a {
+                  animation: intelFloatA 6s ease-in-out infinite;
+                }
+                [data-intelligence-cluster] .intel-float-b {
+                  animation: intelFloatB 7s ease-in-out infinite;
+                }
+                [data-intelligence-cluster] .intel-float-c {
+                  animation: intelFloatC 6.5s ease-in-out infinite;
+                }
+                [data-intelligence-cluster] .intel-float-d {
+                  animation: intelFloatD 7.5s ease-in-out infinite;
+                }
+                [data-intelligence-cluster] .intel-ring {
+                  animation: intelPulse 5s ease-in-out infinite;
+                }
+                [data-intelligence-cluster] .intel-dot {
+                  animation: intelDot 2.8s ease-in-out infinite;
+                }
+
+                @keyframes intelFloatA {
+                  0%, 100% { transform: translate3d(0,0,0); }
+                  50% { transform: translate3d(8px,-10px,0); }
+                }
+                @keyframes intelFloatB {
+                  0%, 100% { transform: translate3d(0,0,0); }
+                  50% { transform: translate3d(-9px,8px,0); }
+                }
+                @keyframes intelFloatC {
+                  0%, 100% { transform: translate3d(0,0,0); }
+                  50% { transform: translate3d(7px,9px,0); }
+                }
+                @keyframes intelFloatD {
+                  0%, 100% { transform: translate3d(0,0,0); }
+                  50% { transform: translate3d(-8px,-8px,0); }
+                }
+                @keyframes intelPulse {
+                  0%, 100% { opacity: .42; transform: scale(1); }
+                  50% { opacity: .72; transform: scale(1.035); }
+                }
+                @keyframes intelDot {
+                  0%, 100% { opacity: .35; }
+                  50% { opacity: 1; }
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+                  [data-intelligence-cluster] .intel-float-a,
+                  [data-intelligence-cluster] .intel-float-b,
+                  [data-intelligence-cluster] .intel-float-c,
+                  [data-intelligence-cluster] .intel-float-d,
+                  [data-intelligence-cluster] .intel-ring,
+                  [data-intelligence-cluster] .intel-dot {
+                    animation: none !important;
+                  }
+                }
+              `}</style>
+
+              {/* subtle network behind the cards */}
+              <div className="pointer-events-none absolute left-1/2 top-1/2 h-[360px] w-[360px] -translate-x-1/2 -translate-y-1/2">
+                <div className="intel-ring absolute inset-0 rounded-full border border-white/[0.08]" />
+                <div className="intel-ring absolute inset-[54px] rounded-full border border-blue-300/[0.10]" style={{ animationDelay: "700ms" }} />
+                <div className="absolute left-1/2 top-1/2 h-px w-[330px] -translate-x-1/2 -translate-y-1/2 rotate-[24deg] bg-gradient-to-r from-transparent via-white/[0.10] to-transparent" />
+                <div className="absolute left-1/2 top-1/2 h-px w-[330px] -translate-x-1/2 -translate-y-1/2 -rotate-[31deg] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
+              </div>
+
+              {/* robust compact hub */}
+              <div className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
+                <div className="relative flex size-[188px] items-center justify-center rounded-full border border-white/[0.12] bg-black/28 shadow-[0_30px_90px_-25px_rgba(0,0,0,.8)] backdrop-blur-xl">
+                  <div className="absolute inset-[18px] rounded-full border border-blue-300/[0.10] bg-blue-500/[0.035]" />
+                  <div className="relative text-center">
+                    <div className="mx-auto flex size-14 items-center justify-center rounded-2xl border border-white/12 bg-white/[0.07] shadow-[0_14px_40px_-16px_rgba(0,0,0,.9)] backdrop-blur-xl">
+                      <img src={acLogo} alt="" className="h-8 w-auto brightness-0 invert" />
+                    </div>
+                    <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">
+                      Central AC360
+                    </p>
+                    <p className="mt-1 text-[11px] font-medium text-white/72">
+                      Dados → Prioridades
+                    </p>
+                  </div>
+
+                  <span className="intel-dot absolute -left-1 top-1/2 size-2 rounded-full bg-blue-300 shadow-[0_0_18px_rgba(125,211,252,.8)]" />
+                  <span className="intel-dot absolute -right-1 top-1/2 size-2 rounded-full bg-amber-300 shadow-[0_0_18px_rgba(252,211,77,.8)]" style={{ animationDelay: "500ms" }} />
+                  <span className="intel-dot absolute left-1/2 -top-1 size-2 rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(103,232,249,.8)]" style={{ animationDelay: "900ms" }} />
+                  <span className="intel-dot absolute bottom-[-4px] left-1/2 size-2 rounded-full bg-fuchsia-300 shadow-[0_0_18px_rgba(240,171,252,.8)]" style={{ animationDelay: "1300ms" }} />
                 </div>
               </div>
 
-              <div className="flex flex-col justify-center p-8 sm:p-10 lg:p-12">
-                <Eyebrow>Estoque e oportunidade</Eyebrow>
-                <h2 className="mt-5 text-[36px] font-semibold leading-[1.05] tracking-[-0.035em] text-[#0A1F44] sm:text-[46px]">
-                  Antecipe problemas antes que eles virem perda de venda.
-                </h2>
-                <p className="mt-5 text-[14px] leading-relaxed text-slate-500">
-                  Cruze ritmo de vendas e disponibilidade para identificar itens que precisam de
-                  proteção, reposição ou atenção comercial.
-                </p>
+              <div className="intel-float-a absolute left-8 top-12 z-30 w-[210px] rounded-2xl border border-white/12 bg-black/46 p-3.5 shadow-[0_22px_55px_-24px_rgba(0,0,0,.9)] backdrop-blur-2xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300 ring-1 ring-blue-300/15">
+                    <Radar className="size-4.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/38">Feed Inteligente</p>
+                      <span className="size-1.5 rounded-full bg-blue-300" />
+                    </div>
+                    <p className="mt-1 text-[13px] font-semibold leading-snug text-white">
+                      Prioridades da operação
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-                <div className="mt-7 rounded-2xl bg-blue-50 p-4">
-                  <div className="flex items-start gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
-                      <Brain className="h-4 w-4" />
+              <div className="intel-float-b absolute right-0 top-36 z-30 w-[205px] rounded-2xl border border-white/12 bg-black/46 p-3.5 shadow-[0_22px_55px_-24px_rgba(0,0,0,.9)] backdrop-blur-2xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300 ring-1 ring-amber-300/15">
+                    <DollarSign className="size-4.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/38">Margem</p>
+                      <span className="size-1.5 rounded-full bg-amber-300" />
+                    </div>
+                    <p className="mt-1 text-[13px] font-semibold leading-snug text-white">
+                      Rentabilidade sob controle
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="intel-float-c absolute bottom-24 left-3 z-30 w-[205px] rounded-2xl border border-white/12 bg-black/46 p-3.5 shadow-[0_22px_55px_-24px_rgba(0,0,0,.9)] backdrop-blur-2xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-300/15">
+                    <Boxes className="size-4.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/38">Estoque</p>
+                      <span className="size-1.5 rounded-full bg-cyan-300" />
+                    </div>
+                    <p className="mt-1 text-[13px] font-semibold leading-snug text-white">
+                      Ruptura antes de acontecer
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="intel-float-d absolute bottom-12 right-7 z-30 w-[205px] rounded-2xl border border-white/12 bg-black/46 p-3.5 shadow-[0_22px_55px_-24px_rgba(0,0,0,.9)] backdrop-blur-2xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-fuchsia-500/15 text-fuchsia-200 ring-1 ring-fuchsia-300/15">
+                    <Target className="size-4.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/38">Anúncios</p>
+                      <span className="size-1.5 rounded-full bg-fuchsia-300" />
+                    </div>
+                    <p className="mt-1 text-[13px] font-semibold leading-snug text-white">
+                      Onde agir primeiro
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ==================== OPERAÇÃO — IMMERSIVE PANELS ==================== */}
+      <section
+        id="operacao"
+        className="relative overflow-hidden border-y border-white/[0.06] bg-[#0b0d12] py-24 sm:py-28"
+        data-commerce-areas
+      >
+        <style>{`
+          [data-commerce-areas] .commerce-copy,
+          [data-commerce-areas] .commerce-ambient {
+            display: none;
+          }
+
+          #commerce-vendas:checked ~ .commerce-stage .copy-vendas,
+          #commerce-vendas:checked ~ .commerce-stage .ambient-vendas,
+          #commerce-margem:checked ~ .commerce-stage .copy-margem,
+          #commerce-margem:checked ~ .commerce-stage .ambient-margem,
+          #commerce-estoque:checked ~ .commerce-stage .copy-estoque,
+          #commerce-estoque:checked ~ .commerce-stage .ambient-estoque,
+          #commerce-anuncios:checked ~ .commerce-stage .copy-anuncios,
+          #commerce-anuncios:checked ~ .commerce-stage .ambient-anuncios {
+            display: block;
+          }
+
+          [data-commerce-areas] .commerce-tab {
+            color: rgba(255,255,255,.42);
+            border-color: rgba(255,255,255,.10);
+            background: rgba(255,255,255,.035);
+          }
+
+          #commerce-vendas:checked ~ .commerce-stage label[for="commerce-vendas"],
+          #commerce-margem:checked ~ .commerce-stage label[for="commerce-margem"],
+          #commerce-estoque:checked ~ .commerce-stage label[for="commerce-estoque"],
+          #commerce-anuncios:checked ~ .commerce-stage label[for="commerce-anuncios"] {
+            color: white;
+            border-color: rgba(255,255,255,.28);
+            background: rgba(255,255,255,.10);
+            box-shadow: 0 20px 60px rgba(0,0,0,.24);
+            transform: translateY(-4px);
+          }
+        `}</style>
+
+        <input id="commerce-vendas" name="commerce-area" type="radio" defaultChecked className="sr-only" />
+        <input id="commerce-margem" name="commerce-area" type="radio" className="sr-only" />
+        <input id="commerce-estoque" name="commerce-area" type="radio" className="sr-only" />
+        <input id="commerce-anuncios" name="commerce-area" type="radio" className="sr-only" />
+
+        <div className="commerce-stage relative mx-auto max-w-7xl px-6 lg:px-10">
+          <div className="ambient-vendas commerce-ambient pointer-events-none absolute -left-24 top-20 h-[420px] w-[420px] rounded-full bg-blue-600/15 blur-[120px]" />
+          <div className="ambient-margem commerce-ambient pointer-events-none absolute left-1/4 top-10 h-[420px] w-[420px] rounded-full bg-amber-500/13 blur-[120px]" />
+          <div className="ambient-estoque commerce-ambient pointer-events-none absolute right-1/4 top-10 h-[420px] w-[420px] rounded-full bg-cyan-500/13 blur-[120px]" />
+          <div className="ambient-anuncios commerce-ambient pointer-events-none absolute -right-24 top-20 h-[420px] w-[420px] rounded-full bg-fuchsia-600/13 blur-[120px]" />
+
+          <Reveal>
+            <div className="mx-auto max-w-3xl text-center">
+              <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#ffbf31]">
+                Da operação à decisão
+              </span>
+              <h2 className="mt-4 text-3xl font-bold tracking-[-0.04em] text-white sm:text-5xl">
+                Tudo que importa na sua operação, organizado para facilitar a decisão.
+              </h2>
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-white/50">
+                Vendas, margem, estoque e anúncios deixam de ser relatórios isolados e passam a formar uma única leitura de performance.
+              </p>
+            </div>
+          </Reveal>
+
+          <div className="mt-12 grid gap-5 lg:grid-cols-[0.72fr_1.28fr]">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              {commerceAreas.map(({ key, label, icon: Icon }) => (
+                <label
+                  key={key}
+                  htmlFor={`commerce-${key}`}
+                  className="commerce-tab group flex cursor-pointer items-center justify-between rounded-2xl border px-5 py-5 transition-all duration-300"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="flex size-11 items-center justify-center rounded-xl border border-white/10 bg-black/20 text-current">
+                      <Icon className="size-5" />
                     </span>
                     <div>
-                      <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-blue-600">
-                        AC360 interpreta
-                      </p>
-                      <p className="mt-1.5 text-[12px] font-medium leading-relaxed text-slate-900">
-                        Produto mantém ritmo de vendas, mas o estoque disponível entrou em zona de atenção.
-                      </p>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] opacity-50">Área da operação</p>
+                      <p className="mt-1 text-base font-semibold">{label}</p>
                     </div>
                   </div>
-                </div>
+                  <ArrowRight className="size-4 opacity-40 transition-transform group-hover:translate-x-1" />
+                </label>
+              ))}
+            </div>
+
+            <div className="relative min-h-[440px] overflow-hidden rounded-[28px] border border-white/[0.08] bg-[#10131a] p-6 shadow-2xl sm:p-8">
+              <div
+                aria-hidden
+                className="absolute inset-0 opacity-[0.09]"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(rgba(255,255,255,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.10) 1px, transparent 1px)",
+                  backgroundSize: "42px 42px",
+                }}
+              />
+
+              <div className="relative z-10">
+                {commerceAreas.map(({ key, icon: Icon, title, description, bullets }) => (
+                  <div key={key} className={`commerce-copy copy-${key}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex size-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.05] text-[#ffbf31]">
+                        <Icon className="size-6" />
+                      </div>
+                      <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/40">
+                        AC360 intelligence layer
+                      </span>
+                    </div>
+
+                    <h3 className="mt-10 max-w-2xl text-3xl font-bold tracking-[-0.035em] text-white sm:text-4xl">
+                      {title}
+                    </h3>
+                    <p className="mt-5 max-w-2xl text-base leading-relaxed text-white/55">
+                      {description}
+                    </p>
+
+                    <div className="mt-10 grid gap-3 sm:grid-cols-3">
+                      {bullets.map((bullet) => (
+                        <div
+                          key={bullet}
+                          className="rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4"
+                        >
+                          <CheckCircle2 className="size-4 text-blue-300" />
+                          <p className="mt-3 text-sm font-semibold text-white/75">{bullet}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-8 flex items-center gap-3 border-t border-white/[0.08] pt-6 text-xs text-white/35">
+                      <Radar className="size-4 text-blue-300/70" />
+                      O objetivo não é mostrar mais dados. É mostrar o que merece atenção primeiro.
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </Reveal>
+          </div>
         </div>
       </section>
 
-      <section id="consultoria" className="bg-white py-24 sm:py-28">
-        <div className="mx-auto max-w-7xl px-6 lg:px-10">
-          <Reveal className="mx-auto max-w-4xl text-center">
-            <Eyebrow>Consultoria + tecnologia proprietária</Eyebrow>
-            <h2 className="mt-5 text-[38px] font-semibold leading-tight tracking-[-0.04em] text-[#0A1F44] sm:text-[52px]">
-              Tecnologia mostra o caminho.
-              <span className="block text-blue-600">A consultoria ajuda a transformar isso em execução.</span>
-            </h2>
+      {/* ==================== DIFERENCIAL — FEED + CHAT ==================== */}
+      <section id="inteligencia" className="relative overflow-hidden bg-[#111216] py-24 sm:py-28">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(650px 420px at 20% 30%, rgba(18,105,255,.12), transparent 65%), radial-gradient(650px 420px at 85% 55%, rgba(255,173,27,.08), transparent 65%)",
+          }}
+        />
+
+        <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
+          <Reveal>
+            <div className="max-w-3xl">
+              <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-[#ffbf31]">
+                Inteligência aplicada à performance
+              </span>
+              <h2 className="mt-4 text-3xl font-bold tracking-[-0.04em] text-white sm:text-5xl">
+                Você não precisa de mais dados. Precisa saber o que fazer com eles.
+              </h2>
+            </div>
           </Reveal>
 
           <div className="mt-12 grid gap-5 lg:grid-cols-2">
             <Reveal>
-              <div className="h-full rounded-[30px] bg-slate-950 p-7 text-white shadow-xl sm:p-8">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-blue-200">
-                  <Layers className="h-5 w-5" />
-                </span>
-                <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.14em] text-white/40">
-                  Tecnologia AC360
-                </p>
-                <h3 className="mt-2 text-[28px] font-semibold tracking-[-0.03em]">Diagnóstico e prioridade.</h3>
-                <div className="mt-6 grid grid-cols-2 gap-2">
-                  {["Visão executiva", "Feed Inteligente", "Central de Ações", "Resultados", "Margem", "Estoque"].map((item) => (
-                    <div key={item} className="rounded-xl border border-white/10 bg-white/5 px-3 py-2.5 text-[10.5px] font-semibold text-white/75">
-                      {item}
-                    </div>
-                  ))}
+              <div className="group relative min-h-[420px] overflow-hidden rounded-[30px] border border-white/[0.08] bg-[#0c1018] p-7 shadow-2xl sm:p-9">
+                <div className="absolute right-0 top-0 h-56 w-56 rounded-full bg-blue-600/10 blur-[90px]" />
+                <div className="relative">
+                  <div className="flex size-14 items-center justify-center rounded-2xl border border-blue-300/15 bg-blue-500/10 text-blue-300">
+                    <Radar className="size-6" />
+                  </div>
+                  <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.2em] text-blue-300/70">Feed Inteligente</p>
+                  <h3 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-white">
+                    O que precisa da sua atenção aparece primeiro.
+                  </h3>
+                  <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/50">
+                    O AC360 organiza sinais da operação e mostra primeiro os produtos, riscos e oportunidades que merecem decisão.
+                  </p>
+
+                  <div className="mt-8 space-y-3">
+                    {[
+                      ["Margem", "Rentabilidade merece revisão"],
+                      ["Estoque", "Item exige acompanhamento"],
+                      ["Anúncios", "Eficiência pode melhorar"],
+                    ].map(([title, textValue]) => (
+                      <div
+                        key={title}
+                        className="flex items-center justify-between rounded-2xl border border-white/[0.08] bg-white/[0.035] px-4 py-3"
+                      >
+                        <div>
+                          <p className="text-xs font-semibold text-white/45">{title}</p>
+                          <p className="mt-1 text-sm font-medium text-white/80">{textValue}</p>
+                        </div>
+                        <span className="size-2 rounded-full bg-[#ffbf31]" />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </Reveal>
 
-            <Reveal delay={90}>
-              <div className="h-full rounded-[30px] border border-slate-200 bg-slate-50 p-7 shadow-xl sm:p-8">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                  <Brain className="h-5 w-5" />
-                </span>
-                <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                  Consultoria
-                </p>
-                <h3 className="mt-2 text-[28px] font-semibold tracking-[-0.03em] text-slate-900">
-                  Direcionamento e acompanhamento.
-                </h3>
-                <div className="mt-6 space-y-3">
-                  {[
-                    "Leitura da operação",
-                    "Definição de prioridades",
-                    "Plano de ação",
-                    "Acompanhamento de performance",
-                  ].map((item) => (
-                    <div key={item} className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3">
-                      <CheckCircle2 className="h-4 w-4 text-blue-600" />
-                      <span className="text-[11px] font-semibold text-slate-600">{item}</span>
+            <Reveal delay={100}>
+              <div className="group relative min-h-[420px] overflow-hidden rounded-[30px] border border-white/[0.08] bg-[#0c1018] p-7 shadow-2xl sm:p-9">
+                <div className="absolute -left-10 bottom-0 h-56 w-56 rounded-full bg-amber-500/[0.08] blur-[90px]" />
+                <div className="relative">
+                  <div className="flex size-14 items-center justify-center rounded-2xl border border-amber-300/15 bg-amber-500/[0.08] text-amber-300">
+                    <Brain className="size-6" />
+                  </div>
+                  <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/70">Chat AC360</p>
+                  <h3 className="mt-3 text-3xl font-bold tracking-[-0.03em] text-white">
+                    Pergunte sobre a operação. Aprofunde a decisão.
+                  </h3>
+                  <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/50">
+                    Converse com o contexto da sua própria operação para investigar margem, estoque, anúncios, oportunidades e próximos passos.
+                  </p>
+
+                  <div className="mt-8 rounded-2xl border border-white/[0.08] bg-white/[0.035] p-4">
+                    <div className="flex items-start gap-3">
+                      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-white/65">
+                        <UserCircle2 className="size-4" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-semibold text-white/40">Você</p>
+                        <p className="mt-1 text-sm text-white/80">
+                          Onde minha operação está deixando dinheiro na mesa hoje?
+                        </p>
+                      </div>
                     </div>
-                  ))}
+                    <div className="mt-4 flex items-start gap-3 border-t border-white/[0.07] pt-4">
+                      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-blue-500/12 text-blue-300">
+                        <Brain className="size-4" />
+                      </span>
+                      <div>
+                        <p className="text-xs font-semibold text-blue-300/70">AC360</p>
+                        <p className="mt-1 text-sm leading-relaxed text-white/72">
+                          Comece pelas prioridades de maior impacto, valide a causa e transforme a análise em um próximo passo claro.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Reveal>
@@ -725,54 +1374,64 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="bg-white px-6 py-20 lg:px-10">
-        <Reveal className="mx-auto max-w-7xl">
-          <div className="rounded-[36px] bg-[#061838] px-6 py-16 text-center text-white shadow-2xl sm:px-10 sm:py-20">
-            <Eyebrow dark>Próximo passo</Eyebrow>
-            <h2 className="mx-auto mt-6 max-w-4xl text-[40px] font-semibold leading-[1.02] tracking-[-0.045em] sm:text-[58px]">
+      {/* ==================== CTA FINAL ==================== */}
+      <section id="cta-final" className="relative overflow-hidden bg-[#f7f8fb] py-24 text-slate-900 sm:py-28">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.35]"
+          style={{
+            background:
+              "radial-gradient(600px 300px at 18% 0%, rgba(35,117,255,.16), transparent 70%), radial-gradient(500px 300px at 90% 100%, rgba(255,191,49,.14), transparent 70%)",
+          }}
+        />
+
+        <div className="relative mx-auto max-w-5xl px-6 text-center lg:px-10">
+          <Reveal>
+            <span className="text-[10px] font-bold uppercase tracking-[0.28em] text-blue-600">
+              Próximo passo
+            </span>
+            <h2 className="mx-auto mt-4 max-w-4xl text-4xl font-bold tracking-[-0.045em] text-[#071b45] sm:text-6xl">
               Pare de administrar sua operação olhando para trás.
-              <span className="block text-[#73A7FF]">Saiba onde agir agora.</span>
+              <br />
+              Saiba onde agir agora.
             </h2>
-            <p className="mx-auto mt-5 max-w-2xl text-[14px] leading-relaxed text-white/60">
-              Descubra onde sua operação no Mercado Livre pode melhorar margem, eficiência e resultado.
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
+              Descubra onde sua operação no Mercado Livre pode melhorar margem, eficiência e resultado com tecnologia e acompanhamento consultivo.
             </p>
 
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <a
-                href={diagnosticHref}
-                className="inline-flex h-14 items-center justify-center rounded-full bg-blue-600 px-7 text-[13px] font-bold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-blue-500"
-              >
-                Solicitar diagnóstico da minha operação
-                <ArrowRight className="ml-2 h-4 w-4" />
+            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <a href="mailto:contato@agentecomercial360.com.br?subject=Quero um diagnóstico da minha operação no Mercado Livre">
+                <Button
+                  size="lg"
+                  className="h-14 rounded-full px-8 text-base font-semibold text-white shadow-xl shadow-blue-900/15"
+                  style={{ background: "linear-gradient(135deg, #0867f2, #1b8cff)" }}
+                >
+                  Solicitar diagnóstico da minha operação
+                  <ArrowRight className="ml-2 size-4" />
+                </Button>
               </a>
+
               <Link
                 to="/ecommerce/login"
-                className="inline-flex h-14 items-center justify-center rounded-full border border-white/15 bg-white/5 px-7 text-[13px] font-semibold text-white/80 transition hover:bg-white/10"
+                className="inline-flex h-14 items-center justify-center rounded-full border border-slate-300 bg-white px-8 text-base font-semibold text-slate-800 shadow-sm transition-all hover:border-blue-300 hover:text-blue-700"
               >
                 Entrar no painel
               </Link>
             </div>
-          </div>
-        </Reveal>
+          </Reveal>
+        </div>
       </section>
 
-      <footer className="border-t border-slate-100 bg-white">
+      {/* ==================== FOOTER ==================== */}
+      <footer className="border-t border-white/[0.06] bg-[#080b10]">
         <div className="mx-auto flex max-w-7xl flex-col gap-5 px-6 py-8 sm:flex-row sm:items-center sm:justify-between lg:px-10">
           <div className="flex items-center gap-3">
-            <img src={acLogo} alt="AC360" className="h-7 w-auto" />
-            <div>
-              <p className="text-[11px] font-bold text-slate-900">AC360 E-commerce Intelligence</p>
-              <p className="mt-0.5 text-[9.5px] text-slate-400">
-                Inteligência e performance para operações no Mercado Livre.
-              </p>
-            </div>
+            <img src={acLogo} alt="AC360" className="h-8 w-auto brightness-0 invert" />
+            <span className="text-xs text-white/35">E-commerce Intelligence</span>
           </div>
-
-          <div className="flex flex-wrap items-center gap-5 text-[10px] font-semibold text-slate-400">
-            <a href="#beneficios" className="transition hover:text-blue-600">Benefícios</a>
-            <a href="#consultoria" className="transition hover:text-blue-600">Consultoria</a>
-            <Link to="/ecommerce/login" className="transition hover:text-blue-600">Login</Link>
-          </div>
+          <p className="text-xs text-white/30">
+            Inteligência e consultoria de performance para vendedores do Mercado Livre.
+          </p>
         </div>
       </footer>
     </div>

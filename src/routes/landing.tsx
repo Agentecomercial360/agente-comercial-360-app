@@ -846,6 +846,15 @@ export function LandingPage() {
     },
   ];
 
+  const [headerScrolled, setHeaderScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setHeaderScrolled(window.scrollY > 48);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#080b10] text-white antialiased">
       {/* ==================== HERO — E-COMMERCE INTELLIGENCE ==================== */}
@@ -875,61 +884,107 @@ export function LandingPage() {
         />
 
         <div className="relative z-10">
-          <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10">
-            <a href="#top" className="flex items-center gap-3">
-              <img src={acLogo} alt="AC360" className="h-9 w-auto brightness-0 invert" />
-              <span className="hidden border-l border-white/20 pl-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-white/55 sm:block">
-                E-commerce Intelligence
-              </span>
-            </a>
-
-            <nav className="hidden items-center gap-8 text-[13px] font-medium text-white/68 lg:flex">
-              <a href="#operacao" className="transition-colors hover:text-white">Soluções</a>
-              <a href="#inteligencia" className="transition-colors hover:text-white">Inteligência</a>
-              <a href="#cta-final" className="transition-colors hover:text-white">Consultoria</a>
-              <a href="#solucoes" className="transition-colors hover:text-white">Plataforma</a>
-            </nav>
-
-            <div className="flex items-center gap-3">
-              <Link
-                to="/ecommerce/login"
-                className="hidden rounded-full px-4 py-2.5 text-sm font-semibold text-white/72 transition-colors hover:text-white sm:inline-flex"
-              >
-                Login
-              </Link>
-              <a
-                href="#cta-final"
-                className="inline-flex h-11 items-center gap-2 rounded-full bg-white px-5 text-sm font-semibold text-[#0A1F44] shadow-[0_12px_35px_-18px_rgba(255,255,255,.55)] transition hover:-translate-y-0.5 hover:shadow-lg"
-              >
-                Solicitar diagnóstico
-                <ArrowRight className="h-4 w-4" />
+          <div
+            className={
+              "fixed inset-x-0 top-0 z-50 transition-all duration-300 " +
+              (headerScrolled
+                ? "border-b border-slate-200/80 bg-white/95 shadow-[0_12px_35px_-28px_rgba(10,31,68,.45)] backdrop-blur-xl"
+                : "bg-transparent")
+            }
+          >
+            <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
+              <a href="#top" className="flex items-center gap-3">
+                <img
+                  src={acLogo}
+                  alt="AC360"
+                  className={
+                    "h-9 w-auto transition-all duration-300 " +
+                    (headerScrolled ? "" : "brightness-0 invert")
+                  }
+                />
+                <span
+                  className={
+                    "hidden border-l pl-3 text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors sm:block " +
+                    (headerScrolled
+                      ? "border-slate-200 text-slate-500"
+                      : "border-white/20 text-white/55")
+                  }
+                >
+                  E-commerce Intelligence
+                </span>
               </a>
-            </div>
-          </header>
 
-          <div className="mx-auto flex max-w-7xl flex-col items-center px-6 pb-20 pt-20 text-center lg:px-10 lg:pt-24">
+              <nav
+                className={
+                  "hidden items-center gap-8 text-[13px] font-medium transition-colors lg:flex " +
+                  (headerScrolled ? "text-slate-600" : "text-white/68")
+                }
+              >
+                <a href="#operacao" className={headerScrolled ? "transition-colors hover:text-blue-700" : "transition-colors hover:text-white"}>
+                  Soluções
+                </a>
+                <a href="#inteligencia" className={headerScrolled ? "transition-colors hover:text-blue-700" : "transition-colors hover:text-white"}>
+                  Inteligência
+                </a>
+                <a href="#cta-final" className={headerScrolled ? "transition-colors hover:text-blue-700" : "transition-colors hover:text-white"}>
+                  Consultoria
+                </a>
+                <a href="#solucoes" className={headerScrolled ? "transition-colors hover:text-blue-700" : "transition-colors hover:text-white"}>
+                  Plataforma
+                </a>
+              </nav>
+
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/ecommerce/login"
+                  className={
+                    "hidden rounded-full px-4 py-2.5 text-sm font-semibold transition-colors sm:inline-flex " +
+                    (headerScrolled
+                      ? "text-slate-600 hover:text-blue-700"
+                      : "text-white/72 hover:text-white")
+                  }
+                >
+                  Login
+                </Link>
+                <a
+                  href="#cta-final"
+                  className={
+                    "inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold transition hover:-translate-y-0.5 " +
+                    (headerScrolled
+                      ? "bg-blue-600 text-white shadow-[0_12px_30px_-18px_rgba(37,99,235,.65)] hover:bg-blue-500"
+                      : "bg-white text-[#0A1F44] shadow-[0_12px_35px_-18px_rgba(255,255,255,.55)] hover:shadow-lg")
+                  }
+                >
+                  Solicitar diagnóstico
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </div>
+            </header>
+          </div>
+
+          <div className="mx-auto flex max-w-7xl flex-col items-center px-6 pb-20 pt-36 text-center lg:px-10 lg:pt-40">
             <Reveal className="mx-auto flex max-w-5xl flex-col items-center">
               <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 backdrop-blur-xl">
                 <span className="h-2 w-2 rounded-full bg-[#ffbf31] shadow-[0_0_16px_rgba(255,191,49,.65)]" />
                 <span className="text-[10px] font-bold uppercase tracking-[0.20em] text-white/70">
-                  AC360 · Inteligência para vendedores do Mercado Livre
+                  AC360 · Inteligência + consultoria para Mercado Livre
                 </span>
               </div>
 
               <h1 className="mt-7 max-w-5xl font-display text-[44px] font-bold leading-[0.98] tracking-[-0.045em] text-white sm:text-[58px] lg:text-[68px]">
-                Transforme os dados da sua operação
+                Saiba onde agir primeiro
                 <span className="mt-2 block text-[#73A7FF]">
-                  em decisões que aumentam resultado.
+                  para vender com mais margem no Mercado Livre.
                 </span>
               </h1>
 
               <p className="mt-6 max-w-3xl text-base leading-relaxed text-white/68 sm:text-lg">
-                O AC360 conecta vendas, margem, estoque e anúncios para mostrar o que merece
-                atenção, onde agir primeiro e por quê.
+                O AC360 conecta vendas, margem, estoque e anúncios, identifica os pontos que
+                mais impactam o resultado e transforma esses sinais em prioridades claras para agir.
               </p>
 
               <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
-                {["Vendas", "Margem", "Estoque", "Anúncios", "Performance"].map((label) => (
+                {["Vendas", "Margem", "Estoque", "Ads", "Prioridades"].map((label) => (
                   <span
                     key={label}
                     className="rounded-full border border-white/16 bg-white/[0.055] px-4 py-2 text-xs font-medium text-white/78 backdrop-blur-lg"
@@ -963,7 +1018,7 @@ export function LandingPage() {
 
                 <div className="p-5 sm:p-6">
                   <div className="ml-auto max-w-[680px] rounded-[18px] rounded-br-md border border-blue-300/15 bg-blue-500/[0.12] px-4 py-3 text-[12.5px] font-medium leading-relaxed text-white/90">
-                    AC360, onde minha operação está deixando dinheiro na mesa hoje?
+                    AC360, o que está prejudicando meu resultado hoje?
                   </div>
 
                   <div className="mt-4 flex items-start gap-3">

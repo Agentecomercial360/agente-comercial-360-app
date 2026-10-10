@@ -1164,7 +1164,7 @@ export function LandingPage() {
                   </div>
                 </div>
               </div>
-            </Reveal>Reveal>
+            </Reveal>
           </div>
         </div>
       </section>

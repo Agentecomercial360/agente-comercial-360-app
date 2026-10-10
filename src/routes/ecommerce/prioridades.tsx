@@ -587,8 +587,8 @@ function CentralAcoesInner() {
       {/* Header */}
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            <Target className="h-3.5 w-3.5 text-primary" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-blue-700">
+            <Target className="h-3.5 w-3.5" />
             Operação inteligente
           </div>
           <h1 className="font-display text-2xl md:text-[28px] font-bold text-foreground leading-tight">
@@ -599,7 +599,7 @@ function CentralAcoesInner() {
             única fila priorizada.
           </p>
         </div>
-        <div className="inline-flex items-center gap-2 rounded-lg border border-border/70 bg-card px-3 py-2 text-xs shadow-[var(--shadow-soft)]">
+        <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-white px-3.5 py-2 text-xs shadow-[0_12px_30px_-24px_rgba(10,31,68,.38)]">
           <Store className="h-4 w-4 text-muted-foreground" />
           <span className="font-semibold text-foreground">{accountLabel}</span>
           {activeAccount &&
@@ -623,37 +623,29 @@ function CentralAcoesInner() {
         </div>
       )}
 
-      {/* KPI summary bar */}
-      <section className="flex flex-wrap items-center gap-x-8 gap-y-4 rounded-xl border border-border/70 bg-card px-5 py-4 shadow-[var(--shadow-soft)]">
-        <KpiItem label="Total de ações" loading={loading}>
-          <span className="font-display text-xl font-bold text-foreground tabular-nums">
-            {counts.total.toLocaleString("pt-BR")}
-          </span>
-        </KpiItem>
-        <KpiItem label="Críticas" loading={loading}>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 px-2.5 py-1 text-sm font-semibold text-red-700 tabular-nums">
-            <Flame className="h-3.5 w-3.5" />
-            {counts.critical.toLocaleString("pt-BR")}
-          </span>
-        </KpiItem>
-        <KpiItem label="Alta prioridade" loading={loading}>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-sm font-semibold text-amber-700 tabular-nums">
-            <AlertTriangle className="h-3.5 w-3.5" />
-            {counts.high.toLocaleString("pt-BR")}
-          </span>
-        </KpiItem>
-        <KpiItem label="Ações de custo" loading={loading}>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-1 text-sm font-semibold text-blue-700 tabular-nums">
-            <DollarSign className="h-3.5 w-3.5" />
-            {counts.cost.toLocaleString("pt-BR")}
-          </span>
-        </KpiItem>
-        <div className="ml-auto">
-          <KpiItem label="Faturamento afetado total" loading={loading} align="right">
-            <span className="font-display text-xl font-bold text-rose-700 tabular-nums whitespace-nowrap">
+      {/* Leitura executiva da fila */}
+      <section className="grid overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_18px_44px_-36px_rgba(10,31,68,.45)] lg:grid-cols-[1.15fr_1fr]">
+        <div className="border-b border-border/50 px-5 py-5 lg:border-b-0 lg:border-r">
+          <div className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Faturamento que exige atenção
+          </div>
+          {loading ? (
+            <span className="mt-2 block h-9 w-40 animate-pulse rounded-md bg-muted" />
+          ) : (
+            <div className="mt-1.5 font-display text-3xl font-bold tracking-tight text-[#0A1F44] tabular-nums">
               {fmtBRL(counts.blockedRevenue)}
-            </span>
-          </KpiItem>
+            </div>
+          )}
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Receita vinculada às ações de custo e prioridade desta conta.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2">
+          <KpiCompact label="Total de ações" value={counts.total} loading={loading} />
+          <KpiCompact label="Críticas" value={counts.critical} loading={loading} tone="danger" icon={<Flame className="h-3.5 w-3.5" />} />
+          <KpiCompact label="Alta prioridade" value={counts.high} loading={loading} tone="warning" icon={<AlertTriangle className="h-3.5 w-3.5" />} />
+          <KpiCompact label="Ações de custo" value={counts.cost} loading={loading} tone="info" icon={<DollarSign className="h-3.5 w-3.5" />} />
         </div>
       </section>
 
@@ -674,7 +666,7 @@ function CentralAcoesInner() {
       ) : (
         <>
           {/* Search + segmented filters */}
-          <section className="flex flex-wrap items-center gap-3 rounded-xl border border-border/70 bg-card p-2.5 shadow-[var(--shadow-soft)]">
+          <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-border/60 bg-card p-2.5 shadow-[0_16px_36px_-32px_rgba(10,31,68,.40)]">
             <div className="relative flex-1 min-w-[260px]">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
@@ -705,7 +697,7 @@ function CentralAcoesInner() {
 
           {/* Table */}
           <ScrollableTableSection>
-            <table className="w-full text-sm min-w-[1040px]">
+            <table className="w-full min-w-[980px] text-sm">
               <thead>
                 <tr className="border-b border-border/70 text-[11px] uppercase tracking-wider text-muted-foreground">
                   <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Prioridade</th>
@@ -851,6 +843,44 @@ function KpiItem({
         <span className="h-6 w-16 animate-pulse rounded-md bg-muted" />
       ) : (
         children
+      )}
+    </div>
+  );
+}
+
+function KpiCompact({
+  label,
+  value,
+  loading,
+  tone = "default",
+  icon,
+}: {
+  label: string;
+  value: number;
+  loading: boolean;
+  tone?: "default" | "danger" | "warning" | "info";
+  icon?: React.ReactNode;
+}) {
+  const toneClass =
+    tone === "danger"
+      ? "text-rose-700"
+      : tone === "warning"
+        ? "text-amber-700"
+        : tone === "info"
+          ? "text-blue-700"
+          : "text-[#0A1F44]";
+  return (
+    <div className="border-b border-r border-border/50 px-4 py-4 last:border-r-0 lg:[&:nth-child(n+3)]:border-b-0">
+      <div className="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        {label}
+      </div>
+      {loading ? (
+        <span className="mt-2 block h-6 w-12 animate-pulse rounded-md bg-muted" />
+      ) : (
+        <div className={`mt-1.5 flex items-center gap-1.5 font-display text-xl font-bold tabular-nums ${toneClass}`}>
+          {icon}
+          {value.toLocaleString("pt-BR")}
+        </div>
       )}
     </div>
   );

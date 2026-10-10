@@ -635,47 +635,84 @@ function CentralAcoesInner() {
       )}
 
       {/* Hero operacional premium */}
-      <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#071B45] via-[#0B3B8E] to-[#1E5EFF] p-5 shadow-[0_30px_70px_-42px_rgba(7,27,69,.9)] sm:p-6">
-        <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/[0.10] blur-2xl" />
-        <div aria-hidden className="pointer-events-none absolute bottom-[-90px] left-[20%] h-56 w-56 rounded-full bg-cyan-300/[0.10] blur-3xl" />
+      <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#071B45] via-[#103878] to-[#1E5EFF] p-4 shadow-[0_30px_70px_-42px_rgba(7,27,69,.9)] sm:p-5">
+        <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/[0.07] blur-2xl" />
+        <div aria-hidden className="pointer-events-none absolute bottom-[-90px] left-[20%] h-56 w-56 rounded-full bg-cyan-300/[0.07] blur-3xl" />
 
         <div className="relative grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
-          <div className="flex min-w-0 flex-col justify-between rounded-[22px] border border-white/[0.10] bg-white/[0.04] p-5 backdrop-blur-sm">
+          <div className="flex min-w-0 flex-col justify-between rounded-[22px] border border-white/[0.10] bg-white/[0.04] p-4 backdrop-blur-sm sm:p-5">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.07] px-3 py-1.5 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-white/70">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#F5C842]" />
                 Prioridade financeira
               </div>
 
-              <p className="mt-7 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/48">
+              <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/62">
                 Faturamento que exige atenção
               </p>
               {loading ? (
                 <span className="mt-3 block h-12 w-52 animate-pulse rounded-lg bg-white/15" />
               ) : (
-                <div className="mt-2 font-display text-[40px] font-bold tracking-[-0.045em] text-white sm:text-[48px]">
+                <div className="mt-1.5 font-display text-[38px] font-bold tracking-[-0.045em] text-white sm:text-[44px]">
                   {fmtBRL(counts.blockedRevenue)}
                 </div>
               )}
-              <p className="mt-2 max-w-md text-[12px] leading-relaxed text-white/58">
+              <p className="mt-1.5 max-w-md text-[11.5px] leading-relaxed text-white/68">
                 Receita associada às ações de custo e prioridade que merecem intervenção primeiro.
               </p>
             </div>
 
             {topImpactAction && (
-              <div className="mt-7 rounded-2xl border border-white/[0.10] bg-black/[0.10] p-4">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[8.5px] font-semibold uppercase tracking-[0.15em] text-white/42">
-                    Maior impacto agora
-                  </span>
-                  <PriorityBadge p={topImpactAction.priority} />
+              <div className="mt-5 rounded-2xl border border-white/[0.10] bg-black/[0.10] px-4 py-3.5">
+                <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-center">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="text-[8.5px] font-semibold uppercase tracking-[0.15em] text-white/60">
+                        Maior impacto agora
+                      </span>
+                      <PriorityBadge p={topImpactAction.priority} />
+                    </div>
+                    <p className="mt-1.5 truncate text-[13px] font-semibold text-white" title={topImpactAction.product?.product_name || topImpactAction.listing?.title || "Ação prioritária"}>
+                      {topImpactAction.product?.product_name || topImpactAction.listing?.title || "Ação prioritária"}
+                    </p>
+                    <p className="mt-1 line-clamp-1 text-[10.5px] text-white/62">
+                      {topImpactAction.recommendation}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 sm:justify-end">
+                    {topImpactAction.affectedRevenue != null && (
+                      <div className="text-right">
+                        <p className="text-[8px] font-semibold uppercase tracking-[0.12em] text-white/45">
+                          Faturamento afetado
+                        </p>
+                        <p className="mt-0.5 text-[13px] font-bold text-white">
+                          {fmtBRL(topImpactAction.affectedRevenue)}
+                        </p>
+                      </div>
+                    )}
+                    {topImpactAction.ctaHref &&
+                      (topImpactAction.ctaExternal ? (
+                        <a
+                          href={topImpactAction.ctaHref}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-white/15 bg-white/[0.10] px-3 text-[10.5px] font-semibold text-white transition hover:-translate-y-0.5 hover:bg-white/[0.16]"
+                        >
+                          Resolver
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </a>
+                      ) : (
+                        <Link
+                          to="/ecommerce/custos-margem"
+                          hash="pending-costs-table"
+                          className="inline-flex h-9 items-center rounded-xl bg-white px-3.5 text-[10.5px] font-semibold text-[#0A1F44] shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                        >
+                          Resolver
+                        </Link>
+                      ))}
+                  </div>
                 </div>
-                <p className="mt-2 truncate text-sm font-semibold text-white" title={topImpactAction.product?.product_name || topImpactAction.listing?.title || "Ação prioritária"}>
-                  {topImpactAction.product?.product_name || topImpactAction.listing?.title || "Ação prioritária"}
-                </p>
-                <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-white/55">
-                  {topImpactAction.recommendation}
-                </p>
               </div>
             )}
           </div>
@@ -931,9 +968,9 @@ function PremiumActionMetric({
           : "text-white";
 
   return (
-    <div className="group flex min-h-[132px] flex-col justify-between rounded-[22px] border border-white/[0.12] bg-white/[0.08] p-4 backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:bg-white/[0.12]">
+    <div className="group flex min-h-[112px] flex-col justify-between rounded-[20px] border border-white/[0.12] bg-white/[0.075] p-3.5 backdrop-blur-sm transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.11]">
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-white/46">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-white/68">
           {label}
         </p>
         {icon && <span className={toneClass}>{icon}</span>}
@@ -942,11 +979,11 @@ function PremiumActionMetric({
         {loading ? (
           <div className="h-8 w-16 animate-pulse rounded-lg bg-white/15" />
         ) : (
-          <p className={`font-display text-3xl font-bold tracking-tight tabular-nums ${toneClass}`}>
+          <p className={`font-display text-[28px] font-bold tracking-tight tabular-nums ${toneClass}`}>
             {value.toLocaleString("pt-BR")}
           </p>
         )}
-        <p className="mt-1 text-[10px] text-white/45">{hint}</p>
+        <p className="mt-0.5 text-[9.5px] text-white/58">{hint}</p>
       </div>
     </div>
   );

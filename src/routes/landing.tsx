@@ -846,114 +846,70 @@ export function LandingPage() {
     },
   ];
 
-  const [headerScrolled, setHeaderScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => setHeaderScrolled(window.scrollY > 48);
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#080b10] text-white antialiased">
       {/* ==================== HERO — E-COMMERCE INTELLIGENCE ==================== */}
-      <section id="top" className="relative min-h-[850px] overflow-hidden bg-[#071630]">
-        <img
-          src={heroWarehouse}
-          alt="Operação de e-commerce e logística"
-          className="absolute inset-0 h-full w-full scale-[1.03] object-cover object-center"
-          style={{ filter: "saturate(0.82) contrast(1.08) brightness(0.55)" }}
-        />
-
+      <section id="top" className="relative min-h-[980px] overflow-hidden bg-[#071D55]">
         <div
           aria-hidden
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(5,19,48,0.90) 0%, rgba(6,24,56,0.86) 42%, rgba(5,20,48,0.94) 100%)",
+              "radial-gradient(circle at 50% 8%, rgba(36,118,255,.95) 0%, rgba(17,73,183,.82) 22%, rgba(8,36,94,.96) 58%, #061630 100%)",
           }}
         />
         <div
           aria-hidden
-          className="absolute inset-0"
+          className="absolute inset-0 opacity-90"
           style={{
             background:
-              "radial-gradient(circle at 50% 45%, rgba(30,94,255,.18), transparent 34%), radial-gradient(circle at 72% 66%, rgba(56,189,248,.08), transparent 28%)",
+              "radial-gradient(circle at 16% 88%, rgba(0,132,255,.55), transparent 25%), radial-gradient(circle at 88% 82%, rgba(0,119,255,.42), transparent 28%)",
           }}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-[360px] -left-[260px] h-[760px] w-[760px] rounded-full border border-blue-300/30 shadow-[0_0_80px_rgba(0,137,255,.28)]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-[380px] -right-[220px] h-[720px] w-[720px] rounded-full border border-cyan-300/20 shadow-[0_0_90px_rgba(0,128,255,.24)]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-[6%] top-[120px] h-[520px] w-[520px] rounded-full border border-blue-300/10"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute right-[7%] top-[180px] h-[420px] w-[420px] rounded-full border border-cyan-300/10"
         />
 
         <div className="relative z-10">
-          <div
-            className={
-              "fixed inset-x-0 top-0 z-50 transition-all duration-300 " +
-              (headerScrolled
-                ? "border-b border-slate-200/80 bg-white/95 shadow-[0_12px_35px_-28px_rgba(10,31,68,.45)] backdrop-blur-xl"
-                : "bg-transparent")
-            }
-          >
+          <div className="fixed inset-x-0 top-0 z-50 border-b border-slate-200/85 bg-white/95 shadow-[0_12px_35px_-28px_rgba(10,31,68,.38)] backdrop-blur-xl">
             <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-10">
               <a href="#top" className="flex items-center gap-3">
-                <img
-                  src={acLogo}
-                  alt="AC360"
-                  className={
-                    "h-9 w-auto transition-all duration-300 " +
-                    (headerScrolled ? "" : "brightness-0 invert")
-                  }
-                />
-                <span
-                  className={
-                    "hidden border-l pl-3 text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors sm:block " +
-                    (headerScrolled
-                      ? "border-slate-200 text-slate-500"
-                      : "border-white/20 text-white/55")
-                  }
-                >
+                <img src={acLogo} alt="AC360" className="h-9 w-auto" />
+                <span className="hidden border-l border-slate-200 pl-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500 sm:block">
                   E-commerce Intelligence
                 </span>
               </a>
 
-              <nav
-                className={
-                  "hidden items-center gap-8 text-[13px] font-medium transition-colors lg:flex " +
-                  (headerScrolled ? "text-slate-600" : "text-white/68")
-                }
-              >
-                <a href="#operacao" className={headerScrolled ? "transition-colors hover:text-blue-700" : "transition-colors hover:text-white"}>
-                  Soluções
-                </a>
-                <a href="#inteligencia" className={headerScrolled ? "transition-colors hover:text-blue-700" : "transition-colors hover:text-white"}>
-                  Inteligência
-                </a>
-                <a href="#cta-final" className={headerScrolled ? "transition-colors hover:text-blue-700" : "transition-colors hover:text-white"}>
-                  Consultoria
-                </a>
-                <a href="#solucoes" className={headerScrolled ? "transition-colors hover:text-blue-700" : "transition-colors hover:text-white"}>
-                  Plataforma
-                </a>
+              <nav className="hidden items-center gap-8 text-[13px] font-medium text-slate-600 lg:flex">
+                <a href="#operacao" className="transition-colors hover:text-blue-700">Soluções</a>
+                <a href="#inteligencia" className="transition-colors hover:text-blue-700">Inteligência</a>
+                <a href="#cta-final" className="transition-colors hover:text-blue-700">Consultoria</a>
+                <a href="#solucoes" className="transition-colors hover:text-blue-700">Plataforma</a>
               </nav>
 
               <div className="flex items-center gap-3">
                 <Link
                   to="/ecommerce/login"
-                  className={
-                    "hidden rounded-full px-4 py-2.5 text-sm font-semibold transition-colors sm:inline-flex " +
-                    (headerScrolled
-                      ? "text-slate-600 hover:text-blue-700"
-                      : "text-white/72 hover:text-white")
-                  }
+                  className="hidden rounded-full px-4 py-2.5 text-sm font-semibold text-slate-600 transition-colors hover:text-blue-700 sm:inline-flex"
                 >
                   Login
                 </Link>
                 <a
                   href="#cta-final"
-                  className={
-                    "inline-flex h-11 items-center gap-2 rounded-full px-5 text-sm font-semibold transition hover:-translate-y-0.5 " +
-                    (headerScrolled
-                      ? "bg-blue-600 text-white shadow-[0_12px_30px_-18px_rgba(37,99,235,.65)] hover:bg-blue-500"
-                      : "bg-white text-[#0A1F44] shadow-[0_12px_35px_-18px_rgba(255,255,255,.55)] hover:shadow-lg")
-                  }
+                  className="inline-flex h-11 items-center gap-2 rounded-full bg-blue-600 px-5 text-sm font-semibold text-white shadow-[0_12px_30px_-18px_rgba(37,99,235,.68)] transition hover:-translate-y-0.5 hover:bg-blue-500 hover:shadow-lg"
                 >
                   Solicitar diagnóstico
                   <ArrowRight className="h-4 w-4" />
@@ -964,30 +920,56 @@ export function LandingPage() {
 
           <div className="mx-auto flex max-w-7xl flex-col items-center px-6 pb-20 pt-36 text-center lg:px-10 lg:pt-40">
             <Reveal className="mx-auto flex max-w-5xl flex-col items-center">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.06] px-4 py-2 backdrop-blur-xl">
-                <span className="h-2 w-2 rounded-full bg-[#ffbf31] shadow-[0_0_16px_rgba(255,191,49,.65)]" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.20em] text-white/70">
+              <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/25 bg-white/[0.055] px-4 py-2 shadow-[0_0_35px_rgba(34,211,238,.08)] backdrop-blur-xl">
+                <span className="h-2 w-2 rounded-full bg-[#ffbf31] shadow-[0_0_16px_rgba(255,191,49,.72)]" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.20em] text-white/76">
                   AC360 · Inteligência + consultoria para Mercado Livre
                 </span>
               </div>
 
-              <h1 className="mt-7 max-w-5xl font-display text-[44px] font-bold leading-[0.98] tracking-[-0.045em] text-white sm:text-[58px] lg:text-[68px]">
-                Saiba onde agir primeiro
-                <span className="mt-2 block text-[#73A7FF]">
-                  para vender com mais margem no Mercado Livre.
+              <h1 className="mt-7 max-w-5xl font-display text-[44px] font-bold leading-[0.98] tracking-[-0.045em] text-white drop-shadow-[0_5px_30px_rgba(0,0,0,.22)] sm:text-[58px] lg:text-[68px]">
+                Descubra o que trava seu resultado
+                <span className="mt-2 block bg-gradient-to-r from-[#7AB7FF] via-[#50C8FF] to-[#79DFFF] bg-clip-text text-transparent drop-shadow-none">
+                  e onde agir primeiro no Mercado Livre.
                 </span>
               </h1>
 
-              <p className="mt-6 max-w-3xl text-base leading-relaxed text-white/68 sm:text-lg">
-                O AC360 conecta vendas, margem, estoque e anúncios, identifica os pontos que
-                mais impactam o resultado e transforma esses sinais em prioridades claras para agir.
+              <p className="mt-6 max-w-3xl text-base leading-relaxed text-white/78 sm:text-lg">
+                O AC360 cruza os dados da operação e mostra as prioridades que mais impactam
+                margem, estoque e performance.
               </p>
 
+              <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <a
+                  href="#cta-final"
+                  className="inline-flex h-13 items-center justify-center gap-2 rounded-full bg-blue-500 px-7 text-[13px] font-bold text-white shadow-[0_18px_45px_-18px_rgba(0,120,255,.9)] ring-1 ring-cyan-300/35 transition hover:-translate-y-0.5 hover:bg-blue-400"
+                >
+                  Solicitar diagnóstico
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+                <a
+                  href="#operacao"
+                  className="inline-flex h-13 items-center justify-center gap-2 rounded-full border border-white/25 bg-[#06183B]/35 px-7 text-[13px] font-semibold text-white/90 backdrop-blur transition hover:border-white/40 hover:bg-white/[0.08]"
+                >
+                  Ver como funciona
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </div>
 
+              <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
+                {["Vendas", "Margem", "Estoque", "Anúncios", "Performance"].map((label) => (
+                  <span
+                    key={label}
+                    className="rounded-full border border-blue-200/20 bg-[#06183B]/28 px-4 py-2 text-[10px] font-semibold text-white/72 backdrop-blur"
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
             </Reveal>
 
-            <Reveal delay={110} className="mt-10 w-full max-w-5xl">
-              <div className="overflow-hidden rounded-[30px] border border-white/14 bg-[#061329]/90 text-left shadow-[0_34px_110px_-46px_rgba(0,0,0,.92)] backdrop-blur-2xl">
+            <Reveal delay={110} className="mt-11 w-full max-w-5xl">
+              <div className="overflow-hidden rounded-[30px] border border-blue-300/25 bg-[#06142F]/92 text-left shadow-[0_38px_120px_-48px_rgba(0,16,72,.92)] backdrop-blur-2xl">
                 <div className="flex flex-col gap-4 border-b border-white/10 px-5 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
                   <div className="flex items-center gap-3">
                     <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.07] text-blue-200">
@@ -1164,7 +1146,7 @@ export function LandingPage() {
                   </div>
                 </div>
               </div>
-            </Reveal>
+            </
           </div>
         </div>
       </section>

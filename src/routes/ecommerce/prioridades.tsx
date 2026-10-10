@@ -29,7 +29,7 @@ import {
 export const Route = createFileRoute("/ecommerce/prioridades")({
   component: CentralAcoesPage,
   head: () => ({
-    meta: [{ title: "Central de Ações | Agente Comercial 360" }],
+    meta: [{ title: "Feed Inteligente | AC360" }],
   }),
 });
 
@@ -600,13 +600,13 @@ function CentralAcoesInner() {
       <header className="space-y-2">
         <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
           <Target className="h-3.5 w-3.5" />
-          Operação Inteligente
+          Inteligência Operacional
         </div>
         <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-          Central de Ações
+          Feed Inteligente
         </h1>
         <p className="text-sm md:text-[15px] text-muted-foreground max-w-3xl">
-          O que o operador precisa fazer primeiro hoje. Ações consolidadas de Produtos Problema, Custos e Margem, Produtos Prioritários por Impacto e Anúncios.
+          Prioridades, alertas e ações recomendadas para mostrar o que merece atenção primeiro na operação.
         </p>
       </header>
 

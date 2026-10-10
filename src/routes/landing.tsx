@@ -964,63 +964,158 @@ export function LandingPage() {
               </div>
             </Reveal>
 
-            <div className="relative hidden min-h-[560px] lg:block">
-              <div className="absolute left-12 top-12 w-[245px] rounded-2xl border border-white/12 bg-black/34 p-4 shadow-2xl backdrop-blur-2xl">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-10 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300 ring-1 ring-blue-300/15">
-                    <Radar className="size-5" />
-                  </span>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">Feed Inteligente</p>
-                    <p className="mt-1 text-sm font-semibold text-white">Prioridades da operação</p>
-                  </div>
-                </div>
+            <div className="relative hidden min-h-[560px] lg:block" data-intelligence-cluster>
+              <style>{`
+                [data-intelligence-cluster] .intel-float-a {
+                  animation: intelFloatA 6s ease-in-out infinite;
+                }
+                [data-intelligence-cluster] .intel-float-b {
+                  animation: intelFloatB 7s ease-in-out infinite;
+                }
+                [data-intelligence-cluster] .intel-float-c {
+                  animation: intelFloatC 6.5s ease-in-out infinite;
+                }
+                [data-intelligence-cluster] .intel-float-d {
+                  animation: intelFloatD 7.5s ease-in-out infinite;
+                }
+                [data-intelligence-cluster] .intel-ring {
+                  animation: intelPulse 5s ease-in-out infinite;
+                }
+                [data-intelligence-cluster] .intel-dot {
+                  animation: intelDot 2.8s ease-in-out infinite;
+                }
+
+                @keyframes intelFloatA {
+                  0%, 100% { transform: translate3d(0,0,0); }
+                  50% { transform: translate3d(8px,-10px,0); }
+                }
+                @keyframes intelFloatB {
+                  0%, 100% { transform: translate3d(0,0,0); }
+                  50% { transform: translate3d(-9px,8px,0); }
+                }
+                @keyframes intelFloatC {
+                  0%, 100% { transform: translate3d(0,0,0); }
+                  50% { transform: translate3d(7px,9px,0); }
+                }
+                @keyframes intelFloatD {
+                  0%, 100% { transform: translate3d(0,0,0); }
+                  50% { transform: translate3d(-8px,-8px,0); }
+                }
+                @keyframes intelPulse {
+                  0%, 100% { opacity: .42; transform: scale(1); }
+                  50% { opacity: .72; transform: scale(1.035); }
+                }
+                @keyframes intelDot {
+                  0%, 100% { opacity: .35; }
+                  50% { opacity: 1; }
+                }
+
+                @media (prefers-reduced-motion: reduce) {
+                  [data-intelligence-cluster] .intel-float-a,
+                  [data-intelligence-cluster] .intel-float-b,
+                  [data-intelligence-cluster] .intel-float-c,
+                  [data-intelligence-cluster] .intel-float-d,
+                  [data-intelligence-cluster] .intel-ring,
+                  [data-intelligence-cluster] .intel-dot {
+                    animation: none !important;
+                  }
+                }
+              `}</style>
+
+              {/* subtle network behind the cards */}
+              <div className="pointer-events-none absolute left-1/2 top-1/2 h-[360px] w-[360px] -translate-x-1/2 -translate-y-1/2">
+                <div className="intel-ring absolute inset-0 rounded-full border border-white/[0.08]" />
+                <div className="intel-ring absolute inset-[54px] rounded-full border border-blue-300/[0.10]" style={{ animationDelay: "700ms" }} />
+                <div className="absolute left-1/2 top-1/2 h-px w-[330px] -translate-x-1/2 -translate-y-1/2 rotate-[24deg] bg-gradient-to-r from-transparent via-white/[0.10] to-transparent" />
+                <div className="absolute left-1/2 top-1/2 h-px w-[330px] -translate-x-1/2 -translate-y-1/2 -rotate-[31deg] bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
               </div>
 
-              <div className="absolute right-4 top-40 w-[230px] rounded-2xl border border-white/12 bg-black/34 p-4 shadow-2xl backdrop-blur-2xl">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-10 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300 ring-1 ring-amber-300/15">
-                    <DollarSign className="size-5" />
-                  </span>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">Margem</p>
-                    <p className="mt-1 text-sm font-semibold text-white">Rentabilidade sob controle</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute bottom-28 left-4 w-[230px] rounded-2xl border border-white/12 bg-black/34 p-4 shadow-2xl backdrop-blur-2xl">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-10 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-300/15">
-                    <Boxes className="size-5" />
-                  </span>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">Estoque</p>
-                    <p className="mt-1 text-sm font-semibold text-white">Ruptura antes de acontecer</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute bottom-14 right-10 w-[235px] rounded-2xl border border-white/12 bg-black/34 p-4 shadow-2xl backdrop-blur-2xl">
-                <div className="flex items-center gap-3">
-                  <span className="flex size-10 items-center justify-center rounded-xl bg-fuchsia-500/15 text-fuchsia-200 ring-1 ring-fuchsia-300/15">
-                    <Target className="size-5" />
-                  </span>
-                  <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/40">Anúncios</p>
-                    <p className="mt-1 text-sm font-semibold text-white">Onde agir primeiro</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="absolute left-1/2 top-1/2 flex size-[310px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/[0.08] bg-black/10 backdrop-blur-[2px]">
-                <div className="flex size-[220px] items-center justify-center rounded-full border border-white/[0.10] bg-blue-500/[0.04] shadow-[0_0_100px_rgba(30,120,255,.12)]">
-                  <div className="text-center">
-                    <div className="mx-auto flex size-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.06] backdrop-blur-xl">
-                      <img src={acLogo} alt="" className="h-9 w-auto brightness-0 invert" />
+              {/* robust compact hub */}
+              <div className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2">
+                <div className="relative flex size-[188px] items-center justify-center rounded-full border border-white/[0.12] bg-black/28 shadow-[0_30px_90px_-25px_rgba(0,0,0,.8)] backdrop-blur-xl">
+                  <div className="absolute inset-[18px] rounded-full border border-blue-300/[0.10] bg-blue-500/[0.035]" />
+                  <div className="relative text-center">
+                    <div className="mx-auto flex size-14 items-center justify-center rounded-2xl border border-white/12 bg-white/[0.07] shadow-[0_14px_40px_-16px_rgba(0,0,0,.9)] backdrop-blur-xl">
+                      <img src={acLogo} alt="" className="h-8 w-auto brightness-0 invert" />
                     </div>
-                    <p className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-white/45">
-                      Central de inteligência
+                    <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.24em] text-white/45">
+                      Central AC360
+                    </p>
+                    <p className="mt-1 text-[11px] font-medium text-white/72">
+                      Dados → Prioridades
+                    </p>
+                  </div>
+
+                  <span className="intel-dot absolute -left-1 top-1/2 size-2 rounded-full bg-blue-300 shadow-[0_0_18px_rgba(125,211,252,.8)]" />
+                  <span className="intel-dot absolute -right-1 top-1/2 size-2 rounded-full bg-amber-300 shadow-[0_0_18px_rgba(252,211,77,.8)]" style={{ animationDelay: "500ms" }} />
+                  <span className="intel-dot absolute left-1/2 -top-1 size-2 rounded-full bg-cyan-300 shadow-[0_0_18px_rgba(103,232,249,.8)]" style={{ animationDelay: "900ms" }} />
+                  <span className="intel-dot absolute bottom-[-4px] left-1/2 size-2 rounded-full bg-fuchsia-300 shadow-[0_0_18px_rgba(240,171,252,.8)]" style={{ animationDelay: "1300ms" }} />
+                </div>
+              </div>
+
+              <div className="intel-float-a absolute left-8 top-12 z-30 w-[210px] rounded-2xl border border-white/12 bg-black/46 p-3.5 shadow-[0_22px_55px_-24px_rgba(0,0,0,.9)] backdrop-blur-2xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300 ring-1 ring-blue-300/15">
+                    <Radar className="size-4.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/38">Feed Inteligente</p>
+                      <span className="size-1.5 rounded-full bg-blue-300" />
+                    </div>
+                    <p className="mt-1 text-[13px] font-semibold leading-snug text-white">
+                      Prioridades da operação
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="intel-float-b absolute right-0 top-36 z-30 w-[205px] rounded-2xl border border-white/12 bg-black/46 p-3.5 shadow-[0_22px_55px_-24px_rgba(0,0,0,.9)] backdrop-blur-2xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-300 ring-1 ring-amber-300/15">
+                    <DollarSign className="size-4.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/38">Margem</p>
+                      <span className="size-1.5 rounded-full bg-amber-300" />
+                    </div>
+                    <p className="mt-1 text-[13px] font-semibold leading-snug text-white">
+                      Rentabilidade sob controle
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="intel-float-c absolute bottom-24 left-3 z-30 w-[205px] rounded-2xl border border-white/12 bg-black/46 p-3.5 shadow-[0_22px_55px_-24px_rgba(0,0,0,.9)] backdrop-blur-2xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-200 ring-1 ring-cyan-300/15">
+                    <Boxes className="size-4.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/38">Estoque</p>
+                      <span className="size-1.5 rounded-full bg-cyan-300" />
+                    </div>
+                    <p className="mt-1 text-[13px] font-semibold leading-snug text-white">
+                      Ruptura antes de acontecer
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="intel-float-d absolute bottom-12 right-7 z-30 w-[205px] rounded-2xl border border-white/12 bg-black/46 p-3.5 shadow-[0_22px_55px_-24px_rgba(0,0,0,.9)] backdrop-blur-2xl">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-fuchsia-500/15 text-fuchsia-200 ring-1 ring-fuchsia-300/15">
+                    <Target className="size-4.5" />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.17em] text-white/38">Anúncios</p>
+                      <span className="size-1.5 rounded-full bg-fuchsia-300" />
+                    </div>
+                    <p className="mt-1 text-[13px] font-semibold leading-snug text-white">
+                      Onde agir primeiro
                     </p>
                   </div>
                 </div>

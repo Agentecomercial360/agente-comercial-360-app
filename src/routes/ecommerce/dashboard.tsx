@@ -397,76 +397,78 @@ function DashboardContent() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <header className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
-            <BarChart3 className="h-3.5 w-3.5" />
-            Visão Geral
+      {/* Header executivo */}
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-blue-700">
+              <BarChart3 className="h-3.5 w-3.5" />
+              Visão executiva
+            </div>
+            <SyncStatusChip
+              error={isSyncError}
+              hasRun={hasRun}
+              lastAt={latestRun?.created_at ?? null}
+              onOpen={() => setSyncPanelOpen(true)}
+            />
           </div>
-          <SyncStatusChip
-            error={isSyncError}
-            hasRun={hasRun}
-            lastAt={latestRun?.created_at ?? null}
-            onOpen={() => setSyncPanelOpen(true)}
-          />
+          <div>
+            <h1 className="font-display text-2xl font-semibold tracking-tight text-[#0A1F44] md:text-[30px]">
+              Visão Geral da Operação
+            </h1>
+            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+              {scopeLabel} · acompanhe resultado, ritmo de vendas e sinais que exigem atenção.
+            </p>
+          </div>
         </div>
-        <h1 className="font-display text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
-          Dashboard E-commerce · {scopeLabel}
-        </h1>
-        <p className="text-sm text-muted-foreground max-w-3xl">
-          Faturamento, pedidos, taxas e resultado parcial dos pedidos sincronizados do Mercado Livre.
-        </p>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <SegmentedGroup>
+            {PERIODS.map((p) => (
+              <SegmentButton key={p.key} active={period === p.key} onClick={() => setPeriod(p.key)}>
+                {p.label}
+              </SegmentButton>
+            ))}
+          </SegmentedGroup>
+          <SegmentedGroup>
+            <SegmentButton
+              active={scope === "active"}
+              onClick={() => setScope("active")}
+              disabled={!selectedAccountId}
+            >
+              Conta ativa
+            </SegmentButton>
+            <SegmentButton active={scope === "all"} onClick={() => setScope("all")}>
+              <Users className="mr-1 h-3.5 w-3.5" />
+              Todas as contas
+            </SegmentButton>
+          </SegmentedGroup>
+        </div>
       </header>
 
       {/* CMV Action Banner */}
       {totals.pending > 0 && (
-        <div className="flex flex-col md:flex-row md:items-center gap-4 rounded-xl border border-amber-500/25 bg-amber-50/60 px-5 py-4">
-          <div className="flex items-start gap-3 flex-1 min-w-0">
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-700">
+        <div className="flex flex-col gap-3 rounded-2xl border border-amber-200/80 bg-amber-50/45 px-4 py-3 md:flex-row md:items-center">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
               <AlertTriangle className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-amber-900">Resultados parciais</p>
-              <p className="text-[13px] leading-relaxed text-amber-900/80">
-                Existem <span className="font-semibold">{num.format(totals.pending)}</span> pedidos pendentes de custo.
-                Atualize o CMV para liberar o cálculo de lucro líquido real e margem confiável.
+              <p className="text-sm font-semibold text-amber-900">Resultado ainda parcial</p>
+              <p className="mt-0.5 text-[12px] leading-relaxed text-amber-800/80">
+                {num.format(totals.pending)} pedido(s) ainda aguardam custo para liberar margem confiável.
               </p>
             </div>
           </div>
           <Link
             to="/ecommerce/custos-margem"
-            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-amber-200 bg-white px-3.5 py-2 text-[11px] font-semibold text-amber-800 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
-            Corrigir Custos Agora
+            Corrigir custos
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
       )}
-
-      {/* Filtros */}
-      <section className="flex flex-wrap items-center justify-between gap-3">
-        <SegmentedGroup>
-          {PERIODS.map((p) => (
-            <SegmentButton key={p.key} active={period === p.key} onClick={() => setPeriod(p.key)}>
-              {p.label}
-            </SegmentButton>
-          ))}
-        </SegmentedGroup>
-        <SegmentedGroup>
-          <SegmentButton
-            active={scope === "active"}
-            onClick={() => setScope("active")}
-            disabled={!selectedAccountId}
-          >
-            Conta ativa
-          </SegmentButton>
-          <SegmentButton active={scope === "all"} onClick={() => setScope("all")}>
-            <Users className="mr-1 h-3.5 w-3.5" />
-            Todas as contas
-          </SegmentButton>
-        </SegmentedGroup>
-      </section>
 
       {errorMsg && (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
@@ -483,26 +485,89 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Leitura executiva — 4 indicadores principais */}
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Metric
-          label="Faturamento bruto"
-          value={brl.format(totals.gross)}
-          loading={loading}
-          highlight
-        />
-        <Metric label="Pedidos" value={num.format(totals.count)} loading={loading} />
-        <Metric label="Ticket médio" value={brl.format(totals.ticket)} loading={loading} />
-        <Metric
-          label="Resultado parcial"
-          value={brl.format(totals.netParcial)}
-          sublabel="Antes do custo do produto"
-          loading={loading}
-        />
+      {/* Hero executivo premium */}
+      <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#071B45] via-[#0B3B8E] to-[#1E5EFF] p-5 shadow-[0_30px_70px_-42px_rgba(7,27,69,.9)] sm:p-6">
+        <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/[0.10] blur-2xl" />
+        <div aria-hidden className="pointer-events-none absolute bottom-[-90px] left-[22%] h-56 w-56 rounded-full bg-cyan-300/[0.10] blur-3xl" />
+
+        <div className="relative grid gap-5 lg:grid-cols-[0.88fr_1.12fr] lg:items-stretch">
+          <div className="flex min-w-0 flex-col justify-between rounded-[22px] border border-white/[0.10] bg-white/[0.04] p-5 backdrop-blur-sm">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.07] px-3 py-1.5 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-white/70">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#F5C842]" />
+                Resumo executivo · {PERIODS.find((p) => p.key === period)?.label}
+              </div>
+
+              <p className="mt-7 text-[11px] font-medium uppercase tracking-[0.14em] text-white/50">
+                Faturamento bruto
+              </p>
+              {loading ? (
+                <Skeleton className="mt-3 h-12 w-52 bg-white/15" />
+              ) : (
+                <div className="mt-2 font-display text-[42px] font-bold tracking-[-0.045em] text-white sm:text-[50px]">
+                  {brl.format(totals.gross)}
+                </div>
+              )}
+              <p className="mt-2 max-w-sm text-[12px] leading-relaxed text-white/58">
+                Receita sincronizada da operação no período selecionado.
+              </p>
+            </div>
+
+            <div className="mt-8 grid grid-cols-3 gap-2">
+              {[
+                ["Pedidos", num.format(totals.count)],
+                ["Ticket", brl.format(totals.ticket)],
+                ["Resultado", brl.format(totals.netParcial)],
+              ].map(([label, value]) => (
+                <div
+                  key={label}
+                  className="min-w-0 rounded-2xl border border-white/[0.10] bg-white/[0.07] p-3 transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.10]"
+                >
+                  <p className="text-[8.5px] font-semibold uppercase tracking-[0.12em] text-white/42">
+                    {label}
+                  </p>
+                  <p className="mt-1.5 truncate text-[13px] font-semibold text-white" title={value}>
+                    {loading ? "—" : value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[22px] border border-white/70 bg-white p-4 shadow-[0_28px_60px_-36px_rgba(7,27,69,.65)] sm:p-5">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-400">
+                  Evolução
+                </p>
+                <h2 className="mt-1 text-sm font-semibold text-[#0A1F44]">Faturamento por dia</h2>
+              </div>
+              <span className="rounded-full bg-[#EEF4FF] px-2.5 py-1 text-[9.5px] font-semibold text-[#1E5EFF]">
+                {PERIODS.find((p) => p.key === period)?.label}
+              </span>
+            </div>
+
+            {loading ? (
+              <Skeleton className="h-[220px] w-full rounded-xl" />
+            ) : byDay.length === 0 || byDay.every((d) => d.gross === 0) ? (
+              <div className="flex h-[220px] items-center justify-center rounded-2xl bg-[#F7F9FC] text-center">
+                <div>
+                  <BarChart3 className="mx-auto h-5 w-5 text-slate-300" />
+                  <p className="mt-2 text-[11px] font-medium text-slate-500">Sem faturamento no período</p>
+                  <p className="mt-1 text-[10px] text-slate-400">O gráfico será preenchido após a sincronização de pedidos.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="-mx-2">
+                <RevenueByDayChart data={byDay} />
+              </div>
+            )}
+          </div>
+        </div>
       </section>
 
-      {/* Indicadores secundários — disponíveis sem competir com a leitura principal */}
-      <section className="grid grid-cols-2 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_16px_40px_-34px_rgba(10,31,68,.45)] md:grid-cols-4">
+      {/* Indicadores secundários */}
+      <section className="grid grid-cols-2 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_18px_44px_-36px_rgba(10,31,68,.40)] md:grid-cols-4">
         <SecondaryMetric label="Taxas Mercado Livre" value={brl.format(totals.fees)} loading={loading} />
         <SecondaryMetric label="Frete vendedor" value={brl.format(totals.shipping)} loading={loading} />
         <SecondaryMetric
@@ -520,30 +585,9 @@ function DashboardContent() {
         />
       </section>
 
-      {/* Chart */}
-      <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[0_18px_44px_-36px_rgba(10,31,68,.45)]">
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Faturamento por dia</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Soma diária de faturamento bruto no período selecionado.
-            </p>
-          </div>
-        </div>
-        {loading ? (
-          <Skeleton className="h-[260px] w-full rounded-lg" />
-        ) : byDay.length === 0 || byDay.every((d) => d.gross === 0) ? (
-          <div className="py-16 text-center text-sm text-muted-foreground">
-            Sem pedidos no período.
-          </div>
-        ) : (
-          <RevenueByDayChart data={byDay} />
-        )}
-      </section>
-
 
       {/* Comparativo por conta */}
-      <section className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_18px_44px_-36px_rgba(10,31,68,.40)]">
+      <section className="overflow-hidden rounded-[24px] border border-border/60 bg-card shadow-[0_20px_50px_-40px_rgba(10,31,68,.45)]">
         <div className="border-b border-border/70 px-5 py-4">
           <h2 className="text-base font-semibold text-foreground">Comparativo por conta</h2>
           <p className="text-xs text-muted-foreground mt-0.5">

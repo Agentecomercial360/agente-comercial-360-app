@@ -878,24 +878,42 @@ export function LandingPage() {
 
         <div className="relative z-10">
           <div className="fixed inset-x-0 top-0 z-50 shadow-[0_12px_35px_-28px_rgba(10,31,68,.45)]">
-            <div className="border-b border-blue-300/10 bg-[linear-gradient(90deg,#071a43_0%,#0b2b66_45%,#071a43_100%)] text-white">
-              <div className="mx-auto flex min-h-10 max-w-7xl items-center justify-center gap-3 px-4 py-2 text-center sm:px-6 lg:px-10">
-                <span className="hidden rounded-full border border-blue-300/20 bg-white/[0.07] px-2.5 py-1 text-[9px] font-bold uppercase tracking-[0.14em] text-blue-100 sm:inline-flex">
-                  Exclusivo AC360
+            <div className="relative overflow-hidden border-b border-cyan-200/20 bg-[linear-gradient(90deg,#05245f_0%,#0b5cff_48%,#05245f_100%)] bg-[length:180%_100%] text-white">
+              <style>{`
+                @keyframes acPromoFlow {
+                  0%,100% { background-position: 0% 50%; }
+                  50% { background-position: 100% 50%; }
+                }
+                @keyframes acPromoShimmer {
+                  0% { transform: translateX(-140%); opacity: 0; }
+                  20% { opacity: .6; }
+                  100% { transform: translateX(260%); opacity: 0; }
+                }
+              `}</style>
+              <div
+                className="absolute inset-0 bg-[linear-gradient(90deg,#05245f_0%,#0b5cff_48%,#05245f_100%)] bg-[length:180%_100%]"
+                style={{ animation: "acPromoFlow 8s ease-in-out infinite" }}
+              />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute inset-y-0 left-0 w-44 rotate-12 bg-gradient-to-r from-transparent via-white/24 to-transparent blur-md"
+                style={{ animation: "acPromoShimmer 5.2s ease-in-out infinite" }}
+              />
+              <div className="relative mx-auto flex min-h-12 max-w-7xl items-center justify-center gap-3 px-4 py-2.5 text-center sm:px-6 lg:px-10">
+                <span className="hidden items-center gap-2 rounded-full border border-white/25 bg-[#06183b]/38 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-white shadow-[0_0_26px_rgba(255,255,255,.10)] sm:inline-flex">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#ffcf4a] shadow-[0_0_14px_rgba(255,207,74,.95)]" />
+                  Nova rodada AC360
                 </span>
-                <p className="text-[10px] font-medium text-white/78 sm:text-[11px]">
-                  Diagnóstico estratégico para vendedores do Mercado Livre
-                  <span className="hidden text-white/45 md:inline"> · </span>
-                  <span className="hidden text-white/68 md:inline">
-                    Descubra onde sua operação perde margem e o que priorizar primeiro.
-                  </span>
+                <p className="text-[10.5px] font-semibold text-white sm:text-[11.5px]">
+                  Descubra o que está travando margem, estoque e anúncios na sua operação
+                  <span className="hidden text-white/55 lg:inline"> · diagnóstico estratégico AC360</span>
                 </p>
                 <a
                   href="#cta-final"
-                  className="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-bold text-cyan-200 transition hover:text-white sm:text-[11px]"
+                  className="group inline-flex shrink-0 items-center gap-2 rounded-full bg-white px-3.5 py-1.5 text-[10px] font-extrabold text-[#0A1F44] shadow-[0_10px_28px_-14px_rgba(255,255,255,.75)] transition hover:-translate-y-0.5 hover:shadow-lg sm:text-[11px]"
                 >
-                  Solicitar diagnóstico
-                  <ArrowRight className="h-3.5 w-3.5" />
+                  Quero meu diagnóstico
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                 </a>
               </div>
             </div>

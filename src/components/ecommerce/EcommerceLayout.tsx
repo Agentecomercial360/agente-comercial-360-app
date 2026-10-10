@@ -40,7 +40,6 @@ const navGroups = [
     title: "Visão Executiva",
     items: [
       { label: "Visão Geral", to: "/ecommerce/dashboard", icon: Store },
-      { label: "Central de Ações", to: "/ecommerce/prioridades", icon: TrendingUp },
       { label: "Resultados das Ações", to: "/ecommerce/resultados", icon: BarChart3 },
     ],
   },
@@ -69,8 +68,9 @@ const navGroups = [
   {
     title: "Inteligência",
     items: [
+      { label: "Feed Inteligente", to: "/ecommerce/prioridades", icon: TrendingUp },
+      { label: "Chat AC360", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
       { label: "Diagnóstico Inteligente", to: "/ecommerce/radar-ia", icon: Radar },
-      { label: "Assistente Estratégico", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
       { label: "Regras da Operação", to: "/ecommerce/base-ia", icon: BookOpen },
     ],
   },

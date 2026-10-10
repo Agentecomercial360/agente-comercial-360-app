@@ -16,7 +16,7 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/ecommerce/consultor-ia")({
   component: ConsultorIA,
   head: () => ({
-    meta: [{ title: "Assistente Estratégico | Agente Comercial 360" }],
+    meta: [{ title: "Chat AC360 | AC360 E-commerce Intelligence" }],
   }),
 });
 
@@ -175,7 +175,7 @@ function ConsultorIA() {
       } catch (e) {
         if (cancelled) return;
         console.error("[ConsultorIA] erro:", e);
-        setErrorMsg("Não foi possível carregar os dados do Assistente Estratégico.");
+        setErrorMsg("Não foi possível carregar os dados do Chat AC360.");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -199,17 +199,17 @@ function ConsultorIA() {
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-              Assistente Estratégico
+              Chat AC360
             </h1>
             <p className="text-slate-500">
-              Converse com a inteligência do sistema para interpretar dados, entender oportunidades e apoiar decisões da operação Mercado Livre.
+              Converse com a inteligência do AC360 para interpretar dados, entender oportunidades e apoiar decisões da operação Mercado Livre.
             </p>
           </div>
         </div>
 
         {loading && (
           <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm text-slate-500 shadow-sm">
-            Carregando dados do Assistente Estratégico...
+            Carregando contexto do Chat AC360...
           </div>
         )}
 

@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { createAc360ApiUrl, getAc360AccessToken } from "@/lib/ac360-api";
 
 /**
  * Feed Inteligente da Operação — camada de leitura.
@@ -360,9 +360,8 @@ export async function getIntelligentFeedPreview({
   limit?: number;
   signal?: AbortSignal;
 }): Promise<IntelligentFeedPreview> {
-  const { data, error } = await supabase.auth.getSession();
-  const accessToken = data?.session?.access_token;
-  if (error || !accessToken) {
+  const accessToken = await getAc360AccessToken();
+  if (!accessToken) {
     throw new IntelligentFeedError(
       "Sessão expirada ou sem permissão. Faça login novamente.",
       "unauthenticated",
@@ -370,12 +369,11 @@ export async function getIntelligentFeedPreview({
     );
   }
 
-  const configuredBaseUrl = String(import.meta.env.VITE_AC360_API_URL ?? "").trim();
-  const apiBaseUrl = (configuredBaseUrl || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
-  const url = new URL(`${apiBaseUrl}/api/ecommerce/intelligent-feed/preview`);
-  url.searchParams.set("company_id", companyId);
-  url.searchParams.set("account_id", accountId);
-  url.searchParams.set("limit", String(limit));
+  const url = createAc360ApiUrl("/api/ecommerce/intelligent-feed/preview", {
+    company_id: companyId,
+    account_id: accountId,
+    limit,
+  });
 
   let response: Response;
   try {

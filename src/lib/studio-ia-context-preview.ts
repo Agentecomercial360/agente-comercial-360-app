@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { createAc360ApiUrl, getAc360AccessToken } from "@/lib/ac360-api";
 
 const DEFAULT_API_BASE_URL = "https://ac360-mercadolivre-api-production.up.railway.app";
 
@@ -272,7 +272,7 @@ export async function getStudioIaContextPreview({
       method: "GET",
       headers: {
         Accept: "application/json",
-        Authorization: `Bearer ${data.session.access_token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       signal,
     });

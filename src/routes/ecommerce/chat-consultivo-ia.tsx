@@ -6,13 +6,13 @@ export const Route = createFileRoute("/ecommerce/chat-consultivo-ia")({
   component: ChatConsultivoIA,
   head: () => ({
     meta: [
-      { title: "Chat Consultivo IA | AC360 E-commerce Intelligence" },
+      { title: "Studio de Imagens IA | AC360 E-commerce Intelligence" },
       {
         name: "description",
         content:
-          "Chat consultivo somente leitura baseado no diagnóstico Studio IA da operação Mercado Livre.",
+          "Studio visual para organizar e preparar edições de imagens de produtos do Mercado Livre dentro do AC360.",
       },
-      { property: "og:title", content: "Chat Consultivo IA | AC360 E-commerce Intelligence" },
+      { property: "og:title", content: "Studio de Imagens IA | AC360 E-commerce Intelligence" },
       {
         property: "og:description",
         content:

@@ -384,21 +384,23 @@ function ResultadosAcoesContent() {
   return (
     <TooltipProvider delayDuration={200}>
       <div className="space-y-6">
-        {/* Header */}
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
+        {/* Header executivo */}
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-3">
+            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-blue-700">
               <BarChart3 className="h-3.5 w-3.5" />
-              Medição de Impacto
+              Medição de impacto
             </div>
-            <h1 className="font-display text-2xl font-bold text-foreground md:text-3xl">
-              Resultados das Ações
-            </h1>
-            <p className="max-w-2xl text-sm text-muted-foreground md:text-[15px]">
-              Acompanhe o impacto real das ações concluídas pela operação —
-              vendas, estoque, anúncios e desempenho dos produtos.
-            </p>
+            <div>
+              <h1 className="font-display text-2xl font-semibold tracking-tight text-[#0A1F44] md:text-[30px]">
+                Resultados das Ações
+              </h1>
+              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+                Veja o valor gerado pelas ações concluídas e o que a operação aprendeu com cada execução.
+              </p>
+            </div>
           </div>
+
           <div className="flex flex-wrap items-center gap-2">
             <RegistrarResultadoDialog
               tasks={tasks}
@@ -409,7 +411,7 @@ function ResultadosAcoesContent() {
             <Button
               variant="outline"
               size="sm"
-              className="h-9 rounded-full"
+              className="h-9 rounded-full border-border/60 bg-white px-4 text-[11px] font-semibold shadow-sm"
               onClick={() => void loadAll()}
               disabled={loading}
             >
@@ -451,7 +453,7 @@ function ResultadosAcoesContent() {
         )}
 
         {resultsPending.length > 0 && (
-          <details className="group rounded-2xl border border-amber-200/80 bg-amber-50/45 px-4 py-3 text-xs text-amber-900">
+          <details className="group rounded-2xl border border-amber-200/75 bg-amber-50/35 px-4 py-3 text-xs text-amber-900">
             <summary className="flex cursor-pointer list-none items-center gap-2 font-medium">
               <Info className="h-3.5 w-3.5 shrink-0" />
               <span>
@@ -479,194 +481,219 @@ function ResultadosAcoesContent() {
           </details>
         )}
 
-        {/* Métricas de Impacto */}
-        <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          {/* Card de destaque — Receita estimada gerada */}
-          <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-white p-6 shadow-[0_18px_44px_-36px_rgba(10,31,68,.45)] lg:col-span-2">
-            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-400/[0.07]" />
-            <div className="relative flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  <DollarSign className="h-3.5 w-3.5" />
+        {/* Hero premium de resultados */}
+        <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#071B45] via-[#103878] to-[#1E5EFF] p-4 shadow-[0_30px_70px_-42px_rgba(7,27,69,.9)] sm:p-5">
+          <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/[0.07] blur-2xl" />
+          <div aria-hidden className="pointer-events-none absolute bottom-[-100px] left-[18%] h-60 w-60 rounded-full bg-emerald-300/[0.08] blur-3xl" />
+
+          <div className="relative grid gap-5 lg:grid-cols-[1.12fr_.88fr]">
+            <div className="flex min-w-0 flex-col justify-between rounded-[22px] border border-white/[0.10] bg-white/[0.04] p-4 backdrop-blur-sm sm:p-5">
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.07] px-3 py-1.5 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-white/70">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                  Resultado comprovado pela operação
+                </div>
+
+                <p className="mt-5 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/62">
                   Receita estimada gerada
-                </div>
-                <div className="font-display text-3xl font-bold tracking-tight text-emerald-700 md:text-4xl">
-                  {fmtMoney(kpis.revenue)}
-                </div>
-                <p className="max-w-md text-xs text-muted-foreground">
-                  Soma das diferenças positivas de faturamento registradas nas
-                  ações com impacto positivo.
+                </p>
+                {loading ? (
+                  <span className="mt-3 block h-12 w-52 animate-pulse rounded-lg bg-white/15" />
+                ) : (
+                  <div className="mt-1.5 font-display text-[38px] font-bold tracking-[-0.045em] text-white sm:text-[44px]">
+                    {fmtMoney(kpis.revenue)}
+                  </div>
+                )}
+                <p className="mt-1.5 max-w-md text-[11.5px] leading-relaxed text-white/68">
+                  Soma das diferenças positivas de faturamento registradas em ações com impacto positivo.
                 </p>
               </div>
-              <div className="flex min-w-[140px] flex-col gap-1 rounded-xl border border-border/60 bg-slate-50/70 p-3">
-                <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                  Estoque protegido
+
+              <div className="mt-5 grid gap-2 sm:grid-cols-2">
+                <div className="rounded-2xl border border-white/[0.10] bg-black/[0.10] px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-emerald-200" />
+                    <span className="text-[8.5px] font-semibold uppercase tracking-[0.14em] text-white/55">
+                      Impacto positivo
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex items-end gap-2">
+                    <span className="font-display text-2xl font-bold text-white">{kpis.positive}</span>
+                    <span className="pb-0.5 text-[9.5px] text-white/50">ações medidas</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-4 w-4 text-emerald-700" />
-                  <span className="font-display text-xl font-bold text-[#0A1F44]">
-                    {kpis.stockCount}
-                  </span>
-                  <span className="text-xs text-muted-foreground">ações</span>
+
+                <div className="rounded-2xl border border-white/[0.10] bg-black/[0.10] px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4 text-blue-200" />
+                    <span className="text-[8.5px] font-semibold uppercase tracking-[0.14em] text-white/55">
+                      Estoque protegido
+                    </span>
+                  </div>
+                  <div className="mt-1.5 flex items-end gap-2">
+                    <span className="font-display text-2xl font-bold text-white">{kpis.stockCount}</span>
+                    <span className="pb-0.5 text-[9.5px] text-white/50">ações relacionadas</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Grid secundário compacto */}
-          <div className="grid grid-cols-2 gap-3">
-            <CompactKpi label="Ações concluídas" value={String(kpis.completed)} />
-            <CompactKpi label="Impacto positivo" value={String(kpis.positive)} accent="emerald" />
-            <CompactKpi label="Sem impacto" value={String(kpis.neutral)} accent="slate" />
-            <CompactKpi label="Campanhas otimizadas" value={String(kpis.adsCount)} accent="violet" />
+            <div className="grid grid-cols-2 gap-3">
+              <PremiumResultMetric
+                label="Ações concluídas"
+                value={String(kpis.completed)}
+                hint="Execuções finalizadas"
+              />
+              <PremiumResultMetric
+                label="Impacto positivo"
+                value={String(kpis.positive)}
+                hint="Resultados melhores"
+                tone="positive"
+                icon={<TrendingUp className="h-4 w-4" />}
+              />
+              <PremiumResultMetric
+                label="Sem impacto"
+                value={String(kpis.neutral)}
+                hint="Sem mudança medida"
+                tone="neutral"
+                icon={<Minus className="h-4 w-4" />}
+              />
+              <PremiumResultMetric
+                label="Campanhas otimizadas"
+                value={String(kpis.adsCount)}
+                hint="Ações ligadas a Ads"
+                tone="info"
+                icon={<Rocket className="h-4 w-4" />}
+              />
+            </div>
           </div>
         </section>
 
-        {/* Histórico de ações executadas */}
-        <section className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[var(--shadow-soft)]">
+        {/* Histórico premium */}
+        <section className="overflow-hidden rounded-[24px] border border-border/60 bg-card shadow-[0_20px_50px_-40px_rgba(10,31,68,.45)]">
           <div className="flex flex-col gap-3 border-b border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-800 text-white">
-                <History className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0A1F44] text-white shadow-sm">
+                <History className="h-4 w-4" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="font-display text-lg font-bold text-foreground">
+                  <h2 className="font-display text-base font-semibold text-[#0A1F44]">
                     Histórico de ações executadas
                   </h2>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button type="button" className="text-muted-foreground hover:text-foreground">
+                      <button type="button" className="text-muted-foreground transition hover:text-foreground">
                         <Info className="h-3.5 w-3.5" />
                       </button>
                     </TooltipTrigger>
                     <TooltipContent side="right" className="max-w-xs text-xs">
-                      Toda medição registrada aqui é interna e não altera nada no
-                      Mercado Livre. O objetivo é aprender com os dados e melhorar as
-                      próximas recomendações.
+                      Toda medição registrada aqui é interna e não altera nada no Mercado Livre.
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Tarefas concluídas na operação e o impacto medido, quando já
-                  registrado.
+                <p className="mt-0.5 text-[11px] text-muted-foreground">
+                  O que foi executado, o resultado observado e o aprendizado registrado.
                 </p>
               </div>
             </div>
+
+            <span className="rounded-full bg-[#EEF4FF] px-3 py-1.5 text-[10px] font-semibold text-[#1E5EFF]">
+              {loading ? "Carregando…" : `${tasks.length.toLocaleString("pt-BR")} ações`}
+            </span>
           </div>
 
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="w-[26%] pl-5">Tarefa</TableHead>
-                  <TableHead className="w-[12%]">Origem</TableHead>
-                  <TableHead className="w-[20%]">Produto / Anúncio</TableHead>
-                  <TableHead className="w-[13%] whitespace-nowrap">Concluída em</TableHead>
-                  <TableHead className="w-[14%]">Resultado / Impacto</TableHead>
-                  <TableHead className="w-[10%] text-right pr-5">Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i} className="hover:bg-transparent">
-                      <TableCell className="pl-5">
-                        <div className="space-y-1.5">
-                          <Skeleton className="h-4 w-[80%]" />
-                          <Skeleton className="h-3 w-[40%]" />
-                        </div>
-                      </TableCell>
-                      <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                      <TableCell>
-                        <div className="space-y-1.5">
-                          <Skeleton className="h-4 w-[90%]" />
-                          <Skeleton className="h-3 w-20" />
-                        </div>
-                      </TableCell>
-                      <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                      <TableCell><Skeleton className="h-5 w-24 rounded-full" /></TableCell>
-                      <TableCell className="pr-5 text-right"><Skeleton className="ml-auto h-8 w-20" /></TableCell>
-                    </TableRow>
-                  ))
-                ) : tasks.length === 0 ? (
-                  <TableRow className="hover:bg-transparent">
-                    <TableCell colSpan={6} className="py-14 text-center">
-                      <EmptyState />
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  tasks.map((t) => {
-                    const r = resultsByTask.get(t.id);
-                    const b = bucketOf(r?.result_status);
-                    const Icon = IMPACT_ICON[b];
-                    const productName =
-                      r?.product_name ?? r?.listing_title ?? t.task_title ?? "—";
-                    const productCode =
-                      t.listing_id ?? t.product_id ?? r?.listing_id ?? r?.product_id ?? null;
-                    return (
-                      <TableRow key={t.id} className="group">
-                        <TableCell className="pl-5">
-                          <div className="space-y-0.5">
-                            <div className="font-medium text-foreground line-clamp-1">
-                              {t.task_title ?? "Tarefa sem título"}
-                            </div>
-                            {t.responsible_name && (
-                              <div className="text-xs text-muted-foreground">
-                                Resp. {t.responsible_name}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          <span className="text-xs">{originLabel(t)}</span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-0.5">
-                            <div className="max-w-[220px] truncate text-sm text-foreground" title={productName}>
-                              {productName}
-                            </div>
-                            {productCode && (
-                              <div className="font-mono text-[10px] text-muted-foreground">
-                                {productCode}
-                              </div>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                          {formatDate(t.completed_at ?? t.created_at)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={IMPACT_VARIANT[b]}
-                            className="gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
-                          >
-                            <Icon className="h-3 w-3" />
-                            {IMPACT_LABEL[b]}
-                          </Badge>
-                          {r?.result_summary && (
-                            <div className="mt-1.5 max-w-[200px] truncate text-[11px] text-muted-foreground" title={r.result_summary}>
-                              {r.result_summary}
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell className="pr-5 text-right">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-8 text-xs text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100"
-                            onClick={() => setDetailTaskId(t.id)}
-                          >
-                            <Eye className="mr-1.5 h-3.5 w-3.5" />
-                            Detalhes
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-            </Table>
+          <div className="divide-y divide-border/50">
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="grid gap-4 px-5 py-5 lg:grid-cols-[1.15fr_.75fr_.65fr_120px] lg:items-center">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[72%]" />
+                    <Skeleton className="h-3 w-[46%]" />
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-[80%]" />
+                    <Skeleton className="h-3 w-[55%]" />
+                  </div>
+                  <Skeleton className="h-7 w-28 rounded-full" />
+                  <Skeleton className="ml-auto h-9 w-24 rounded-xl" />
+                </div>
+              ))
+            ) : tasks.length === 0 ? (
+              <div className="py-14 text-center">
+                <EmptyState />
+              </div>
+            ) : (
+              tasks.map((t) => {
+                const r = resultsByTask.get(t.id);
+                const b = bucketOf(r?.result_status);
+                const Icon = IMPACT_ICON[b];
+                const productName =
+                  r?.product_name ?? r?.listing_title ?? t.task_title ?? "—";
+                const productCode =
+                  t.listing_id ?? t.product_id ?? r?.listing_id ?? r?.product_id ?? null;
+
+                return (
+                  <article
+                    key={t.id}
+                    className="group grid gap-4 px-5 py-5 transition-colors hover:bg-[#F8FAFD] lg:grid-cols-[1.15fr_.75fr_.65fr_120px] lg:items-center"
+                  >
+                    <div className="min-w-0">
+                      <p className="line-clamp-1 text-[13px] font-semibold text-[#0A1F44]">
+                        {t.task_title ?? "Tarefa sem título"}
+                      </p>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+                        <span>{originLabel(t)}</span>
+                        <span className="h-1 w-1 rounded-full bg-slate-300" />
+                        <span>{formatDate(t.completed_at ?? t.created_at)}</span>
+                        {t.responsible_name && (
+                          <>
+                            <span className="h-1 w-1 rounded-full bg-slate-300" />
+                            <span>Resp. {t.responsible_name}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="min-w-0">
+                      <p className="truncate text-[11.5px] font-medium text-foreground" title={productName}>
+                        {productName}
+                      </p>
+                      <p className="mt-1 truncate font-mono text-[9.5px] text-muted-foreground">
+                        {productCode || "Sem ID vinculado"}
+                      </p>
+                    </div>
+
+                    <div className="min-w-0">
+                      <Badge
+                        variant={IMPACT_VARIANT[b]}
+                        className="gap-1 rounded-full px-2.5 py-1 text-[10.5px] font-semibold"
+                      >
+                        <Icon className="h-3 w-3" />
+                        {IMPACT_LABEL[b]}
+                      </Badge>
+                      {r?.result_summary && (
+                        <p className="mt-1.5 line-clamp-1 text-[10px] text-muted-foreground" title={r.result_summary}>
+                          {r.result_summary}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex justify-start lg:justify-end">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-9 rounded-xl border-border/60 bg-white px-3 text-[10.5px] font-semibold text-[#0A1F44] shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-700 hover:shadow-md"
+                        onClick={() => setDetailTaskId(t.id)}
+                      >
+                        <Eye className="mr-1.5 h-3.5 w-3.5" />
+                        Detalhes
+                      </Button>
+                    </div>
+                  </article>
+                );
+              })
+            )}
           </div>
         </section>
 
@@ -807,6 +834,46 @@ function ResultadosAcoesContent() {
 }
 
 // ---------------- UI bits ----------------
+
+function PremiumResultMetric({
+  label,
+  value,
+  hint,
+  tone = "default",
+  icon,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  tone?: "default" | "positive" | "neutral" | "info";
+  icon?: React.ReactNode;
+}) {
+  const toneClass =
+    tone === "positive"
+      ? "text-emerald-200"
+      : tone === "info"
+        ? "text-blue-200"
+        : tone === "neutral"
+          ? "text-slate-200"
+          : "text-white";
+
+  return (
+    <div className="group flex min-h-[112px] flex-col justify-between rounded-[20px] border border-white/[0.12] bg-white/[0.075] p-3.5 backdrop-blur-sm transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.11]">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-white/68">
+          {label}
+        </p>
+        {icon && <span className={toneClass}>{icon}</span>}
+      </div>
+      <div>
+        <p className={`font-display text-[28px] font-bold tracking-tight tabular-nums ${toneClass}`}>
+          {value}
+        </p>
+        <p className="mt-0.5 text-[9.5px] text-white/58">{hint}</p>
+      </div>
+    </div>
+  );
+}
 
 function CompactKpi({
   label,

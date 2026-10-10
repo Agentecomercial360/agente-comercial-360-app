@@ -534,49 +534,6 @@ function IntegrationBar() {
 
 /* ---------- Ecosystem section (below hero) ---------- */
 function EcosystemSection() {
-  const operationViews = [
-    {
-      key: "vendas",
-      label: "Vendas",
-      icon: BarChart3,
-      title: "Entenda o ritmo das vendas e onde o resultado está sendo construído.",
-      supporting: "Pedidos, faturamento e ticket em uma leitura mais direta da operação.",
-      tags: ["Pedidos", "Faturamento", "Ticket médio"],
-      imageStyle: { objectPosition: "52% center", filter: "saturate(1.02) contrast(1.04) brightness(0.93)" },
-    },
-    {
-      key: "margem",
-      label: "Margem",
-      icon: DollarSign,
-      title: "Veja onde a margem aperta antes de descobrir isso no fim do mês.",
-      supporting: "Receita, taxas e rentabilidade organizadas para apoiar decisões mais seguras.",
-      tags: ["Receita", "Taxas", "Rentabilidade"],
-      imageStyle: { objectPosition: "38% center", filter: "saturate(0.92) contrast(1.08) brightness(0.86)" },
-    },
-    {
-      key: "estoque",
-      label: "Estoque",
-      icon: Boxes,
-      title: "Identifique o que exige reposição ou atenção antes da ruptura.",
-      supporting: "Giro, cobertura e sinais de estoque reunidos para orientar a rotina operacional.",
-      tags: ["Giro", "Cobertura", "Risco de ruptura"],
-      imageStyle: { objectPosition: "68% center", filter: "saturate(1.08) contrast(1.08) brightness(0.9)" },
-    },
-    {
-      key: "anuncios",
-      label: "Anúncios",
-      icon: Target,
-      title: "Saiba quais anúncios merecem ajuste antes de aumentar o investimento.",
-      supporting: "Visibilidade, conversão e eficiência para priorizar o que realmente merece ação.",
-      tags: ["Conversão", "Visibilidade", "Eficiência"],
-      imageStyle: { objectPosition: "82% center", filter: "saturate(0.96) contrast(1.12) brightness(0.84)" },
-    },
-  ];
-
-  const [activeOperation, setActiveOperation] = useState("vendas");
-  const activeView =
-    operationViews.find((item) => item.key === activeOperation) ?? operationViews[0];
-
   const valueItems = [
     {
       icon: ShieldCheck,
@@ -592,6 +549,61 @@ function EcosystemSection() {
       icon: Target,
       title: "Execução inteligente",
       desc: "Saiba onde agir primeiro em estoque, anúncios e rotina comercial.",
+    },
+  ];
+
+  const views = [
+    {
+      key: "vendas",
+      label: "Vendas",
+      icon: BarChart3,
+      eyebrow: "Visão de vendas",
+      title: "Entenda o ritmo das vendas e onde o resultado está sendo construído.",
+      supporting: "Pedidos, faturamento e ticket em uma leitura mais direta da operação.",
+      tags: ["Pedidos", "Faturamento", "Ticket médio"],
+      objectPosition: "52% center",
+      filter: "saturate(1.03) contrast(1.05) brightness(0.94)",
+      overlay:
+        "linear-gradient(180deg, rgba(5,35,86,0.03) 0%, rgba(5,35,86,0.10) 48%, rgba(5,35,86,0.70) 100%)",
+    },
+    {
+      key: "margem",
+      label: "Margem",
+      icon: DollarSign,
+      eyebrow: "Visão de margem",
+      title: "Veja onde a margem aperta antes de descobrir isso no fim do mês.",
+      supporting: "Receita, taxas e rentabilidade organizadas para apoiar decisões mais seguras.",
+      tags: ["Receita", "Taxas", "Rentabilidade"],
+      objectPosition: "35% center",
+      filter: "saturate(0.78) contrast(1.12) brightness(0.80)",
+      overlay:
+        "linear-gradient(180deg, rgba(20,12,4,0.04) 0%, rgba(20,12,4,0.22) 44%, rgba(20,12,4,0.78) 100%)",
+    },
+    {
+      key: "estoque",
+      label: "Estoque",
+      icon: Boxes,
+      eyebrow: "Visão de estoque",
+      title: "Identifique o que exige reposição ou atenção antes da ruptura.",
+      supporting: "Giro, cobertura e sinais de estoque reunidos para orientar a rotina operacional.",
+      tags: ["Giro", "Cobertura", "Risco de ruptura"],
+      objectPosition: "73% center",
+      filter: "saturate(1.18) contrast(1.10) brightness(0.88)",
+      overlay:
+        "linear-gradient(180deg, rgba(4,29,24,0.03) 0%, rgba(4,29,24,0.18) 48%, rgba(4,29,24,0.76) 100%)",
+    },
+    {
+      key: "anuncios",
+      label: "Anúncios",
+      icon: Target,
+      eyebrow: "Visão de anúncios",
+      title: "Saiba quais anúncios merecem ajuste antes de aumentar o investimento.",
+      supporting: "Visibilidade, conversão e eficiência para priorizar o que realmente merece ação.",
+      tags: ["Conversão", "Visibilidade", "Eficiência"],
+      objectPosition: "88% center",
+      filter: "saturate(0.92) contrast(1.18) brightness(0.76)",
+      overlay:
+        "linear-gradient(180deg, rgba(18,11,47,0.04) 0%, rgba(18,11,47,0.24) 48%, rgba(18,11,47,0.80) 100%)",
     },
   ];
 
@@ -635,42 +647,91 @@ function EcosystemSection() {
           </Reveal>
 
           <Reveal delay={120}>
-            <div className="relative">
-              <div className="relative min-h-[445px] overflow-hidden rounded-[30px] border border-white/80 bg-slate-950 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.48)] sm:min-h-[520px]">
-                <img
-                  key={activeView.key}
-                  src={heroWarehouse}
-                  alt={`Visual da operação: ${activeView.label}`}
-                  className="absolute inset-0 h-full w-full scale-[1.02] object-cover transition-all duration-500 ease-out"
-                  style={activeView.imageStyle}
-                />
+            <div className="relative" data-operation-tabs>
+              <style>{`
+                [data-operation-tabs] .operation-view,
+                [data-operation-tabs] .operation-copy {
+                  display: none;
+                }
 
-                <div
-                  aria-hidden
-                  className="absolute inset-0 transition-all duration-500"
-                  style={{
-                    background:
-                      activeView.key === "margem"
-                        ? "linear-gradient(180deg, rgba(3,15,38,0.08) 0%, rgba(3,15,38,0.20) 42%, rgba(3,15,38,0.76) 100%)"
-                        : activeView.key === "estoque"
-                          ? "linear-gradient(180deg, rgba(7,27,69,0.02) 0%, rgba(7,27,69,0.12) 48%, rgba(7,27,69,0.68) 100%)"
-                          : activeView.key === "anuncios"
-                            ? "linear-gradient(180deg, rgba(8,19,46,0.08) 0%, rgba(8,19,46,0.26) 48%, rgba(8,19,46,0.78) 100%)"
-                            : "linear-gradient(180deg, rgba(7,27,69,0.02) 0%, rgba(7,27,69,0.10) 45%, rgba(7,27,69,0.66) 100%)",
-                  }}
-                />
+                #op-vendas:checked ~ .operation-shell .view-vendas,
+                #op-vendas:checked ~ .operation-shell .copy-vendas,
+                #op-margem:checked ~ .operation-shell .view-margem,
+                #op-margem:checked ~ .operation-shell .copy-margem,
+                #op-estoque:checked ~ .operation-shell .view-estoque,
+                #op-estoque:checked ~ .operation-shell .copy-estoque,
+                #op-anuncios:checked ~ .operation-shell .view-anuncios,
+                #op-anuncios:checked ~ .operation-shell .copy-anuncios {
+                  display: block;
+                }
 
-                <div className="absolute left-5 top-5 sm:left-6 sm:top-6">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-slate-950/35 px-3.5 py-2 text-white shadow-lg backdrop-blur-xl">
-                    <span className="size-2 rounded-full bg-[#f6c400]" />
-                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/80">
-                      Visão operacional AC360
-                    </span>
+                [data-operation-tabs] .operation-tab {
+                  border-color: rgba(255,255,255,.20);
+                  background: rgba(255,255,255,.10);
+                  color: rgba(255,255,255,.78);
+                }
+
+                #op-vendas:checked ~ .operation-shell label[for="op-vendas"],
+                #op-margem:checked ~ .operation-shell label[for="op-margem"],
+                #op-estoque:checked ~ .operation-shell label[for="op-estoque"],
+                #op-anuncios:checked ~ .operation-shell label[for="op-anuncios"] {
+                  border-color: rgba(255,255,255,.95);
+                  background: rgba(255,255,255,.96);
+                  color: #0f172a;
+                  box-shadow: 0 8px 22px rgba(15,23,42,.20);
+                }
+
+                [data-operation-tabs] .operation-tab:hover {
+                  border-color: rgba(255,255,255,.42);
+                  background: rgba(255,255,255,.16);
+                  color: white;
+                }
+
+                #op-vendas:checked ~ .operation-shell label[for="op-vendas"]:hover,
+                #op-margem:checked ~ .operation-shell label[for="op-margem"]:hover,
+                #op-estoque:checked ~ .operation-shell label[for="op-estoque"]:hover,
+                #op-anuncios:checked ~ .operation-shell label[for="op-anuncios"]:hover {
+                  background: white;
+                  color: #0f172a;
+                }
+              `}</style>
+
+              <input id="op-vendas" name="operation-view" type="radio" defaultChecked className="sr-only" />
+              <input id="op-margem" name="operation-view" type="radio" className="sr-only" />
+              <input id="op-estoque" name="operation-view" type="radio" className="sr-only" />
+              <input id="op-anuncios" name="operation-view" type="radio" className="sr-only" />
+
+              <div className="operation-shell relative min-h-[445px] overflow-hidden rounded-[30px] border border-white/80 bg-slate-950 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.48)] sm:min-h-[520px]">
+                {views.map((view) => (
+                  <div key={view.key} className={`operation-view view-${view.key} absolute inset-0`}>
+                    <img
+                      src={heroWarehouse}
+                      alt={`Visual da operação: ${view.label}`}
+                      className="absolute inset-0 h-full w-full scale-[1.035] object-cover transition-all duration-500"
+                      style={{
+                        objectPosition: view.objectPosition,
+                        filter: view.filter,
+                      }}
+                    />
+                    <div
+                      aria-hidden
+                      className="absolute inset-0"
+                      style={{ background: view.overlay }}
+                    />
+
+                    <div className="absolute left-5 top-5 sm:left-6 sm:top-6">
+                      <div className="inline-flex items-center gap-2 rounded-full border border-white/22 bg-slate-950/40 px-3.5 py-2 text-white shadow-lg backdrop-blur-xl">
+                        <view.icon className="size-3.5 text-white/90" />
+                        <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/82">
+                          {view.eyebrow}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ))}
 
-                <div className="absolute inset-x-4 bottom-4 sm:inset-x-6 sm:bottom-6">
-                  <div className="rounded-[24px] border border-white/20 bg-slate-950/58 p-4 text-white shadow-2xl backdrop-blur-2xl sm:p-5">
+                <div className="absolute inset-x-4 bottom-4 z-10 sm:inset-x-6 sm:bottom-6">
+                  <div className="rounded-[24px] border border-white/20 bg-slate-950/62 p-4 text-white shadow-2xl backdrop-blur-2xl sm:p-5">
                     <div className="flex items-center gap-2">
                       <span className="size-2 rounded-full bg-[#f6c400]" />
                       <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/65">
@@ -678,51 +739,52 @@ function EcosystemSection() {
                       </span>
                     </div>
 
-                    <div className="mt-3 min-h-[92px]">
-                      <p className="max-w-[570px] text-lg font-semibold leading-snug sm:text-[21px]">
-                        {activeView.title}
-                      </p>
-                      <p className="mt-2 max-w-[560px] text-sm leading-relaxed text-white/65">
-                        {activeView.supporting}
-                      </p>
+                    <div className="mt-3 min-h-[108px]">
+                      {views.map((view) => (
+                        <div key={view.key} className={`operation-copy copy-${view.key}`}>
+                          <p className="max-w-[570px] text-lg font-semibold leading-snug sm:text-[21px]">
+                            {view.title}
+                          </p>
+                          <p className="mt-2 max-w-[560px] text-sm leading-relaxed text-white/65">
+                            {view.supporting}
+                          </p>
+                          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+                            {view.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className="inline-flex items-center gap-2 text-xs font-medium text-white/68"
+                              >
+                                <CheckCircle2 className="size-3.5 text-blue-300" />
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
-                    <div className="mt-4 flex flex-wrap gap-2" role="tablist" aria-label="Áreas da operação">
-                      {operationViews.map(({ key, label, icon: Icon }) => {
-                        const isActive = key === activeOperation;
-                        return (
-                          <button
-                            key={key}
-                            type="button"
-                            role="tab"
-                            aria-selected={isActive}
-                            onClick={() => setActiveOperation(key)}
-                            className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition-all duration-300 ${
-                              isActive
-                                ? "border-white bg-white text-slate-900 shadow-lg"
-                                : "border-white/20 bg-white/10 text-white/80 hover:border-white/40 hover:bg-white/16 hover:text-white"
-                            }`}
-                          >
-                            <Icon className={`size-3.5 ${isActive ? "text-blue-600" : "text-white/75"}`} />
-                            {label}
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 border-t border-white/10 pt-4">
-                      {activeView.tags.map((tag) => (
-                        <span key={tag} className="inline-flex items-center gap-2 text-xs font-medium text-white/65">
-                          <CheckCircle2 className="size-3.5 text-blue-300" />
-                          {tag}
-                        </span>
+                    <div
+                      className="mt-4 flex flex-wrap gap-2 border-t border-white/10 pt-4"
+                      role="tablist"
+                      aria-label="Áreas da operação"
+                    >
+                      {views.map(({ key, label, icon: Icon }) => (
+                        <label
+                          key={key}
+                          htmlFor={`op-${key}`}
+                          role="tab"
+                          className="operation-tab inline-flex cursor-pointer select-none items-center gap-2 rounded-full border px-3.5 py-2 text-xs font-semibold transition-all duration-200"
+                        >
+                          <Icon className="size-3.5" />
+                          {label}
+                        </label>
                       ))}
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="absolute -right-3 -top-3 hidden rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-[0_16px_40px_-22px_rgba(15,23,42,0.32)] backdrop-blur-xl sm:block">
+              <div className="absolute -right-3 -top-3 z-20 hidden rounded-2xl border border-white/80 bg-white/90 px-4 py-3 shadow-[0_16px_40px_-22px_rgba(15,23,42,0.32)] backdrop-blur-xl sm:block">
                 <div className="flex items-center gap-3">
                   <div className="flex size-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                     <Radar className="size-4" />
@@ -731,7 +793,7 @@ function EcosystemSection() {
                     <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
                       AC360
                     </p>
-                    <p className="text-sm font-semibold text-slate-800">Dados que viram prioridade</p>
+                    <p className="text-sm font-semibold text-slate-800">Clique para explorar a operação</p>
                   </div>
                 </div>
               </div>

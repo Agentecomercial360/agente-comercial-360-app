@@ -1,733 +1,600 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
-  AlertTriangle,
-  BadgeCheck,
-  Bot,
-  Boxes,
-  Check,
   CheckCircle2,
-  ChevronDown,
-  Clock3,
-  Coins,
-  Copy,
-  Database,
+  ChevronRight,
   Eye,
-  Gauge,
-  Lightbulb,
-  ListChecks,
-  ListPlus,
+  History,
+  Image as ImageIcon,
+  ImagePlus,
+  Layers3,
   LoaderCircle,
-  Lock,
-  Percent,
-  Receipt,
+  MessageSquare,
+  MoreHorizontal,
+  PackageSearch,
+  PanelRight,
+  Paperclip,
+  Plus,
   RefreshCw,
+  Search,
   Send,
   ShieldCheck,
   Sparkles,
   Store,
+  WandSparkles,
+  X,
 } from "lucide-react";
 import { ECOMMERCE_COMPANY_ID, useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import {
-  getStudioIaDiagnosticPreview,
-  StudioIaDiagnosticError,
-  type DiagnosticItem,
-  type StudioIaDiagnosticPreview,
-} from "@/lib/studio-ia-diagnostic-preview";
+  getIntelligentFeedPreview,
+  IntelligentFeedError,
+  type FeedItem,
+  type IntelligentFeedPreview,
+} from "@/lib/intelligent-feed-preview";
 
-const fmtInt = (n: number | null | undefined) => (n == null ? "—" : n.toLocaleString("pt-BR"));
-
-type ChatMessage = { id: string; role: "assistant" | "user"; text: string; at?: number };
-
-const fmtTime = (ts: number) =>
-  new Date(ts).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-
-const TOPIC_TONE: Record<string, { idle: string; active: string }> = {
-  diagnostico: { idle: "bg-[#EAF0FF] text-[#1E5EFF]", active: "bg-[#1E5EFF] text-white" },
-  custos: { idle: "bg-amber-100 text-amber-600", active: "bg-amber-500 text-white" },
-  ads: { idle: "bg-violet-100 text-violet-600", active: "bg-violet-500 text-white" },
-  estoque: { idle: "bg-sky-100 text-sky-600", active: "bg-sky-500 text-white" },
-  oportunidades: { idle: "bg-emerald-100 text-emerald-600", active: "bg-emerald-500 text-white" },
-  tarefas: { idle: "bg-slate-100 text-slate-500", active: "bg-[#0A1F44] text-white" },
+type StudioMessage = {
+  id: string;
+  role: "assistant" | "user";
+  text: string;
+  imagePreviews?: string[];
 };
 
-type TopicKey = "diagnostico" | "custos" | "ads" | "estoque" | "oportunidades" | "tarefas";
-
-const QUICK_QUESTIONS = [
-  "Qual o principal ponto de atenção?",
-  "O que falta para calcular margem?",
-  "Quais oportunidades existem?",
-  "Quais tarefas o time deve priorizar?",
-  "As fontes estão completas?",
+const QUICK_ACTIONS = [
+  "Fundo branco",
+  "Lifestyle",
+  "Remover fundo",
+  "Melhorar imagem",
+  "Criar variações",
 ] as const;
 
-const TOPICS: {
-  key: TopicKey;
-  label: string;
-  hint: string;
-  icon: React.ReactNode;
-  questions: string[];
-}[] = [
-  {
-    key: "diagnostico",
-    label: "Diagnóstico geral",
-    hint: "Resumo da operação",
-    icon: <Sparkles className="h-4 w-4" />,
-    questions: [QUICK_QUESTIONS[0], QUICK_QUESTIONS[4], "Resumo do diagnóstico"],
-  },
-  {
-    key: "custos",
-    label: "Custos pendentes",
-    hint: "Margem e lucro",
-    icon: <Coins className="h-4 w-4" />,
-    questions: [QUICK_QUESTIONS[1], "Situação dos custos"],
-  },
-  {
-    key: "ads",
-    label: "Ads e campanhas",
-    hint: "Investimento e retorno",
-    icon: <BadgeCheck className="h-4 w-4" />,
-    questions: ["O que o diagnóstico diz sobre Ads?"],
-  },
-  {
-    key: "estoque",
-    label: "Estoque e ruptura",
-    hint: "Disponibilidade",
-    icon: <ListChecks className="h-4 w-4" />,
-    questions: ["Há risco de ruptura de estoque?"],
-  },
-  {
-    key: "oportunidades",
-    label: "Produtos com oportunidade",
-    hint: "Ganhos possíveis",
-    icon: <Lightbulb className="h-4 w-4" />,
-    questions: [QUICK_QUESTIONS[2]],
-  },
-  {
-    key: "tarefas",
-    label: "Tarefas sugeridas",
-    hint: "Próximos passos",
-    icon: <CheckCircle2 className="h-4 w-4" />,
-    questions: [QUICK_QUESTIONS[3]],
-  },
-];
+const fmtCurrency = (value: number | null | undefined) =>
+  typeof value === "number"
+    ? value.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 })
+    : "—";
 
-function describeItem(item: DiagnosticItem): string {
-  const parts = [item.title];
-  if (item.description) parts.push(item.description);
-  if (item.recommendation) parts.push(`Recomendação: ${item.recommendation}`);
-  return parts.join(" — ");
-}
-
-function matchItems(data: StudioIaDiagnosticPreview, words: string[]): DiagnosticItem[] {
-  const all = [...data.attentionPoints, ...data.opportunities, ...data.suggestedTasks];
-  return all.filter((i) => {
-    const text = `${i.title} ${i.description ?? ""} ${i.recommendation ?? ""}`
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-    return words.some((w) => text.includes(w));
-  });
-}
-
-function answerFor(question: string, data: StudioIaDiagnosticPreview): string {
-  switch (question) {
-    case QUICK_QUESTIONS[0]: {
-      const first = data.attentionPoints[0];
-      if (!first) return "Não há ponto de atenção crítico no diagnóstico atual.";
-      return `Principal ponto de atenção${first.severity ? ` (${first.severity})` : ""}: ${describeItem(first)}`;
-    }
-    case QUICK_QUESTIONS[1]:
-    case "Situação dos custos":
-      return "Falta preencher e importar os custos reais dos produtos. Enquanto os custos estiverem pendentes, margem e lucro permanecem bloqueados.";
-    case QUICK_QUESTIONS[2]: {
-      if (data.opportunities.length === 0)
-        return "Nenhuma oportunidade foi identificada no diagnóstico atual.";
-      return `Identifiquei ${data.opportunities.length} oportunidade(s):\n${data.opportunities
-        .slice(0, 5)
-        .map((o, i) => `${i + 1}. ${describeItem(o)}`)
-        .join("\n")}`;
-    }
-    case QUICK_QUESTIONS[3]: {
-      if (data.suggestedTasks.length === 0) return "Nenhuma tarefa sugerida no diagnóstico atual.";
-      return `Sugestões para o time avaliar (nenhuma tarefa foi criada no sistema):\n${data.suggestedTasks
-        .slice(0, 5)
-        .map((t, i) => `${i + 1}. ${describeItem(t)}`)
-        .join("\n")}`;
-    }
-    case QUICK_QUESTIONS[4]: {
-      const checked = data.summary.sources_checked ?? data.sourceStatus.length;
-      const available =
-        data.summary.sources_available ?? data.sourceStatus.filter((s) => s.available).length;
-      const missing = data.sourceStatus.filter((s) => !s.available).map((s) => s.source);
-      const base = `${available} de ${checked} fontes verificadas estão disponíveis.`;
-      return missing.length === 0
-        ? `${base} Todas as fontes do diagnóstico responderam com dados.`
-        : `${base} Pendentes: ${missing.join(", ")}.`;
-    }
-    case "Resumo do diagnóstico":
-      return `Pedidos analisados: ${fmtInt(data.summary.orders_checked)}. Receita pronta: ${fmtInt(
-        data.summary.revenue_ready_orders,
-      )} pedido(s). Pontos de atenção: ${data.attentionPoints.length}. Oportunidades: ${
-        data.opportunities.length
-      }. Tarefas sugeridas: ${data.suggestedTasks.length}.`;
-    case "O que o diagnóstico diz sobre Ads?": {
-      const hits = matchItems(data, ["ads", "campanha", "anuncio", "publicidade", "acos"]);
-      return hits.length === 0
-        ? "O diagnóstico atual não trouxe apontamentos específicos de Ads e campanhas. Com custos reais cadastrados, a leitura de retorno por campanha fica mais precisa."
-        : hits
-            .slice(0, 4)
-            .map((h, i) => `${i + 1}. ${describeItem(h)}`)
-            .join("\n");
-    }
-    case "Há risco de ruptura de estoque?": {
-      const hits = matchItems(data, ["estoque", "ruptura", "reposicao", "sem estoque"]);
-      return hits.length === 0
-        ? "Nenhum alerta de estoque ou ruptura foi levantado neste diagnóstico."
-        : hits
-            .slice(0, 4)
-            .map((h, i) => `${i + 1}. ${describeItem(h)}`)
-            .join("\n");
-    }
-    default:
-      return "Chat livre com IA ainda não está ativo nesta versão. Use as perguntas rápidas ou aguarde a próxima etapa com IA conectada.";
-  }
-}
-
-function StatusChip({
-  label,
-  tone,
+function ProductThumbnail({
+  item,
+  selected,
+  onSelect,
 }: {
-  label: string;
-  tone: "positive" | "warning" | "neutral";
+  item: FeedItem;
+  selected: boolean;
+  onSelect: () => void;
 }) {
-  const toneClass =
-    tone === "positive"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-      : tone === "warning"
-        ? "border-amber-200 bg-amber-50 text-amber-700"
-        : "border-slate-200 bg-white text-slate-500";
-  const dotClass =
-    tone === "positive" ? "bg-emerald-500" : tone === "warning" ? "bg-amber-500" : "bg-slate-300";
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${toneClass}`}
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`group flex w-full items-center gap-3 rounded-2xl border p-2.5 text-left transition-all ${
+        selected
+          ? "border-[#1E5EFF]/30 bg-[#EEF4FF] shadow-[0_12px_30px_-24px_rgba(30,94,255,.65)]"
+          : "border-transparent bg-transparent hover:border-slate-200 hover:bg-white"
+      }`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${dotClass}`} />
-      {label}
-    </span>
-  );
-}
-
-type ContextTone = "default" | "warning" | "positive" | "info" | "violet" | "muted";
-
-function ContextBlock({
-  icon,
-  label,
-  value,
-  tone = "default",
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  tone?: ContextTone;
-}) {
-  const toneMap: Record<ContextTone, { box: string; icon: string; value: string }> = {
-    default: {
-      box: "border-slate-200 bg-white",
-      icon: "bg-slate-100 text-slate-500",
-      value: "text-slate-900",
-    },
-    positive: {
-      box: "border-emerald-200/70 bg-emerald-50/40",
-      icon: "bg-emerald-100 text-emerald-600",
-      value: "text-emerald-700",
-    },
-    warning: {
-      box: "border-amber-200/70 bg-amber-50/40",
-      icon: "bg-amber-100 text-amber-600",
-      value: "text-amber-700",
-    },
-    info: {
-      box: "border-sky-200/70 bg-sky-50/40",
-      icon: "bg-sky-100 text-sky-600",
-      value: "text-sky-700",
-    },
-    violet: {
-      box: "border-violet-200/70 bg-violet-50/40",
-      icon: "bg-violet-100 text-violet-600",
-      value: "text-violet-700",
-    },
-    muted: {
-      box: "border-slate-200 bg-slate-50/60",
-      icon: "bg-slate-100 text-slate-400",
-      value: "text-slate-500",
-    },
-  };
-  const t = toneMap[tone];
-  return (
-    <div
-      className={`flex items-start gap-3 rounded-2xl border p-3.5 shadow-[0_6px_18px_-16px_rgba(10,31,68,0.5)] ${t.box}`}
-    >
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${t.icon}`}>
-        {icon}
+      <span className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white">
+        {item.imageUrl ? (
+          <img src={item.imageUrl} alt={item.title} className="h-full w-full object-cover" />
+        ) : (
+          <ImageIcon className="h-5 w-5 text-slate-300" />
+        )}
       </span>
+
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-[10px] font-semibold uppercase tracking-wide text-slate-400">
-          {label}
+        <span className="block truncate text-[12.5px] font-semibold text-[#0A1F44]">
+          {item.title}
         </span>
-        <span className={`mt-1 block truncate text-[15px] font-bold leading-tight ${t.value}`}>
-          {value}
+        <span className="mt-1 block truncate text-[10.5px] font-medium text-slate-400">
+          {item.listingId || item.sku || "Anúncio Mercado Livre"}
         </span>
       </span>
-    </div>
+
+      <ChevronRight
+        className={`h-4 w-4 shrink-0 transition-transform ${
+          selected ? "text-[#1E5EFF]" : "text-slate-300 group-hover:translate-x-0.5"
+        }`}
+      />
+    </button>
   );
 }
 
-function TypingBubble() {
+function StudioComposer({
+  selectedProduct,
+  onSend,
+}: {
+  selectedProduct: FeedItem | null;
+  onSend: (text: string, files: File[]) => void;
+}) {
+  const [input, setInput] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  const previews = useMemo(
+    () => files.map((file) => ({ file, url: URL.createObjectURL(file) })),
+    [files],
+  );
+
+  useEffect(
+    () => () => {
+      previews.forEach((preview) => URL.revokeObjectURL(preview.url));
+    },
+    [previews],
+  );
+
+  const submit = () => {
+    const text = input.trim();
+    if (!text && files.length === 0) return;
+    onSend(text, files);
+    setInput("");
+    setFiles([]);
+  };
+
   return (
-    <div className="flex items-end gap-3">
-      <span className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4C87FF] to-[#1E5EFF] text-white ring-2 ring-white">
-        <Sparkles className="h-4 w-4" />
-      </span>
-      <span className="inline-flex items-center gap-2 rounded-[20px] rounded-bl-lg border border-slate-200 bg-white px-5 py-4 text-[13px] font-medium text-slate-500 shadow-sm">
-        <span className="flex gap-1">
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#1E5EFF]/60 [animation-delay:-0.2s]" />
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#1E5EFF]/60 [animation-delay:-0.1s]" />
-          <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#1E5EFF]/60" />
+    <div className="border-t border-slate-200/80 bg-white px-4 py-4 sm:px-5">
+      {previews.length > 0 && (
+        <div className="mb-3 flex flex-wrap gap-2">
+          {previews.map((preview, index) => (
+            <div
+              key={`${preview.file.name}-${index}`}
+              className="group relative h-16 w-16 overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
+            >
+              <img src={preview.url} alt="" className="h-full w-full object-cover" />
+              <button
+                type="button"
+                onClick={() => setFiles((current) => current.filter((_, i) => i !== index))}
+                className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-slate-950/75 text-white opacity-0 transition group-hover:opacity-100"
+                aria-label="Remover imagem"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="mb-3 flex flex-wrap gap-2">
+        {QUICK_ACTIONS.map((action) => (
+          <button
+            key={action}
+            type="button"
+            onClick={() => setInput(action)}
+            className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-600 transition hover:border-[#1E5EFF]/30 hover:bg-[#EEF4FF] hover:text-[#1E5EFF]"
+          >
+            {action}
+          </button>
+        ))}
+      </div>
+
+      <div className="rounded-[22px] border border-slate-200 bg-[#F8FAFD] p-2 transition focus-within:border-[#1E5EFF]/45 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1E5EFF]/8">
+        <div className="flex items-end gap-2">
+          <input
+            ref={inputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            className="hidden"
+            onChange={(event) => {
+              const next = Array.from(event.target.files ?? []);
+              setFiles((current) => [...current, ...next].slice(0, 6));
+              event.currentTarget.value = "";
+            }}
+          />
+
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            className="mb-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-[#1E5EFF]/30 hover:text-[#1E5EFF]"
+            title="Adicionar imagem"
+          >
+            <Paperclip className="h-4 w-4" />
+          </button>
+
+          <textarea
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                submit();
+              }
+            }}
+            rows={1}
+            placeholder={
+              selectedProduct
+                ? "Descreva o que deseja alterar nesta imagem…"
+                : "Selecione um produto ou adicione uma imagem…"
+            }
+            className="max-h-32 min-h-10 flex-1 resize-none bg-transparent px-2 py-2.5 text-[14px] leading-relaxed text-slate-700 outline-none placeholder:text-slate-400"
+          />
+
+          <button
+            type="button"
+            onClick={submit}
+            className="mb-0.5 inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-gradient-to-r from-[#1E5EFF] to-[#0A1F44] px-4 text-[12px] font-semibold text-white shadow-md shadow-[#1E5EFF]/20 transition hover:brightness-110 active:scale-[0.98]"
+          >
+            <Send className="h-4 w-4" />
+            <span className="hidden sm:inline">Enviar</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10.5px] text-slate-400">
+        <span>PNG, JPG ou WEBP · até 6 imagens por edição</span>
+        <span className="inline-flex items-center gap-1.5">
+          <ShieldCheck className="h-3 w-3 text-emerald-500" />
+          Prévia visual · publicação no marketplace ainda não executada
         </span>
-        Consultando dados do diagnóstico...
-      </span>
+      </div>
     </div>
   );
 }
 
-function ConsultiveChat({
+function StudioWorkspace({
   data,
   accountLabel,
 }: {
-  data: StudioIaDiagnosticPreview;
+  data: IntelligentFeedPreview;
   accountLabel: string;
 }) {
-  const intro = useMemo<ChatMessage[]>(
-    () => [
-      {
-        id: "intro",
-        role: "assistant",
-        text: `Diagnóstico carregado. Analisei os dados da operação ${accountLabel}. A receita está disponível, mas margem e lucro ainda aguardam os custos reais dos produtos.`,
-      },
-    ],
-    [accountLabel],
+  const [search, setSearch] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [contextOpen, setContextOpen] = useState(true);
+  const [messages, setMessages] = useState<StudioMessage[]>([
+    {
+      id: "welcome",
+      role: "assistant",
+      text:
+        "Escolha um produto do Mercado Livre ou envie uma imagem. Depois descreva a alteração que deseja fazer. Este ambiente já está preparado para o fluxo de edição visual do AC360.",
+    },
+  ]);
+
+  const products = useMemo(
+    () => data.items.filter((item) => item.imageUrl).slice(0, 24),
+    [data.items],
   );
-  const [messages, setMessages] = useState<ChatMessage[]>(intro);
-  const [input, setInput] = useState("");
-  const [topic, setTopic] = useState<TopicKey>("diagnostico");
-  const [thinking, setThinking] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [showSources, setShowSources] = useState(false);
-  const [showAbout, setShowAbout] = useState(false);
-  const endRef = useRef<HTMLDivElement | null>(null);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const filteredProducts = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    if (!query) return products;
+    return products.filter((item) =>
+      `${item.title} ${item.listingId ?? ""} ${item.sku ?? ""}`.toLowerCase().includes(query),
+    );
+  }, [products, search]);
 
   useEffect(() => {
-    endRef.current?.scrollIntoView({ block: "nearest" });
-  }, [messages, thinking]);
+    if (!selectedId && products.length > 0) setSelectedId(products[0].id);
+  }, [products, selectedId]);
 
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+  const selectedProduct =
+    products.find((item) => item.id === selectedId) ?? products[0] ?? null;
 
-  const activeTopic = TOPICS.find((t) => t.key === topic) ?? TOPICS[0];
-
-  const push = (question: string) => {
+  const handleSend = (text: string, files: File[]) => {
+    const previews = files.map((file) => URL.createObjectURL(file));
     const stamp = Date.now();
-    const answer = answerFor(question, data);
-    setMessages((prev) => [...prev, { id: `u-${stamp}`, role: "user", text: question, at: stamp }]);
-    setThinking(true);
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      setThinking(false);
-      setMessages((prev) => [
-        ...prev,
-        { id: `a-${stamp}`, role: "assistant", text: answer, at: Date.now() },
-      ]);
-    }, 420);
+    setMessages((current) => [
+      ...current,
+      {
+        id: `user-${stamp}`,
+        role: "user",
+        text: text || "Imagem adicionada para edição.",
+        imagePreviews: previews,
+      },
+      {
+        id: `assistant-${stamp}`,
+        role: "assistant",
+        text:
+          "Pedido de edição recebido. O novo Studio já organiza produto, imagem e instrução em uma única conversa. A geração e publicação automática da nova imagem serão conectadas na próxima etapa.",
+      },
+    ]);
   };
-
-  const copyLastAnswer = () => {
-    const last = [...messages].reverse().find((m) => m.role === "assistant");
-    if (!last) return;
-    void navigator.clipboard?.writeText(last.text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1600);
-  };
-
-  const costsPending = data.summary.costs_pending === true;
-  const sourcesChecked = data.summary.sources_checked ?? data.sourceStatus.length;
-  const sourcesAvailable =
-    data.summary.sources_available ?? data.sourceStatus.filter((s) => s.available).length;
 
   return (
-    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[264px_minmax(0,1fr)_312px] lg:gap-6 lg:items-start">
-      {/* Coluna esquerda — assuntos */}
-      <aside className="order-2 rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_30px_-24px_rgba(10,31,68,0.45)] lg:order-1">
-        <p className="px-1 pb-4 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-          Assuntos do Studio IA
-        </p>
-        <div className="-mx-1 flex snap-x gap-2.5 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-1">
-          {TOPICS.map((t) => {
-            const active = t.key === topic;
-            const tone = TOPIC_TONE[t.key] ?? TOPIC_TONE.tarefas;
-            return (
-              <button
-                key={t.key}
-                type="button"
-                onClick={() => setTopic(t.key)}
-                aria-pressed={active}
-                className={`group flex w-[240px] shrink-0 snap-start items-center gap-3.5 rounded-2xl border border-l-4 p-4 text-left transition-all duration-200 sm:w-full ${
-                  active
-                    ? "border-[#1E5EFF]/25 border-l-[#1E5EFF] bg-[#EAF0FF] text-[#0A1F44]"
-                    : "border-slate-200 border-l-transparent bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
-                }`}
-              >
-                <span
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl transition ${
-                    active ? `${tone.active} shadow-sm` : tone.idle
-                  }`}
-                >
-                  {t.icon}
-                </span>
-                <span className="min-w-0">
-                  <span
-                    className={`block truncate text-[13.5px] leading-tight ${active ? "font-bold text-[#0A1F44]" : "font-semibold"}`}
-                  >
-                    {t.label}
-                  </span>
-                  <span
-                    className={`mt-1 block truncate text-[11px] leading-tight ${active ? "text-[#1E5EFF]/80" : "text-slate-400"}`}
-                  >
-                    {t.hint}
-                  </span>
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </aside>
+    <div className="overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-[0_26px_70px_-42px_rgba(10,31,68,.55)]">
+      <div className="flex min-h-[720px]">
+        {/* rail esquerdo */}
+        <aside className="hidden w-[238px] shrink-0 border-r border-slate-200 bg-[#F7F9FC] lg:flex lg:flex-col">
+          <div className="border-b border-slate-200 p-4">
+            <button
+              type="button"
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#0A1F44] px-4 py-3 text-[12px] font-semibold text-white shadow-sm transition hover:bg-[#123266]"
+            >
+              <Plus className="h-4 w-4" />
+              Nova edição
+            </button>
+          </div>
 
-
-      {/* Coluna central — conversa */}
-      <div className="order-1 flex min-w-0 flex-col overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_18px_50px_-34px_rgba(10,31,68,0.55)] lg:order-2">
-        {/* Cabeçalho da conversa */}
-        <div className="flex items-center gap-4 border-b border-slate-100 px-6 py-5">
-          <span className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4C87FF] via-[#1E5EFF] to-[#0A1F44] text-white shadow-md shadow-[#1E5EFF]/25">
-            <Sparkles className="h-5 w-5" />
-            <span className="absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h2 className="truncate text-[19px] font-bold tracking-tight text-[#0A1F44]">
-                Chat Consultivo Studio IA
-              </h2>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800">
-                <ShieldCheck className="h-3 w-3 text-emerald-600" />
-                Somente leitura
-              </span>
+          <div className="p-4 pb-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar produto"
+                className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-[11.5px] text-slate-700 outline-none transition focus:border-[#1E5EFF]/40"
+              />
             </div>
-            <p className="mt-1 truncate text-[12px] font-medium text-slate-400">
-              {activeTopic.label} · {activeTopic.hint}
+          </div>
+
+          <div className="px-4 pb-2 pt-3">
+            <p className="text-[9.5px] font-bold uppercase tracking-[0.16em] text-slate-400">
+              Produtos recentes
             </p>
           </div>
 
-          <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={copyLastAnswer}
-              title="Copiar resposta"
-              aria-label="Copiar resposta"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-[#1E5EFF]"
-            >
-              {copied ? <Check className="h-4 w-4 text-emerald-600" /> : <Copy className="h-4 w-4" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowSources((v) => !v)}
-              title="Ver fontes usadas nesta resposta"
-              aria-label="Ver fontes usadas nesta resposta"
-              aria-expanded={showSources}
-              className={`flex h-9 w-9 items-center justify-center rounded-full transition ${
-                showSources
-                  ? "bg-[#EAF0FF] text-[#1E5EFF]"
-                  : "text-slate-500 hover:bg-slate-100 hover:text-[#1E5EFF]"
-              }`}
-            >
-              <Database className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              disabled
-              title="Criar tarefa a partir desta resposta — em breve"
-              aria-label="Criar tarefa a partir desta resposta — em breve"
-              className="flex h-9 w-9 cursor-not-allowed items-center justify-center rounded-full text-slate-300"
-            >
-              <ListPlus className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-
-        {/* Sobre este modo / fontes */}
-        <div className="border-b border-slate-100 bg-slate-50/60 px-4 py-2">
-          <button
-            type="button"
-            onClick={() => setShowAbout((v) => !v)}
-            aria-expanded={showAbout}
-            className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 transition hover:text-[#1E5EFF]"
-          >
-            <ShieldCheck className="h-3.5 w-3.5" />
-            Sobre este modo
-            <ChevronDown className={`h-3 w-3 transition ${showAbout ? "rotate-180" : ""}`} />
-          </button>
-          {showAbout && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600">
-                <ShieldCheck className="h-3 w-3 text-emerald-600" /> Somente leitura
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600">
-                <BadgeCheck className="h-3 w-3 text-[#1E5EFF]" /> IA externa não chamada
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600">
-                <Lock className="h-3 w-3 text-slate-500" /> Sem ações automáticas
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-semibold text-slate-600">
-                <Eye className="h-3 w-3 text-violet-600" /> Prévia consultiva
-              </span>
-            </div>
-          )}
-          {showSources && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {data.sourceStatus.map((s) => (
-                <span
-                  key={s.source}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${
-                    s.available
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                      : "border-amber-200 bg-amber-50 text-amber-700"
-                  }`}
-                >
-                  <span
-                    className={`h-1.5 w-1.5 rounded-full ${s.available ? "bg-emerald-500" : "bg-amber-500"}`}
-                  />
-                  {s.source}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Mensagens */}
-        <div className="max-h-[30rem] min-h-[18rem] space-y-6 overflow-y-auto bg-[#F7F8FB] p-6 sm:p-7">
-          {messages.map((m) => (
-            <div
-              key={m.id}
-              className={`flex items-end gap-3 ${m.role === "user" ? "justify-end" : "justify-start"}`}
-            >
-              {m.role === "assistant" && (
-                <span className="mb-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4C87FF] to-[#1E5EFF] text-white ring-2 ring-white">
-                  <Sparkles className="h-4 w-4" />
-                </span>
-              )}
-              <div className={`flex max-w-[78%] flex-col ${m.role === "user" ? "items-end" : "items-start"}`}>
-                <p
-                  className={`whitespace-pre-line px-5 py-4 text-[15px] leading-[1.6] ${
-                    m.role === "user"
-                      ? "rounded-[20px] rounded-br-md bg-[#1E5EFF] text-white shadow-md shadow-[#1E5EFF]/20"
-                      : "rounded-[20px] rounded-bl-md border border-slate-200 bg-white text-slate-700 shadow-sm"
-                  }`}
-                >
-                  {m.text}
+          <div className="flex-1 space-y-1.5 overflow-y-auto px-3 pb-4">
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((item) => (
+                <ProductThumbnail
+                  key={item.id}
+                  item={item}
+                  selected={selectedProduct?.id === item.id}
+                  onSelect={() => setSelectedId(item.id)}
+                />
+              ))
+            ) : (
+              <div className="mx-1 mt-3 rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-center">
+                <PackageSearch className="mx-auto h-5 w-5 text-slate-300" />
+                <p className="mt-2 text-[11px] font-medium text-slate-500">
+                  Nenhum produto com imagem encontrado.
                 </p>
-                {m.at != null && (
-                  <span className="mt-1.5 px-1 text-[11px] font-medium text-slate-400">
-                    {fmtTime(m.at)}
-                  </span>
-                )}
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-slate-200 p-4">
+            <div className="flex items-center gap-2 rounded-xl bg-white px-3 py-2.5 ring-1 ring-slate-200">
+              <History className="h-4 w-4 text-slate-400" />
+              <div className="min-w-0">
+                <p className="truncate text-[10px] font-semibold text-slate-700">Histórico de edições</p>
+                <p className="mt-0.5 text-[9.5px] text-slate-400">Em preparação</p>
               </div>
             </div>
-          ))}
+          </div>
+        </aside>
 
-          {thinking && <TypingBubble />}
-
-          {messages.length === 1 && !thinking && (
-            <div className="ml-0 flex flex-wrap items-center gap-2.5 sm:ml-[52px]">
-
-              <StatusChip
-                label={
-                  (data.summary.revenue_ready_orders ?? 0) > 0
-                    ? "Receita disponível"
-                    : "Receita sem dados"
-                }
-                tone={(data.summary.revenue_ready_orders ?? 0) > 0 ? "positive" : "neutral"}
-              />
-              <StatusChip
-                label={
-                  costsPending
-                    ? "Custos pendentes"
-                    : data.summary.costs_pending === false
-                      ? "Custos completos"
-                      : "Custos não confirmados"
-                }
-                tone={costsPending ? "warning" : data.summary.costs_pending === false ? "positive" : "neutral"}
-              />
-              <StatusChip
-                label={
-                  data.summary.profit_margin_available
-                    ? "Margem disponível"
-                    : "Margem aguardando custos"
-                }
-                tone={data.summary.profit_margin_available ? "positive" : "warning"}
-              />
+        {/* centro */}
+        <main className="flex min-w-0 flex-1 flex-col bg-white">
+          <div className="flex min-h-[78px] items-center justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-6">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white shadow-md shadow-[#1E5EFF]/20">
+                <WandSparkles className="h-5 w-5" />
+              </span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="truncate text-[18px] font-bold tracking-tight text-[#0A1F44] sm:text-[21px]">
+                    Studio de Imagens IA
+                  </h1>
+                  <span className="rounded-full bg-[#FFF7D6] px-2.5 py-1 text-[9.5px] font-bold uppercase tracking-[0.12em] text-[#9A6B00]">
+                    AC360 Studio
+                  </span>
+                </div>
+                <p className="mt-0.5 truncate text-[11.5px] text-slate-400">
+                  {selectedProduct?.title || "Selecione um produto para começar"}
+                </p>
+              </div>
             </div>
-          )}
 
-          <div ref={endRef} />
-        </div>
-
-        {/* Composer */}
-        <div className="border-t border-slate-100 bg-white px-6 py-5">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              Sugestões
-            </span>
-            {activeTopic.questions.map((q) => (
+            <div className="flex items-center gap-1.5">
               <button
-                key={q}
                 type="button"
-                onClick={() => push(q)}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-[12px] font-medium text-slate-700 transition hover:border-[#1E5EFF]/40 hover:bg-[#EAF0FF] hover:text-[#1E5EFF]"
+                onClick={() => setContextOpen((current) => !current)}
+                className={`flex h-9 w-9 items-center justify-center rounded-xl border transition ${
+                  contextOpen
+                    ? "border-[#1E5EFF]/20 bg-[#EEF4FF] text-[#1E5EFF]"
+                    : "border-slate-200 bg-white text-slate-500 hover:bg-slate-50"
+                }`}
+                title="Contexto do produto"
               >
-                {q}
+                <PanelRight className="h-4 w-4" />
               </button>
-            ))}
+              <button
+                type="button"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50"
+                title="Mais opções"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+            </div>
           </div>
 
-          <form
-            className="mt-4 flex min-h-[52px] items-center gap-2 rounded-full border border-slate-200 bg-slate-50 p-1.5 transition focus-within:border-[#1E5EFF] focus-within:bg-white focus-within:ring-4 focus-within:ring-[#1E5EFF]/10"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const value = input.trim();
-              if (!value) return;
-              push(value);
-              setInput("");
-            }}
-          >
-            <input
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Digite uma pergunta (prévia consultiva)"
-              className="min-w-0 flex-1 bg-transparent px-4 py-2.5 text-[15px] text-slate-700 outline-none placeholder:text-slate-400"
-            />
-            <button
-              type="submit"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-gradient-to-r from-[#1E5EFF] to-[#0A1F44] px-5 py-2.5 text-[13px] font-semibold text-white shadow-sm shadow-[#1E5EFF]/25 transition hover:brightness-110 active:scale-[0.98]"
-            >
-              <Send className="h-4 w-4" /> Enviar
-            </button>
-          </form>
+          <div className="flex-1 overflow-y-auto bg-[#F6F8FC] px-4 py-6 sm:px-7">
+            {selectedProduct && (
+              <div className="mx-auto mb-6 flex max-w-3xl items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/90 p-3 shadow-sm backdrop-blur">
+                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50">
+                  {selectedProduct.imageUrl ? (
+                    <img
+                      src={selectedProduct.imageUrl}
+                      alt={selectedProduct.title}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <ImageIcon className="m-auto h-5 w-5 text-slate-300" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[9.5px] font-bold uppercase tracking-[0.13em] text-[#1E5EFF]">
+                    Produto selecionado
+                  </p>
+                  <p className="mt-1 truncate text-[13px] font-semibold text-[#0A1F44]">
+                    {selectedProduct.title}
+                  </p>
+                  <p className="mt-1 truncate text-[10.5px] text-slate-400">
+                    {selectedProduct.listingId || selectedProduct.sku || accountLabel}
+                  </p>
+                </div>
+                <span className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[10px] font-semibold text-emerald-700 sm:inline-flex">
+                  Imagem conectada
+                </span>
+              </div>
+            )}
 
-          <p className="mt-3.5 text-[11px] text-slate-400">
-            Prévia consultiva determinística: nenhuma mensagem é gravada e nenhuma IA externa é
-            chamada.
-          </p>
-        </div>
+            <div className="mx-auto max-w-3xl space-y-5">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex items-end gap-2.5 ${
+                    message.role === "user" ? "justify-end" : "justify-start"
+                  }`}
+                >
+                  {message.role === "assistant" && (
+                    <span className="mb-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#4C87FF] to-[#1E5EFF] text-white shadow-sm ring-2 ring-white">
+                      <Sparkles className="h-4 w-4" />
+                    </span>
+                  )}
 
+                  <div
+                    className={`max-w-[82%] ${
+                      message.role === "user" ? "items-end" : "items-start"
+                    }`}
+                  >
+                    {message.imagePreviews && message.imagePreviews.length > 0 && (
+                      <div className="mb-2 flex justify-end gap-2">
+                        {message.imagePreviews.slice(0, 3).map((url) => (
+                          <img
+                            key={url}
+                            src={url}
+                            alt=""
+                            className="h-24 w-24 rounded-2xl border border-white object-cover shadow-md"
+                          />
+                        ))}
+                      </div>
+                    )}
+                    <div
+                      className={`rounded-[20px] px-4 py-3 text-[13.5px] leading-relaxed shadow-sm ${
+                        message.role === "user"
+                          ? "rounded-br-md bg-[#0A1F44] text-white"
+                          : "rounded-bl-md border border-slate-200 bg-white text-slate-600"
+                      }`}
+                    >
+                      {message.text}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {messages.length === 1 && (
+                <div className="ml-0 grid gap-3 sm:ml-12 sm:grid-cols-3">
+                  {[
+                    { icon: ImagePlus, title: "Fundo branco", text: "Prepare a imagem principal." },
+                    { icon: WandSparkles, title: "Lifestyle", text: "Crie um cenário de uso." },
+                    { icon: Layers3, title: "Variações", text: "Explore novas versões visuais." },
+                  ].map(({ icon: Icon, title, text }) => (
+                    <div
+                      key={title}
+                      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_10px_28px_-24px_rgba(10,31,68,.5)]"
+                    >
+                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EEF4FF] text-[#1E5EFF]">
+                        <Icon className="h-4 w-4" />
+                      </span>
+                      <p className="mt-3 text-[12px] font-bold text-[#0A1F44]">{title}</p>
+                      <p className="mt-1 text-[10.5px] leading-relaxed text-slate-400">{text}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <StudioComposer selectedProduct={selectedProduct} onSend={handleSend} />
+        </main>
+
+        {/* contexto */}
+        {contextOpen && (
+          <aside className="hidden w-[280px] shrink-0 border-l border-slate-200 bg-[#FBFCFE] xl:block">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-5">
+              <div>
+                <p className="text-[9.5px] font-bold uppercase tracking-[0.15em] text-slate-400">
+                  Contexto
+                </p>
+                <p className="mt-1 text-[13px] font-bold text-[#0A1F44]">Produto Mercado Livre</p>
+              </div>
+              <Store className="h-4 w-4 text-[#1E5EFF]" />
+            </div>
+
+            <div className="space-y-5 p-5">
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                <div className="aspect-square bg-slate-50">
+                  {selectedProduct?.imageUrl ? (
+                    <img
+                      src={selectedProduct.imageUrl}
+                      alt={selectedProduct.title}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center">
+                      <ImageIcon className="h-8 w-8 text-slate-300" />
+                    </div>
+                  )}
+                </div>
+                <div className="p-4">
+                  <p className="line-clamp-2 text-[12px] font-semibold leading-snug text-[#0A1F44]">
+                    {selectedProduct?.title || "Nenhum produto selecionado"}
+                  </p>
+                  <p className="mt-2 text-[10px] text-slate-400">
+                    {selectedProduct?.listingId || selectedProduct?.sku || accountLabel}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl border border-slate-200 bg-white p-3">
+                  <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Vendas</p>
+                  <p className="mt-1.5 text-[15px] font-bold text-[#0A1F44]">
+                    {selectedProduct?.metrics.sales ?? "—"}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-3">
+                  <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400">Receita</p>
+                  <p className="mt-1.5 text-[15px] font-bold text-[#0A1F44]">
+                    {fmtCurrency(selectedProduct?.metrics.revenue)}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-[9.5px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                  Fluxo de edição
+                </p>
+                <div className="mt-3 space-y-2">
+                  {[
+                    ["1", "Selecionar produto", true],
+                    ["2", "Enviar ou escolher imagem", true],
+                    ["3", "Descrever alteração", false],
+                    ["4", "Gerar nova versão", false],
+                    ["5", "Aprovar e publicar", false],
+                  ].map(([step, label, complete]) => (
+                    <div
+                      key={String(step)}
+                      className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 py-2.5"
+                    >
+                      <span
+                        className={`flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${
+                          complete
+                            ? "bg-emerald-50 text-emerald-600"
+                            : "bg-slate-100 text-slate-400"
+                        }`}
+                      >
+                        {complete ? <CheckCircle2 className="h-3.5 w-3.5" /> : step}
+                      </span>
+                      <span className="text-[10.5px] font-medium text-slate-600">{label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-blue-100 bg-[#EEF4FF] p-4">
+                <div className="flex items-center gap-2 text-[#1E5EFF]">
+                  <Eye className="h-4 w-4" />
+                  <p className="text-[10px] font-bold uppercase tracking-[0.12em]">Modo atual</p>
+                </div>
+                <p className="mt-2 text-[11px] leading-relaxed text-slate-600">
+                  A interface já trabalha com produtos e imagens reais do Feed Inteligente. A edição
+                  generativa e a publicação no Mercado Livre ainda não executam alterações.
+                </p>
+              </div>
+            </div>
+          </aside>
+        )}
       </div>
-
-      {/* Coluna direita — contexto */}
-      <aside className="order-3 space-y-5">
-        <details
-          open
-          className="group rounded-[24px] border border-slate-200 bg-white p-5 shadow-[0_10px_30px_-24px_rgba(10,31,68,0.45)] lg:[&>summary]:cursor-default"
-        >
-          <summary className="flex cursor-pointer list-none items-center gap-2.5 [&::-webkit-details-marker]:hidden">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[#4C87FF] to-[#1E5EFF] text-white">
-              <Gauge className="h-4 w-4" />
-            </span>
-            <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#0A1F44]">
-              Contexto da operação
-            </p>
-            <ChevronDown className="ml-auto h-3.5 w-3.5 text-slate-400 transition group-open:rotate-180 lg:hidden" />
-          </summary>
-
-          <p className="mt-4 border-t border-slate-100 pt-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
-            Dados da operação
-          </p>
-          <div className="mt-3 space-y-3">
-            <ContextBlock icon={<Store className="h-4 w-4" />} label="Conta ativa" value={accountLabel} />
-            <ContextBlock
-              icon={<Receipt className="h-4 w-4" />}
-              label="Pedidos analisados"
-              value={fmtInt(data.summary.orders_checked)}
-            />
-            <ContextBlock
-              icon={<Coins className="h-4 w-4" />}
-              label="Receita pronta"
-              value={fmtInt(data.summary.revenue_ready_orders)}
-              tone="positive"
-            />
-            <ContextBlock
-              icon={<AlertTriangle className="h-4 w-4" />}
-              label="Custos pendentes"
-              value={costsPending ? "Sim" : data.summary.costs_pending === false ? "Não" : "—"}
-              tone={costsPending ? "warning" : "default"}
-            />
-            <ContextBlock
-              icon={<Percent className="h-4 w-4" />}
-              label="Margem / lucro"
-              value={data.summary.profit_margin_available ? "Disponível" : "Aguardando custos"}
-              tone={data.summary.profit_margin_available ? "positive" : "warning"}
-            />
-            <ContextBlock
-              icon={<Boxes className="h-4 w-4" />}
-              label="Fontes verificadas"
-              value={`${sourcesAvailable}/${sourcesChecked}`}
-              tone={sourcesAvailable >= sourcesChecked ? "positive" : "warning"}
-            />
-          </div>
-
-          <p className="mt-6 border-t border-slate-100 pt-4 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
-            Segurança do modo atual
-          </p>
-          <div className="mt-3 space-y-3">
-            <ContextBlock icon={<ShieldCheck className="h-4 w-4" />} label="Modo" value="Somente leitura" tone="info" />
-            <ContextBlock icon={<BadgeCheck className="h-4 w-4" />} label="IA externa" value="Não chamada" tone="violet" />
-            <ContextBlock icon={<Lock className="h-4 w-4" />} label="Ações automáticas" value="Desligadas" tone="muted" />
-          </div>
-        </details>
-
-        <div className="rounded-[24px] border border-amber-200 bg-gradient-to-b from-amber-50 to-white p-5 shadow-[0_14px_34px_-28px_rgba(180,83,9,0.7)]">
-          <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-xl bg-amber-500/15 text-amber-700 ring-1 ring-amber-300/70">
-              <AlertTriangle className="h-3.5 w-3.5" />
-            </span>
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-amber-700">
-              Próxima ação recomendada
-            </p>
-          </div>
-          <p className="mt-2.5 text-sm font-bold text-[#0A1F44]">
-            Cadastrar custos reais dos produtos
-          </p>
-          <p className="mt-1 text-xs leading-relaxed text-slate-600">
-            Sem os custos reais, a análise de margem e lucro permanece bloqueada.
-          </p>
-          <button
-            type="button"
-            disabled
-            title="Criação de tarefas reais será liberada em uma próxima etapa."
-            className="mt-3.5 inline-flex w-full cursor-not-allowed items-center justify-center gap-1.5 rounded-full border border-amber-200 bg-white px-3 py-2 text-xs font-semibold text-amber-700/80"
-          >
-            <Lock className="h-3.5 w-3.5" /> Criar tarefa em breve
-          </button>
-        </div>
-      </aside>
     </div>
   );
 }
@@ -735,12 +602,13 @@ function ConsultiveChat({
 export function StudioIaChatSection() {
   const { activeAccountId, activeAccount, loading: accountsLoading } = useEcommerceActiveAccount();
 
-  const query = useQuery<StudioIaDiagnosticPreview, Error>({
-    queryKey: ["studio-ia-diagnostic-preview", ECOMMERCE_COMPANY_ID, activeAccountId],
+  const feedQuery = useQuery<IntelligentFeedPreview, Error>({
+    queryKey: ["studio-images-feed", ECOMMERCE_COMPANY_ID, activeAccountId],
     queryFn: ({ signal }: { signal: AbortSignal }) =>
-      getStudioIaDiagnosticPreview({
+      getIntelligentFeedPreview({
         companyId: ECOMMERCE_COMPANY_ID,
         accountId: activeAccountId as string,
+        limit: 24,
         signal,
       }),
     enabled: !accountsLoading && Boolean(activeAccountId),
@@ -749,89 +617,70 @@ export function StudioIaChatSection() {
     staleTime: 60_000,
   });
 
-  const data = query.data;
+  const accountLabel =
+    activeAccount?.account_name || activeAccount?.nickname || "Mercado Livre";
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-[0_18px_50px_-40px_rgba(10,31,68,0.5)] sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 pb-5">
-        <div className="flex min-w-0 items-start gap-3.5">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1E5EFF] to-[#0A1F44] text-white shadow-md shadow-[#1E5EFF]/25">
-            <Bot className="h-6 w-6" />
-          </span>
-          <div className="min-w-0">
-            <h1 className="text-xl font-bold tracking-tight text-[#0A1F44] sm:text-2xl">
-              Chat Consultivo Studio IA
-            </h1>
-            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
-              Converse com o assistente estratégico usando o diagnóstico já carregado da operação.
-              Nesta versão, o chat é somente leitura e não executa ações automáticas.
-            </p>
+    <section className="space-y-4">
+      <div className="flex flex-wrap items-start justify-between gap-4 px-1">
+        <div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-[#EEF4FF] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-[#1E5EFF]">
+            <MessageSquare className="h-3.5 w-3.5" />
+            Novo módulo de criação visual
           </div>
+          <h1 className="mt-3 text-2xl font-bold tracking-tight text-[#0A1F44] sm:text-[28px]">
+            Studio de Imagens IA
+          </h1>
+          <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
+            Trabalhe imagens dos seus produtos do Mercado Livre em uma conversa simples, visual e
+            contextual.
+          </p>
         </div>
 
         <button
           type="button"
-          onClick={() => void query.refetch()}
-          disabled={!activeAccountId || query.isFetching}
-          className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#1E5EFF] to-[#0A1F44] px-4 py-2.5 text-xs font-semibold text-white shadow-md shadow-[#1E5EFF]/25 transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={() => void feedQuery.refetch()}
+          disabled={!activeAccountId || feedQuery.isFetching}
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[11.5px] font-semibold text-slate-600 shadow-sm transition hover:border-[#1E5EFF]/25 hover:text-[#1E5EFF] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <RefreshCw className={`h-3.5 w-3.5 ${query.isFetching ? "animate-spin" : ""}`} />
-          Atualizar diagnóstico
+          <RefreshCw className={`h-3.5 w-3.5 ${feedQuery.isFetching ? "animate-spin" : ""}`} />
+          Atualizar produtos
         </button>
       </div>
 
-      <div className="relative mt-5" aria-live="polite">
-        {accountsLoading && (
-          <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-            <LoaderCircle className="h-4 w-4 animate-spin" /> Identificando a conta ativa...
-          </div>
-        )}
+      {accountsLoading && (
+        <div className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-500">
+          <LoaderCircle className="h-4 w-4 animate-spin" />
+          Identificando conta ativa…
+        </div>
+      )}
 
-        {!accountsLoading && !activeAccountId && (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Selecione uma conta Mercado Livre específica no topo da tela para carregar o
-            diagnóstico.
-          </div>
-        )}
+      {!accountsLoading && !activeAccountId && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-800">
+          Selecione uma conta Mercado Livre específica no topo da tela para carregar os produtos.
+        </div>
+      )}
 
-        {query.isPending && activeAccountId && !accountsLoading && (
-          <div className="grid gap-3 lg:grid-cols-[238px_minmax(0,1fr)_282px]">
-            <div className="h-72 animate-pulse rounded-[22px] border border-slate-200 bg-slate-50" />
-            <div className="h-72 animate-pulse rounded-[22px] border border-slate-200 bg-slate-50" />
-            <div className="h-72 animate-pulse rounded-[22px] border border-slate-200 bg-slate-50" />
-          </div>
-        )}
+      {feedQuery.isPending && activeAccountId && !accountsLoading && (
+        <div className="h-[720px] animate-pulse rounded-[30px] border border-slate-200 bg-slate-100" />
+      )}
 
-        {query.error && (
-          <div
-            className={`rounded-2xl border p-4 text-sm ${
-              query.error instanceof StudioIaDiagnosticError &&
-              query.error.kind === "not_deployed"
-                ? "border-amber-200 bg-amber-50 text-amber-800"
-                : "border-rose-200 bg-rose-50 text-rose-700"
-            }`}
-            role="status"
-          >
-            <div className="flex items-start gap-3">
-              <Clock3 className="mt-0.5 h-5 w-5 shrink-0" />
-              <div>
-                <p className="font-semibold">Não foi possível carregar o diagnóstico</p>
-                <p className="mt-1 opacity-90">{query.error.message}</p>
-                <p className="mt-2 text-xs">Nenhum dado foi alterado.</p>
-              </div>
-            </div>
-          </div>
-        )}
+      {feedQuery.error && (
+        <div
+          className={`rounded-2xl border p-5 text-sm ${
+            feedQuery.error instanceof IntelligentFeedError
+              ? "border-amber-200 bg-amber-50 text-amber-800"
+              : "border-rose-200 bg-rose-50 text-rose-700"
+          }`}
+        >
+          <p className="font-semibold">Não foi possível carregar os produtos do Studio.</p>
+          <p className="mt-1 opacity-90">{feedQuery.error.message}</p>
+        </div>
+      )}
 
-        {data && (
-          <ConsultiveChat
-            data={data}
-            accountLabel={
-              activeAccount?.account_name || activeAccount?.nickname || "Mercado Livre - Nightled"
-            }
-          />
-        )}
-      </div>
+      {feedQuery.data && (
+        <StudioWorkspace data={feedQuery.data} accountLabel={accountLabel} />
+      )}
     </section>
   );
 }

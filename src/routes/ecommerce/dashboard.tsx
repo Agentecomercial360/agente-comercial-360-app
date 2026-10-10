@@ -396,7 +396,7 @@ function DashboardContent() {
   const hasRun = !!latestRun;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
@@ -483,15 +483,15 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Unified Metric Grid */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* Leitura executiva — 4 indicadores principais */}
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Metric
           label="Faturamento bruto"
           value={brl.format(totals.gross)}
           loading={loading}
           highlight
         />
-        <Metric label="Total de pedidos" value={num.format(totals.count)} loading={loading} />
+        <Metric label="Pedidos" value={num.format(totals.count)} loading={loading} />
         <Metric label="Ticket médio" value={brl.format(totals.ticket)} loading={loading} />
         <Metric
           label="Resultado parcial"
@@ -499,28 +499,29 @@ function DashboardContent() {
           sublabel="Antes do custo do produto"
           loading={loading}
         />
-        <Metric
-          label="Taxas Mercado Livre"
-          value={brl.format(totals.fees)}
-          loading={loading}
-        />
-        <Metric label="Frete vendedor" value={brl.format(totals.shipping)} loading={loading} />
-        <Metric
-          label="Pedidos pendentes de custo"
+      </section>
+
+      {/* Indicadores secundários — disponíveis sem competir com a leitura principal */}
+      <section className="grid grid-cols-2 overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_16px_40px_-34px_rgba(10,31,68,.45)] md:grid-cols-4">
+        <SecondaryMetric label="Taxas Mercado Livre" value={brl.format(totals.fees)} loading={loading} />
+        <SecondaryMetric label="Frete vendedor" value={brl.format(totals.shipping)} loading={loading} />
+        <SecondaryMetric
+          label="Pendentes de custo"
           value={num.format(totals.pending)}
           loading={loading}
           tone={totals.pending > 0 ? "warn" : "muted"}
         />
-        <Metric
-          label="Pedidos com lucro confiável"
+        <SecondaryMetric
+          label="Lucro confiável"
           value={num.format(totals.high)}
           loading={loading}
           tone={totals.high > 0 ? "default" : "muted"}
+          last
         />
       </section>
 
       {/* Chart */}
-      <section className="rounded-xl bg-card p-5 shadow-sm ring-1 ring-border/40">
+      <section className="rounded-2xl border border-border/60 bg-card p-5 shadow-[0_18px_44px_-36px_rgba(10,31,68,.45)]">
         <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
           <div>
             <h2 className="text-base font-semibold text-foreground">Faturamento por dia</h2>
@@ -542,7 +543,7 @@ function DashboardContent() {
 
 
       {/* Comparativo por conta */}
-      <section className="rounded-xl border border-border bg-card overflow-hidden">
+      <section className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_18px_44px_-36px_rgba(10,31,68,.40)]">
         <div className="border-b border-border/70 px-5 py-4">
           <h2 className="text-base font-semibold text-foreground">Comparativo por conta</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
@@ -810,6 +811,47 @@ function Metric({
       )}
       {sublabel && (
         <div className="mt-1 text-[11px] text-muted-foreground">{sublabel}</div>
+      )}
+    </div>
+  );
+}
+
+function SecondaryMetric({
+  label,
+  value,
+  loading,
+  tone = "default",
+  last = false,
+}: {
+  label: string;
+  value: string;
+  loading?: boolean;
+  tone?: "default" | "warn" | "muted";
+  last?: boolean;
+}) {
+  const valueTone =
+    tone === "warn"
+      ? "text-amber-700"
+      : tone === "muted"
+        ? "text-muted-foreground"
+        : "text-foreground";
+  return (
+    <div
+      className={cn(
+        "min-w-0 px-4 py-4 md:px-5",
+        !last && "border-r border-border/50",
+        "border-b border-border/50 md:border-b-0",
+      )}
+    >
+      <div className="text-[9.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+        {label}
+      </div>
+      {loading ? (
+        <Skeleton className="mt-2 h-5 w-20" />
+      ) : (
+        <div className={cn("mt-1.5 truncate font-display text-base font-semibold tabular-nums", valueTone)} title={value}>
+          {value}
+        </div>
       )}
     </div>
   );

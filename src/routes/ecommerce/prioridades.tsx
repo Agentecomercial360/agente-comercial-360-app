@@ -574,6 +574,15 @@ function CentralAcoesInner() {
     { k: "paused", label: "Pausados" },
   ];
 
+  const topImpactAction = useMemo(() => {
+    return (
+      allActions
+        .filter((action) => typeof action.affectedRevenue === "number" && (action.affectedRevenue ?? 0) > 0)
+        .slice()
+        .sort((a, b) => (b.affectedRevenue ?? 0) - (a.affectedRevenue ?? 0))[0] ?? null
+    );
+  }, [allActions]);
+
   const showPendingState = !loadingAccount && activeAccount && !isActiveConnected;
   const showEmptyState =
     !loading && !showPendingState && activeAccount && isActiveConnected && allActions.length === 0;
@@ -583,22 +592,24 @@ function CentralAcoesInner() {
     : activeAccount?.account_name || activeAccount?.nickname || "Nenhuma conta selecionada";
 
   return (
-    <div className="space-y-5">
-      {/* Header */}
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <div className="space-y-1.5">
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[10.5px] font-semibold uppercase tracking-[0.14em] text-blue-700">
+    <div className="space-y-6">
+      {/* Header executivo */}
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div className="space-y-3">
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-blue-700">
             <Target className="h-3.5 w-3.5" />
             Operação inteligente
           </div>
-          <h1 className="font-display text-2xl md:text-[28px] font-bold text-foreground leading-tight">
-            Central de Ações
-          </h1>
-          <p className="text-sm text-muted-foreground max-w-2xl">
-            O que precisa ser resolvido primeiro hoje — custos, margem e anúncios em uma
-            única fila priorizada.
-          </p>
+          <div>
+            <h1 className="font-display text-2xl font-semibold tracking-tight text-[#0A1F44] md:text-[30px]">
+              Central de Ações
+            </h1>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              Veja o que precisa ser resolvido primeiro e concentre esforço no que mais impacta resultado.
+            </p>
+          </div>
         </div>
+
         <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-white px-3.5 py-2 text-xs shadow-[0_12px_30px_-24px_rgba(10,31,68,.38)]">
           <Store className="h-4 w-4 text-muted-foreground" />
           <span className="font-semibold text-foreground">{accountLabel}</span>
@@ -618,46 +629,101 @@ function CentralAcoesInner() {
       </header>
 
       {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {error}
         </div>
       )}
 
-      {/* Leitura executiva da fila */}
-      <section className="grid overflow-hidden rounded-2xl border border-border/60 bg-card shadow-[0_18px_44px_-36px_rgba(10,31,68,.45)] lg:grid-cols-[1.15fr_1fr]">
-        <div className="border-b border-border/50 px-5 py-5 lg:border-b-0 lg:border-r">
-          <div className="text-[9.5px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Faturamento que exige atenção
-          </div>
-          {loading ? (
-            <span className="mt-2 block h-9 w-40 animate-pulse rounded-md bg-muted" />
-          ) : (
-            <div className="mt-1.5 font-display text-3xl font-bold tracking-tight text-[#0A1F44] tabular-nums">
-              {fmtBRL(counts.blockedRevenue)}
-            </div>
-          )}
-          <p className="mt-1 text-[11px] text-muted-foreground">
-            Receita vinculada às ações de custo e prioridade desta conta.
-          </p>
-        </div>
+      {/* Hero operacional premium */}
+      <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#071B45] via-[#0B3B8E] to-[#1E5EFF] p-5 shadow-[0_30px_70px_-42px_rgba(7,27,69,.9)] sm:p-6">
+        <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/[0.10] blur-2xl" />
+        <div aria-hidden className="pointer-events-none absolute bottom-[-90px] left-[20%] h-56 w-56 rounded-full bg-cyan-300/[0.10] blur-3xl" />
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-2">
-          <KpiCompact label="Total de ações" value={counts.total} loading={loading} />
-          <KpiCompact label="Críticas" value={counts.critical} loading={loading} tone="danger" icon={<Flame className="h-3.5 w-3.5" />} />
-          <KpiCompact label="Alta prioridade" value={counts.high} loading={loading} tone="warning" icon={<AlertTriangle className="h-3.5 w-3.5" />} />
-          <KpiCompact label="Ações de custo" value={counts.cost} loading={loading} tone="info" icon={<DollarSign className="h-3.5 w-3.5" />} />
+        <div className="relative grid gap-5 lg:grid-cols-[1.15fr_.85fr]">
+          <div className="flex min-w-0 flex-col justify-between rounded-[22px] border border-white/[0.10] bg-white/[0.04] p-5 backdrop-blur-sm">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.07] px-3 py-1.5 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-white/70">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#F5C842]" />
+                Prioridade financeira
+              </div>
+
+              <p className="mt-7 text-[10px] font-semibold uppercase tracking-[0.14em] text-white/48">
+                Faturamento que exige atenção
+              </p>
+              {loading ? (
+                <span className="mt-3 block h-12 w-52 animate-pulse rounded-lg bg-white/15" />
+              ) : (
+                <div className="mt-2 font-display text-[40px] font-bold tracking-[-0.045em] text-white sm:text-[48px]">
+                  {fmtBRL(counts.blockedRevenue)}
+                </div>
+              )}
+              <p className="mt-2 max-w-md text-[12px] leading-relaxed text-white/58">
+                Receita associada às ações de custo e prioridade que merecem intervenção primeiro.
+              </p>
+            </div>
+
+            {topImpactAction && (
+              <div className="mt-7 rounded-2xl border border-white/[0.10] bg-black/[0.10] p-4">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[8.5px] font-semibold uppercase tracking-[0.15em] text-white/42">
+                    Maior impacto agora
+                  </span>
+                  <PriorityBadge p={topImpactAction.priority} />
+                </div>
+                <p className="mt-2 truncate text-sm font-semibold text-white" title={topImpactAction.product?.product_name || topImpactAction.listing?.title || "Ação prioritária"}>
+                  {topImpactAction.product?.product_name || topImpactAction.listing?.title || "Ação prioritária"}
+                </p>
+                <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-white/55">
+                  {topImpactAction.recommendation}
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <PremiumActionMetric
+              label="Ações abertas"
+              value={counts.total}
+              loading={loading}
+              hint="Fila total"
+            />
+            <PremiumActionMetric
+              label="Críticas"
+              value={counts.critical}
+              loading={loading}
+              hint="Resolver primeiro"
+              tone="danger"
+              icon={<Flame className="h-4 w-4" />}
+            />
+            <PremiumActionMetric
+              label="Alta prioridade"
+              value={counts.high}
+              loading={loading}
+              hint="Atenção imediata"
+              tone="warning"
+              icon={<AlertTriangle className="h-4 w-4" />}
+            />
+            <PremiumActionMetric
+              label="Ações de custo"
+              value={counts.cost}
+              loading={loading}
+              hint="Impactam margem"
+              tone="info"
+              icon={<DollarSign className="h-4 w-4" />}
+            />
+          </div>
         </div>
       </section>
 
       {showPendingState ? (
-        <section className="rounded-2xl border border-dashed border-border bg-card p-10 text-center shadow-[var(--shadow-soft)]">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-700 mb-3">
+        <section className="rounded-[24px] border border-dashed border-border bg-card p-10 text-center shadow-[0_18px_44px_-36px_rgba(10,31,68,.4)]">
+          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-700">
             <Link2 className="h-6 w-6" />
           </div>
           <h3 className="font-display text-lg font-bold text-foreground">
             Esta conta ainda não está conectada.
           </h3>
-          <p className="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
+          <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
             Conecte a conta Mercado Livre para gerar ações operacionais.
           </p>
         </section>
@@ -665,27 +731,27 @@ function CentralAcoesInner() {
         <EmptyState />
       ) : (
         <>
-          {/* Search + segmented filters */}
-          <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-border/60 bg-card p-2.5 shadow-[0_16px_36px_-32px_rgba(10,31,68,.40)]">
-            <div className="relative flex-1 min-w-[260px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          {/* Busca + filtros */}
+          <section className="flex flex-wrap items-center gap-3 rounded-[22px] border border-border/60 bg-card p-2.5 shadow-[0_16px_36px_-32px_rgba(10,31,68,.40)]">
+            <div className="relative min-w-[260px] flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar por produto, SKU, título ou ID..."
-                className="w-full rounded-lg border border-transparent bg-muted/40 pl-9 pr-3 py-2 text-sm outline-none transition-colors focus:border-primary/40 focus:bg-background"
+                placeholder="Buscar produto, SKU, título ou ID..."
+                className="w-full rounded-xl border border-transparent bg-muted/35 py-2.5 pl-9 pr-3 text-sm outline-none transition-colors focus:border-primary/30 focus:bg-background"
               />
             </div>
-            <div className="inline-flex flex-wrap items-center gap-1 rounded-lg bg-muted/50 p-1">
+            <div className="inline-flex flex-wrap items-center gap-1 rounded-xl bg-muted/45 p-1">
               {filters.map((opt) => (
                 <button
                   key={opt.k}
                   type="button"
                   onClick={() => setFilter(opt.k)}
-                  className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-all ${
+                  className={`rounded-lg px-3 py-1.5 text-[11px] font-semibold transition-all ${
                     filter === opt.k
-                      ? "bg-card text-foreground shadow-sm ring-1 ring-border/70"
+                      ? "bg-white text-[#0A1F44] shadow-sm ring-1 ring-border/60"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
@@ -695,130 +761,193 @@ function CentralAcoesInner() {
             </div>
           </section>
 
-          {/* Table */}
-          <ScrollableTableSection>
-            <table className="w-full min-w-[980px] text-sm">
-              <thead>
-                <tr className="border-b border-border/70 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Prioridade</th>
-                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Produto / Anúncio</th>
-                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Tipo de ação & motivo</th>
-                  <th className="px-4 py-3 text-left font-semibold whitespace-nowrap">Ação recomendada</th>
-                  <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Faturamento afetado</th>
-                  <th className="px-4 py-3 text-right font-semibold whitespace-nowrap">Ação</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  Array.from({ length: 8 }).map((_, i) => <SkeletonRow key={i} />)
-                ) : filteredActions.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-5 py-16 text-center">
-                      <div className="mx-auto max-w-md space-y-2">
-                        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                          <ListChecks className="h-6 w-6" />
+          {/* Lista de ações — sem aparência de planilha */}
+          <section className="overflow-hidden rounded-[24px] border border-border/60 bg-card shadow-[0_20px_50px_-40px_rgba(10,31,68,.45)]">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-4">
+              <div>
+                <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                  Fila priorizada
+                </p>
+                <h2 className="mt-1 text-base font-semibold text-[#0A1F44]">
+                  Ações recomendadas
+                </h2>
+              </div>
+              <span className="rounded-full bg-[#EEF4FF] px-3 py-1.5 text-[10px] font-semibold text-[#1E5EFF]">
+                {loading ? "Carregando…" : `${filteredActions.length.toLocaleString("pt-BR")} ações`}
+              </span>
+            </div>
+
+            <div className="divide-y divide-border/50">
+              {loading ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="grid gap-4 px-5 py-5 lg:grid-cols-[110px_1.1fr_1fr_170px] lg:items-center">
+                    <div className="h-7 w-20 animate-pulse rounded-full bg-muted" />
+                    <div className="space-y-2">
+                      <div className="h-4 w-48 animate-pulse rounded bg-muted" />
+                      <div className="h-3 w-28 animate-pulse rounded bg-muted" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-4 w-56 animate-pulse rounded bg-muted" />
+                      <div className="h-3 w-36 animate-pulse rounded bg-muted" />
+                    </div>
+                    <div className="ml-auto h-9 w-28 animate-pulse rounded-xl bg-muted" />
+                  </div>
+                ))
+              ) : filteredActions.length === 0 ? (
+                <div className="px-5 py-16 text-center">
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <ListChecks className="h-6 w-6" />
+                  </div>
+                  <div className="mt-3 font-display text-base font-semibold text-foreground">
+                    Nenhuma ação corresponde aos filtros atuais.
+                  </div>
+                </div>
+              ) : (
+                filteredActions.map((a) => {
+                  const isCostAction =
+                    a.type === "register_cost" ||
+                    a.type === "prioritize_cost" ||
+                    a.type === "release_margin";
+                  const title = a.product?.product_name || a.listing?.title || "—";
+                  const subId = a.product?.sku || a.listing?.ml_item_id || null;
+
+                  return (
+                    <article
+                      key={a.id}
+                      className="group grid gap-4 px-5 py-5 transition-colors hover:bg-[#F8FAFD] lg:grid-cols-[110px_1.1fr_1fr_170px] lg:items-center"
+                    >
+                      <div className="flex items-center lg:block">
+                        <PriorityBadge p={a.priority} />
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-muted/30 text-muted-foreground transition group-hover:border-blue-100 group-hover:bg-blue-50 group-hover:text-blue-600">
+                            <Tag className="h-4 w-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-[13px] font-semibold text-[#0A1F44]" title={title}>
+                              {title}
+                            </p>
+                            <p className="mt-1 truncate text-[10.5px] text-muted-foreground">
+                              {subId ? <span className="font-mono">{subId}</span> : "Sem SKU"}
+                              {a.accountNames[0] ? ` · ${a.accountNames[0]}` : ""}
+                            </p>
+                          </div>
                         </div>
-                        <div className="font-display text-base font-semibold text-foreground">
-                          Nenhuma ação corresponde aos filtros atuais.
+                        <div className="mt-3 flex flex-wrap items-center gap-2 lg:hidden">
+                          <ActionTypeBadge type={a.type} label={a.typeLabel} />
+                          {a.affectedRevenue != null && (
+                            <span className="text-[11px] font-semibold text-rose-700">
+                              {fmtBRL(a.affectedRevenue)} afetados
+                            </span>
+                          )}
                         </div>
                       </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredActions.map((a) => {
-                    const isCostAction =
-                      a.type === "register_cost" ||
-                      a.type === "prioritize_cost" ||
-                      a.type === "release_margin";
-                    const title = a.product?.product_name || a.listing?.title || "—";
-                    const subId = a.product?.sku || a.listing?.ml_item_id || null;
-                    return (
-                      <tr
-                        key={a.id}
-                        className="border-b border-border/50 transition-colors hover:bg-muted/50"
-                      >
-                        <td className="px-4 py-3 align-middle">
-                          <PriorityBadge p={a.priority} />
-                        </td>
-                        <td className="px-4 py-3 align-middle max-w-[340px]">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border/70 bg-muted/40 text-muted-foreground">
-                              <Tag className="h-4 w-4" />
-                            </div>
-                            <div className="min-w-0">
-                              <div className="truncate font-medium text-foreground" title={title}>
-                                {title}
-                              </div>
-                              <div className="truncate text-xs text-muted-foreground">
-                                {subId ? (
-                                  <span className="font-mono">{subId}</span>
-                                ) : (
-                                  "Sem SKU"
-                                )}
-                                {a.accountNames[0] ? ` · ${a.accountNames[0]}` : ""}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 align-middle max-w-[280px]">
-                          <div className="flex flex-col gap-1">
-                            <ActionTypeBadge type={a.type} label={a.typeLabel} />
-                            <span className="truncate text-xs text-muted-foreground" title={a.reason}>
-                              {a.reason}
-                            </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 align-middle max-w-[300px]">
-                          <div className="truncate font-semibold text-foreground" title={a.recommendation}>
-                            {a.recommendation}
-                          </div>
-                          <div className="mt-0.5 text-[11px] text-muted-foreground">
-                            {isCostAction ? "Custo pendente" : `Atualizado em ${fmtDate(a.updatedAt)}`}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right align-middle tabular-nums whitespace-nowrap">
-                          {a.affectedRevenue != null ? (
-                            <span className="font-semibold text-foreground">
-                              {fmtBRL(a.affectedRevenue)}
-                            </span>
+
+                      <div className="min-w-0">
+                        <div className="hidden lg:block">
+                          <ActionTypeBadge type={a.type} label={a.typeLabel} />
+                        </div>
+                        <p className="mt-2 line-clamp-2 text-[12px] font-semibold leading-relaxed text-foreground" title={a.recommendation}>
+                          {a.recommendation}
+                        </p>
+                        <p className="mt-1 line-clamp-1 text-[10.5px] text-muted-foreground" title={a.reason}>
+                          {a.reason}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between gap-3 lg:flex-col lg:items-end">
+                        <div className="text-left lg:text-right">
+                          <p className="text-[8.5px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                            Faturamento afetado
+                          </p>
+                          <p className="mt-1 text-[13px] font-bold tabular-nums text-[#0A1F44]">
+                            {a.affectedRevenue != null ? fmtBRL(a.affectedRevenue) : "—"}
+                          </p>
+                          <p className="mt-0.5 text-[9.5px] text-muted-foreground">
+                            {isCostAction ? "Custo pendente" : `Atualizado ${fmtDate(a.updatedAt)}`}
+                          </p>
+                        </div>
+
+                        {a.ctaHref ? (
+                          a.ctaExternal ? (
+                            <a
+                              href={a.ctaHref}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-border bg-white px-3 text-[11px] font-semibold text-[#0A1F44] shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:text-blue-700 hover:shadow-md"
+                            >
+                              Resolver
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
                           ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-right align-middle">
-                          {a.ctaHref ? (
-                            a.ctaExternal ? (
-                              <a
-                                href={a.ctaHref}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center gap-1.5 rounded-md border border-border bg-background px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted"
-                              >
-                                Resolver
-                                <ExternalLink className="h-3.5 w-3.5" />
-                              </a>
-                            ) : (
-                              <Link
-                                to="/ecommerce/custos-margem"
-                                hash="pending-costs-table"
-                                className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground transition-opacity hover:opacity-90"
-                              >
-                                Executar ação
-                              </Link>
-                            )
-                          ) : (
-                            <span className="text-xs text-muted-foreground">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </ScrollableTableSection>
+                            <Link
+                              to="/ecommerce/custos-margem"
+                              hash="pending-costs-table"
+                              className="inline-flex h-9 items-center rounded-xl bg-[#0A1F44] px-3.5 text-[11px] font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#123266] hover:shadow-md"
+                            >
+                              Executar ação
+                            </Link>
+                          )
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </div>
+                    </article>
+                  );
+                })
+              )}
+            </div>
+          </section>
         </>
       )}
+    </div>
+  );
+}
+
+function PremiumActionMetric({
+  label,
+  value,
+  loading,
+  hint,
+  tone = "default",
+  icon,
+}: {
+  label: string;
+  value: number;
+  loading: boolean;
+  hint: string;
+  tone?: "default" | "danger" | "warning" | "info";
+  icon?: React.ReactNode;
+}) {
+  const toneClass =
+    tone === "danger"
+      ? "text-rose-200"
+      : tone === "warning"
+        ? "text-amber-200"
+        : tone === "info"
+          ? "text-blue-200"
+          : "text-white";
+
+  return (
+    <div className="group flex min-h-[132px] flex-col justify-between rounded-[22px] border border-white/[0.12] bg-white/[0.08] p-4 backdrop-blur-sm transition duration-200 hover:-translate-y-1 hover:bg-white/[0.12]">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-white/46">
+          {label}
+        </p>
+        {icon && <span className={toneClass}>{icon}</span>}
+      </div>
+      <div>
+        {loading ? (
+          <div className="h-8 w-16 animate-pulse rounded-lg bg-white/15" />
+        ) : (
+          <p className={`font-display text-3xl font-bold tracking-tight tabular-nums ${toneClass}`}>
+            {value.toLocaleString("pt-BR")}
+          </p>
+        )}
+        <p className="mt-1 text-[10px] text-white/45">{hint}</p>
+      </div>
     </div>
   );
 }

@@ -843,8 +843,8 @@ function CustosMargemContent() {
               </h3>
               <p className="text-[13px] md:text-sm text-slate-200/90 leading-relaxed">
                 Esta conta já possui pedidos reais sincronizados e itens vinculados aos produtos.
-                O próximo passo é cadastrar o custo dos SKUs prioritários para revelar margem real,
-                lucro por pedido e rentabilidade da operação.
+                O AC360 já analisa faturamento, taxas, frete, Ads e operação com os dados da API.
+                Se o cliente também informar o CMV, o sistema passa a calcular lucro líquido real e margem completa.
               </p>
             </div>
           </div>

@@ -146,6 +146,79 @@ function adminClient() {
   });
 }
 
+type SyncDescriptor = {
+  capability: "ads" | "competition" | "market_radar" | "shipment_labels";
+  resourceKey: string;
+  intervalMinutes: number;
+};
+
+function syncDescriptor(body: Body): SyncDescriptor | null {
+  if (body.action === "ads_sync") {
+    return { capability: "ads", resourceKey: "account", intervalMinutes: 30 };
+  }
+  if (body.action === "competition_sync") {
+    return {
+      capability: "competition",
+      resourceKey: body.listing_id || "unknown",
+      intervalMinutes: 60,
+    };
+  }
+  if (body.action === "market_radar_sync") {
+    return { capability: "market_radar", resourceKey: "account", intervalMinutes: 720 };
+  }
+  if (body.action === "shipment_labels") {
+    return { capability: "shipment_labels", resourceKey: "account", intervalMinutes: 0 };
+  }
+  return null;
+}
+
+async function updateSyncState(
+  companyId: string,
+  accountId: string,
+  descriptor: SyncDescriptor,
+  status: "running" | "success" | "error",
+  payload?: { result?: unknown; error?: string },
+) {
+  const admin = adminClient();
+  const now = new Date();
+  const row: Record<string, unknown> = {
+    company_id: companyId,
+    account_id: accountId,
+    capability: descriptor.capability,
+    resource_key: descriptor.resourceKey,
+    status,
+    updated_at: now.toISOString(),
+  };
+
+  if (status === "running") {
+    row.last_attempt_at = now.toISOString();
+  }
+
+  if (status === "success") {
+    row.last_success_at = now.toISOString();
+    row.last_error_message = null;
+    row.last_result = payload?.result ?? {};
+    if (descriptor.intervalMinutes > 0) {
+      row.next_due_at = new Date(
+        now.getTime() + descriptor.intervalMinutes * 60_000,
+      ).toISOString();
+    }
+  }
+
+  if (status === "error") {
+    row.last_error_message = payload?.error ?? "Falha desconhecida.";
+    row.next_due_at = new Date(now.getTime() + 15 * 60_000).toISOString();
+  }
+
+  const { error } = await admin
+    .from("ecommerce_marketplace_sync_state")
+    .upsert(row, {
+      onConflict: "company_id,account_id,capability,resource_key",
+    });
+
+  if (error) console.error("sync state update", error);
+}
+
 function userClient(authHeader: string) {
   if (!SUPABASE_URL || !PUBLISHABLE_KEY) {
     throw new Error("Supabase publishable key unavailable in Edge Function.");
@@ -766,52 +839,65 @@ Deno.serve(async (req: Request) => {
     }
 
     const account = await assertAccess(authHeader, companyId, accountId);
-    const token = await ensureToken(authHeader, companyId, accountId);
+    const descriptor = syncDescriptor(body);
 
-    if (body.action === "ads_sync") {
-      const days = [1, 7, 30, 90].includes(Number(body.days)) ? Number(body.days) : 30;
-      const result = await syncAds(
-        token,
-        companyId,
-        accountId,
-        account.account_name || account.nickname || "",
-        days,
-      );
-      return reply(200, { status: "success", action: body.action, result });
+    if (!descriptor) {
+      return reply(400, { error: "Unsupported action" });
     }
 
-    if (body.action === "competition_sync") {
-      if (!body.listing_id) {
-        return reply(400, { error: "listing_id is required for competition_sync" });
+    await updateSyncState(companyId, accountId, descriptor, "running");
+
+    try {
+      const token = await ensureToken(authHeader, companyId, accountId);
+      let result: unknown;
+
+      if (body.action === "ads_sync") {
+        const days = [1, 7, 30, 90].includes(Number(body.days)) ? Number(body.days) : 30;
+        result = await syncAds(
+          token,
+          companyId,
+          accountId,
+          account.account_name || account.nickname || "",
+          days,
+        );
+      } else if (body.action === "competition_sync") {
+        if (!body.listing_id) {
+          throw new Error("listing_id is required for competition_sync");
+        }
+        result = await syncCompetition(
+          token,
+          companyId,
+          accountId,
+          body.listing_id,
+        );
+      } else if (body.action === "market_radar_sync") {
+        result = await syncRadar(
+          token,
+          companyId,
+          accountId,
+          body.category_ids,
+        );
+      } else if (body.action === "shipment_labels") {
+        if (!body.groups?.length) {
+          throw new Error("groups are required for shipment_labels");
+        }
+        result = await generateShipmentLabels(token, body.groups);
+      } else {
+        throw new Error("Unsupported action");
       }
-      const result = await syncCompetition(
-        token,
-        companyId,
-        accountId,
-        body.listing_id,
-      );
-      return reply(200, { status: "success", action: body.action, result });
-    }
 
-    if (body.action === "market_radar_sync") {
-      const result = await syncRadar(
-        token,
-        companyId,
-        accountId,
-        body.category_ids,
-      );
+      await updateSyncState(companyId, accountId, descriptor, "success", {
+        result,
+      });
       return reply(200, { status: "success", action: body.action, result });
+    } catch (actionError) {
+      const message =
+        actionError instanceof Error ? actionError.message : "Unexpected error";
+      await updateSyncState(companyId, accountId, descriptor, "error", {
+        error: message,
+      });
+      throw actionError;
     }
-
-    if (body.action === "shipment_labels") {
-      if (!body.groups?.length) {
-        return reply(400, { error: "groups are required for shipment_labels" });
-      }
-      const result = await generateShipmentLabels(token, body.groups);
-      return reply(200, { status: "success", action: body.action, result });
-    }
-
-    return reply(400, { error: "Unsupported action" });
   } catch (error) {
     console.error("ml-marketplace-intelligence", error);
     return reply(500, {

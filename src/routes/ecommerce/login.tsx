@@ -64,6 +64,10 @@ function EcommerceLoginPage() {
           email: email.trim(),
           password,
           options: {
+            emailRedirectTo:
+              typeof window !== "undefined"
+                ? `${window.location.origin}/ecommerce/onboarding`
+                : undefined,
             data: {
               name: name.trim(),
             },
@@ -220,6 +224,18 @@ function EcommerceLoginPage() {
               </div>
 
               <form onSubmit={onSubmit} className="space-y-5">
+                {mode === "login" ? (
+                  <div className="-mt-2 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => navigate({ to: "/ecommerce/recuperar-senha" })}
+                      className="text-xs font-semibold text-primary transition hover:underline"
+                    >
+                      Esqueci minha senha
+                    </button>
+                  </div>
+                ) : null}
+
                 {mode === "signup" ? (
                   <div className="space-y-2">
                     <label htmlFor="name" className="text-sm font-medium text-foreground">

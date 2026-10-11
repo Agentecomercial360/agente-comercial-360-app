@@ -24,7 +24,6 @@ import {
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
 import {
-  ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { Button } from "@/components/ui/button";
@@ -211,7 +210,8 @@ const APPLIES_TO_META: Record<AppliesTo, { label: string; placeholder: string }>
 // ---------------------------------------------------------------------------
 
 function BaseIaPage() {
-  const { activeAccount } = useEcommerceActiveAccount();
+  const {
+    companyId, activeAccount } = useEcommerceActiveAccount();
 
   const [status, setStatus] = useState<LoadStatus>("loading");
   const [rules, setRules] = useState<Rule[]>([]);
@@ -232,7 +232,7 @@ function BaseIaPage() {
       const { data, error } = await supabase
         .from(TABLE)
         .select("*")
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .order("updated_at", { ascending: false });
 
       if (error) {
@@ -317,7 +317,7 @@ function BaseIaPage() {
       .from(TABLE)
       .update({ status: next })
       .eq("id", r.id)
-      .eq("company_id", ECOMMERCE_COMPANY_ID);
+      .eq("company_id", companyId);
     if (error) {
       toast.error("Não foi possível alterar o status.");
       return;
@@ -332,7 +332,7 @@ function BaseIaPage() {
       .from(TABLE)
       .delete()
       .eq("id", deleting.id)
-      .eq("company_id", ECOMMERCE_COMPANY_ID);
+      .eq("company_id", companyId);
     setDeleting(null);
     if (error) {
       toast.error("Não foi possível excluir a regra.");
@@ -857,7 +857,7 @@ function RuleSheet({
     setSaving(true);
     try {
       const payload = {
-        company_id: ECOMMERCE_COMPANY_ID,
+        company_id:
         account_id: accountId,
         title: form.title.trim(),
         category: form.category,
@@ -873,7 +873,7 @@ function RuleSheet({
           .from(TABLE)
           .update(payload)
           .eq("id", editing.id)
-          .eq("company_id", ECOMMERCE_COMPANY_ID);
+          .eq("company_id", companyId);
         if (error) throw error;
         toast.success("Regra atualizada.");
       } else {

@@ -183,3 +183,177 @@ using (has_ecommerce_access(company_id));
 
 grant select on public.ecommerce_market_trends to authenticated;
 grant select, insert, update, delete on public.ecommerce_market_trends to service_role;
+
+
+-- Generate actionable AC360 insights whenever a monitored position changes materially.
+
+create or replace function public.ac360_competition_change_to_insight()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+declare
+  v_product_id uuid;
+  v_is_gain boolean;
+  v_is_loss boolean;
+begin
+  if new.previous_status is null
+     or new.previous_status = new.competition_status then
+    return new;
+  end if;
+
+  v_is_gain :=
+    new.competition_status in ('winning', 'sharing_first_place')
+    and new.previous_status not in ('winning', 'sharing_first_place');
+
+  v_is_loss :=
+    new.previous_status in ('winning', 'sharing_first_place')
+    and new.competition_status not in ('winning', 'sharing_first_place');
+
+  if not v_is_gain and not v_is_loss then
+    return new;
+  end if;
+
+  select product_id
+    into v_product_id
+  from public.ecommerce_listings
+  where id = new.listing_id;
+
+  insert into public.ecommerce_ai_insights (
+    company_id, account_id, product_id, listing_id, insight_type, priority,
+    title, diagnosis, probable_cause, recommended_action,
+    suggested_price_action, status, generated_by, confidence_score
+  )
+  values (
+    new.company_id,
+    new.account_id,
+    v_product_id,
+    new.listing_id,
+    'other',
+    case when v_is_loss then 'high' else 'medium' end,
+    case
+      when v_is_loss then 'Anúncio perdeu posição no catálogo'
+      else 'Anúncio ganhou posição no catálogo'
+    end,
+    format(
+      'O anúncio %s mudou de %s para %s.%s',
+      new.ml_item_id,
+      new.previous_status,
+      new.competition_status,
+      case
+        when new.winner_price is not null
+          then format(
+            ' Preço vencedor observado: R$ %s.',
+            to_char(new.winner_price, 'FM999999990D00')
+          )
+        else ''
+      end
+    ),
+    case
+      when v_is_loss
+        then 'Mudanças de preço, frete, disponibilidade, reputação ou competitividade podem ter afetado a posição.'
+      else 'A competitividade do anúncio melhorou em relação ao snapshot anterior.'
+    end,
+    case
+      when v_is_loss
+        then 'Abrir Concorrência & Ranking, comparar preço/frete e revisar margem antes de qualquer ajuste.'
+      else 'Monitorar a posição nas próximas atualizações e preservar margem antes de escalar.'
+    end,
+    case
+      when v_is_loss and new.winner_price is not null
+        then format(
+          'Comparar seu preço com o vencedor em R$ %s sem reduzir abaixo da margem mínima.',
+          to_char(new.winner_price, 'FM999999990D00')
+        )
+      else null
+    end,
+    'pending_review',
+    'rule',
+    1
+  );
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_ac360_competition_change_to_insight
+  on public.ecommerce_catalog_competition_history;
+
+create trigger trg_ac360_competition_change_to_insight
+after insert on public.ecommerce_catalog_competition_history
+for each row
+execute function public.ac360_competition_change_to_insight();
+
+create or replace function public.ac360_rank_change_to_insight()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+declare
+  v_product_id uuid;
+  v_delta integer;
+begin
+  if new.previous_position is null then
+    return new;
+  end if;
+
+  v_delta := new.previous_position - new.position;
+
+  if abs(v_delta) < 3 then
+    return new;
+  end if;
+
+  select product_id
+    into v_product_id
+  from public.ecommerce_listings
+  where id = new.listing_id;
+
+  insert into public.ecommerce_ai_insights (
+    company_id, account_id, product_id, listing_id, insight_type, priority,
+    title, diagnosis, probable_cause, recommended_action,
+    status, generated_by, confidence_score
+  )
+  values (
+    new.company_id,
+    new.account_id,
+    v_product_id,
+    new.listing_id,
+    'other',
+    case when v_delta < 0 then 'high' else 'medium' end,
+    case
+      when v_delta < 0
+        then format('Ranking caiu %s posições', abs(v_delta))
+      else format('Ranking subiu %s posições', v_delta)
+    end,
+    format(
+      'Palavra-chave "%s": posição %s → %s.',
+      new.keyword,
+      new.previous_position,
+      new.position
+    ),
+    case
+      when v_delta < 0
+        then 'Pode haver perda de relevância, alteração competitiva, mudança de preço/frete ou queda de conversão.'
+      else 'O anúncio ganhou visibilidade na palavra-chave monitorada.'
+    end,
+    case
+      when v_delta < 0
+        then 'Revisar concorrentes, conversão, preço, frete, estoque, título e mídia antes de alterar o anúncio.'
+      else 'Monitorar a evolução e verificar se o ganho se mantém antes de ampliar investimento.'
+    end,
+    'pending_review',
+    'rule',
+    1
+  );
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_ac360_rank_change_to_insight
+  on public.ecommerce_rank_history;
+
+create trigger trg_ac360_rank_change_to_insight
+after insert on public.ecommerce_rank_history
+for each row
+execute function public.ac360_rank_change_to_insight();

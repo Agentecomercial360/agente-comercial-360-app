@@ -183,7 +183,7 @@ function statusMeta(status: ProductProfitability["profit_status"]) {
     };
   }
   return {
-    label: "Aguardando custo",
+    label: "Sem CMV",
     className: "border-slate-200 bg-slate-50 text-slate-600",
   };
 }
@@ -304,7 +304,7 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
         icon: BadgeDollarSign,
       },
       {
-        label: "Custo dos produtos confirmado",
+        label: "CMV informado",
         value: summary.product_cost,
         icon: Package,
       },
@@ -324,15 +324,15 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 px-5 py-5 text-white md:px-6">
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-200">
-            Rentabilidade Real v2 · {accountName}
+            Rentabilidade Operacional · {accountName}
           </div>
           <h2 className="mt-1 font-display text-xl font-bold md:text-2xl">
-            Quanto realmente sobrou — e quanto ainda não pode ser confirmado
+            Resultado conhecido agora — lucro líquido real quando houver CMV
           </h2>
           <p className="mt-1 max-w-3xl text-xs leading-relaxed text-slate-300 md:text-sm">
-            O AC360 separa lucro confirmado de resultado parcial. Taxas, frete,
-            publicidade, impostos, custo de produto e devoluções são conciliados sem
-            descontar promoções duas vezes.
+            O AC360 concilia automaticamente os dados financeiros disponíveis na API.
+            Taxas, frete, publicidade, impostos e devoluções entram no resultado operacional.
+            O CMV é um enriquecimento opcional para confirmar o lucro líquido real.
           </p>
         </div>
 
@@ -366,12 +366,13 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
                 <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
                 <div>
                   <div className="text-sm font-bold text-amber-900">
-                    O lucro final ainda não pode ser confirmado.
+                    CMV não disponível na API — análise continua funcionando.
                   </div>
                   <p className="mt-1 text-xs leading-relaxed text-amber-800">
-                    {summary.orders_pending_cost.toLocaleString("pt-BR")} pedido(s)
-                    ainda dependem de custo de produto. O valor “resultado após custos
-                    conhecidos” é um teto provisório, não lucro líquido definitivo.
+                    {summary.orders_pending_cost.toLocaleString("pt-BR")} pedido(s) estão sem CMV.
+                    O Mercado Livre não fornece esse custo pela API. O “resultado operacional
+                    conhecido” permanece útil para gestão; somente o lucro líquido real depende
+                    do CMV informado pelo cliente.
                   </p>
                 </div>
               </div>
@@ -386,19 +387,19 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
               tone="neutral"
             />
             <MetricCard
-              label="Lucro confirmado"
+              label="Lucro líquido confirmado"
               value={loading ? "—" : money(summary.confirmed_profit)}
               icon={ShieldCheck}
               tone={summary.cost_coverage_percent >= 100 ? "success" : "neutral"}
             />
             <MetricCard
-              label="Receita bloqueada"
+              label="Receita sem CMV"
               value={loading ? "—" : money(summary.blocked_revenue)}
               icon={AlertTriangle}
               tone={summary.blocked_revenue > 0 ? "warning" : "success"}
             />
             <MetricCard
-              label="Cobertura de custo"
+              label="Cobertura de CMV"
               value={
                 loading
                   ? "—"
@@ -415,7 +416,7 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
               tone="danger"
             />
             <MetricCard
-              label="Resultado após custos conhecidos"
+              label="Resultado operacional conhecido"
               value={loading ? "—" : money(summary.result_after_known_costs)}
               icon={BadgeDollarSign}
               tone="neutral"
@@ -480,9 +481,9 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
                 success
               />
               <QualityCard
-                label="Pedidos aguardando custo"
+                label="Pedidos sem CMV"
                 value={summary.orders_pending_cost}
-                helper="Ainda não entram no lucro confirmado."
+                helper="Continuam nas análises operacionais; apenas o lucro líquido fica sem confirmação."
               />
               <QualityCard
                 label="Pedidos com devolução"

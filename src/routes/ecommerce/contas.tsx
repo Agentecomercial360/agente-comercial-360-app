@@ -8,11 +8,15 @@ import {
   Store,
   Link2,
   AlertCircle,
+  Plus,
+  X,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
 import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
+import { startMercadoLivreOAuth } from "@/lib/ml-oauth";
 
 export const Route = createFileRoute("/ecommerce/contas")({
   component: ContasML,
@@ -20,9 +24,6 @@ export const Route = createFileRoute("/ecommerce/contas")({
     meta: [{ title: "Contas Mercado Livre | Agente Comercial 360" }],
   }),
 });
-
-const ROBOMIX_COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
-
 
 type AccountRow = {
   id: string;
@@ -106,17 +107,38 @@ function ContasML() {
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
   const [integrations, setIntegrations] = useState<IntegrationRow[]>([]);
   const [syncingId, setSyncingId] = useState<string | null>(null);
+  const [connectingId, setConnectingId] = useState<string | null>(null);
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [newAccountName, setNewAccountName] = useState("");
+  const [creating, setCreating] = useState(false);
 
   async function loadData() {
     try {
       setLoading(true);
       setError(null);
+
+      const { data: ctx, error: ctxErr } = await supabase
+        .from("vw_user_access_context")
+        .select("company_id")
+        .maybeSingle();
+      if (ctxErr) throw ctxErr;
+      if (!ctx?.company_id) {
+        setCompanyId(null);
+        setAccounts([]);
+        setIntegrations([]);
+        throw new Error("Empresa não encontrada para o usuário autenticado.");
+      }
+
+      const activeCompanyId = String(ctx.company_id);
+      setCompanyId(activeCompanyId);
+
       const { data: accData, error: accErr } = await supabase
         .from("ecommerce_accounts")
         .select(
           "id, company_id, account_name, marketplace, nickname, auth_status, ml_user_id, external_account_id, is_active, last_sync_at, external_account_code, integration_notes, updated_at",
         )
-        .eq("company_id", ROBOMIX_COMPANY_ID)
+        .eq("company_id", activeCompanyId)
         .order("account_name", { ascending: true });
       if (accErr) throw accErr;
 
@@ -129,7 +151,7 @@ function ContasML() {
         .select(
           "id, account_id, provider, marketplace, integration_name, integration_status, external_nickname, external_user_id, last_sync_at, expires_at, updated_at",
         )
-        .eq("company_id", ROBOMIX_COMPANY_ID);
+        .eq("company_id", activeCompanyId);
       if (intErr) throw intErr;
 
       const filteredIntegrations = ((intData as IntegrationRow[]) ?? []).filter(
@@ -195,6 +217,79 @@ function ContasML() {
     };
   }, [accounts, integrationByAccount]);
 
+  async function handleConnectAccount(accountId: string) {
+    if (!companyId || connectingId) return;
+
+    setConnectingId(accountId);
+    try {
+      await startMercadoLivreOAuth({
+        companyId,
+        accountId,
+      });
+      toast.success("Mercado Livre conectado com sucesso.");
+      await loadData();
+    } catch (e: any) {
+      toast.error(
+        e?.message
+          ? `Não foi possível iniciar a conexão: ${e.message}`
+          : "Não foi possível iniciar a conexão com o Mercado Livre.",
+      );
+    } finally {
+      setConnectingId(null);
+    }
+  }
+
+  async function handleCreateAccount() {
+    const accountName = newAccountName.trim();
+
+    if (!companyId) {
+      toast.error("Empresa não identificada para o usuário atual.");
+      return;
+    }
+    if (accountName.length < 2) {
+      toast.error("Informe um nome para identificar esta conta.");
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const { data, error: insertError } = await supabase
+        .from("ecommerce_accounts")
+        .insert({
+          company_id: companyId,
+          account_name: accountName,
+          marketplace: "mercado_livre",
+          auth_status: "not_connected",
+          is_active: true,
+        })
+        .select("id,company_id,account_name")
+        .single();
+
+      if (insertError) {
+        if (insertError.code === "23505") {
+          throw new Error("Já existe uma conta com esse nome nesta empresa.");
+        }
+        throw insertError;
+      }
+
+      setCreateOpen(false);
+      setNewAccountName("");
+      toast.success("Conta criada. Abrindo autorização do Mercado Livre…");
+
+      await startMercadoLivreOAuth({
+        companyId: String(data.company_id),
+        accountId: String(data.id),
+      });
+      toast.success("Conta Mercado Livre conectada com sucesso.");
+      await loadData();
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível criar ou conectar a conta Mercado Livre.");
+      await loadData();
+    } finally {
+      setCreating(false);
+    }
+  }
+
   async function handleSyncAccount(accountId: string) {
     setSyncingId(accountId);
     try {
@@ -218,14 +313,25 @@ function ContasML() {
   return (
     <EcommerceLayout>
       <div className="mx-auto max-w-7xl space-y-8">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-            Contas Mercado Livre da ROBOMIX
-          </h1>
-          <p className="mt-1 text-slate-500">
-            Gerencie as contas conectadas, acompanhe autorizações e visualize o status de
-            sincronização.
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              Contas Mercado Livre
+            </h1>
+            <p className="mt-1 text-slate-500">
+              Adicione contas, autorize o Mercado Livre e acompanhe o status de sincronização.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setCreateOpen(true)}
+            disabled={!companyId || loading}
+            className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Plus className="h-4 w-4" />
+            Adicionar conta Mercado Livre
+          </button>
         </div>
 
         {error && (
@@ -289,8 +395,25 @@ function ContasML() {
                 )}
                 {!loading && accounts.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="px-6 py-10 text-center text-slate-500">
-                      Nenhuma conta Mercado Livre encontrada para esta empresa.
+                    <td colSpan={9} className="px-6 py-12 text-center text-slate-500">
+                      <div className="mx-auto max-w-md">
+                        <Store className="mx-auto h-9 w-9 text-slate-300" />
+                        <p className="mt-3 font-semibold text-slate-700">
+                          Nenhuma conta Mercado Livre adicionada ainda.
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500">
+                          Crie a primeira conta e autorize o Mercado Livre para iniciar a sincronização.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setCreateOpen(true)}
+                          disabled={!companyId}
+                          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-700 px-4 py-2 text-xs font-bold text-white hover:bg-blue-800 disabled:opacity-50"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          Adicionar primeira conta
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -368,10 +491,19 @@ function ContasML() {
                               </button>
                             </div>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700">
-                              <Link2 className="h-3.5 w-3.5" />
-                              Conectar Mercado Livre
-                            </span>
+                            <button
+                              type="button"
+                              onClick={() => void handleConnectAccount(acc.id)}
+                              disabled={!companyId || connectingId === acc.id}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {connectingId === acc.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Link2 className="h-3.5 w-3.5" />
+                              )}
+                              {connectingId === acc.id ? "Abrindo autorização…" : "Conectar Mercado Livre"}
+                            </button>
                           )}
                         </td>
                       </tr>
@@ -382,6 +514,90 @@ function ContasML() {
           </div>
         </div>
       </div>
+
+      {createOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => !creating && setCreateOpen(false)}
+        >
+          <div
+            className="w-full max-w-md overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4">
+              <div>
+                <h2 className="font-display text-lg font-bold text-slate-900">
+                  Adicionar conta Mercado Livre
+                </h2>
+                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                  Dê um nome interno para identificar a conta. Na sequência, o AC360 abrirá
+                  a autorização oficial do Mercado Livre.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCreateOpen(false)}
+                disabled={creating}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50"
+                aria-label="Fechar"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4 px-5 py-5">
+              <div>
+                <label className="text-xs font-semibold text-slate-700">
+                  Nome da conta no AC360
+                </label>
+                <input
+                  type="text"
+                  value={newAccountName}
+                  onChange={(event) => setNewAccountName(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && !creating) {
+                      void handleCreateAccount();
+                    }
+                  }}
+                  placeholder="Ex.: Loja Principal, Filial 02, Marca X"
+                  autoFocus
+                  disabled={creating}
+                  className="mt-1.5 w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
+                />
+              </div>
+
+              <div className="rounded-xl border border-blue-100 bg-blue-50/60 px-3.5 py-3 text-xs leading-relaxed text-blue-800">
+                Nenhuma senha do Mercado Livre é armazenada pelo AC360. A autorização acontece
+                no ambiente oficial do Mercado Livre via OAuth.
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 border-t border-slate-200 bg-slate-50/50 px-5 py-3">
+              <button
+                type="button"
+                onClick={() => setCreateOpen(false)}
+                disabled={creating}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleCreateAccount()}
+                disabled={creating || newAccountName.trim().length < 2}
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-4 py-2 text-xs font-bold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {creating ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Link2 className="h-3.5 w-3.5" />
+                )}
+                {creating ? "Criando conta…" : "Criar e conectar Mercado Livre"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </EcommerceLayout>
   );
 }

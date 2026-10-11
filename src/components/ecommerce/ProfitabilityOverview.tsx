@@ -172,7 +172,7 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
     { label: "Publicidade", value: summary.ads, icon: Megaphone },
     { label: "Impostos", value: summary.taxes, icon: BadgeDollarSign },
     { label: "Custo dos produtos", value: summary.productCost, icon: Package },
-    { label: "Descontos registrados", value: summary.discounts, icon: Percent },
+    { label: "Descontos já refletidos na venda", value: summary.discounts, icon: Percent },
     { label: "Reembolsos / devoluções", value: summary.refunds, icon: RotateCcw },
   ];
 

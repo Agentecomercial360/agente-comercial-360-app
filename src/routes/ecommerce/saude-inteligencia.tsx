@@ -346,13 +346,13 @@ function IntelligenceHealthContent() {
       const jobs: Array<Promise<unknown>> = [
         runMarketplaceIntelligence({
           action: "ads_sync",
-          company_id:
+          company_id: companyId,
           account_id: account.id,
           days: 30,
         }),
         runMarketplaceIntelligence({
           action: "market_radar_sync",
-          company_id:
+          company_id: companyId,
           account_id: account.id,
         }),
         ...listingIds.map((listingId) =>

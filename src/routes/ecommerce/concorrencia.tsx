@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
-import { RankingRadar } from "@/components/ecommerce/RankingRadar";\nimport { CatalogCompetitionStatus } from "@/components/ecommerce/CatalogCompetitionStatus";
+import { RankingRadar } from "@/components/ecommerce/RankingRadar";
+import { CatalogCompetitionStatus } from "@/components/ecommerce/CatalogCompetitionStatus";
 import {
   ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,

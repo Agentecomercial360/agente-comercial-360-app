@@ -3,7 +3,8 @@ import { supabase } from "@/lib/supabase";
 export type MarketplaceIntelligenceAction =
   | "ads_sync"
   | "competition_sync"
-  | "market_radar_sync";
+  | "market_radar_sync"
+  | "shipment_labels";
 
 export type MarketplaceIntelligenceInput = {
   action: MarketplaceIntelligenceAction;
@@ -12,6 +13,10 @@ export type MarketplaceIntelligenceInput = {
   days?: number;
   listing_id?: string;
   category_ids?: string[];
+  groups?: Array<{
+    sku?: string;
+    shipment_ids: string[];
+  }>;
 };
 
 export async function runMarketplaceIntelligence<T = Record<string, unknown>>(

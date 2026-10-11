@@ -416,7 +416,7 @@ function DashboardContent() {
           Dashboard E-commerce · {scopeLabel}
         </h1>
         <p className="text-sm text-muted-foreground max-w-3xl">
-          Faturamento, pedidos, taxas e resultado parcial dos pedidos sincronizados do Mercado Livre.
+          Faturamento, pedidos, taxas e resultado operacional conhecido dos pedidos sincronizados do Mercado Livre.
         </p>
       </header>
 
@@ -428,10 +428,11 @@ function DashboardContent() {
               <AlertTriangle className="h-4 w-4" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-amber-900">Resultados parciais</p>
+              <p className="text-sm font-semibold text-amber-900">CMV não informado pela API do Mercado Livre</p>
               <p className="text-[13px] leading-relaxed text-amber-900/80">
-                Existem <span className="font-semibold">{num.format(totals.pending)}</span> pedidos pendentes de custo.
-                Atualize o CMV para liberar o cálculo de lucro líquido real e margem confiável.
+                Existem <span className="font-semibold">{num.format(totals.pending)}</span> pedidos sem CMV cadastrado.
+                Isso não bloqueia o AC360: faturamento, taxas, frete, Ads e demais análises continuam válidos.
+                O CMV é opcional e serve para transformar o resultado operacional conhecido em lucro líquido real.
               </p>
             </div>
           </div>
@@ -439,7 +440,7 @@ function DashboardContent() {
             to="/ecommerce/custos-margem"
             className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
           >
-            Corrigir Custos Agora
+            Adicionar CMV (opcional)
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
@@ -501,9 +502,9 @@ function DashboardContent() {
         <Metric label="Total de pedidos" value={num.format(totals.count)} loading={loading} tone="slate" />
         <Metric label="Ticket médio" value={brl.format(totals.ticket)} loading={loading} tone="emerald" />
         <Metric
-          label="Resultado parcial"
+          label="Resultado operacional conhecido"
           value={brl.format(totals.netParcial)}
-          sublabel="Antes do custo do produto"
+          sublabel="Antes do CMV quando ele não foi informado"
           loading={loading}
           tone="green"
         />
@@ -514,7 +515,7 @@ function DashboardContent() {
         />
         <Metric label="Frete vendedor" value={brl.format(totals.shipping)} loading={loading} />
         <Metric
-          label="Pedidos pendentes de custo"
+          label="Pedidos sem CMV"
           value={num.format(totals.pending)}
           loading={loading}
           tone={totals.pending > 0 ? "warn" : "muted"}

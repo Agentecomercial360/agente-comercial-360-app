@@ -2,8 +2,6 @@
 // POST { company_id, account_id, days } and returns a normalized result.
 import { supabase } from "@/lib/supabase";
 
-export const ML_COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
-
 const SMART_SYNC_ENDPOINT =
   "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-account-smart";
 
@@ -30,10 +28,14 @@ function pickNumber(obj: any, ...keys: string[]): number {
 
 export async function runSmartAccountSync(
   accountId: string,
-  opts: { days?: number; companyId?: string } = {},
+  opts: { days?: number; companyId: string },
 ): Promise<SmartSyncResult> {
+  if (!opts.companyId) {
+    throw new Error("Empresa não identificada para a sincronização.");
+  }
+
   const body = {
-    company_id: opts.companyId ?? ML_COMPANY_ID,
+    company_id: opts.companyId,
     account_id: accountId,
     days: opts.days ?? 1,
   };
@@ -112,6 +114,6 @@ export function formatSmartSyncMessage(r: SmartSyncResult): string {
   return (
     `Sincronização concluída: ${r.orders_found} pedidos encontrados · ` +
     `${r.items_linked} itens vinculados · ${r.products_created} produtos criados · ` +
-    `${r.orders_recalculated} pedidos recalculados · ${r.orders_pending_cost} pendentes de custo.`
+    `${r.orders_recalculated} pedidos recalculados · ${r.orders_pending_cost} sem CMV informado.`
   );
 }

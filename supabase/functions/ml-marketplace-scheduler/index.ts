@@ -157,12 +157,15 @@ Deno.serve(async (req: Request) => {
   );
 
   const executions: Array<Record<string, unknown>> = [];
+  const MAX_EXECUTIONS = 24;
+  const MAX_COMPETITION_PER_ACCOUNT = 3;
 
   async function execute(
     account: Account,
     body: Record<string, unknown>,
     label: string,
   ) {
+    if (executions.length >= MAX_EXECUTIONS) return false;
     const started = Date.now();
     const result = await invokeIntelligence(
       {
@@ -182,9 +185,11 @@ Deno.serve(async (req: Request) => {
       duration_ms: Date.now() - started,
       error: result.ok ? null : result.data?.error || result.data?.message || null,
     });
+    return true;
   }
 
   for (const account of accountRows) {
+    if (executions.length >= MAX_EXECUTIONS) break;
     const integration = latestIntegrationByAccount.get(account.id);
     const expiresAt = integration?.expires_at
       ? new Date(integration.expires_at).getTime()
@@ -255,6 +260,7 @@ Deno.serve(async (req: Request) => {
       );
 
     for (const days of [1, 7, 30, 90]) {
+      if (executions.length >= MAX_EXECUTIONS) break;
       const key = [account.id, "ads", `period:${days}`].join("|");
       if (due(stateMap.get(key))) {
         await execute(account, { action: "ads_sync", days }, `ads_${days}d`);
@@ -262,7 +268,10 @@ Deno.serve(async (req: Request) => {
     }
 
     const radarKey = [account.id, "market_radar", "account"].join("|");
-    if (due(stateMap.get(radarKey))) {
+    if (
+      executions.length < MAX_EXECUTIONS &&
+      due(stateMap.get(radarKey))
+    ) {
       await execute(account, { action: "market_radar_sync" }, "market_radar");
     }
 
@@ -272,9 +281,10 @@ Deno.serve(async (req: Request) => {
         const key = [account.id, "competition", l.id].join("|");
         return due(stateMap.get(key));
       })
-      .slice(0, 25);
+      .slice(0, MAX_COMPETITION_PER_ACCOUNT);
 
     for (const listing of accountListings) {
+      if (executions.length >= MAX_EXECUTIONS) break;
       await execute(
         account,
         { action: "competition_sync", listing_id: listing.id },
@@ -289,5 +299,8 @@ Deno.serve(async (req: Request) => {
     executions,
     succeeded: executions.filter((e) => e.ok === true).length,
     failed: executions.filter((e) => e.ok === false).length,
+    max_executions_per_tick: MAX_EXECUTIONS,
+    max_competition_per_account: MAX_COMPETITION_PER_ACCOUNT,
+    truncated: executions.length >= MAX_EXECUTIONS,
   });
 });

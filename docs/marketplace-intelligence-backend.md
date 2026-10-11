@@ -230,25 +230,44 @@ diferenças entre telas.
 
 O AC360 mantém um estado de saúde em `ecommerce_marketplace_sync_state`.
 
-Cadências atuais enquanto o módulo /ecommerce estiver em uso:
+### Scheduler 24/7
 
-- Product Ads: 30 minutos por período consultado;
-- competição de catálogo: 60 minutos por anúncio monitorado;
+O Supabase executa `ml-marketplace-scheduler` a cada 15 minutos via
+`pg_cron + pg_net`. A chamada é protegida por um segredo aleatório armazenado apenas
+no Supabase Vault; o valor não existe no frontend nem no repositório.
+
+Cadências por capacidade:
+
+- autenticação Mercado Livre: verificada a cada rodada do scheduler;
+- Product Ads Hoje: 30 minutos;
+- Product Ads 7 dias: 2 horas;
+- Product Ads 30 dias: 4 horas;
+- Product Ads 90 dias: 12 horas;
+- competição de catálogo: 60 minutos por anúncio;
 - Radar de Mercado: 12 horas;
-- falhas: próximo retry marcado para 15 minutos.
+- falhas de módulo: retry previsto para 15 minutos.
+
+Cada rodada é limitada a 24 execuções e no máximo 3 verificações de competição por
+conta para evitar explosão de chamadas e timeout.
 
 A Edge Function registra início, sucesso, erro, última execução e próximo vencimento.
-Falhas geram automaticamente um insight de alta prioridade na Central de Ações através
-de `marketplace_sync_watch`; quando a integração volta a funcionar, o insight é
+Falhas geram automaticamente um insight na Central de Ações através de
+`marketplace_sync_watch`; quando a integração volta a funcionar, o insight é
 marcado como concluído.
 
-### Limite atual do modo 24/7
+### Proteção quando o token expira
 
-A renovação de access token do Mercado Livre ainda usa o endpoint Railway
-`sync-account-smart`, autenticado com a sessão Supabase do usuário. Por isso, a
-autoatualização atual é silenciosa e automática enquanto existe uma sessão AC360 ativa.
+Antes de chamar Ads, Radar ou competição, o scheduler verifica o `expires_at` da
+integração. Se o token estiver vencido, ele pausa as coletas da conta e cria apenas um
+estado crítico `auth`, evitando dezenas de erros derivados.
 
-Para cron 24/7 sem usuário logado, o backend Railway precisa expor uma autenticação
-service-to-service segura para renovação do token, ou a Edge Function precisa receber as
-credenciais da aplicação Mercado Livre via secrets do backend e renovar o refresh_token
-diretamente. Nenhuma dessas credenciais deve ser movida para o frontend.
+### Pendência para refresh totalmente autônomo
+
+O scheduler 24/7 já está ativo, mas a renovação do access token ainda depende do
+sincronizador Railway `sync-account-smart`, que hoje espera uma sessão autenticada do
+usuário. Enquanto o Railway não expuser autenticação service-to-service (ou enquanto
+App ID / Secret Key do Mercado Livre não estiverem disponíveis como secrets de backend),
+uma conta com token vencido precisa ser reconectada para que as coletas retomem.
+
+O plugin Railway pode ser conectado ao ChatGPT para permitir a configuração desse
+último trecho diretamente no serviço, sem compartilhar credenciais no chat.

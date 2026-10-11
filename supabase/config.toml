@@ -1,1 +1,5 @@
-[functions.ml-marketplace-intelligence]\nverify_jwt = true\n
+[functions.ml-marketplace-intelligence]
+verify_jwt = false
+
+[functions.ml-marketplace-scheduler]
+verify_jwt = false

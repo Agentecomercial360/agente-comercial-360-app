@@ -24,6 +24,8 @@ import {
   PackageCheck,
   Target,
   HeartPulse,
+  AlertTriangle,
+  ShieldCheck,
 
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
@@ -265,6 +267,9 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
   const [isUpdating, setIsUpdating] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<string | null>(null);
   const [lastUpdateText, setLastUpdateText] = useState("");
+  const [healthStatus, setHealthStatus] = useState<
+    "healthy" | "attention" | "error" | "loading"
+  >("loading");
 
   useEffect(() => {
     setToday(
@@ -285,6 +290,60 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
     }, 8000);
     return () => clearTimeout(t);
   }, [lastUpdate]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadHealth() {
+      let query = supabase
+        .from("ecommerce_marketplace_sync_state")
+        .select("status,next_due_at")
+        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .limit(5000);
+
+      if (activeAccountId) {
+        query = query.eq("account_id", activeAccountId);
+      }
+
+      const { data, error } = await query;
+      if (cancelled) return;
+
+      if (error) {
+        setHealthStatus("attention");
+        return;
+      }
+
+      const states = data ?? [];
+      if (states.length === 0) {
+        setHealthStatus("attention");
+        return;
+      }
+
+      const hasError = states.some((row) => row.status === "error");
+      const hasRunning = states.some((row) => row.status === "running");
+      const overdue = states.some((row) => {
+        if (!row.next_due_at) return false;
+        return new Date(row.next_due_at).getTime() < Date.now() - 20 * 60_000;
+      });
+
+      setHealthStatus(
+        hasError ? "error" : hasRunning || overdue ? "attention" : "healthy",
+      );
+    }
+
+    void loadHealth();
+    const interval = window.setInterval(() => void loadHealth(), 60_000);
+    const handler = () => void loadHealth();
+    window.addEventListener("ac360-marketplace-synced", handler);
+    window.addEventListener("ac360-mercadolivre-auth-changed", handler);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("ac360-marketplace-synced", handler);
+      window.removeEventListener("ac360-mercadolivre-auth-changed", handler);
+    };
+  }, [activeAccountId]);
 
   useEffect(() => {
     if (!activeAccountId || !activeAccount) return;
@@ -415,10 +474,34 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
                 <Calendar className="h-3.5 w-3.5" />
                 <span className="capitalize">{today}</span>
               </div>
-              <div className="hidden lg:flex items-center gap-1.5 text-xs text-muted-foreground">
-                <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                Sincronizado
-              </div>
+              <Link
+                to="/ecommerce/saude-inteligencia"
+                className={`hidden lg:inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold transition hover:opacity-80 ${
+                  healthStatus === "error"
+                    ? "border-rose-200 bg-rose-50 text-rose-700"
+                    : healthStatus === "attention"
+                      ? "border-amber-200 bg-amber-50 text-amber-700"
+                      : healthStatus === "healthy"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                        : "border-slate-200 bg-slate-50 text-slate-500"
+                }`}
+                title="Abrir Saúde da Inteligência"
+              >
+                {healthStatus === "error" ? (
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                ) : healthStatus === "healthy" ? (
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                ) : (
+                  <HeartPulse className="h-3.5 w-3.5" />
+                )}
+                {healthStatus === "error"
+                  ? "Falha de sincronização"
+                  : healthStatus === "attention"
+                    ? "Atenção necessária"
+                    : healthStatus === "healthy"
+                      ? "Operação saudável"
+                      : "Verificando saúde"}
+              </Link>
               {lastUpdateText && (
                 <div className="hidden lg:flex items-center text-[11px] text-muted-foreground/80">
                   {lastUpdateText}

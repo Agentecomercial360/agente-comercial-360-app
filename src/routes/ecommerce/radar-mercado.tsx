@@ -5,6 +5,7 @@ import {
   Flame,
   Loader2,
   Radar,
+  RefreshCw,
   Search,
   Sparkles,
   Store,
@@ -17,6 +18,8 @@ import {
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
+import { runMarketplaceIntelligence } from "@/lib/ml-marketplace-intelligence";
 
 export const Route = createFileRoute("/ecommerce/radar-mercado")({
   component: RadarMercadoPage,
@@ -104,6 +107,8 @@ function RadarMercadoContent() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [refreshTick, setRefreshTick] = useState(0);
 
   useEffect(() => {
     if (accountLoading) return;
@@ -146,7 +151,42 @@ function RadarMercadoContent() {
     return () => {
       cancelled = true;
     };
-  }, [activeAccountId, accountLoading]);
+  }, [activeAccountId, accountLoading, refreshTick]);
+
+  async function handleSync() {
+    if (!activeAccountId) {
+      toast.error("Selecione uma conta Mercado Livre para atualizar o radar.");
+      return;
+    }
+
+    setSyncing(true);
+    try {
+      const result = await runMarketplaceIntelligence<{
+        rows?: number;
+        best_sellers?: number;
+        growing?: number;
+        desired?: number;
+        popular?: number;
+      }>({
+        action: "market_radar_sync",
+        company_id: ECOMMERCE_COMPANY_ID,
+        account_id: activeAccountId,
+      });
+
+      toast.success(
+        `Radar atualizado: ${Number(result.rows ?? 0).toLocaleString("pt-BR")} sinais coletados.`,
+      );
+      setRefreshTick((value) => value + 1);
+    } catch (syncError) {
+      const message =
+        syncError instanceof Error
+          ? syncError.message
+          : "Não foi possível atualizar o Radar de Mercado.";
+      toast.error(message);
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   const latestSnapshot = useMemo(() => {
     if (rows.length === 0) return null;
@@ -239,14 +279,25 @@ function RadarMercadoContent() {
             </p>
             <div className="mt-3 text-xs text-slate-400">{accountLabel}</div>
           </div>
-          <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-right">
-            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-              Último snapshot
-            </div>
-            <div className="mt-1 font-semibold text-white">
-              {latestSnapshot
-                ? new Date(`${latestSnapshot}T12:00:00`).toLocaleDateString("pt-BR")
-                : "Aguardando primeira coleta"}
+          <div className="flex flex-col items-end gap-2">
+            <button
+              type="button"
+              onClick={() => void handleSync()}
+              disabled={syncing || !activeAccountId}
+              className="inline-flex items-center gap-2 rounded-xl border border-indigo-300/20 bg-indigo-400/10 px-3.5 py-2 text-xs font-semibold text-indigo-100 transition hover:bg-indigo-400/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Coletando Mercado Livre…" : "Atualizar radar"}
+            </button>
+            <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-right">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                Último snapshot
+              </div>
+              <div className="mt-1 font-semibold text-white">
+                {latestSnapshot
+                  ? new Date(`${latestSnapshot}T12:00:00`).toLocaleDateString("pt-BR")
+                  : "Aguardando primeira coleta"}
+              </div>
             </div>
           </div>
         </div>
@@ -364,9 +415,8 @@ function RadarMercadoContent() {
               Radar pronto para a primeira sincronização
             </div>
             <p className="mx-auto mt-1 max-w-xl text-sm leading-relaxed text-slate-500">
-              O banco e a tela já estão preparados para armazenar os mais vendidos e
-              as tendências semanais do Mercado Livre sem misturar esses dados com o
-              catálogo interno da empresa.
+              Ainda não existe snapshot para esta conta. Clique em “Atualizar radar”
+              para coletar os sinais atuais do Mercado Livre e iniciar o histórico.
             </p>
           </div>
         ) : enriched.length === 0 ? (

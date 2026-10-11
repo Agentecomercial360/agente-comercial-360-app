@@ -8,6 +8,7 @@ import {
   Megaphone,
   MousePointerClick,
   Percent,
+  RefreshCw,
   ShoppingCart,
   Target,
   TrendingUp,
@@ -19,6 +20,8 @@ import {
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import { runMarketplaceIntelligence } from "@/lib/ml-marketplace-intelligence";
 
 export const Route = createFileRoute("/ecommerce/ads")({
   component: AdsIntelligencePage,
@@ -88,12 +91,6 @@ function pct(value: number): string {
   return `${value.toFixed(2).replace(".", ",")}%`;
 }
 
-function metricDateFrom(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - (days - 1));
-  return d.toISOString().slice(0, 10);
-}
-
 function AdsIntelligencePage() {
   return (
     <EcommerceLayout>
@@ -109,6 +106,8 @@ function AdsIntelligenceContent() {
   const [rows, setRows] = useState<AdsMetric[]>([]);
   const [products, setProducts] = useState<Map<string, ProductLite>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [refreshTick, setRefreshTick] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -125,7 +124,8 @@ function AdsIntelligenceContent() {
           "id,account_id,product_id,listing_id,metric_date,campaign_id,campaign_name,ad_group_id,impressions,clicks,ads_sales_count,ads_units_sold,investment,ads_revenue,total_revenue,roas,acos,tacos,ctr,cpc,organic_sales_count,organic_units_sold,organic_revenue,organic_metrics_synced,direct_sales_count,indirect_sales_count,direct_units_sold,indirect_units_sold,direct_revenue,indirect_revenue,cvr,sov,impression_share,top_impression_share,lost_impression_share_by_budget,lost_impression_share_by_ad_rank,acos_benchmark,status,ai_action_suggestion",
         )
         .eq("company_id", ECOMMERCE_COMPANY_ID)
-        .gte("metric_date", metricDateFrom(days))
+        .eq("metric_scope", "product_period")
+        .eq("period_days", days)
         .order("metric_date", { ascending: false })
         .limit(20000);
 
@@ -141,7 +141,11 @@ function AdsIntelligenceContent() {
         return;
       }
 
-      const metrics = (data || []) as AdsMetric[];
+      const rawMetrics = (data || []) as AdsMetric[];
+      const latestDate = rawMetrics[0]?.metric_date ?? null;
+      const metrics = latestDate
+        ? rawMetrics.filter((row) => row.metric_date === latestDate)
+        : [];
       setRows(metrics);
 
       const productIds = Array.from(
@@ -177,7 +181,42 @@ function AdsIntelligenceContent() {
     return () => {
       cancelled = true;
     };
-  }, [activeAccountId, accountLoading, days]);
+  }, [activeAccountId, accountLoading, days, refreshTick]);
+
+  async function handleSync() {
+    if (!activeAccountId) {
+      toast.error("Selecione uma conta Mercado Livre para atualizar o Ads.");
+      return;
+    }
+
+    setSyncing(true);
+    setError(null);
+    try {
+      const result = await runMarketplaceIntelligence<{
+        rows?: number;
+        ad_groups?: number;
+        mapped_ad_groups?: number;
+      }>({
+        action: "ads_sync",
+        company_id: ECOMMERCE_COMPANY_ID,
+        account_id: activeAccountId,
+        days,
+      });
+      toast.success(
+        `Ads atualizado: ${Number(result.rows ?? 0).toLocaleString("pt-BR")} produto(s) com métricas do período.`,
+      );
+      setRefreshTick((value) => value + 1);
+    } catch (syncError) {
+      const message =
+        syncError instanceof Error
+          ? syncError.message
+          : "Não foi possível atualizar o Product Ads.";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   const totals = useMemo(() => {
     let impressions = 0;
@@ -395,21 +434,32 @@ function AdsIntelligenceContent() {
             </div>
           </div>
 
-          <div className="flex rounded-xl border border-white/10 bg-white/5 p-1">
-            {[7, 30, 90].map((period) => (
-              <button
-                key={period}
-                type="button"
-                onClick={() => setDays(period)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                  days === period
-                    ? "bg-white text-slate-900"
-                    : "text-slate-300 hover:bg-white/10 hover:text-white"
-                }`}
-              >
-                {period} dias
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => void handleSync()}
+              disabled={syncing || !activeAccountId}
+              className="inline-flex items-center gap-2 rounded-xl border border-blue-300/20 bg-blue-400/10 px-3.5 py-2 text-xs font-semibold text-blue-100 transition hover:bg-blue-400/20 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+              {syncing ? "Atualizando Mercado Livre…" : "Atualizar do Mercado Livre"}
+            </button>
+            <div className="flex rounded-xl border border-white/10 bg-white/5 p-1">
+              {[1, 7, 30, 90].map((period) => (
+                <button
+                  key={period}
+                  type="button"
+                  onClick={() => setDays(period)}
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                    days === period
+                      ? "bg-white text-slate-900"
+                      : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {period === 1 ? "Hoje" : `${period} dias`}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </header>

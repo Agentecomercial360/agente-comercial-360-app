@@ -38,7 +38,6 @@ export const Route = createFileRoute("/ecommerce/custos-margem")({
   }),
 });
 
-const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
 
 type ProductRow = {
   id: string;
@@ -240,6 +239,7 @@ function CustosMargem() {
 
 function CustosMargemContent() {
   const {
+    companyId,
     activeAccountId,
     activeAccount,
     loading: accountsLoading,
@@ -281,7 +281,7 @@ function CustosMargemContent() {
 
 
   const load = useCallback(async () => {
-    if (accountsLoading) return;
+    if (accountsLoading || !companyId) return;
     setLoading(true);
     setError(null);
     try {
@@ -290,17 +290,17 @@ function CustosMargemContent() {
           supabase
             .from("ecommerce_products")
             .select("id,sku,product_name,category,sale_price,cost_price,status")
-            .eq("company_id", COMPANY_ID)
+            .eq("company_id", companyId)
             .limit(50000),
           supabase
             .from("ecommerce_listings")
             .select("id,product_id,account_id,status")
-            .eq("company_id", COMPANY_ID)
+            .eq("company_id", companyId)
             .limit(50000),
           supabase
             .from("ecommerce_accounts")
             .select("id,account_name,marketplace,nickname")
-            .eq("company_id", COMPANY_ID),
+            .eq("company_id", companyId),
         ]);
       if (ep) throw ep;
       if (el) throw el;
@@ -315,7 +315,7 @@ function CustosMargemContent() {
       let ordersQuery = supabase
         .from("ecommerce_orders")
         .select("id,account_id")
-        .eq("company_id", COMPANY_ID)
+        .eq("company_id", companyId)
         .limit(20000);
       if (selectedAccountId) ordersQuery = ordersQuery.eq("account_id", selectedAccountId);
       const { data: ords, error: eo } = await ordersQuery;
@@ -339,7 +339,7 @@ function CustosMargemContent() {
             supabase
               .from("ecommerce_order_items")
               .select("order_id,product_id,quantity,unit_price,total_price")
-              .eq("company_id", COMPANY_ID)
+              .eq("company_id", companyId)
               .in("order_id", c)
               .limit(50000),
           ),
@@ -357,7 +357,7 @@ function CustosMargemContent() {
         supabase
           .from("ecommerce_orders")
           .select("id", { count: "exact", head: true })
-          .eq("company_id", COMPANY_ID);
+          .eq("company_id", companyId);
       const pendQ = baseCount().eq("profit_confidence", "pending_cost");
       const highQ = baseCount().eq("profit_confidence", "high");
       const [pendingResult, highResult] = await Promise.all([
@@ -387,7 +387,7 @@ function CustosMargemContent() {
     setImpactLoading(true);
     supabase
       .rpc("get_ecommerce_cost_impact_summary_v1", {
-        p_company_id: COMPANY_ID,
+        p_company_id: companyId,
         p_account_id,
       })
 
@@ -424,7 +424,7 @@ function CustosMargemContent() {
     setBlockingLoading(true);
     supabase
       .rpc("get_ecommerce_cost_blocking_products_v1", {
-        p_company_id: COMPANY_ID,
+        p_company_id: companyId,
         p_account_id,
         p_limit: 20,
       })
@@ -451,7 +451,7 @@ function CustosMargemContent() {
     setDailyLoading(true);
     supabase
       .rpc("get_ecommerce_cost_blocking_daily_v1", {
-        p_company_id: COMPANY_ID,
+        p_company_id: companyId,
         p_account_id,
         p_days: null,
       })
@@ -794,7 +794,7 @@ function CustosMargemContent() {
         </header>
 
         <ProfitabilityOverview
-          companyId={COMPANY_ID}
+          companyId={companyId}
           accountId={selectedAccountId}
           accountName={selectedAccountName}
         />
@@ -976,7 +976,7 @@ function CustosMargemContent() {
                 <PendingCostsTable
                   rows={pendingRows}
                   loading={loading}
-                  companyId={COMPANY_ID}
+                  companyId={companyId}
                   scopeLabel={selectedAccountName}
                   onSaved={async () => {
                     setImpactReloadKey((k) => k + 1);
@@ -1769,7 +1769,7 @@ function EditCostModal({
     setSaving(true);
     try {
       const { data, error } = await supabase.rpc("upsert_ecommerce_product_costs_v3", {
-        p_company_id: COMPANY_ID,
+        p_company_id: companyId,
         p_rows: [
           {
             product_id: product.id,

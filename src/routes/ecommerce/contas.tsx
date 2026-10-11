@@ -226,12 +226,15 @@ function ContasML() {
         companyId,
         accountId,
       });
+      toast.success("Mercado Livre conectado com sucesso.");
+      await loadData();
     } catch (e: any) {
       toast.error(
         e?.message
           ? `Não foi possível iniciar a conexão: ${e.message}`
           : "Não foi possível iniciar a conexão com o Mercado Livre.",
       );
+    } finally {
       setConnectingId(null);
     }
   }
@@ -277,10 +280,13 @@ function ContasML() {
         companyId: String(data.company_id),
         accountId: String(data.id),
       });
-    } catch (e: any) {
-      toast.error(e?.message || "Não foi possível criar a conta Mercado Livre.");
-      setCreating(false);
+      toast.success("Conta Mercado Livre conectada com sucesso.");
       await loadData();
+    } catch (e: any) {
+      toast.error(e?.message || "Não foi possível criar ou conectar a conta Mercado Livre.");
+      await loadData();
+    } finally {
+      setCreating(false);
     }
   }
 

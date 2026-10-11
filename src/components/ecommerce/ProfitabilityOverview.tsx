@@ -50,6 +50,8 @@ function n(value: unknown): number {
 export function ProfitabilityOverview({ companyId, accountId, accountName }: Props) {
   const [days, setDays] = useState(30);
   const [rows, setRows] = useState<OrderProfitRow[]>([]);
+  const [syncedAdsInvestment, setSyncedAdsInvestment] = useState(0);
+  const [adsSnapshotDate, setAdsSnapshotDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,15 +78,47 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
 
       if (accountId) query = query.eq("account_id", accountId);
 
-      const { data, error: queryError } = await query;
+      let adsQuery = supabase
+        .from("ecommerce_ads_metrics")
+        .select("metric_date,investment")
+        .eq("company_id", companyId)
+        .eq("metric_scope", "product_period")
+        .eq("period_days", days)
+        .eq("organic_metrics_synced", true)
+        .order("metric_date", { ascending: false })
+        .limit(10000);
+
+      if (accountId) adsQuery = adsQuery.eq("account_id", accountId);
+
+      const [ordersResult, adsResult] = await Promise.all([query, adsQuery]);
       if (cancelled) return;
 
-      if (queryError) {
-        setError(queryError.message);
+      if (ordersResult.error) {
+        setError(ordersResult.error.message);
         setRows([]);
       } else {
-        setRows((data || []) as OrderProfitRow[]);
+        setRows((ordersResult.data || []) as OrderProfitRow[]);
       }
+
+      if (adsResult.error) {
+        console.error("profitability ads fallback", adsResult.error);
+        setSyncedAdsInvestment(0);
+        setAdsSnapshotDate(null);
+      } else {
+        const adsRows = (adsResult.data || []) as Array<{
+          metric_date: string;
+          investment: number | null;
+        }>;
+        const latestDate = adsRows[0]?.metric_date ?? null;
+        const investment = latestDate
+          ? adsRows
+              .filter((row) => row.metric_date === latestDate)
+              .reduce((sum, row) => sum + n(row.investment), 0)
+          : 0;
+        setSyncedAdsInvestment(investment);
+        setAdsSnapshotDate(latestDate);
+      }
+
       setLoading(false);
     }
 
@@ -145,26 +179,31 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
       if (row.profit_confidence === "high") reliable += 1;
     }
 
-    const totalCosts = platformFees + shipping + ads + taxes + productCost + refunds;
-    const margin = revenue > 0 ? (netProfit / revenue) * 100 : 0;
+    const adsFallback = ads === 0 ? syncedAdsInvestment : 0;
+    const effectiveAds = ads + adsFallback;
+    const adjustedNetProfit = netProfit - adsFallback;
+    const totalCosts =
+      platformFees + shipping + effectiveAds + taxes + productCost + refunds;
+    const margin = revenue > 0 ? (adjustedNetProfit / revenue) * 100 : 0;
 
     return {
       revenue,
       platformFees,
       shipping,
-      ads,
+      ads: effectiveAds,
+      adsFromProductAds: adsFallback > 0,
       taxes,
       productCost,
       discounts,
       refunds,
       totalCosts,
-      netProfit,
+      netProfit: adjustedNetProfit,
       margin,
       reviewRequired,
       reliable,
       orders: rows.length,
     };
-  }, [rows]);
+  }, [rows, syncedAdsInvestment]);
 
   const costs = [
     { label: "Taxas da plataforma", value: summary.platformFees, icon: ReceiptText },
@@ -278,6 +317,14 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
                 <p className="text-xs text-slate-500">
                   Detalhamento do valor consumido em cada camada da operação.
                 </p>
+                {summary.adsFromProductAds ? (
+                  <p className="mt-1 text-[11px] font-medium text-blue-700">
+                    Publicidade aplicada pelo snapshot real do Product Ads
+                    {adsSnapshotDate
+                      ? ` · atualizado em ${new Date(`${adsSnapshotDate}T12:00:00`).toLocaleDateString("pt-BR")}`
+                      : ""}.
+                  </p>
+                ) : null}
               </div>
               <div className="space-y-3">
                 {costs.map((item) => {
@@ -462,9 +509,10 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
             </div>
             <div className="border-t border-slate-100 bg-slate-50/70 px-5 py-3 text-[11px] leading-relaxed text-slate-500 md:px-6">
               Descontos são exibidos para auditoria, mas não são subtraídos novamente
-              do lucro nesta tela: nos dados atuais do AC360 eles já estão refletidos
-              no valor final da venda. O lucro líquido segue o cálculo canônico salvo
-              no pedido sempre que disponível.
+              do lucro nesta tela: eles já podem estar refletidos no valor final da venda.
+              Quando o pedido ainda não traz custo de Ads e existe um snapshot sincronizado
+              do Product Ads para o período, o AC360 aplica esse investimento no resumo
+              financeiro sem rateá-lo artificialmente entre pedidos.
             </div>
           </div>
         </>

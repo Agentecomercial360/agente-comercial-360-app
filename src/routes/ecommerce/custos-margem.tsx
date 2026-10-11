@@ -1697,12 +1697,12 @@ function CustosMargemContent() {
             </div>
             <div className="space-y-1">
               <h3 className="font-display text-base font-bold text-foreground">
-                Próxima etapa
+                Custo cadastrado vira lucro confiável
               </h3>
               <p className="text-sm text-muted-foreground">
-                Após preencher o custo dos produtos prioritários, o sistema poderá calcular
-                lucro líquido por anúncio, margem real, curva ABC financeira e ativar o
-                Radar IA de rentabilidade.
+                Ao salvar ou importar um custo, o AC360 registra o histórico, preenche somente
+                snapshots de venda ainda vazios e recalcula automaticamente os pedidos afetados.
+                Custos históricos já registrados não são sobrescritos por alterações futuras.
               </p>
             </div>
           </div>

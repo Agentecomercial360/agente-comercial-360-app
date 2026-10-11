@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
-import { RankingRadar } from "@/components/ecommerce/RankingRadar";
+import { RankingRadar } from "@/components/ecommerce/RankingRadar";\nimport { CatalogCompetitionStatus } from "@/components/ecommerce/CatalogCompetitionStatus";
 import {
   ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
@@ -1641,6 +1641,16 @@ function ConcorrenciaInner() {
           )}
         </CardContent>
       </Card>
+
+      {selectedBase && activeAccountId ? (
+        <CatalogCompetitionStatus
+          companyId={ECOMMERCE_COMPANY_ID}
+          accountId={activeAccountId}
+          listingId={selectedBase.listing_id}
+          mlItemId={selectedBase.ml_item_id}
+          title={selectedBase.title}
+        />
+      ) : null}
 
       {selectedBase ? (
         <RankingRadar

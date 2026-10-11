@@ -17,7 +17,7 @@ import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
 import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import { PendingCostsTable, type PendingCostRow } from "@/components/ecommerce/PendingCostsTable";
-import { PriorityImpactSection } from "@/components/ecommerce/PriorityImpactSection";
+import { PriorityImpactSection } from "@/components/ecommerce/PriorityImpactSection";\nimport { ProfitabilityOverview } from "@/components/ecommerce/ProfitabilityOverview";
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -791,6 +791,12 @@ function CustosMargemContent() {
             </div>
           </div>
         </header>
+
+        <ProfitabilityOverview
+          companyId={COMPANY_ID}
+          accountId={selectedAccountId}
+          accountName={selectedAccountName}
+        />
 
         {/* KPIs da conta selecionada */}
         <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6 gap-4">

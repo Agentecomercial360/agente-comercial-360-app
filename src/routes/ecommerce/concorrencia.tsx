@@ -16,7 +16,6 @@ import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { RankingRadar } from "@/components/ecommerce/RankingRadar";
 import { CatalogCompetitionStatus } from "@/components/ecommerce/CatalogCompetitionStatus";
 import {
-  ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
@@ -433,7 +432,8 @@ const EMPTY_MANUAL: ManualFormState = {
 };
 
 function ConcorrenciaInner() {
-  const { activeAccountId, activeAccount } = useEcommerceActiveAccount();
+  const {
+    companyId, activeAccountId, activeAccount } = useEcommerceActiveAccount();
   const [loadingBase, setLoadingBase] = useState(false);
   const [baseProducts, setBaseProducts] = useState<BaseProduct[]>([]);
   const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
@@ -471,7 +471,7 @@ function ConcorrenciaInner() {
           .select(
             "id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at",
           )
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .eq("account_id", activeAccountId)
           .order("updated_at", { ascending: false })
           .limit(500);
@@ -485,7 +485,7 @@ function ConcorrenciaInner() {
           const { data: prod } = await supabase
             .from("ecommerce_products")
             .select("id,sku,product_name,sale_price")
-            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .eq("company_id", companyId)
             .in("id", productIds);
           for (const p of (prod || []) as ProductRow[]) productsById.set(p.id, p);
         }
@@ -587,7 +587,7 @@ function ConcorrenciaInner() {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
-          company_id: ECOMMERCE_COMPANY_ID,
+          company_id:
           account_id: activeAccountId,
           item_id: extractedId,
           item_url: trimmed,
@@ -1645,7 +1645,7 @@ function ConcorrenciaInner() {
 
       {selectedBase && activeAccountId ? (
         <CatalogCompetitionStatus
-          companyId={ECOMMERCE_COMPANY_ID}
+          companyId={companyId}
           accountId={activeAccountId}
           listingId={selectedBase.listing_id}
           mlItemId={selectedBase.ml_item_id}
@@ -1655,7 +1655,7 @@ function ConcorrenciaInner() {
 
       {selectedBase && activeAccountId ? (
         <RankingRadar
-          companyId={ECOMMERCE_COMPANY_ID}
+          companyId={companyId}
           accountId={activeAccountId}
           baseListingId={selectedBase.listing_id}
           baseTitle={selectedBase.title}

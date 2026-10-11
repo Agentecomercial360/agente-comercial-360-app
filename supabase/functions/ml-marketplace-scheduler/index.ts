@@ -46,14 +46,15 @@ function due(state: SyncState | undefined): boolean {
 
 async function invokeIntelligence(
   body: Record<string, unknown>,
+  schedulerSecret: string,
 ): Promise<{ ok: boolean; status: number; data: any }> {
   const res = await fetch(
     `${SUPABASE_URL}/functions/v1/ml-marketplace-intelligence`,
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${SERVICE_ROLE}`,
         "Content-Type": "application/json",
+        "x-ac360-cron-secret": schedulerSecret,
       },
       body: JSON.stringify(body),
     },
@@ -138,11 +139,14 @@ Deno.serve(async (req: Request) => {
     label: string,
   ) {
     const started = Date.now();
-    const result = await invokeIntelligence({
-      company_id: account.company_id,
-      account_id: account.id,
-      ...body,
-    });
+    const result = await invokeIntelligence(
+      {
+        company_id: account.company_id,
+        account_id: account.id,
+        ...body,
+      },
+      candidate,
+    );
 
     executions.push({
       account_id: account.id,

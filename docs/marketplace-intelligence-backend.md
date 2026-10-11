@@ -224,3 +224,31 @@ diferenças entre telas.
 4. Etiquetas oficiais PDF agrupadas por SKU: implementado.
 5. Alertas automáticos para Central de Ações: implementado via triggers do Postgres.
 6. Próxima evolução: ingestão automática das notificações de competição e agendamentos periódicos sem depender do clique do usuário.
+
+
+## 9. Automação de sincronização
+
+O AC360 mantém um estado de saúde em `ecommerce_marketplace_sync_state`.
+
+Cadências atuais enquanto o módulo /ecommerce estiver em uso:
+
+- Product Ads: 30 minutos por período consultado;
+- competição de catálogo: 60 minutos por anúncio monitorado;
+- Radar de Mercado: 12 horas;
+- falhas: próximo retry marcado para 15 minutos.
+
+A Edge Function registra início, sucesso, erro, última execução e próximo vencimento.
+Falhas geram automaticamente um insight de alta prioridade na Central de Ações através
+de `marketplace_sync_watch`; quando a integração volta a funcionar, o insight é
+marcado como concluído.
+
+### Limite atual do modo 24/7
+
+A renovação de access token do Mercado Livre ainda usa o endpoint Railway
+`sync-account-smart`, autenticado com a sessão Supabase do usuário. Por isso, a
+autoatualização atual é silenciosa e automática enquanto existe uma sessão AC360 ativa.
+
+Para cron 24/7 sem usuário logado, o backend Railway precisa expor uma autenticação
+service-to-service segura para renovação do token, ou a Edge Function precisa receber as
+credenciais da aplicação Mercado Livre via secrets do backend e renovar o refresh_token
+diretamente. Nenhuma dessas credenciais deve ser movida para o frontend.

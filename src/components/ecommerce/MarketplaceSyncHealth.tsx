@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   Activity,
   AlertTriangle,
@@ -174,8 +175,16 @@ export function MarketplaceSyncHealth({ companyId, accountId }: Props) {
             O AC360 monitora autenticação, Ads, competição e Radar. O scheduler 24/7 verifica as contas a cada 15 minutos e pausa coletas quando a autenticação expira.
           </p>
         </div>
-        <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-600">
-          {accountId ? "Conta ativa" : "Todas as contas"}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-600">
+            {accountId ? "Conta ativa" : "Todas as contas"}
+          </div>
+          <Link
+            to="/ecommerce/saude-inteligencia"
+            className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold text-blue-700 transition hover:bg-blue-100"
+          >
+            Abrir central
+          </Link>
         </div>
       </div>
 

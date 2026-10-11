@@ -1697,12 +1697,12 @@ function CustosMargemContent() {
             </div>
             <div className="space-y-1">
               <h3 className="font-display text-base font-bold text-foreground">
-                Próxima etapa
+                Custo cadastrado vira lucro confiável
               </h3>
               <p className="text-sm text-muted-foreground">
-                Após preencher o custo dos produtos prioritários, o sistema poderá calcular
-                lucro líquido por anúncio, margem real, curva ABC financeira e ativar o
-                Radar IA de rentabilidade.
+                Ao salvar ou importar um custo, o AC360 registra o histórico, preenche somente
+                snapshots de venda ainda vazios e recalcula automaticamente os pedidos afetados.
+                Custos históricos já registrados não são sobrescritos por alterações futuras.
               </p>
             </div>
           </div>
@@ -1768,26 +1768,38 @@ function EditCostModal({
     }
     setSaving(true);
     try {
-      const update = await supabase
-        .from("ecommerce_products")
-        .update({
-          cost_price: parsed,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", product.id)
-        .eq("company_id", COMPANY_ID);
-      if (update.error) throw update.error;
-
-      const recalc = await supabase.rpc("recalculate_ecommerce_profit_v1", {
+      const { data, error } = await supabase.rpc("upsert_ecommerce_product_costs_v3", {
         p_company_id: COMPANY_ID,
-        p_product_id: product.id,
+        p_rows: [
+          {
+            product_id: product.id,
+            sku: product.sku,
+            cost_price: parsed,
+          },
+        ],
+        p_changed_by: "AC360 Modal de Custos",
+        p_notes:
+          "Atualização individual pelo modal. Snapshots de custo já registrados são preservados.",
       });
 
-      if (recalc.error) {
-        toast.success("Custo salvo. Sincronize novamente para recalcular os pedidos.");
+      if (error) throw error;
+
+      const result = (data ?? {}) as {
+        products_updated?: number;
+        products_unchanged?: number;
+        items_backfilled?: number;
+        orders_recalculated?: number;
+        orders_high_confidence?: number;
+      };
+
+      if ((result.products_updated ?? 0) > 0) {
+        toast.success("Custo salvo e lucro recalculado.", {
+          description: `${result.items_backfilled ?? 0} item(ns) com backfill · ${result.orders_recalculated ?? 0} pedido(s) recalculado(s) · ${result.orders_high_confidence ?? 0} com lucro confiável.`,
+        });
       } else {
-        toast.success("Custo salvo e pedidos recalculados.");
+        toast.info("Esse produto já possui exatamente esse custo.");
       }
+
       onSaved();
     } catch (e: any) {
       toast.error(e?.message || "Erro ao atualizar custo.");

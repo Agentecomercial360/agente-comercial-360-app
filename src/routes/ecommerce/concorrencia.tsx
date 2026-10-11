@@ -1653,8 +1653,10 @@ function ConcorrenciaInner() {
         />
       ) : null}
 
-      {selectedBase ? (
+      {selectedBase && activeAccountId ? (
         <RankingRadar
+          companyId={ECOMMERCE_COMPANY_ID}
+          accountId={activeAccountId}
           baseListingId={selectedBase.listing_id}
           baseTitle={selectedBase.title}
           baseSku={selectedBase.sku}

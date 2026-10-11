@@ -1066,7 +1066,7 @@ function RegistrarResultadoDialog({
     // NOTE: ecommerce_action_results does NOT have account_id.
     // account_id é resolvido via view vw_ecommerce_action_results (join por task_id).
     const payload: Record<string, unknown> = {
-      company_id:
+      company_id: companyId,
       task_id: t.id,
       product_id: t.product_id,
       listing_id: t.listing_id,

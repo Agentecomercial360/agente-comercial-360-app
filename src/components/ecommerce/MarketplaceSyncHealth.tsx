@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
   AlertTriangle,
+  KeyRound,
   CheckCircle2,
   Clock3,
   Loader2,
@@ -18,7 +19,7 @@ type Props = {
 
 type SyncRow = {
   account_id: string;
-  capability: "ads" | "competition" | "market_radar" | "shipment_labels";
+  capability: "auth" | "ads" | "competition" | "market_radar" | "shipment_labels";
   resource_key: string;
   status: "idle" | "running" | "success" | "error";
   last_attempt_at: string | null;
@@ -29,6 +30,11 @@ type SyncRow = {
 };
 
 const META = {
+  auth: {
+    label: "Autenticação ML",
+    description: "Token e conexão da conta",
+    icon: KeyRound,
+  },
   ads: {
     label: "Product Ads",
     description: "Orgânico × publicidade",
@@ -165,7 +171,7 @@ export function MarketplaceSyncHealth({ companyId, accountId }: Props) {
             Sincronização automática do Marketplace
           </h2>
           <p className="mt-1 text-xs text-slate-500">
-            Ads a cada 30 min, competição a cada 60 min por anúncio e Radar a cada 12 h enquanto o AC360 estiver em uso.
+            O AC360 monitora autenticação, Ads, competição e Radar. O scheduler 24/7 verifica as contas a cada 15 minutos e pausa coletas quando a autenticação expira.
           </p>
         </div>
         <div className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-600">
@@ -173,7 +179,7 @@ export function MarketplaceSyncHealth({ companyId, accountId }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         {items.map(({ capability, meta, data }) => {
           const Icon = meta.icon;
           const state =

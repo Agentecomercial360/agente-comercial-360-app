@@ -22,7 +22,6 @@ import {
 } from "recharts";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
-  ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
@@ -161,7 +160,8 @@ function DashboardEcommerce() {
 }
 
 function DashboardContent() {
-  const { accounts, activeAccount, activeAccountId } = useEcommerceActiveAccount();
+  const {
+    companyId, accounts, activeAccount, activeAccountId } = useEcommerceActiveAccount();
 
   const [period, setPeriod] = useState<PeriodKey>("7d");
   const [scope, setScope] = useState<"active" | "all">("active");
@@ -181,7 +181,7 @@ function DashboardContent() {
       const { data, error } = await supabase
         .from("ecommerce_accounts")
         .select("id, company_id, account_name, marketplace, auth_status, is_active, nickname")
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("marketplace", "mercado_livre")
         .eq("auth_status", "connected")
         .eq("is_active", true);
@@ -236,7 +236,7 @@ function DashboardContent() {
           .select(
             "id, account_id, order_date, total_amount, mercadolivre_fee, marketplace_fee, seller_shipping_cost, product_cost_total, net_profit, profit_confidence, order_status, payment_status, buyer_city, buyer_state",
           )
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .gte("order_date", range.sinceISO)
           .lte("order_date", range.untilISO)
           .order("order_date", { ascending: false })
@@ -270,7 +270,7 @@ function DashboardContent() {
         .select(
           "account_id, status, days, total_found, orders_upserted, items_upserted, items_linked, products_created, orders_pending_cost, error_message, created_at",
         )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .order("created_at", { ascending: false })
         .limit(1);
       if (scope === "active" && selectedAccountId) {
@@ -471,7 +471,7 @@ function DashboardContent() {
       </section>
 
       <MarketplaceSyncHealth
-        companyId={ECOMMERCE_COMPANY_ID}
+        companyId={companyId}
         accountId={scope === "active" ? selectedAccountId : null}
       />
 

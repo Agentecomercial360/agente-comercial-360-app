@@ -21,7 +21,10 @@ import {
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { runMarketplaceIntelligence } from "@/lib/ml-marketplace-intelligence";
+import {
+  autoSyncMarketplaceIntelligence,
+  runMarketplaceIntelligence,
+} from "@/lib/ml-marketplace-intelligence";
 
 export const Route = createFileRoute("/ecommerce/ads")({
   component: AdsIntelligencePage,
@@ -182,6 +185,30 @@ function AdsIntelligenceContent() {
       cancelled = true;
     };
   }, [activeAccountId, accountLoading, days, refreshTick]);
+
+  useEffect(() => {
+    if (accountLoading || !activeAccountId) return;
+    let cancelled = false;
+
+    void autoSyncMarketplaceIntelligence({
+      action: "ads_sync",
+      company_id: ECOMMERCE_COMPANY_ID,
+      account_id: activeAccountId,
+      days,
+    })
+      .then(({ executed }) => {
+        if (executed && !cancelled) {
+          setRefreshTick((value) => value + 1);
+        }
+      })
+      .catch((autoError) => {
+        console.warn("ads auto sync", autoError);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeAccountId, accountLoading, days]);
 
   async function handleSync() {
     if (!activeAccountId) {

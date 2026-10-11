@@ -44,6 +44,7 @@ import { Badge } from "@/components/ui/badge";
 import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { MarketplaceSyncHealth } from "@/components/ecommerce/MarketplaceSyncHealth";
 
 export const Route = createFileRoute("/ecommerce/dashboard")({
   component: DashboardEcommerce,
@@ -467,6 +468,11 @@ function DashboardContent() {
           </SegmentButton>
         </SegmentedGroup>
       </section>
+
+      <MarketplaceSyncHealth
+        companyId={ECOMMERCE_COMPANY_ID}
+        accountId={scope === "active" ? selectedAccountId : null}
+      />
 
       {errorMsg && (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">

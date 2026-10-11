@@ -12,7 +12,10 @@ import {
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import { runMarketplaceIntelligence } from "@/lib/ml-marketplace-intelligence";
+import {
+  autoSyncMarketplaceIntelligence,
+  runMarketplaceIntelligence,
+} from "@/lib/ml-marketplace-intelligence";
 
 type Props = {
   companyId: string;
@@ -91,6 +94,28 @@ export function CatalogCompetitionStatus({
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!mlItemId) return;
+    let cancelled = false;
+
+    void autoSyncMarketplaceIntelligence({
+      action: "competition_sync",
+      company_id: companyId,
+      account_id: accountId,
+      listing_id: listingId,
+    })
+      .then(({ executed }) => {
+        if (executed && !cancelled) void load();
+      })
+      .catch((autoError) => {
+        console.warn("competition auto sync", autoError);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [companyId, accountId, listingId, mlItemId, load]);
 
   async function handleSync() {
     setSyncing(true);

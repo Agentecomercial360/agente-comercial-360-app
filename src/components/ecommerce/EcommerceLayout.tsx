@@ -32,10 +32,12 @@ import acLogo from "@/assets/ac-logo.png";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
+  ECOMMERCE_COMPANY_ID,
   EcommerceActiveAccountProvider,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
+import { autoSyncMarketplaceIntelligence } from "@/lib/ml-marketplace-intelligence";
 
 const navGroups = [
   {
@@ -281,6 +283,31 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
     }, 8000);
     return () => clearTimeout(t);
   }, [lastUpdate]);
+
+  useEffect(() => {
+    if (!activeAccountId || !activeAccount) return;
+    if (activeAccount.marketplace !== "mercado_livre") return;
+
+    void Promise.allSettled([
+      autoSyncMarketplaceIntelligence({
+        action: "ads_sync",
+        company_id: ECOMMERCE_COMPANY_ID,
+        account_id: activeAccountId,
+        days: 30,
+      }),
+      autoSyncMarketplaceIntelligence({
+        action: "market_radar_sync",
+        company_id: ECOMMERCE_COMPANY_ID,
+        account_id: activeAccountId,
+      }),
+    ]).then((results) => {
+      for (const result of results) {
+        if (result.status === "rejected") {
+          console.warn("marketplace background refresh", result.reason);
+        }
+      }
+    });
+  }, [activeAccountId, activeAccount]);
 
   const handleRefresh = useCallback(async () => {
     if (isUpdating) return;

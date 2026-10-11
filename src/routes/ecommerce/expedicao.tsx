@@ -276,7 +276,7 @@ function ExpedicaoContent() {
         groups?: number;
       }>({
         action: "shipment_labels",
-        company_id:
+        company_id: companyId,
         account_id: activeAccountId,
         groups: labelGroups,
       });

@@ -8,6 +8,7 @@ import {
   ReceiptText,
   RotateCcw,
   Truck,
+  Percent,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -27,6 +28,7 @@ type OrderProfitRow = {
   ads_cost: number | null;
   tax_amount: number | null;
   product_cost_total: number | null;
+  discount_amount: number | null;
   net_profit: number | null;
   refunded_amount: number | null;
   has_refund: boolean | null;
@@ -63,9 +65,10 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
       let query = supabase
         .from("ecommerce_orders")
         .select(
-          "id,total_amount,marketplace_fee,mercadolivre_fee,mercadopago_fee,seller_shipping_cost,ads_cost,tax_amount,product_cost_total,net_profit,refunded_amount,has_refund,financial_review_required,profit_confidence,order_date",
+          "id,total_amount,marketplace_fee,mercadolivre_fee,mercadopago_fee,seller_shipping_cost,ads_cost,tax_amount,product_cost_total,discount_amount,net_profit,refunded_amount,has_refund,financial_review_required,profit_confidence,order_date",
         )
         .eq("company_id", companyId)
+        .eq("is_cancelled", false)
         .gte("order_date", from.toISOString())
         .order("order_date", { ascending: false })
         .limit(20000);
@@ -97,6 +100,7 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
     let ads = 0;
     let taxes = 0;
     let productCost = 0;
+    let discounts = 0;
     let refunds = 0;
     let netProfit = 0;
     let reviewRequired = 0;
@@ -111,6 +115,7 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
       const rowAds = n(row.ads_cost);
       const rowTaxes = n(row.tax_amount);
       const rowProductCost = n(row.product_cost_total);
+      const rowDiscounts = n(row.discount_amount);
       const rowRefunds = n(row.refunded_amount);
 
       revenue += rowRevenue;
@@ -119,6 +124,7 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
       ads += rowAds;
       taxes += rowTaxes;
       productCost += rowProductCost;
+      discounts += rowDiscounts;
       refunds += rowRefunds;
 
       if (row.net_profit != null) {
@@ -148,6 +154,7 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
       ads,
       taxes,
       productCost,
+      discounts,
       refunds,
       totalCosts,
       netProfit,
@@ -164,6 +171,7 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
     { label: "Publicidade", value: summary.ads, icon: Megaphone },
     { label: "Impostos", value: summary.taxes, icon: BadgeDollarSign },
     { label: "Custo dos produtos", value: summary.productCost, icon: Package },
+    { label: "Descontos registrados", value: summary.discounts, icon: Percent },
     { label: "Reembolsos / devoluções", value: summary.refunds, icon: RotateCcw },
   ];
 

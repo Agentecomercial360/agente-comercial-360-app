@@ -192,7 +192,7 @@ function AdsIntelligenceContent() {
 
     void autoSyncMarketplaceIntelligence({
       action: "ads_sync",
-      company_id:
+      company_id: companyId,
       account_id: activeAccountId,
       days,
     })

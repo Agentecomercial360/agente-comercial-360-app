@@ -358,7 +358,7 @@ function IntelligenceHealthContent() {
         ...listingIds.map((listingId) =>
           runMarketplaceIntelligence({
             action: "competition_sync",
-            company_id:
+            company_id: companyId,
             account_id: account.id,
             listing_id: listingId,
           }),

@@ -2,6 +2,8 @@ import { createClient } from "npm:@supabase/supabase-js@2.106.1";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const RAILWAY_REFRESH_URL =
+  "https://ac360-mercadolivre-api-production.up.railway.app/api/ecommerce/mercadolivre/token-refresh-internal";
 
 function adminClient() {
   if (!SUPABASE_URL || !SERVICE_ROLE) {
@@ -49,6 +51,38 @@ type Integration = {
 function due(state: SyncState | undefined): boolean {
   if (!state?.next_due_at) return true;
   return new Date(state.next_due_at).getTime() <= Date.now();
+}
+
+async function refreshMercadoLivreToken(
+  account: Account,
+  schedulerSecret: string,
+): Promise<{ ok: boolean; status: number; data: any }> {
+  const res = await fetch(RAILWAY_REFRESH_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "x-ac360-cron-secret": schedulerSecret,
+    },
+    body: JSON.stringify({
+      company_id: account.company_id,
+      account_id: account.id,
+    }),
+  });
+
+  const text = await res.text();
+  let data: any = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = { raw: text.slice(0, 500) };
+  }
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    data,
+  };
 }
 
 async function invokeIntelligence(
@@ -191,15 +225,46 @@ Deno.serve(async (req: Request) => {
   for (const account of accountRows) {
     if (executions.length >= MAX_EXECUTIONS) break;
     const integration = latestIntegrationByAccount.get(account.id);
-    const expiresAt = integration?.expires_at
-      ? new Date(integration.expires_at).getTime()
-      : 0;
-    const tokenValid = expiresAt > Date.now() + 2 * 60_000;
+    let effectiveExpiresAt = integration?.expires_at ?? null;
+    let tokenValid = effectiveExpiresAt
+      ? new Date(effectiveExpiresAt).getTime() > Date.now() + 2 * 60_000
+      : false;
+    let refreshResult: { ok: boolean; status: number; data: any } | null = null;
+
+    if (integration && !tokenValid && executions.length < MAX_EXECUTIONS) {
+      const started = Date.now();
+      refreshResult = await refreshMercadoLivreToken(account, candidate);
+      const refreshedExpiresAt =
+        refreshResult.data?.summary?.new_expires_at ?? null;
+      tokenValid =
+        refreshResult.ok &&
+        Boolean(refreshedExpiresAt) &&
+        new Date(refreshedExpiresAt).getTime() > Date.now() + 2 * 60_000;
+
+      if (tokenValid) {
+        effectiveExpiresAt = refreshedExpiresAt;
+      }
+
+      executions.push({
+        account_id: account.id,
+        account: account.account_name || account.nickname || account.id,
+        label: "auth_refresh",
+        ok: refreshResult.ok && tokenValid,
+        http_status: refreshResult.status,
+        duration_ms: Date.now() - started,
+        error:
+          refreshResult.ok && tokenValid
+            ? null
+            : refreshResult.data?.error ||
+              "O refresh interno não retornou um token válido.",
+      });
+    }
 
     if (!integration || !tokenValid) {
-      const message = integration
-        ? "Token Mercado Livre expirado. Reconecte a conta para liberar a automação 24/7."
-        : "Integração Mercado Livre não encontrada. Reconecte a conta para liberar a automação 24/7.";
+      const message = !integration
+        ? "Integração Mercado Livre não encontrada. Reconecte a conta para liberar a automação 24/7."
+        : refreshResult?.data?.error ||
+          "Não foi possível renovar automaticamente o token Mercado Livre. Reconecte a conta.";
 
       await admin
         .from("ecommerce_marketplace_sync_state")
@@ -216,6 +281,8 @@ Deno.serve(async (req: Request) => {
             last_result: {
               integration_status: integration?.integration_status ?? null,
               expires_at: integration?.expires_at ?? null,
+              refresh_http_status: refreshResult?.status ?? null,
+              refresh_attempted: Boolean(refreshResult),
             },
             updated_at: new Date().toISOString(),
           },
@@ -224,14 +291,16 @@ Deno.serve(async (req: Request) => {
           },
         );
 
-      executions.push({
-        account_id: account.id,
-        account: account.account_name || account.nickname || account.id,
-        label: "auth",
-        ok: false,
-        skipped: true,
-        error: message,
-      });
+      if (!refreshResult) {
+        executions.push({
+          account_id: account.id,
+          account: account.account_name || account.nickname || account.id,
+          label: "auth",
+          ok: false,
+          skipped: true,
+          error: message,
+        });
+      }
       continue;
     }
 
@@ -250,7 +319,8 @@ Deno.serve(async (req: Request) => {
           last_error_message: null,
           last_result: {
             integration_status: integration.integration_status,
-            expires_at: integration.expires_at,
+            expires_at: effectiveExpiresAt,
+            refreshed_automatically: Boolean(refreshResult?.ok),
           },
           updated_at: new Date().toISOString(),
         },

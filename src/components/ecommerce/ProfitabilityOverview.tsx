@@ -179,7 +179,7 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
       if (row.profit_confidence === "high") reliable += 1;
     }
 
-    const adsFallback = ads === 0 ? syncedAdsInvestment : 0;
+    const adsFallback = Math.max(0, syncedAdsInvestment - ads);
     const effectiveAds = ads + adsFallback;
     const adjustedNetProfit = netProfit - adsFallback;
     const totalCosts =
@@ -510,9 +510,10 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
             <div className="border-t border-slate-100 bg-slate-50/70 px-5 py-3 text-[11px] leading-relaxed text-slate-500 md:px-6">
               Descontos são exibidos para auditoria, mas não são subtraídos novamente
               do lucro nesta tela: eles já podem estar refletidos no valor final da venda.
-              Quando o pedido ainda não traz custo de Ads e existe um snapshot sincronizado
-              do Product Ads para o período, o AC360 aplica esse investimento no resumo
-              financeiro sem rateá-lo artificialmente entre pedidos.
+              Quando o custo de Ads registrado nos pedidos é menor que o snapshot
+              sincronizado do Product Ads para o período, o AC360 completa apenas a
+              diferença no resumo financeiro, sem duplicar custo nem rateá-lo
+              artificialmente entre pedidos.
             </div>
           </div>
         </>

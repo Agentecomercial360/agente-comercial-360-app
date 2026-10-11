@@ -155,10 +155,15 @@ type SyncDescriptor = {
 function syncDescriptor(body: Body): SyncDescriptor | null {
   if (body.action === "ads_sync") {
     const days = [1, 7, 30, 90].includes(Number(body.days)) ? Number(body.days) : 30;
+    const intervalMinutes =
+      days === 1 ? 30 :
+      days === 7 ? 120 :
+      days === 30 ? 240 :
+      720;
     return {
       capability: "ads",
       resourceKey: `period:${days}`,
-      intervalMinutes: 30,
+      intervalMinutes,
     };
   }
   if (body.action === "competition_sync") {

@@ -266,6 +266,8 @@ type AccountRow = {
   marketplace: string | null;
   external_account_code: string | null;
   ml_user_id: string | number | null;
+  auth_status: string | null;
+  last_sync_at: string | null;
   created_at?: string | null;
 };
 
@@ -289,9 +291,15 @@ function AccountCard({ row }: { row: AccountRow }) {
             <p className="text-xs text-slate-500">{marketplaceLabel}</p>
           </div>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700 border border-amber-200">
-          <Clock className="h-3 w-3" /> Aguardando conexão
-        </span>
+        {(row.auth_status ?? "").toLowerCase() === "connected" ? (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">
+            <CheckCircle2 className="h-3 w-3" /> Conectada
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-700">
+            <Clock className="h-3 w-3" /> Aguardando conexão
+          </span>
+        )}
       </div>
 
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -303,7 +311,9 @@ function AccountCard({ row }: { row: AccountRow }) {
         </div>
         <div className="rounded-lg bg-slate-50/60 border border-slate-100 px-3 py-2">
           <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Sincronização</p>
-          <p className="mt-0.5 font-semibold text-slate-700">Ainda não sincronizado</p>
+          <p className="mt-0.5 font-semibold text-slate-700">
+            {fmtDateTime(row.last_sync_at)}
+          </p>
         </div>
       </div>
     </div>
@@ -331,7 +341,7 @@ function useAccounts() {
         }
         const { data, error: err } = await supabase
           .from("ecommerce_accounts")
-          .select("id, account_name, marketplace, external_account_code, ml_user_id, created_at")
+          .select("id, account_name, marketplace, external_account_code, ml_user_id, auth_status, last_sync_at, created_at")
           .eq("company_id", ctx.company_id)
           .order("created_at", { ascending: true });
         if (err) throw err;

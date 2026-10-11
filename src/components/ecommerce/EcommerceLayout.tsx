@@ -23,6 +23,7 @@ import {
   GraduationCap,
   PackageCheck,
   Target,
+  HeartPulse,
 
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
@@ -76,6 +77,7 @@ const navGroups = [
   {
     title: "Inteligência",
     items: [
+      { label: "Saúde da Inteligência", to: "/ecommerce/saude-inteligencia", icon: HeartPulse },
       { label: "Diagnóstico Inteligente", to: "/ecommerce/radar-ia", icon: Radar },
       { label: "Assistente Estratégico", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
       { label: "Regras da Operação", to: "/ecommerce/base-ia", icon: BookOpen },

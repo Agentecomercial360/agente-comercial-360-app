@@ -25,10 +25,34 @@ alter table public.ecommerce_ads_metrics
   add column if not exists lost_impression_share_by_budget numeric,
   add column if not exists lost_impression_share_by_ad_rank numeric,
   add column if not exists acos_benchmark numeric,
-  add column if not exists source text not null default 'mercadolivre';
+  add column if not exists source text not null default 'mercadolivre',
+  add column if not exists period_days integer not null default 1,
+  add column if not exists period_start date,
+  add column if not exists period_end date,
+  add column if not exists metric_scope text not null default 'legacy',
+  add column if not exists advertiser_id text,
+  add column if not exists ad_group_title text,
+  add column if not exists snapshot_at timestamptz not null default now();
+
+update public.ecommerce_ads_metrics
+set
+  period_start = coalesce(period_start, metric_date),
+  period_end = coalesce(period_end, metric_date)
+where period_start is null or period_end is null;
+
+alter table public.ecommerce_ads_metrics
+  drop constraint if exists ecommerce_ads_metrics_unique;
 
 create index if not exists idx_ecommerce_ads_metrics_account_date
   on public.ecommerce_ads_metrics (company_id, account_id, metric_date desc);
+
+create unique index if not exists uq_ecommerce_ads_metrics_period_group
+  on public.ecommerce_ads_metrics
+  (company_id, account_id, ad_group_id, metric_date, period_days);
+
+create index if not exists idx_ecommerce_ads_metrics_period_lookup
+  on public.ecommerce_ads_metrics
+  (company_id, account_id, source, period_days, metric_date desc);
 
 create table if not exists public.ecommerce_catalog_competition_history (
   id uuid primary key default gen_random_uuid(),
@@ -357,3 +381,34 @@ create trigger trg_ac360_rank_change_to_insight
 after insert on public.ecommerce_rank_history
 for each row
 execute function public.ac360_rank_change_to_insight();
+
+
+-- Integration tokens are backend-only. Authenticated users can read operational
+-- connection metadata, but cannot select access_token, refresh_token or raw_auth_payload.
+revoke all privileges on table public.ecommerce_integrations from authenticated;
+
+grant select (
+  id,
+  company_id,
+  account_id,
+  marketplace,
+  provider,
+  integration_name,
+  integration_status,
+  external_user_id,
+  external_account_id,
+  external_nickname,
+  token_type,
+  scope,
+  expires_at,
+  last_sync_at,
+  next_sync_at,
+  sync_products,
+  sync_orders,
+  sync_ads,
+  sync_inventory,
+  last_error_message,
+  last_error_at,
+  created_at,
+  updated_at
+) on public.ecommerce_integrations to authenticated;

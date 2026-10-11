@@ -21,9 +21,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
+import { ECOMMERCE_COMPANY_ID } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
+import { startMercadoLivreOAuth } from "@/lib/ml-oauth";
 
 type IntegrationRow = {
+  company_id: string | null;
+  account_id: string | null;
   company_name: string | null;
   account_name: string | null;
   marketplace: string | null;
@@ -153,13 +157,14 @@ function SyncBadge({ label, icon: Icon, active }: { label: string; icon: any; ac
   );
 }
 
-function handleConnect(marketplace: string | null | undefined) {
-  toast(`Conexão ${prettyMarketplace(marketplace)} em preparação.`, {
-    description: "Em breve você poderá autorizar uma nova conta com segurança.",
-  });
-}
-
-function IntegrationCard({ row }: { row: IntegrationRow }) {
+function IntegrationCard({
+  row,
+  onConnected,
+}: {
+  row: IntegrationRow;
+  onConnected: () => void;
+}) {
+  const [connecting, setConnecting] = useState(false);
   const marketplaceLabel = prettyMarketplace(row.marketplace);
   const title = row.integration_name || [marketplaceLabel, row.account_name].filter(Boolean).join(" — ") || "Integração";
 
@@ -209,11 +214,46 @@ function IntegrationCard({ row }: { row: IntegrationRow }) {
 
       <div className="mt-4 flex justify-end">
         <button
-          onClick={() => handleConnect(row.marketplace)}
-          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-xs font-bold text-white shadow-sm hover:from-blue-700 hover:to-blue-800 transition-all"
+          type="button"
+          disabled={connecting || !row.account_id}
+          onClick={async () => {
+            if (!row.account_id) {
+              toast.error("Conta Mercado Livre não identificada para esta integração.");
+              return;
+            }
+
+            setConnecting(true);
+            try {
+              await startMercadoLivreOAuth({
+                companyId: row.company_id || ECOMMERCE_COMPANY_ID,
+                accountId: row.account_id,
+              });
+              toast.success("Mercado Livre conectado com sucesso.", {
+                description: row.account_name || undefined,
+              });
+              onConnected();
+            } catch (connectError) {
+              toast.error(
+                connectError instanceof Error
+                  ? connectError.message
+                  : "Não foi possível conectar o Mercado Livre.",
+              );
+            } finally {
+              setConnecting(false);
+            }
+          }}
+          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-xs font-bold text-white shadow-sm transition-all hover:from-blue-700 hover:to-blue-800 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Plug className="h-3.5 w-3.5" />
-          Conectar {marketplaceLabel}
+          {connecting ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <Plug className="h-3.5 w-3.5" />
+          )}
+          {connecting
+            ? "Aguardando autorização…"
+            : row.integration_status === "connected"
+              ? `Reconectar ${marketplaceLabel}`
+              : `Conectar ${marketplaceLabel}`}
         </button>
       </div>
     </div>
@@ -315,7 +355,7 @@ function useAccounts() {
   return { loading, rows, error };
 }
 
-function useIntegrationData() {
+function useIntegrationData(refreshKey = 0) {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<IntegrationRow[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -349,12 +389,22 @@ function useIntegrationData() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
 
   return { loading, rows, error };
 }
 
-function IntegrationsSection({ loading, rows, error }: { loading: boolean; rows: IntegrationRow[]; error: string | null }) {
+function IntegrationsSection({
+  loading,
+  rows,
+  error,
+  onConnected,
+}: {
+  loading: boolean;
+  rows: IntegrationRow[];
+  error: string | null;
+  onConnected: () => void;
+}) {
   return (
     <ConfigSection title="Integrações" icon={Plug}>
       {loading ? (
@@ -377,7 +427,11 @@ function IntegrationsSection({ loading, rows, error }: { loading: boolean; rows:
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {rows.map((row, i) => (
-            <IntegrationCard key={i} row={row} />
+            <IntegrationCard
+              key={row.account_id || i}
+              row={row}
+              onConnected={onConnected}
+            />
           ))}
         </div>
       )}
@@ -419,7 +473,8 @@ function AccountsSection() {
 }
 
 function EcommerceConfiguracoes() {
-  const { loading, rows, error } = useIntegrationData();
+  const [integrationRefreshKey, setIntegrationRefreshKey] = useState(0);
+  const { loading, rows, error } = useIntegrationData(integrationRefreshKey);
 
   return (
     <EcommerceLayout>
@@ -430,7 +485,12 @@ function EcommerceConfiguracoes() {
         </div>
 
         <div className="grid grid-cols-1 gap-8">
-          <IntegrationsSection loading={loading} rows={rows} error={error} />
+          <IntegrationsSection
+            loading={loading}
+            rows={rows}
+            error={error}
+            onConnected={() => setIntegrationRefreshKey((value) => value + 1)}
+          />
           <AccountsSection />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

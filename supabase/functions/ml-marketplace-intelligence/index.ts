@@ -26,7 +26,7 @@ const ML_BASE = "https://api.mercadolibre.com";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-ac360-cron-secret",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
@@ -239,6 +239,36 @@ function userClient(authHeader: string) {
   });
 }
 
+async function verifySchedulerSecret(candidate: string): Promise<boolean> {
+  if (!candidate) return false;
+  const admin = adminClient();
+  const { data, error } = await admin.rpc("verify_ac360_scheduler_secret", {
+    candidate,
+  });
+  if (error) {
+    console.error("scheduler secret verification", error);
+    return false;
+  }
+  return data === true;
+}
+
+async function getAccountAsService(companyId: string, accountId: string) {
+  const admin = adminClient();
+  const { data, error } = await admin
+    .from("ecommerce_accounts")
+    .select("id,company_id,account_name,nickname,marketplace,ml_user_id")
+    .eq("id", accountId)
+    .eq("company_id", companyId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Conta não encontrada.");
+  if (data.marketplace !== "mercado_livre") {
+    throw new Error("Esta operação exige uma conta Mercado Livre.");
+  }
+  return data;
+}
+
 async function assertAccess(
   authHeader: string,
   companyId: string,
@@ -279,6 +309,7 @@ async function ensureToken(
   authHeader: string,
   companyId: string,
   accountId: string,
+  serviceMode = false,
 ): Promise<string> {
   let integration = await getIntegration(companyId, accountId);
   if (!integration?.access_token) {
@@ -290,6 +321,12 @@ async function ensureToken(
     : 0;
   const stillValid = expiresAt > Date.now() + 2 * 60 * 1000;
   if (stillValid) return integration.access_token;
+
+  if (serviceMode) {
+    throw new Error(
+      "Sessão Mercado Livre expirada. O scheduler 24/7 está ativo, mas a renovação automática ainda precisa de autenticação service-to-service no Railway.",
+    );
+  }
 
   const previousToken = integration.access_token;
   const refresh = await fetch(RAILWAY_SYNC, {
@@ -836,11 +873,15 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return reply(405, { error: "Method not allowed" });
 
   const authHeader = req.headers.get("Authorization") ?? "";
-  if (!authHeader.startsWith("Bearer ")) {
-    return reply(401, { error: "Authorization required" });
-  }
+  const schedulerSecret = req.headers.get("x-ac360-cron-secret") ?? "";
 
   try {
+    const serviceMode = await verifySchedulerSecret(schedulerSecret);
+
+    if (!serviceMode && !authHeader.startsWith("Bearer ")) {
+      return reply(401, { error: "Authorization required" });
+    }
+
     const body = (await req.json()) as Body;
     const companyId = body.company_id ?? "";
     const accountId = body.account_id ?? "";
@@ -848,7 +889,9 @@ Deno.serve(async (req: Request) => {
       return reply(400, { error: "company_id, account_id and action are required" });
     }
 
-    const account = await assertAccess(authHeader, companyId, accountId);
+    const account = serviceMode
+      ? await getAccountAsService(companyId, accountId)
+      : await assertAccess(authHeader, companyId, accountId);
     const descriptor = syncDescriptor(body);
 
     if (!descriptor) {
@@ -858,7 +901,12 @@ Deno.serve(async (req: Request) => {
     await updateSyncState(companyId, accountId, descriptor, "running");
 
     try {
-      const token = await ensureToken(authHeader, companyId, accountId);
+      const token = await ensureToken(
+        authHeader,
+        companyId,
+        accountId,
+        serviceMode,
+      );
       let result: unknown;
 
       if (body.action === "ads_sync") {

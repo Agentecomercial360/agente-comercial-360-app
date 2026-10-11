@@ -18,7 +18,6 @@ import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
 import {
   useEcommerceActiveAccount,
-  ECOMMERCE_COMPANY_ID,
 } from "@/lib/ecommerce-active-account";
 
 export const Route = createFileRoute("/ecommerce/produtos-estrategicos")({
@@ -99,6 +98,7 @@ function ProdutosEstrategicosPage() {
 
 function ProdutosEstrategicosInner() {
   const {
+    companyId,
     activeAccount,
     activeAccountId,
     isActiveConnected,
@@ -129,7 +129,7 @@ function ProdutosEstrategicosInner() {
           .select(
             "id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at",
           )
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .eq("account_id", activeAccountId)
           .order("price", { ascending: false });
         if (el) throw el;
@@ -144,7 +144,7 @@ function ProdutosEstrategicosInner() {
           const { data: pr, error: ep } = await supabase
             .from("ecommerce_products")
             .select("id,sku,product_name,category,brand,is_active,updated_at")
-            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .eq("company_id", companyId)
             .in("id", productIds);
           if (ep) throw ep;
           productsData = (pr || []) as Product[];

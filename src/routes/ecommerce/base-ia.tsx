@@ -857,7 +857,7 @@ function RuleSheet({
     setSaving(true);
     try {
       const payload = {
-        company_id:
+        company_id: companyId,
         account_id: accountId,
         title: form.title.trim(),
         category: form.category,

@@ -39,6 +39,13 @@ type Listing = {
   account_id: string;
 };
 
+type Integration = {
+  account_id: string;
+  expires_at: string | null;
+  integration_status: string | null;
+  updated_at: string | null;
+};
+
 function due(state: SyncState | undefined): boolean {
   if (!state?.next_due_at) return true;
   return new Date(state.next_due_at).getTime() <= Date.now();
@@ -103,27 +110,45 @@ Deno.serve(async (req: Request) => {
 
   const accountIds = accountRows.map((a) => a.id);
 
-  const [{ data: states, error: stateError }, { data: listings, error: listingError }] =
-    await Promise.all([
-      admin
-        .from("ecommerce_marketplace_sync_state")
-        .select("account_id,capability,resource_key,next_due_at,status")
-        .in("account_id", accountIds)
-        .limit(10000),
-      admin
-        .from("ecommerce_listings")
-        .select("id,account_id")
-        .in("account_id", accountIds)
-        .eq("is_active", true)
-        .not("ml_item_id", "is", null)
-        .limit(10000),
-    ]);
+  const [
+    { data: states, error: stateError },
+    { data: listings, error: listingError },
+    { data: integrations, error: integrationError },
+  ] = await Promise.all([
+    admin
+      .from("ecommerce_marketplace_sync_state")
+      .select("account_id,capability,resource_key,next_due_at,status")
+      .in("account_id", accountIds)
+      .limit(10000),
+    admin
+      .from("ecommerce_listings")
+      .select("id,account_id")
+      .in("account_id", accountIds)
+      .eq("is_active", true)
+      .not("ml_item_id", "is", null)
+      .limit(10000),
+    admin
+      .from("ecommerce_integrations")
+      .select("account_id,expires_at,integration_status,updated_at")
+      .in("account_id", accountIds)
+      .eq("marketplace", "mercado_livre")
+      .order("updated_at", { ascending: false })
+      .limit(10000),
+  ]);
 
   if (stateError) return json(500, { error: stateError.message });
   if (listingError) return json(500, { error: listingError.message });
+  if (integrationError) return json(500, { error: integrationError.message });
 
   const stateRows = (states ?? []) as SyncState[];
   const listingRows = (listings ?? []) as Listing[];
+  const integrationRows = (integrations ?? []) as Integration[];
+  const latestIntegrationByAccount = new Map<string, Integration>();
+  for (const integration of integrationRows) {
+    if (!latestIntegrationByAccount.has(integration.account_id)) {
+      latestIntegrationByAccount.set(integration.account_id, integration);
+    }
+  }
   const stateMap = new Map(
     stateRows.map((s) => [
       [s.account_id, s.capability, s.resource_key].join("|"),
@@ -160,6 +185,75 @@ Deno.serve(async (req: Request) => {
   }
 
   for (const account of accountRows) {
+    const integration = latestIntegrationByAccount.get(account.id);
+    const expiresAt = integration?.expires_at
+      ? new Date(integration.expires_at).getTime()
+      : 0;
+    const tokenValid = expiresAt > Date.now() + 2 * 60_000;
+
+    if (!integration || !tokenValid) {
+      const message = integration
+        ? "Token Mercado Livre expirado. Reconecte a conta para liberar a automação 24/7."
+        : "Integração Mercado Livre não encontrada. Reconecte a conta para liberar a automação 24/7.";
+
+      await admin
+        .from("ecommerce_marketplace_sync_state")
+        .upsert(
+          {
+            company_id: account.company_id,
+            account_id: account.id,
+            capability: "auth",
+            resource_key: "account",
+            status: "error",
+            last_attempt_at: new Date().toISOString(),
+            next_due_at: new Date(Date.now() + 15 * 60_000).toISOString(),
+            last_error_message: message,
+            last_result: {
+              integration_status: integration?.integration_status ?? null,
+              expires_at: integration?.expires_at ?? null,
+            },
+            updated_at: new Date().toISOString(),
+          },
+          {
+            onConflict: "company_id,account_id,capability,resource_key",
+          },
+        );
+
+      executions.push({
+        account_id: account.id,
+        account: account.account_name || account.nickname || account.id,
+        label: "auth",
+        ok: false,
+        skipped: true,
+        error: message,
+      });
+      continue;
+    }
+
+    await admin
+      .from("ecommerce_marketplace_sync_state")
+      .upsert(
+        {
+          company_id: account.company_id,
+          account_id: account.id,
+          capability: "auth",
+          resource_key: "account",
+          status: "success",
+          last_attempt_at: new Date().toISOString(),
+          last_success_at: new Date().toISOString(),
+          next_due_at: new Date(Date.now() + 30 * 60_000).toISOString(),
+          last_error_message: null,
+          last_result: {
+            integration_status: integration.integration_status,
+            expires_at: integration.expires_at,
+          },
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: "company_id,account_id,capability,resource_key",
+        },
+      );
+
     for (const days of [1, 7, 30, 90]) {
       const key = [account.id, "ads", `period:${days}`].join("|");
       if (due(stateMap.get(key))) {

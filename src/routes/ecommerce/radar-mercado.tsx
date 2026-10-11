@@ -195,7 +195,7 @@ function RadarMercadoContent() {
         popular?: number;
       }>({
         action: "market_radar_sync",
-        company_id:
+        company_id: companyId,
         account_id: activeAccountId,
       });
 

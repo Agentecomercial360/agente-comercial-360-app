@@ -102,25 +102,29 @@ begin
         coalesce(new.last_error_message, 'A sincronização automática do marketplace falhou.'),
         case
           when new.capability='auth'
-            then 'O access token da conta expirou e o refresh service-to-service ainda não está disponível.'
+            then 'O access token da conta expirou e a renovação automática não conseguiu recuperar a sessão.'
           else 'Falha de autenticação, indisponibilidade temporária da API ou dado de integração inválido.'
         end,
         case
           when new.capability='auth'
-            then 'Reconecte a conta Mercado Livre. Depois da reconexão, o scheduler retoma Ads, Radar e competição automaticamente.'
-          else 'Abra a Saúde da Inteligência, valide a conexão da conta e execute uma atualização manual se o retry automático não recuperar.'
+            then 'Verifique a Saúde da Inteligência. Se o próximo ciclo não recuperar a conta, reconecte o Mercado Livre.'
+          else 'Abra a Saúde da Inteligência e valide o módulo; o scheduler fará nova tentativa automaticamente.'
         end,
         'pending_review',
         'marketplace_sync_watch',
         1
       );
     end if;
-  elsif new.status = 'success' and tg_op = 'UPDATE' and old.status = 'error' then
+  elsif new.status = 'success' then
     update public.ecommerce_ai_insights i
        set status = 'completed',
            updated_at = now(),
-           diagnosis = coalesce(i.diagnosis, '') || ' Recuperado automaticamente em ' ||
-             to_char(now() at time zone 'America/Sao_Paulo', 'DD/MM/YYYY HH24:MI') || '.'
+           diagnosis = case
+             when coalesce(i.diagnosis,'') like '%Recuperado automaticamente em %'
+               then i.diagnosis
+             else coalesce(i.diagnosis, '') || ' Recuperado automaticamente em ' ||
+               to_char(now() at time zone 'America/Sao_Paulo', 'DD/MM/YYYY HH24:MI') || '.'
+           end
      where i.company_id = new.company_id
        and i.account_id is not distinct from new.account_id
        and i.generated_by = 'marketplace_sync_watch'

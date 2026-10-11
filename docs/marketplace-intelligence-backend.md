@@ -223,7 +223,7 @@ diferenças entre telas.
 3. Radar de Mercado (highlights + trends): implementado.
 4. Etiquetas oficiais PDF agrupadas por SKU: implementado.
 5. Alertas automáticos para Central de Ações: implementado via triggers do Postgres.
-6. Próxima evolução: ingestão automática das notificações de competição e agendamentos periódicos sem depender do clique do usuário.
+6. Scheduler 24/7 e refresh autônomo do Mercado Livre: implementados e validados em produção.
 
 
 ## 9. Automação de sincronização
@@ -261,13 +261,35 @@ Antes de chamar Ads, Radar ou competição, o scheduler verifica o `expires_at` 
 integração. Se o token estiver vencido, ele pausa as coletas da conta e cria apenas um
 estado crítico `auth`, evitando dezenas de erros derivados.
 
-### Pendência para refresh totalmente autônomo
+### Refresh totalmente autônomo
 
-O scheduler 24/7 já está ativo, mas a renovação do access token ainda depende do
-sincronizador Railway `sync-account-smart`, que hoje espera uma sessão autenticada do
-usuário. Enquanto o Railway não expuser autenticação service-to-service (ou enquanto
-App ID / Secret Key do Mercado Livre não estiverem disponíveis como secrets de backend),
-uma conta com token vencido precisa ser reconectada para que as coletas retomem.
+O refresh 24/7 está concluído.
 
-O plugin Railway pode ser conectado ao ChatGPT para permitir a configuração desse
-último trecho diretamente no serviço, sem compartilhar credenciais no chat.
+Quando o scheduler encontra um token Mercado Livre vencido, ele chama a rota interna
+do backend Railway:
+
+`POST /api/ecommerce/mercadolivre/token-refresh-internal`
+
+A chamada usa o mesmo segredo do Supabase Vault enviado em
+`x-ac360-cron-secret`. O Railway não armazena uma cópia desse segredo: ele valida o
+valor recebido diretamente no Supabase através da RPC
+`verify_ac360_scheduler_secret(candidate)`.
+
+Depois da validação, o backend reutiliza o serviço de refresh OAuth já existente e
+testado, usando `MERCADOLIVRE_CLIENT_ID` e `MERCADOLIVRE_CLIENT_SECRET` que já
+ficam exclusivamente nas variáveis do Railway. O endpoint nunca retorna access_token,
+refresh_token ou client_secret.
+
+O scheduler executa em duas fases:
+1. autenticação de todas as contas primeiro, incluindo refresh automático quando necessário;
+2. somente depois Ads, Radar e competição podem consumir o orçamento da rodada.
+
+Validação real em produção em 11/10/2026:
+- 9 contas Mercado Livre verificadas;
+- 9 contas com token válido e saúde de autenticação em sucesso;
+- tokens expirados renovados automaticamente pelo backend Railway, sem sessão humana;
+- Ads recuperado após limitar a consulta ao conjunto suportado de métricas;
+- Radar tolera categorias descontinuadas e continua coletando as demais;
+- competição ignora IDs de demonstração e monitora apenas item_ids reais;
+- 0 estados de erro após a rodada de recuperação;
+- alertas antigos do marketplace_sync_watch são encerrados automaticamente quando o módulo volta a success.

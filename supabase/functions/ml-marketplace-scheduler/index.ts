@@ -28,6 +28,7 @@ type SyncState = {
   capability: string;
   resource_key: string;
   next_due_at: string | null;
+  last_success_at: string | null;
   status: string;
 };
 
@@ -187,7 +188,7 @@ Deno.serve(async (req: Request) => {
   ] = await Promise.all([
     admin
       .from("ecommerce_marketplace_sync_state")
-      .select("account_id,capability,resource_key,next_due_at,status")
+      .select("account_id,capability,resource_key,next_due_at,last_success_at,status")
       .in("account_id", accountIds)
       .limit(10000),
     admin
@@ -428,7 +429,9 @@ Deno.serve(async (req: Request) => {
           resource_key: "account",
           status: result.ok ? "success" : "error",
           last_attempt_at: nowIso,
-          last_success_at: result.ok ? nowIso : null,
+          last_success_at: result.ok
+            ? nowIso
+            : stateMap.get(financeKey)?.last_success_at ?? null,
           next_due_at: new Date(
             Date.now() +
               nextDueMinutes * 60_000,

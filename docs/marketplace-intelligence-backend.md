@@ -223,7 +223,7 @@ diferenças entre telas.
 3. Radar de Mercado (highlights + trends): implementado.
 4. Etiquetas oficiais PDF agrupadas por SKU: implementado.
 5. Alertas automáticos para Central de Ações: implementado via triggers do Postgres.
-6. Próxima evolução: ingestão automática das notificações de competição e agendamentos periódicos sem depender do clique do usuário.
+6. Scheduler 24/7 e refresh autônomo do Mercado Livre: implementados e validados em produção.
 
 
 ## 9. Automação de sincronização
@@ -286,8 +286,10 @@ O scheduler executa em duas fases:
 
 Validação real em produção em 11/10/2026:
 - 9 contas Mercado Livre verificadas;
-- 9 contas com token válido após a rodada;
-- 6 tokens expirados foram renovados na segunda validação e outros já haviam sido
-  renovados na rodada anterior;
-- 23 operações de inteligência concluídas com sucesso na rodada;
-- 1 falha pontual de competição da Robomix, isolada sem afetar autenticação ou demais contas.
+- 9 contas com token válido e saúde de autenticação em sucesso;
+- tokens expirados renovados automaticamente pelo backend Railway, sem sessão humana;
+- Ads recuperado após limitar a consulta ao conjunto suportado de métricas;
+- Radar tolera categorias descontinuadas e continua coletando as demais;
+- competição ignora IDs de demonstração e monitora apenas item_ids reais;
+- 0 estados de erro após a rodada de recuperação;
+- alertas antigos do marketplace_sync_watch são encerrados automaticamente quando o módulo volta a success.

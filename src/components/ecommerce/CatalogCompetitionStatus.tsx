@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -6,10 +6,13 @@ import {
   History,
   Loader2,
   Minus,
+  RefreshCw,
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
+import { runMarketplaceIntelligence } from "@/lib/ml-marketplace-intelligence";
 
 type Props = {
   companyId: string;
@@ -61,38 +64,64 @@ export function CatalogCompetitionStatus({
 }: Props) {
   const [rows, setRows] = useState<CompetitionRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("ecommerce_catalog_competition_history")
+      .select(
+        "id,ml_item_id,competition_status,previous_status,change_type,own_price,winner_item_id,winner_price,checked_at",
+      )
+      .eq("company_id", companyId)
+      .eq("account_id", accountId)
+      .eq("listing_id", listingId)
+      .order("checked_at", { ascending: false })
+      .limit(20);
+
+    if (error) {
+      console.error("competition history", error);
+      setRows([]);
+    } else {
+      setRows((data || []) as CompetitionRow[]);
+    }
+    setLoading(false);
+  }, [companyId, accountId, listingId]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from("ecommerce_catalog_competition_history")
-        .select(
-          "id,ml_item_id,competition_status,previous_status,change_type,own_price,winner_item_id,winner_price,checked_at",
-        )
-        .eq("company_id", companyId)
-        .eq("account_id", accountId)
-        .eq("listing_id", listingId)
-        .order("checked_at", { ascending: false })
-        .limit(20);
-
-      if (cancelled) return;
-      if (error) {
-        console.error("competition history", error);
-        setRows([]);
-      } else {
-        setRows((data || []) as CompetitionRow[]);
-      }
-      setLoading(false);
-    }
-
     void load();
-    return () => {
-      cancelled = true;
-    };
-  }, [companyId, accountId, listingId]);
+  }, [load]);
+
+  async function handleSync() {
+    setSyncing(true);
+    try {
+      const result = await runMarketplaceIntelligence<{
+        status?: string;
+        previous_status?: string | null;
+        changed?: boolean;
+      }>({
+        action: "competition_sync",
+        company_id: companyId,
+        account_id: accountId,
+        listing_id: listingId,
+      });
+
+      toast.success(
+        result.changed
+          ? "Posição de catálogo atualizada e mudança registrada."
+          : "Posição de catálogo atualizada.",
+      );
+      await load();
+    } catch (syncError) {
+      const message =
+        syncError instanceof Error
+          ? syncError.message
+          : "Não foi possível atualizar a competição do catálogo.";
+      toast.error(message);
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   const current = rows[0] ?? null;
 
@@ -129,11 +158,22 @@ export function CatalogCompetitionStatus({
             entre vencedor, compartilhando primeiro lugar, competindo ou listado.
           </p>
         </div>
-        {mlItemId ? (
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-600">
-            {mlItemId}
-          </span>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {mlItemId ? (
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-600">
+              {mlItemId}
+            </span>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => void handleSync()}
+            disabled={syncing || !mlItemId}
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
+            {syncing ? "Consultando Mercado Livre…" : "Atualizar agora"}
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -146,12 +186,12 @@ export function CatalogCompetitionStatus({
           <div>
             <div className="font-semibold text-slate-900">{title}</div>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
-              Nenhuma mudança de competição foi recebida ainda. A estrutura já está
-              pronta para receber as notificações do backend e gravar cada alteração.
+              Ainda não há histórico salvo para este anúncio. Use “Atualizar agora”
+              para consultar a posição diretamente no Mercado Livre e iniciar o acompanhamento.
             </p>
           </div>
           <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700">
-            Aguardando sincronização de competição
+            Pronto para primeira consulta
           </div>
         </div>
       ) : (

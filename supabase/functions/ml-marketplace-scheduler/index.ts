@@ -39,6 +39,7 @@ type Account = {
 type Listing = {
   id: string;
   account_id: string;
+  ml_item_id: string;
 };
 
 type Integration = {
@@ -156,7 +157,7 @@ Deno.serve(async (req: Request) => {
       .limit(10000),
     admin
       .from("ecommerce_listings")
-      .select("id,account_id")
+      .select("id,account_id,ml_item_id")
       .in("account_id", accountIds)
       .eq("is_active", true)
       .not("ml_item_id", "is", null)
@@ -360,6 +361,7 @@ Deno.serve(async (req: Request) => {
 
     const accountListings = listingRows
       .filter((l) => l.account_id === account.id)
+      .filter((l) => /^ML[A-Z]\d+$/i.test(l.ml_item_id))
       .filter((l) => {
         const key = [account.id, "competition", l.id].join("|");
         return due(stateMap.get(key));

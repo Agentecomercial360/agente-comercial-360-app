@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   BadgeDollarSign,
+  CheckCircle2,
   DollarSign,
   Megaphone,
   Package,
   ReceiptText,
   RotateCcw,
+  ShieldCheck,
   Truck,
   Percent,
 } from "lucide-react";
@@ -18,7 +20,57 @@ type Props = {
   accountName: string;
 };
 
-type OrderProfitRow = {
+type ProfitabilitySummary = {
+  orders_total: number;
+  orders_confirmed: number;
+  orders_pending_cost: number;
+  financial_review_orders: number;
+  gross_revenue: number;
+  refunded_amount: number;
+  realized_revenue: number;
+  marketplace_fees: number;
+  shipping_cost: number;
+  ads_order_cost: number;
+  ads_synced_investment: number;
+  ads_unallocated: number;
+  ads_effective: number;
+  taxes: number;
+  product_cost: number;
+  total_known_costs: number;
+  result_after_known_costs: number;
+  confirmed_revenue: number;
+  blocked_revenue: number;
+  confirmed_profit: number;
+  cost_coverage_percent: number;
+  confirmed_margin_percent: number;
+  refund_orders: number;
+  chargeback_orders: number;
+  cancelled_orders: number;
+};
+
+type ProductProfitability = {
+  ranking: number;
+  product_id: string;
+  sku: string | null;
+  product_name: string | null;
+  orders: number;
+  units: number;
+  revenue: number;
+  refunded_amount: number;
+  marketplace_fees: number;
+  shipping_cost: number;
+  taxes: number;
+  product_cost: number;
+  ads_order_cost: number;
+  ads_synced_investment: number;
+  ads_effective: number;
+  net_profit: number;
+  margin_percent: number;
+  cost_coverage_percent: number;
+  profit_status: "healthy" | "low_margin" | "negative" | "pending_cost";
+};
+
+type OrderAuditRow = {
   id: string;
   external_order_id: string | null;
   total_amount: number | null;
@@ -30,16 +82,45 @@ type OrderProfitRow = {
   tax_amount: number | null;
   product_cost_total: number | null;
   discount_amount: number | null;
-  net_profit: number | null;
   refunded_amount: number | null;
-  has_refund: boolean | null;
-  financial_review_required: boolean | null;
   profit_confidence: string | null;
+  financial_review_required: boolean | null;
   order_date: string;
 };
 
-function money(value: number): string {
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const EMPTY_SUMMARY: ProfitabilitySummary = {
+  orders_total: 0,
+  orders_confirmed: 0,
+  orders_pending_cost: 0,
+  financial_review_orders: 0,
+  gross_revenue: 0,
+  refunded_amount: 0,
+  realized_revenue: 0,
+  marketplace_fees: 0,
+  shipping_cost: 0,
+  ads_order_cost: 0,
+  ads_synced_investment: 0,
+  ads_unallocated: 0,
+  ads_effective: 0,
+  taxes: 0,
+  product_cost: 0,
+  total_known_costs: 0,
+  result_after_known_costs: 0,
+  confirmed_revenue: 0,
+  blocked_revenue: 0,
+  confirmed_profit: 0,
+  cost_coverage_percent: 0,
+  confirmed_margin_percent: 0,
+  refund_orders: 0,
+  chargeback_orders: 0,
+  cancelled_orders: 0,
+};
+
+function money(value: number | null | undefined): string {
+  return Number(value ?? 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
 }
 
 function n(value: unknown): number {
@@ -47,11 +128,71 @@ function n(value: unknown): number {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function normalizeSummary(row: Record<string, unknown> | null): ProfitabilitySummary {
+  if (!row) return EMPTY_SUMMARY;
+
+  return Object.fromEntries(
+    Object.keys(EMPTY_SUMMARY).map((key) => [
+      key,
+      n(row[key]),
+    ]),
+  ) as unknown as ProfitabilitySummary;
+}
+
+function normalizeProducts(rows: Record<string, unknown>[]): ProductProfitability[] {
+  return rows.map((row) => ({
+    ranking: n(row.ranking),
+    product_id: String(row.product_id ?? ""),
+    sku: row.sku == null ? null : String(row.sku),
+    product_name: row.product_name == null ? null : String(row.product_name),
+    orders: n(row.orders),
+    units: n(row.units),
+    revenue: n(row.revenue),
+    refunded_amount: n(row.refunded_amount),
+    marketplace_fees: n(row.marketplace_fees),
+    shipping_cost: n(row.shipping_cost),
+    taxes: n(row.taxes),
+    product_cost: n(row.product_cost),
+    ads_order_cost: n(row.ads_order_cost),
+    ads_synced_investment: n(row.ads_synced_investment),
+    ads_effective: n(row.ads_effective),
+    net_profit: n(row.net_profit),
+    margin_percent: n(row.margin_percent),
+    cost_coverage_percent: n(row.cost_coverage_percent),
+    profit_status: String(row.profit_status ?? "pending_cost") as ProductProfitability["profit_status"],
+  }));
+}
+
+function statusMeta(status: ProductProfitability["profit_status"]) {
+  if (status === "healthy") {
+    return {
+      label: "Confirmado",
+      className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    };
+  }
+  if (status === "low_margin") {
+    return {
+      label: "Margem baixa",
+      className: "border-amber-200 bg-amber-50 text-amber-700",
+    };
+  }
+  if (status === "negative") {
+    return {
+      label: "Prejuízo",
+      className: "border-rose-200 bg-rose-50 text-rose-700",
+    };
+  }
+  return {
+    label: "Aguardando custo",
+    className: "border-slate-200 bg-slate-50 text-slate-600",
+  };
+}
+
 export function ProfitabilityOverview({ companyId, accountId, accountName }: Props) {
   const [days, setDays] = useState(30);
-  const [rows, setRows] = useState<OrderProfitRow[]>([]);
-  const [syncedAdsInvestment, setSyncedAdsInvestment] = useState(0);
-  const [adsSnapshotDate, setAdsSnapshotDate] = useState<string | null>(null);
+  const [summary, setSummary] = useState<ProfitabilitySummary>(EMPTY_SUMMARY);
+  const [products, setProducts] = useState<ProductProfitability[]>([]);
+  const [orders, setOrders] = useState<OrderAuditRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -61,62 +202,67 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
     async function load() {
       setLoading(true);
       setError(null);
+
       const from = new Date();
       from.setDate(from.getDate() - (days - 1));
       from.setHours(0, 0, 0, 0);
 
-      let query = supabase
+      let ordersQuery = supabase
         .from("ecommerce_orders")
         .select(
-          "id,external_order_id,total_amount,marketplace_fee,mercadolivre_fee,mercadopago_fee,seller_shipping_cost,ads_cost,tax_amount,product_cost_total,discount_amount,net_profit,refunded_amount,has_refund,financial_review_required,profit_confidence,order_date",
+          "id,external_order_id,total_amount,marketplace_fee,mercadolivre_fee,mercadopago_fee,seller_shipping_cost,ads_cost,tax_amount,product_cost_total,discount_amount,refunded_amount,profit_confidence,financial_review_required,order_date",
         )
         .eq("company_id", companyId)
         .eq("is_cancelled", false)
         .gte("order_date", from.toISOString())
         .order("order_date", { ascending: false })
-        .limit(20000);
+        .limit(50);
 
-      if (accountId) query = query.eq("account_id", accountId);
+      if (accountId) ordersQuery = ordersQuery.eq("account_id", accountId);
 
-      let adsQuery = supabase
-        .from("ecommerce_ads_metrics")
-        .select("metric_date,investment")
-        .eq("company_id", companyId)
-        .eq("metric_scope", "product_period")
-        .eq("period_days", days)
-        .eq("organic_metrics_synced", true)
-        .order("metric_date", { ascending: false })
-        .limit(10000);
+      const [summaryResult, productResult, ordersResult] = await Promise.all([
+        supabase.rpc("get_ecommerce_profitability_summary_v2", {
+          p_company_id: companyId,
+          p_account_id: accountId,
+          p_days: days,
+        }),
+        supabase.rpc("get_ecommerce_product_profitability_v2", {
+          p_company_id: companyId,
+          p_account_id: accountId,
+          p_days: days,
+          p_limit: 50,
+        }),
+        ordersQuery,
+      ]);
 
-      if (accountId) adsQuery = adsQuery.eq("account_id", accountId);
-
-      const [ordersResult, adsResult] = await Promise.all([query, adsQuery]);
       if (cancelled) return;
 
-      if (ordersResult.error) {
-        setError(ordersResult.error.message);
-        setRows([]);
+      if (summaryResult.error) {
+        setError(summaryResult.error.message);
+        setSummary(EMPTY_SUMMARY);
       } else {
-        setRows((ordersResult.data || []) as OrderProfitRow[]);
+        const row = Array.isArray(summaryResult.data)
+          ? summaryResult.data[0]
+          : summaryResult.data;
+        setSummary(normalizeSummary((row ?? null) as Record<string, unknown> | null));
       }
 
-      if (adsResult.error) {
-        console.error("profitability ads fallback", adsResult.error);
-        setSyncedAdsInvestment(0);
-        setAdsSnapshotDate(null);
+      if (productResult.error) {
+        console.error("get_ecommerce_product_profitability_v2", productResult.error);
+        setProducts([]);
       } else {
-        const adsRows = (adsResult.data || []) as Array<{
-          metric_date: string;
-          investment: number | null;
-        }>;
-        const latestDate = adsRows[0]?.metric_date ?? null;
-        const investment = latestDate
-          ? adsRows
-              .filter((row) => row.metric_date === latestDate)
-              .reduce((sum, row) => sum + n(row.investment), 0)
-          : 0;
-        setSyncedAdsInvestment(investment);
-        setAdsSnapshotDate(latestDate);
+        setProducts(
+          normalizeProducts(
+            ((productResult.data ?? []) as Record<string, unknown>[]),
+          ),
+        );
+      }
+
+      if (ordersResult.error) {
+        console.error("profitability order audit", ordersResult.error);
+        setOrders([]);
+      } else {
+        setOrders((ordersResult.data ?? []) as OrderAuditRow[]);
       }
 
       setLoading(false);
@@ -128,110 +274,68 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
     };
   }, [companyId, accountId, days]);
 
-  const summary = useMemo(() => {
-    let revenue = 0;
-    let platformFees = 0;
-    let shipping = 0;
-    let ads = 0;
-    let taxes = 0;
-    let productCost = 0;
-    let discounts = 0;
-    let refunds = 0;
-    let netProfit = 0;
-    let reviewRequired = 0;
-    let reliable = 0;
+  const coverageTone =
+    summary.cost_coverage_percent >= 99.99
+      ? "text-emerald-700"
+      : summary.cost_coverage_percent >= 70
+        ? "text-amber-700"
+        : "text-rose-700";
 
-    for (const row of rows) {
-      const rowRevenue = n(row.total_amount);
-      const marketplace = n(row.marketplace_fee);
-      const legacyFees = n(row.mercadolivre_fee) + n(row.mercadopago_fee);
-      const rowFees = marketplace > 0 ? marketplace : legacyFees;
-      const rowShipping = n(row.seller_shipping_cost);
-      const rowAds = n(row.ads_cost);
-      const rowTaxes = n(row.tax_amount);
-      const rowProductCost = n(row.product_cost_total);
-      const rowDiscounts = n(row.discount_amount);
-      const rowRefunds = n(row.refunded_amount);
+  const costItems = useMemo(
+    () => [
+      {
+        label: "Taxas da plataforma",
+        value: summary.marketplace_fees,
+        icon: ReceiptText,
+      },
+      {
+        label: "Frete do vendedor",
+        value: summary.shipping_cost,
+        icon: Truck,
+      },
+      {
+        label: "Publicidade",
+        value: summary.ads_effective,
+        icon: Megaphone,
+      },
+      {
+        label: "Impostos",
+        value: summary.taxes,
+        icon: BadgeDollarSign,
+      },
+      {
+        label: "Custo dos produtos confirmado",
+        value: summary.product_cost,
+        icon: Package,
+      },
+      {
+        label: "Reembolsos / devoluções",
+        value: summary.refunded_amount,
+        icon: RotateCcw,
+      },
+    ],
+    [summary],
+  );
 
-      revenue += rowRevenue;
-      platformFees += rowFees;
-      shipping += rowShipping;
-      ads += rowAds;
-      taxes += rowTaxes;
-      productCost += rowProductCost;
-      discounts += rowDiscounts;
-      refunds += rowRefunds;
-
-      if (row.net_profit != null) {
-        netProfit += n(row.net_profit);
-      } else {
-        netProfit +=
-          rowRevenue -
-          rowFees -
-          rowShipping -
-          rowAds -
-          rowTaxes -
-          rowProductCost -
-          rowRefunds;
-      }
-
-      if (row.financial_review_required) reviewRequired += 1;
-      if (row.profit_confidence === "high") reliable += 1;
-    }
-
-    const adsFallback = Math.max(0, syncedAdsInvestment - ads);
-    const effectiveAds = ads + adsFallback;
-    const adjustedNetProfit = netProfit - adsFallback;
-    const totalCosts =
-      platformFees + shipping + effectiveAds + taxes + productCost + refunds;
-    const margin = revenue > 0 ? (adjustedNetProfit / revenue) * 100 : 0;
-
-    return {
-      revenue,
-      platformFees,
-      shipping,
-      ads: effectiveAds,
-      adsFromProductAds: adsFallback > 0,
-      taxes,
-      productCost,
-      discounts,
-      refunds,
-      totalCosts,
-      netProfit: adjustedNetProfit,
-      margin,
-      reviewRequired,
-      reliable,
-      orders: rows.length,
-    };
-  }, [rows, syncedAdsInvestment]);
-
-  const costs = [
-    { label: "Taxas da plataforma", value: summary.platformFees, icon: ReceiptText },
-    { label: "Frete do vendedor", value: summary.shipping, icon: Truck },
-    { label: "Publicidade", value: summary.ads, icon: Megaphone },
-    { label: "Impostos", value: summary.taxes, icon: BadgeDollarSign },
-    { label: "Custo dos produtos", value: summary.productCost, icon: Package },
-    { label: "Descontos já refletidos na venda", value: summary.discounts, icon: Percent },
-    { label: "Reembolsos / devoluções", value: summary.refunds, icon: RotateCcw },
-  ];
-
-  const maxCost = Math.max(...costs.map((item) => item.value), 1);
+  const maxCost = Math.max(...costItems.map((item) => item.value), 1);
 
   return (
     <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[var(--shadow-soft)]">
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 px-5 py-5 text-white md:px-6">
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-200">
-            Rentabilidade Real · {accountName}
+            Rentabilidade Real v2 · {accountName}
           </div>
           <h2 className="mt-1 font-display text-xl font-bold md:text-2xl">
-            O que realmente sobrou das vendas
+            Quanto realmente sobrou — e quanto ainda não pode ser confirmado
           </h2>
           <p className="mt-1 max-w-3xl text-xs leading-relaxed text-slate-300 md:text-sm">
-            Receita cruzada com taxas do Mercado Livre, frete, publicidade, impostos,
-            custo dos produtos e reembolsos.
+            O AC360 separa lucro confirmado de resultado parcial. Taxas, frete,
+            publicidade, impostos, custo de produto e devoluções são conciliados sem
+            descontar promoções duas vezes.
           </p>
         </div>
+
         <div className="flex rounded-xl border border-white/10 bg-white/5 p-1">
           {[1, 7, 30, 90].map((period) => (
             <button
@@ -252,84 +356,94 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
 
       {error ? (
         <div className="m-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-          Não foi possível carregar a rentabilidade real: {error}
+          Não foi possível carregar a rentabilidade v2: {error}
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 xl:grid-cols-5 md:p-6">
-            {[
-              { label: "Faturamento", value: summary.revenue, icon: DollarSign, className: "text-slate-900" },
-              { label: "Custos totais", value: summary.totalCosts, icon: ReceiptText, className: "text-rose-700" },
-              { label: "Lucro líquido", value: summary.netProfit, icon: BadgeDollarSign, className: summary.netProfit >= 0 ? "text-emerald-700" : "text-rose-700" },
-            ].map((card) => {
-              const Icon = card.icon;
-              return (
-                <div key={card.label} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                      {card.label}
-                    </span>
-                    <Icon className="h-4 w-4 text-slate-400" />
+          {summary.cost_coverage_percent < 100 ? (
+            <div className="border-b border-amber-200 bg-amber-50 px-5 py-4 md:px-6">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+                <div>
+                  <div className="text-sm font-bold text-amber-900">
+                    O lucro final ainda não pode ser confirmado.
                   </div>
-                  <div className={`mt-2 font-display text-2xl font-bold tabular-nums ${card.className}`}>
-                    {loading ? "—" : money(card.value)}
-                  </div>
+                  <p className="mt-1 text-xs leading-relaxed text-amber-800">
+                    {summary.orders_pending_cost.toLocaleString("pt-BR")} pedido(s)
+                    ainda dependem de custo de produto. O valor “resultado após custos
+                    conhecidos” é um teto provisório, não lucro líquido definitivo.
+                  </p>
                 </div>
-              );
-            })}
-
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                Margem líquida
-              </div>
-              <div
-                className={`mt-2 font-display text-2xl font-bold tabular-nums ${
-                  summary.margin >= 15
-                    ? "text-emerald-700"
-                    : summary.margin >= 5
-                      ? "text-amber-700"
-                      : "text-rose-700"
-                }`}
-              >
-                {loading ? "—" : `${summary.margin.toFixed(2).replace(".", ",")}%`}
               </div>
             </div>
+          ) : null}
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-              <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                Pedidos analisados
-              </div>
-              <div className="mt-2 font-display text-2xl font-bold tabular-nums text-slate-900">
-                {loading ? "—" : summary.orders.toLocaleString("pt-BR")}
-              </div>
-              <div className="mt-1 text-[11px] text-slate-500">
-                {summary.reliable.toLocaleString("pt-BR")} com lucro de alta confiança
-              </div>
-            </div>
+          <div className="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 xl:grid-cols-6 md:p-6">
+            <MetricCard
+              label="Faturamento"
+              value={loading ? "—" : money(summary.gross_revenue)}
+              icon={DollarSign}
+              tone="neutral"
+            />
+            <MetricCard
+              label="Lucro confirmado"
+              value={loading ? "—" : money(summary.confirmed_profit)}
+              icon={ShieldCheck}
+              tone={summary.cost_coverage_percent >= 100 ? "success" : "neutral"}
+            />
+            <MetricCard
+              label="Receita bloqueada"
+              value={loading ? "—" : money(summary.blocked_revenue)}
+              icon={AlertTriangle}
+              tone={summary.blocked_revenue > 0 ? "warning" : "success"}
+            />
+            <MetricCard
+              label="Cobertura de custo"
+              value={
+                loading
+                  ? "—"
+                  : `${summary.cost_coverage_percent.toFixed(1).replace(".", ",")}%`
+              }
+              icon={CheckCircle2}
+              tone={summary.cost_coverage_percent >= 100 ? "success" : "warning"}
+              valueClassName={coverageTone}
+            />
+            <MetricCard
+              label="Custos conhecidos"
+              value={loading ? "—" : money(summary.total_known_costs)}
+              icon={ReceiptText}
+              tone="danger"
+            />
+            <MetricCard
+              label="Resultado após custos conhecidos"
+              value={loading ? "—" : money(summary.result_after_known_costs)}
+              icon={BadgeDollarSign}
+              tone="neutral"
+            />
           </div>
 
-          <div className="grid grid-cols-1 gap-4 border-t border-slate-200 p-5 lg:grid-cols-[1.4fr_0.6fr] md:p-6">
+          <div className="grid grid-cols-1 gap-4 border-t border-slate-200 p-5 lg:grid-cols-[1.25fr_0.75fr] md:p-6">
             <div className="rounded-2xl border border-slate-200 p-4 md:p-5">
               <div className="mb-4">
                 <h3 className="font-display text-base font-bold text-slate-900">
-                  Composição dos custos
+                  Composição dos custos conhecidos
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Detalhamento do valor consumido em cada camada da operação.
+                  Somente valores que já possuem fonte financeira identificada.
                 </p>
-                {summary.adsFromProductAds ? (
+                {summary.ads_unallocated > 0 ? (
                   <p className="mt-1 text-[11px] font-medium text-blue-700">
-                    Publicidade aplicada pelo snapshot real do Product Ads
-                    {adsSnapshotDate
-                      ? ` · atualizado em ${new Date(`${adsSnapshotDate}T12:00:00`).toLocaleDateString("pt-BR")}`
-                      : ""}.
+                    Product Ads acrescentou {money(summary.ads_unallocated)} que ainda
+                    não estava atribuído diretamente aos pedidos, sem duplicar investimento.
                   </p>
                 ) : null}
               </div>
+
               <div className="space-y-3">
-                {costs.map((item) => {
+                {costItems.map((item) => {
                   const Icon = item.icon;
                   const width = Math.max(2, (item.value / maxCost) * 100);
+
                   return (
                     <div key={item.label}>
                       <div className="mb-1.5 flex items-center justify-between gap-3 text-xs">
@@ -351,48 +465,144 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
                   );
                 })}
               </div>
-            </div>
 
-            <div
-              className={`rounded-2xl border p-5 ${
-                summary.reviewRequired > 0
-                  ? "border-amber-200 bg-amber-50"
-                  : "border-emerald-200 bg-emerald-50"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
-                    summary.reviewRequired > 0
-                      ? "bg-amber-100 text-amber-700"
-                      : "bg-emerald-100 text-emerald-700"
-                  }`}
-                >
-                  {summary.reviewRequired > 0 ? (
-                    <AlertTriangle className="h-5 w-5" />
-                  ) : (
-                    <BadgeDollarSign className="h-5 w-5" />
-                  )}
-                </div>
-                <div>
-                  <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-                    Qualidade financeira
-                  </div>
-                  <div className="mt-1 font-display text-xl font-bold text-slate-900">
-                    {loading
-                      ? "Analisando…"
-                      : summary.reviewRequired > 0
-                        ? `${summary.reviewRequired} pedido(s) para revisar`
-                        : "Sem pendências críticas"}
-                  </div>
-                  <p className="mt-2 text-xs leading-relaxed text-slate-600">
-                    O AC360 considera como atenção pedidos com dados financeiros incompletos
-                    ou marcados para revisão antes de tratar o lucro como definitivo.
-                  </p>
-                </div>
+              <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50/60 px-3 py-2 text-[11px] leading-relaxed text-blue-800">
+                Descontos ficam disponíveis para auditoria, mas não são subtraídos
+                novamente aqui, porque podem já estar refletidos no valor final da venda.
               </div>
             </div>
+
+            <div className="space-y-3">
+              <QualityCard
+                label="Pedidos confirmados"
+                value={summary.orders_confirmed}
+                helper="Com custo de produto e sem pendência financeira crítica."
+                success
+              />
+              <QualityCard
+                label="Pedidos aguardando custo"
+                value={summary.orders_pending_cost}
+                helper="Ainda não entram no lucro confirmado."
+              />
+              <QualityCard
+                label="Pedidos com devolução"
+                value={summary.refund_orders}
+                helper={`${money(summary.refunded_amount)} devolvido no período.`}
+                warning={summary.refund_orders > 0}
+              />
+              <QualityCard
+                label="Pedidos cancelados"
+                value={summary.cancelled_orders}
+                helper="Excluídos do cálculo principal de rentabilidade."
+              />
+            </div>
           </div>
+
+          <div className="border-t border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 md:px-6">
+              <div>
+                <h3 className="font-display text-base font-bold text-slate-900">
+                  Rentabilidade por produto / SKU
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Taxas, frete, impostos e devoluções são rateados proporcionalmente ao
+                  valor de cada item. Ads usa o maior valor entre pedido e Product Ads para
+                  evitar dupla contagem.
+                </p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-600">
+                Até 50 produtos
+              </span>
+            </div>
+
+            <div className="overflow-x-auto border-t border-slate-100">
+              <table className="w-full min-w-[1180px] text-sm">
+                <thead>
+                  <tr className="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500">
+                    <th className="px-4 py-3 text-left font-semibold">Produto / SKU</th>
+                    <th className="px-4 py-3 text-right font-semibold">Pedidos</th>
+                    <th className="px-4 py-3 text-right font-semibold">Faturamento</th>
+                    <th className="px-4 py-3 text-right font-semibold">Taxas + frete</th>
+                    <th className="px-4 py-3 text-right font-semibold">Ads</th>
+                    <th className="px-4 py-3 text-right font-semibold">Custo produto</th>
+                    <th className="px-4 py-3 text-right font-semibold">Resultado*</th>
+                    <th className="px-4 py-3 text-right font-semibold">Cobertura</th>
+                    <th className="px-4 py-3 text-left font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {products.map((row) => {
+                    const status = statusMeta(row.profit_status);
+                    const pending = row.profit_status === "pending_cost";
+
+                    return (
+                      <tr key={row.product_id} className="border-t border-slate-100">
+                        <td className="px-4 py-3">
+                          <div className="max-w-[330px] truncate font-semibold text-slate-900">
+                            {row.product_name || "Produto sem nome"}
+                          </div>
+                          <div className="mt-0.5 font-mono text-[10px] text-slate-500">
+                            {row.sku || row.product_id.slice(0, 8)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-slate-700">
+                          {row.orders.toLocaleString("pt-BR")}
+                        </td>
+                        <td className="px-4 py-3 text-right font-medium tabular-nums text-slate-900">
+                          {money(row.revenue)}
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-rose-700">
+                          {money(row.marketplace_fees + row.shipping_cost + row.taxes)}
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-rose-700">
+                          {money(row.ads_effective)}
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-rose-700">
+                          {pending ? "Pendente" : money(row.product_cost)}
+                        </td>
+                        <td
+                          className={`px-4 py-3 text-right font-bold tabular-nums ${
+                            pending
+                              ? "text-slate-500"
+                              : row.net_profit >= 0
+                                ? "text-emerald-700"
+                                : "text-rose-700"
+                          }`}
+                        >
+                          {money(row.net_profit)}
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold tabular-nums text-slate-700">
+                          {row.cost_coverage_percent.toFixed(0)}%
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex rounded-full border px-2 py-1 text-[10px] font-semibold ${status.className}`}
+                          >
+                            {status.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+
+                  {!loading && products.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="px-4 py-10 text-center text-sm text-slate-500">
+                        Nenhum produto vendido no período selecionado.
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="border-t border-slate-100 bg-slate-50/70 px-5 py-3 text-[11px] leading-relaxed text-slate-500 md:px-6">
+              * Quando a cobertura de custo é menor que 100%, “Resultado” significa
+              resultado após os custos já conhecidos e não deve ser interpretado como
+              lucro líquido final.
+            </div>
+          </div>
+
           <div className="border-t border-slate-200">
             <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 md:px-6">
               <div>
@@ -400,16 +610,13 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
                   Auditoria por pedido
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Últimos pedidos do período com cada componente financeiro separado.
+                  Componentes financeiros separados nos 50 pedidos mais recentes do período.
                 </p>
               </div>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-600">
-                Até 50 pedidos recentes
-              </span>
             </div>
 
             <div className="overflow-x-auto border-t border-slate-100">
-              <table className="w-full min-w-[1200px] text-sm">
+              <table className="w-full min-w-[1100px] text-sm">
                 <thead>
                   <tr className="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500">
                     <th className="px-4 py-3 text-left font-semibold">Pedido</th>
@@ -417,31 +624,19 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
                     <th className="px-4 py-3 text-right font-semibold">Taxas ML</th>
                     <th className="px-4 py-3 text-right font-semibold">Frete</th>
                     <th className="px-4 py-3 text-right font-semibold">Ads</th>
-                    <th className="px-4 py-3 text-right font-semibold">Imposto</th>
                     <th className="px-4 py-3 text-right font-semibold">Custo produto</th>
                     <th className="px-4 py-3 text-right font-semibold">Desconto</th>
                     <th className="px-4 py-3 text-right font-semibold">Devolução</th>
-                    <th className="px-4 py-3 text-right font-semibold">Lucro</th>
                     <th className="px-4 py-3 text-left font-semibold">Confiança</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.slice(0, 50).map((row) => {
+                  {orders.map((row) => {
                     const marketplace = n(row.marketplace_fee);
                     const fees =
                       marketplace > 0
                         ? marketplace
                         : n(row.mercadolivre_fee) + n(row.mercadopago_fee);
-                    const fallbackProfit =
-                      n(row.total_amount) -
-                      fees -
-                      n(row.seller_shipping_cost) -
-                      n(row.ads_cost) -
-                      n(row.tax_amount) -
-                      n(row.product_cost_total) -
-                      n(row.refunded_amount);
-                    const profit =
-                      row.net_profit == null ? fallbackProfit : n(row.net_profit);
 
                     return (
                       <tr key={row.id} className="border-t border-slate-100">
@@ -454,51 +649,43 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
                           </div>
                         </td>
                         <td className="px-4 py-3 text-right font-medium tabular-nums text-slate-900">
-                          {money(n(row.total_amount))}
+                          {money(row.total_amount)}
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums text-rose-700">
                           {money(fees)}
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums text-rose-700">
-                          {money(n(row.seller_shipping_cost))}
+                          {money(row.seller_shipping_cost)}
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums text-rose-700">
-                          {money(n(row.ads_cost))}
+                          {money(row.ads_cost)}
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums text-rose-700">
-                          {money(n(row.tax_amount))}
-                        </td>
-                        <td className="px-4 py-3 text-right tabular-nums text-rose-700">
-                          {money(n(row.product_cost_total))}
+                          {n(row.product_cost_total) > 0 ? money(row.product_cost_total) : "Pendente"}
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums text-amber-700">
-                          {money(n(row.discount_amount))}
+                          {money(row.discount_amount)}
                         </td>
                         <td className="px-4 py-3 text-right tabular-nums text-rose-700">
-                          {money(n(row.refunded_amount))}
-                        </td>
-                        <td
-                          className={`px-4 py-3 text-right font-bold tabular-nums ${
-                            profit >= 0 ? "text-emerald-700" : "text-rose-700"
-                          }`}
-                        >
-                          {money(profit)}
+                          {money(row.refunded_amount)}
                         </td>
                         <td className="px-4 py-3">
                           <span
                             className={`inline-flex rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wider ${
-                              row.profit_confidence === "high"
+                              row.profit_confidence === "high" &&
+                              !row.financial_review_required
                                 ? "border-emerald-200 bg-emerald-50 text-emerald-700"
                                 : row.financial_review_required
                                   ? "border-amber-200 bg-amber-50 text-amber-700"
                                   : "border-slate-200 bg-slate-50 text-slate-600"
                             }`}
                           >
-                            {row.profit_confidence === "high"
-                              ? "Alta"
+                            {row.profit_confidence === "high" &&
+                            !row.financial_review_required
+                              ? "Confirmado"
                               : row.financial_review_required
                                 ? "Revisar"
-                                : row.profit_confidence || "Pendente"}
+                                : "Aguardando custo"}
                           </span>
                         </td>
                       </tr>
@@ -507,17 +694,98 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
                 </tbody>
               </table>
             </div>
-            <div className="border-t border-slate-100 bg-slate-50/70 px-5 py-3 text-[11px] leading-relaxed text-slate-500 md:px-6">
-              Descontos são exibidos para auditoria, mas não são subtraídos novamente
-              do lucro nesta tela: eles já podem estar refletidos no valor final da venda.
-              Quando o custo de Ads registrado nos pedidos é menor que o snapshot
-              sincronizado do Product Ads para o período, o AC360 completa apenas a
-              diferença no resumo financeiro, sem duplicar custo nem rateá-lo
-              artificialmente entre pedidos.
-            </div>
           </div>
         </>
       )}
     </section>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  icon: Icon,
+  tone,
+  valueClassName,
+}: {
+  label: string;
+  value: string;
+  icon: typeof DollarSign;
+  tone: "success" | "warning" | "danger" | "neutral";
+  valueClassName?: string;
+}) {
+  const iconClass =
+    tone === "success"
+      ? "bg-emerald-50 text-emerald-700"
+      : tone === "warning"
+        ? "bg-amber-50 text-amber-700"
+        : tone === "danger"
+          ? "bg-rose-50 text-rose-700"
+          : "bg-blue-50 text-blue-700";
+
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+          {label}
+        </span>
+        <span className={`flex h-8 w-8 items-center justify-center rounded-lg ${iconClass}`}>
+          <Icon className="h-4 w-4" />
+        </span>
+      </div>
+      <div
+        className={`mt-2 font-display text-xl font-bold tabular-nums ${
+          valueClassName ||
+          (tone === "success"
+            ? "text-emerald-700"
+            : tone === "warning"
+              ? "text-amber-700"
+              : tone === "danger"
+                ? "text-rose-700"
+                : "text-slate-900")
+        }`}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function QualityCard({
+  label,
+  value,
+  helper,
+  success = false,
+  warning = false,
+}: {
+  label: string;
+  value: number;
+  helper: string;
+  success?: boolean;
+  warning?: boolean;
+}) {
+  const className = success
+    ? "border-emerald-200 bg-emerald-50"
+    : warning
+      ? "border-amber-200 bg-amber-50"
+      : "border-slate-200 bg-slate-50";
+
+  const Icon = success ? CheckCircle2 : warning ? AlertTriangle : Package;
+
+  return (
+    <div className={`rounded-2xl border p-4 ${className}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">
+            {label}
+          </div>
+          <div className="mt-1 font-display text-2xl font-bold text-slate-900">
+            {value.toLocaleString("pt-BR")}
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-slate-600">{helper}</p>
+        </div>
+        <Icon className="h-5 w-5 text-slate-500" />
+      </div>
+    </div>
   );
 }

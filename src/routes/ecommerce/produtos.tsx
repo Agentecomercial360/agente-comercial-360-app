@@ -25,7 +25,6 @@ export const Route = createFileRoute("/ecommerce/produtos")({
   }),
 });
 
-const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
 
 type Product = {
   id: string;
@@ -132,6 +131,7 @@ function InteligenciaProdutos() {
 
 function InteligenciaProdutosInner() {
   const {
+    companyId,
     accounts,
     loading: loadingAccounts,
     activeAccount: selectedAccount,
@@ -149,13 +149,14 @@ function InteligenciaProdutosInner() {
 
 
   async function loadData(accountId: string) {
+    if (!companyId) return;
     setLoading(true);
     setError(null);
     try {
       const { data: list, error: el } = await supabase
         .from("ecommerce_listings")
         .select("id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at")
-        .eq("company_id", COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("account_id", accountId)
         .order("updated_at", { ascending: false });
       if (el) throw el;
@@ -169,7 +170,7 @@ function InteligenciaProdutosInner() {
         const { data: prod, error: ep } = await supabase
           .from("ecommerce_products")
           .select("id,sku,product_name,category,sale_price,status,is_active,updated_at")
-          .eq("company_id", COMPANY_ID)
+          .eq("company_id", companyId)
           .in("id", productIds)
           .order("updated_at", { ascending: false });
         if (ep) throw ep;
@@ -201,7 +202,11 @@ function InteligenciaProdutosInner() {
     setSyncing(true);
     setSyncMessage(null);
     try {
-      const result = await runSmartAccountSync(selectedAccountId, { days: 1 });
+      if (!companyId) throw new Error("Empresa não identificada para a sincronização.");
+      const result = await runSmartAccountSync(selectedAccountId, {
+        days: 1,
+        companyId,
+      });
       console.log("Resposta sync-account-smart:", result.raw);
       await loadData(selectedAccountId);
       window.dispatchEvent(new CustomEvent("mercadolivre-products-synced"));

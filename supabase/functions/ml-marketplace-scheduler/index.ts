@@ -4,6 +4,8 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_ROLE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 const RAILWAY_REFRESH_URL =
   "https://ac360-mercadolivre-api-production.up.railway.app/api/ecommerce/mercadolivre/token-refresh-internal";
+const RAILWAY_FINANCIAL_RECONCILIATION_URL =
+  "https://ac360-mercadolivre-api-production.up.railway.app/api/ecommerce/mercadolivre/financial-reconciliation-internal";
 
 function adminClient() {
   if (!SUPABASE_URL || !SERVICE_ROLE) {
@@ -26,6 +28,7 @@ type SyncState = {
   capability: string;
   resource_key: string;
   next_due_at: string | null;
+  last_success_at: string | null;
   status: string;
 };
 
@@ -68,6 +71,39 @@ async function refreshMercadoLivreToken(
     body: JSON.stringify({
       company_id: account.company_id,
       account_id: account.id,
+    }),
+  });
+
+  const text = await res.text();
+  let data: any = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = { raw: text.slice(0, 500) };
+  }
+
+  return {
+    ok: res.ok,
+    status: res.status,
+    data,
+  };
+}
+
+async function reconcileFinancial(
+  account: Account,
+  schedulerSecret: string,
+): Promise<{ ok: boolean; status: number; data: any }> {
+  const res = await fetch(RAILWAY_FINANCIAL_RECONCILIATION_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      "x-ac360-cron-secret": schedulerSecret,
+    },
+    body: JSON.stringify({
+      company_id: account.company_id,
+      account_id: account.id,
+      max_orders: 100,
     }),
   });
 
@@ -152,7 +188,7 @@ Deno.serve(async (req: Request) => {
   ] = await Promise.all([
     admin
       .from("ecommerce_marketplace_sync_state")
-      .select("account_id,capability,resource_key,next_due_at,status")
+      .select("account_id,capability,resource_key,next_due_at,last_success_at,status")
       .in("account_id", accountIds)
       .limit(10000),
     admin
@@ -192,7 +228,10 @@ Deno.serve(async (req: Request) => {
   );
 
   const executions: Array<Record<string, unknown>> = [];
+  const financialExecutions: Array<Record<string, unknown>> = [];
+  let intelligenceExecutionCount = 0;
   const MAX_EXECUTIONS = 24;
+  const MAX_FINANCIAL_ACCOUNTS_PER_TICK = 1;
   const MAX_COMPETITION_PER_ACCOUNT = 3;
 
   async function execute(
@@ -200,7 +239,7 @@ Deno.serve(async (req: Request) => {
     body: Record<string, unknown>,
     label: string,
   ) {
-    if (executions.length >= MAX_EXECUTIONS) return false;
+    if (intelligenceExecutionCount >= MAX_EXECUTIONS) return false;
     const started = Date.now();
     const result = await invokeIntelligence(
       {
@@ -211,6 +250,7 @@ Deno.serve(async (req: Request) => {
       candidate,
     );
 
+    intelligenceExecutionCount += 1;
     executions.push({
       account_id: account.id,
       account: account.account_name || account.nickname || account.id,
@@ -338,13 +378,110 @@ Deno.serve(async (req: Request) => {
     readyAccounts.push(account);
   }
 
-  // Phase 2: only accounts with valid auth can spend the intelligence
+  // Phase 2: financial reconciliation has its own workload budget and
+  // does not consume Ads/Radar/competition capacity.
+  let financialAccountsProcessed = 0;
+
+  for (const account of readyAccounts) {
+    if (
+      financialAccountsProcessed >=
+      MAX_FINANCIAL_ACCOUNTS_PER_TICK
+    ) {
+      break;
+    }
+
+    const financeKey = [
+      account.id,
+      "financial_reconciliation",
+      "account",
+    ].join("|");
+
+    if (!due(stateMap.get(financeKey))) {
+      continue;
+    }
+
+    const started = Date.now();
+    const result = await reconcileFinancial(
+      account,
+      candidate,
+    );
+
+    const scanMode =
+      result.data?.scan_mode ?? null;
+    const summary =
+      result.data?.summary ?? null;
+    const nowIso =
+      new Date().toISOString();
+    const nextDueMinutes =
+      result.ok
+        ? scanMode === "idle"
+          ? 60
+          : 45
+        : 15;
+
+    await admin
+      .from("ecommerce_marketplace_sync_state")
+      .upsert(
+        {
+          company_id: account.company_id,
+          account_id: account.id,
+          capability: "financial_reconciliation",
+          resource_key: "account",
+          status: result.ok ? "success" : "error",
+          last_attempt_at: nowIso,
+          last_success_at: result.ok
+            ? nowIso
+            : stateMap.get(financeKey)?.last_success_at ?? null,
+          next_due_at: new Date(
+            Date.now() +
+              nextDueMinutes * 60_000,
+          ).toISOString(),
+          last_error_message: result.ok
+            ? null
+            : result.data?.error ||
+              result.data?.message ||
+              "Falha na conciliação financeira automática.",
+          last_result: {
+            scan_mode: scanMode,
+            summary,
+            http_status: result.status,
+          },
+          updated_at: nowIso,
+        },
+        {
+          onConflict: "company_id,account_id,capability,resource_key",
+        },
+      );
+
+    financialExecutions.push({
+      account_id: account.id,
+      account:
+        account.account_name ||
+        account.nickname ||
+        account.id,
+      label: "financial_reconciliation",
+      ok: result.ok,
+      http_status: result.status,
+      duration_ms: Date.now() - started,
+      scan_mode: scanMode,
+      summary,
+      error: result.ok
+        ? null
+        : result.data?.error ||
+          result.data?.message ||
+          null,
+    });
+
+    financialAccountsProcessed += 1;
+  }
+
+  // Phase 3: only accounts with valid auth can spend the intelligence
   // workload budget.
   for (const account of readyAccounts) {
-    if (executions.length >= MAX_EXECUTIONS) break;
+    if (intelligenceExecutionCount >= MAX_EXECUTIONS) break;
 
     for (const days of [1, 7, 30, 90]) {
-      if (executions.length >= MAX_EXECUTIONS) break;
+      if (intelligenceExecutionCount >= MAX_EXECUTIONS) break;
       const key = [account.id, "ads", `period:${days}`].join("|");
       if (due(stateMap.get(key))) {
         await execute(account, { action: "ads_sync", days }, `ads_${days}d`);
@@ -353,7 +490,7 @@ Deno.serve(async (req: Request) => {
 
     const radarKey = [account.id, "market_radar", "account"].join("|");
     if (
-      executions.length < MAX_EXECUTIONS &&
+      intelligenceExecutionCount < MAX_EXECUTIONS &&
       due(stateMap.get(radarKey))
     ) {
       await execute(account, { action: "market_radar_sync" }, "market_radar");
@@ -369,7 +506,7 @@ Deno.serve(async (req: Request) => {
       .slice(0, MAX_COMPETITION_PER_ACCOUNT);
 
     for (const listing of accountListings) {
-      if (executions.length >= MAX_EXECUTIONS) break;
+      if (intelligenceExecutionCount >= MAX_EXECUTIONS) break;
       await execute(
         account,
         { action: "competition_sync", listing_id: listing.id },
@@ -381,11 +518,15 @@ Deno.serve(async (req: Request) => {
     status: "success",
     accounts: accountRows.length,
     executions,
+    financial_executions: financialExecutions,
     succeeded: executions.filter((e) => e.ok === true).length,
     failed: executions.filter((e) => e.ok === false && e.skipped !== true).length,
     skipped: executions.filter((e) => e.skipped === true).length,
+    financial_succeeded: financialExecutions.filter((e) => e.ok === true).length,
+    financial_failed: financialExecutions.filter((e) => e.ok === false).length,
     max_executions_per_tick: MAX_EXECUTIONS,
+    max_financial_accounts_per_tick: MAX_FINANCIAL_ACCOUNTS_PER_TICK,
     max_competition_per_account: MAX_COMPETITION_PER_ACCOUNT,
-    truncated: executions.length >= MAX_EXECUTIONS,
+    truncated: intelligenceExecutionCount >= MAX_EXECUTIONS,
   });
 });

@@ -231,7 +231,7 @@ Deno.serve(async (req: Request) => {
   const financialExecutions: Array<Record<string, unknown>> = [];
   let intelligenceExecutionCount = 0;
   const MAX_EXECUTIONS = 24;
-  const MAX_FINANCIAL_ACCOUNTS_PER_TICK = 3;
+  const MAX_FINANCIAL_ACCOUNTS_PER_TICK = 1;
   const MAX_COMPETITION_PER_ACCOUNT = 3;
 
   async function execute(

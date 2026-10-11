@@ -56,6 +56,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
   competition: "Concorrência & Ranking",
   market_radar: "Radar de Mercado",
   shipment_labels: "Etiquetas",
+  financial_reconciliation: "Conciliação Financeira",
 };
 
 const OVERDUE_GRACE_MS = 20 * 60_000;

@@ -22,7 +22,6 @@ import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
 import {
   useEcommerceActiveAccount,
-  ECOMMERCE_COMPANY_ID,
 } from "@/lib/ecommerce-active-account";
 import { isCancelled } from "@/lib/ecommerce-metrics";
 
@@ -217,6 +216,7 @@ function ProdutosProblemaPage() {
 
 function ProdutosProblemaInner() {
   const {
+    companyId,
     activeAccount,
     activeAccountId,
     isActiveConnected,
@@ -247,7 +247,7 @@ function ProdutosProblemaInner() {
         const { data: ls, error: el } = await supabase
           .from("ecommerce_listings")
           .select("id,product_id,ml_item_id,title,price,status,is_active,listing_url,external_url,updated_at")
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .eq("account_id", activeAccountId)
           .order("updated_at", { ascending: false });
         if (el) throw el;
@@ -263,7 +263,7 @@ function ProdutosProblemaInner() {
           const { data: pr, error: ep } = await supabase
             .from("ecommerce_products")
             .select("id,sku,product_name,is_active,cost_price,updated_at")
-            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .eq("company_id", companyId)
             .in("id", productIds);
           if (ep) throw ep;
           productsData = (pr || []) as Product[];
@@ -273,7 +273,7 @@ function ProdutosProblemaInner() {
         const { data: ords, error: eo } = await supabase
           .from("ecommerce_orders")
           .select("id,account_id,order_status")
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .eq("account_id", activeAccountId)
           .limit(20000);
         if (eo) throw eo;
@@ -289,7 +289,7 @@ function ProdutosProblemaInner() {
               supabase
                 .from("ecommerce_order_items")
                 .select("order_id,product_id,quantity,total_price,cost_price_at_sale,profit_status")
-                .eq("company_id", ECOMMERCE_COMPANY_ID)
+                .eq("company_id", companyId)
                 .in("order_id", c)
                 .limit(50000),
             ),

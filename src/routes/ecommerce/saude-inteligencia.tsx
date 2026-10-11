@@ -308,7 +308,7 @@ function IntelligenceHealthContent() {
     setBusyAccountId(account.id);
     try {
       await startMercadoLivreOAuth({
-        companyId:
+        companyId,
         accountId: account.id,
       });
       await Promise.all([reloadAccounts(), load(true)]);

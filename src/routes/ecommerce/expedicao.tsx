@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Check,
   ClipboardCopy,
+  Download,
   Layers3,
   Loader2,
   PackageCheck,
@@ -19,6 +20,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { runMarketplaceIntelligence } from "@/lib/ml-marketplace-intelligence";
 
 export const Route = createFileRoute("/ecommerce/expedicao")({
   component: ExpedicaoPage,
@@ -76,6 +78,7 @@ function ExpedicaoContent() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [generatingLabels, setGeneratingLabels] = useState(false);
 
   useEffect(() => {
     if (accountsLoading) return;
@@ -239,6 +242,81 @@ function ExpedicaoContent() {
     toast.success(`${ids.length} IDs de envio copiados na ordem organizada.`);
   }
 
+  async function downloadOfficialLabels() {
+    if (!activeAccountId) {
+      toast.error("Selecione uma conta Mercado Livre para gerar as etiquetas.");
+      return;
+    }
+
+    const sourceGroups = selectedGroups.length > 0 ? selectedGroups : groups;
+    const seen = new Set<string>();
+    const labelGroups = sourceGroups
+      .map((group) => ({
+        sku: group.sku,
+        shipment_ids: Array.from(group.shipmentIds).filter((id) => {
+          if (seen.has(id)) return false;
+          seen.add(id);
+          return true;
+        }),
+      }))
+      .filter((group) => group.shipment_ids.length > 0);
+
+    if (seen.size === 0) {
+      toast.error("Nenhuma etiqueta disponível para gerar.");
+      return;
+    }
+
+    setGeneratingLabels(true);
+    try {
+      const result = await runMarketplaceIntelligence<{
+        filename?: string;
+        mime_type?: string;
+        base64?: string;
+        shipments?: number;
+        groups?: number;
+      }>({
+        action: "shipment_labels",
+        company_id: ECOMMERCE_COMPANY_ID,
+        account_id: activeAccountId,
+        groups: labelGroups,
+      });
+
+      if (!result.base64) {
+        throw new Error("O Mercado Livre não retornou o PDF das etiquetas.");
+      }
+
+      const binary = atob(result.base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let index = 0; index < binary.length; index += 1) {
+        bytes[index] = binary.charCodeAt(index);
+      }
+
+      const blob = new Blob([bytes], {
+        type: result.mime_type || "application/pdf",
+      });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = result.filename || "etiquetas-mercado-livre.pdf";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      toast.success(
+        `${Number(result.shipments ?? seen.size).toLocaleString("pt-BR")} etiqueta(s) gerada(s) por produto/SKU.`,
+      );
+    } catch (labelError) {
+      const message =
+        labelError instanceof Error
+          ? labelError.message
+          : "Não foi possível gerar as etiquetas oficiais.";
+      toast.error(message);
+    } finally {
+      setGeneratingLabels(false);
+    }
+  }
+
   const totalUnits = groups.reduce((sum, group) => sum + group.units, 0);
   const accountLabel =
     activeAccount?.account_name || activeAccount?.nickname || "Todas as contas";
@@ -261,11 +339,22 @@ function ExpedicaoContent() {
             <div className="mt-2 text-xs font-medium text-slate-500">{accountLabel}</div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button
+              onClick={() => void downloadOfficialLabels()}
+              disabled={generatingLabels || !activeAccountId}
+            >
+              {generatingLabels ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="mr-2 h-4 w-4" />
+              )}
+              {generatingLabels ? "Gerando etiquetas…" : "Baixar etiquetas oficiais"}
+            </Button>
             <Button variant="outline" onClick={copyShipments}>
               <ClipboardCopy className="mr-2 h-4 w-4" />
               Copiar IDs dos envios
             </Button>
-            <Button onClick={() => window.print()}>
+            <Button variant="outline" onClick={() => window.print()}>
               <Printer className="mr-2 h-4 w-4" />
               Imprimir separação
             </Button>
@@ -305,9 +394,9 @@ function ExpedicaoContent() {
         <div className="flex gap-3">
           <Check className="mt-0.5 h-4 w-4 shrink-0" />
           <p className="leading-relaxed">
-            A organização por produto/SKU já está pronta. A geração do PDF/ZPL oficial
-            das etiquetas continuará no backend, usando os <strong>shipment_ids</strong>
-            nesta mesma ordem, para manter o token do Mercado Livre fora do navegador.
+            As etiquetas oficiais agora são solicitadas ao Mercado Livre pelo backend
+            seguro do AC360 e reunidas em PDF na sequência dos grupos de produto/SKU.
+            Selecione apenas alguns grupos ou deixe tudo desmarcado para gerar toda a expedição.
           </p>
         </div>
       </section>

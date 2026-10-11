@@ -74,7 +74,8 @@ export type MarketplaceSyncState = {
 
 function syncIdentity(input: MarketplaceIntelligenceInput) {
   if (input.action === "ads_sync") {
-    return { capability: "ads" as const, resourceKey: "account" };
+    const days = [1, 7, 30, 90].includes(Number(input.days)) ? Number(input.days) : 30;
+    return { capability: "ads" as const, resourceKey: `period:${days}` };
   }
   if (input.action === "competition_sync") {
     return {

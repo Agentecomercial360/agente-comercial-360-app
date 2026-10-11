@@ -28,6 +28,7 @@ type SyncState = {
   capability: string;
   resource_key: string;
   next_due_at: string | null;
+  last_attempt_at: string | null;
   last_success_at: string | null;
   status: string;
 };
@@ -188,7 +189,7 @@ Deno.serve(async (req: Request) => {
   ] = await Promise.all([
     admin
       .from("ecommerce_marketplace_sync_state")
-      .select("account_id,capability,resource_key,next_due_at,last_success_at,status")
+      .select("account_id,capability,resource_key,next_due_at,last_attempt_at,last_success_at,status")
       .in("account_id", accountIds)
       .limit(10000),
     admin
@@ -382,7 +383,42 @@ Deno.serve(async (req: Request) => {
   // does not consume Ads/Radar/competition capacity.
   let financialAccountsProcessed = 0;
 
-  for (const account of readyAccounts) {
+  const financialCandidates = readyAccounts
+    .filter((account) => {
+      const financeKey = [
+        account.id,
+        "financial_reconciliation",
+        "account",
+      ].join("|");
+
+      return due(stateMap.get(financeKey));
+    })
+    .sort((a, b) => {
+      const aKey = [
+        a.id,
+        "financial_reconciliation",
+        "account",
+      ].join("|");
+      const bKey = [
+        b.id,
+        "financial_reconciliation",
+        "account",
+      ].join("|");
+
+      const aState = stateMap.get(aKey);
+      const bState = stateMap.get(bKey);
+
+      const aTime = aState?.last_attempt_at
+        ? new Date(aState.last_attempt_at).getTime()
+        : 0;
+      const bTime = bState?.last_attempt_at
+        ? new Date(bState.last_attempt_at).getTime()
+        : 0;
+
+      return aTime - bTime;
+    });
+
+  for (const account of financialCandidates) {
     if (
       financialAccountsProcessed >=
       MAX_FINANCIAL_ACCOUNTS_PER_TICK
@@ -395,10 +431,6 @@ Deno.serve(async (req: Request) => {
       "financial_reconciliation",
       "account",
     ].join("|");
-
-    if (!due(stateMap.get(financeKey))) {
-      continue;
-    }
 
     const started = Date.now();
     const result = await reconcileFinancial(

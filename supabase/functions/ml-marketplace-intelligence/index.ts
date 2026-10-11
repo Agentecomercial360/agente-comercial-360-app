@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.106.1";
+import { PDFDocument } from "npm:pdf-lib@1.17.1";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const LEGACY_ANON = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
@@ -30,12 +31,20 @@ const cors = {
 };
 
 type Body = {
-  action?: "ads_sync" | "competition_sync" | "market_radar_sync";
+  action?:
+    | "ads_sync"
+    | "competition_sync"
+    | "market_radar_sync"
+    | "shipment_labels";
   company_id?: string;
   account_id?: string;
   days?: number;
   listing_id?: string;
   category_ids?: string[];
+  groups?: Array<{
+    sku?: string;
+    shipment_ids: string[];
+  }>;
 };
 
 type Listing = {
@@ -103,6 +112,29 @@ async function mlJson(
     throw new Error(message);
   }
   return data;
+}
+
+async function mlBinary(path: string, token: string): Promise<Uint8Array> {
+  const res = await fetch(`${ML_BASE}${path}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/pdf",
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text();
+    let message = `Mercado Livre HTTP ${res.status}`;
+    try {
+      const data = JSON.parse(text);
+      message = data?.message || data?.error || message;
+    } catch {
+      // Keep status only.
+    }
+    throw new Error(message);
+  }
+
+  return new Uint8Array(await res.arrayBuffer());
 }
 
 function adminClient() {
@@ -647,6 +679,75 @@ async function syncRadar(
   };
 }
 
+async function generateShipmentLabels(
+  token: string,
+  groups: NonNullable<Body["groups"]>,
+) {
+  const normalizedGroups = groups
+    .map((group) => ({
+      sku: group.sku?.trim() || "SEM-SKU",
+      shipment_ids: Array.from(
+        new Set(
+          (group.shipment_ids ?? [])
+            .map((id) => String(id).trim())
+            .filter(Boolean),
+        ),
+      ),
+    }))
+    .filter((group) => group.shipment_ids.length > 0);
+
+  const shipmentCount = normalizedGroups.reduce(
+    (sum, group) => sum + group.shipment_ids.length,
+    0,
+  );
+
+  if (shipmentCount === 0) {
+    throw new Error("Nenhum shipment_id válido foi informado.");
+  }
+  if (shipmentCount > 250) {
+    throw new Error(
+      "Selecione até 250 etiquetas por arquivo para manter a geração estável.",
+    );
+  }
+
+  const output = await PDFDocument.create();
+  let batches = 0;
+
+  for (const group of normalizedGroups) {
+    for (const ids of chunk(group.shipment_ids, 50)) {
+      const params = new URLSearchParams({
+        shipment_ids: ids.join(","),
+        response_type: "pdf",
+      });
+
+      const bytes = await mlBinary(
+        `/shipment_labels?${params.toString()}`,
+        token,
+      );
+      const source = await PDFDocument.load(bytes);
+      const pages = await output.copyPages(source, source.getPageIndices());
+      for (const page of pages) output.addPage(page);
+      batches += 1;
+    }
+  }
+
+  const pdf = await output.save();
+  let binary = "";
+  const block = 0x8000;
+  for (let i = 0; i < pdf.length; i += block) {
+    binary += String.fromCharCode(...pdf.subarray(i, i + block));
+  }
+
+  return {
+    filename: `etiquetas-mercado-livre-${ymd(new Date())}.pdf`,
+    mime_type: "application/pdf",
+    base64: btoa(binary),
+    shipments: shipmentCount,
+    groups: normalizedGroups.length,
+    batches,
+  };
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return reply(405, { error: "Method not allowed" });
@@ -699,6 +800,14 @@ Deno.serve(async (req: Request) => {
         accountId,
         body.category_ids,
       );
+      return reply(200, { status: "success", action: body.action, result });
+    }
+
+    if (body.action === "shipment_labels") {
+      if (!body.groups?.length) {
+        return reply(400, { error: "groups are required for shipment_labels" });
+      }
+      const result = await generateShipmentLabels(token, body.groups);
       return reply(200, { status: "success", action: body.action, result });
     }
 

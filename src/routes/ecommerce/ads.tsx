@@ -225,7 +225,7 @@ function AdsIntelligenceContent() {
         mapped_ad_groups?: number;
       }>({
         action: "ads_sync",
-        company_id:
+        company_id: companyId,
         account_id: activeAccountId,
         days,
       });

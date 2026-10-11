@@ -10,6 +10,7 @@ import {
   Megaphone,
   Radar,
   Trophy,
+  WalletCards,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
@@ -20,7 +21,7 @@ type Props = {
 
 type SyncRow = {
   account_id: string;
-  capability: "auth" | "ads" | "competition" | "market_radar" | "shipment_labels";
+  capability: "auth" | "ads" | "competition" | "market_radar" | "shipment_labels" | "financial_reconciliation";
   resource_key: string;
   status: "idle" | "running" | "success" | "error";
   last_attempt_at: string | null;
@@ -50,6 +51,11 @@ const META = {
     label: "Radar de Mercado",
     description: "Tendências e mais vendidos",
     icon: Radar,
+  },
+  financial_reconciliation: {
+    label: "Financeiro",
+    description: "Pagamentos, frete e devoluções",
+    icon: WalletCards,
   },
 } as const;
 
@@ -172,7 +178,7 @@ export function MarketplaceSyncHealth({ companyId, accountId }: Props) {
             Sincronização automática do Marketplace
           </h2>
           <p className="mt-1 text-xs text-slate-500">
-            O AC360 monitora autenticação, Ads, competição e Radar. O scheduler 24/7 verifica as contas a cada 15 minutos e pausa coletas quando a autenticação expira.
+            O AC360 monitora autenticação, Ads, competição, Radar e conciliação financeira. O scheduler 24/7 verifica as contas a cada 15 minutos e pausa coletas quando a autenticação expira.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -188,7 +194,7 @@ export function MarketplaceSyncHealth({ companyId, accountId }: Props) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5">
         {items.map(({ capability, meta, data }) => {
           const Icon = meta.icon;
           const state =

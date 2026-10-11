@@ -11,6 +11,7 @@ alter table public.ecommerce_ads_metrics
   add column if not exists organic_sales_count integer not null default 0,
   add column if not exists organic_units_sold integer not null default 0,
   add column if not exists organic_revenue numeric not null default 0,
+  add column if not exists organic_metrics_synced boolean not null default false,
   add column if not exists direct_sales_count integer not null default 0,
   add column if not exists indirect_sales_count integer not null default 0,
   add column if not exists direct_units_sold integer not null default 0,

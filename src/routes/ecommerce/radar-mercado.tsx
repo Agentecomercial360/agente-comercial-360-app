@@ -19,7 +19,10 @@ import {
 import { supabase } from "@/lib/supabase";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { runMarketplaceIntelligence } from "@/lib/ml-marketplace-intelligence";
+import {
+  autoSyncMarketplaceIntelligence,
+  runMarketplaceIntelligence,
+} from "@/lib/ml-marketplace-intelligence";
 
 export const Route = createFileRoute("/ecommerce/radar-mercado")({
   component: RadarMercadoPage,
@@ -152,6 +155,29 @@ function RadarMercadoContent() {
       cancelled = true;
     };
   }, [activeAccountId, accountLoading, refreshTick]);
+
+  useEffect(() => {
+    if (accountLoading || !activeAccountId) return;
+    let cancelled = false;
+
+    void autoSyncMarketplaceIntelligence({
+      action: "market_radar_sync",
+      company_id: ECOMMERCE_COMPANY_ID,
+      account_id: activeAccountId,
+    })
+      .then(({ executed }) => {
+        if (executed && !cancelled) {
+          setRefreshTick((value) => value + 1);
+        }
+      })
+      .catch((autoError) => {
+        console.warn("market radar auto sync", autoError);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeAccountId, accountLoading]);
 
   async function handleSync() {
     if (!activeAccountId) {

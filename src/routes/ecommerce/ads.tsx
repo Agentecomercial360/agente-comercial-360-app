@@ -51,6 +51,7 @@ type AdsMetric = {
   organic_sales_count: number | null;
   organic_units_sold: number | null;
   organic_revenue: number | null;
+  organic_metrics_synced: boolean | null;
   direct_sales_count: number | null;
   indirect_sales_count: number | null;
   direct_units_sold: number | null;
@@ -121,7 +122,7 @@ function AdsIntelligenceContent() {
       let query = supabase
         .from("ecommerce_ads_metrics")
         .select(
-          "id,account_id,product_id,listing_id,metric_date,campaign_id,campaign_name,ad_group_id,impressions,clicks,ads_sales_count,ads_units_sold,investment,ads_revenue,total_revenue,roas,acos,tacos,ctr,cpc,organic_sales_count,organic_units_sold,organic_revenue,direct_sales_count,indirect_sales_count,direct_units_sold,indirect_units_sold,direct_revenue,indirect_revenue,cvr,sov,impression_share,top_impression_share,lost_impression_share_by_budget,lost_impression_share_by_ad_rank,acos_benchmark,status,ai_action_suggestion",
+          "id,account_id,product_id,listing_id,metric_date,campaign_id,campaign_name,ad_group_id,impressions,clicks,ads_sales_count,ads_units_sold,investment,ads_revenue,total_revenue,roas,acos,tacos,ctr,cpc,organic_sales_count,organic_units_sold,organic_revenue,organic_metrics_synced,direct_sales_count,indirect_sales_count,direct_units_sold,indirect_units_sold,direct_revenue,indirect_revenue,cvr,sov,impression_share,top_impression_share,lost_impression_share_by_budget,lost_impression_share_by_ad_rank,acos_benchmark,status,ai_action_suggestion",
         )
         .eq("company_id", ECOMMERCE_COMPANY_ID)
         .gte("metric_date", metricDateFrom(days))
@@ -189,6 +190,7 @@ function AdsIntelligenceContent() {
     let organicSales = 0;
     let organicUnits = 0;
     let organicRevenue = 0;
+    let organicSyncedRows = 0;
 
     for (const row of rows) {
       impressions += num(row.impressions);
@@ -201,6 +203,7 @@ function AdsIntelligenceContent() {
       organicSales += num(row.organic_sales_count);
       organicUnits += num(row.organic_units_sold);
       organicRevenue += num(row.organic_revenue);
+      if (row.organic_metrics_synced) organicSyncedRows += 1;
     }
 
     const totalUnits = adsUnits + organicUnits;
@@ -218,6 +221,8 @@ function AdsIntelligenceContent() {
       organicSales,
       organicUnits,
       organicRevenue,
+      organicMetricsSynced: rows.length > 0 && organicSyncedRows === rows.length,
+      organicSyncedRows,
       totalUnits,
       roas: investment > 0 ? adsRevenue / investment : 0,
       acos: adsRevenue > 0 ? (investment / adsRevenue) * 100 : 0,
@@ -246,6 +251,7 @@ function AdsIntelligenceContent() {
       organicRevenue: number;
       clicks: number;
       impressions: number;
+      organicSynced: boolean;
     };
 
     const map = new Map<string, Agg>();
@@ -267,6 +273,7 @@ function AdsIntelligenceContent() {
         organicRevenue: 0,
         clicks: 0,
         impressions: 0,
+        organicSynced: false,
       };
 
       current.investment += num(row.investment);
@@ -279,6 +286,7 @@ function AdsIntelligenceContent() {
       current.organicRevenue += num(row.organic_revenue);
       current.clicks += num(row.clicks);
       current.impressions += num(row.impressions);
+      current.organicSynced = current.organicSynced || Boolean(row.organic_metrics_synced);
       map.set(key, current);
     }
 
@@ -439,15 +447,21 @@ function AdsIntelligenceContent() {
                 Vendas orgânicas
               </div>
               <div className="mt-1 font-display text-3xl font-bold text-emerald-900">
-                {loading ? "—" : totals.organicUnits.toLocaleString("pt-BR")}
+                {loading
+                  ? "—"
+                  : totals.organicMetricsSynced
+                    ? totals.organicUnits.toLocaleString("pt-BR")
+                    : "Aguardando sync"}
               </div>
             </div>
             <div className="rounded-xl bg-white/80 px-3 py-2 text-lg font-bold text-emerald-700">
-              {loading ? "—" : pct(totals.organicUnitShare)}
+              {loading ? "—" : totals.organicMetricsSynced ? pct(totals.organicUnitShare) : "—"}
             </div>
           </div>
           <p className="mt-3 text-xs leading-relaxed text-emerald-800/80">
-            Unidades vendidas sem atribuição de Product Ads no período selecionado.
+            {totals.organicMetricsSynced
+              ? "Unidades vendidas sem atribuição de Product Ads no período selecionado."
+              : "A leitura orgânica será liberada após a próxima sincronização do Product Ads com as métricas atuais."}
           </p>
         </div>
 
@@ -462,11 +476,13 @@ function AdsIntelligenceContent() {
               </div>
             </div>
             <div className="rounded-xl bg-white/80 px-3 py-2 text-lg font-bold text-blue-700">
-              {loading ? "—" : pct(totals.adUnitShare)}
+              {loading ? "—" : totals.organicMetricsSynced ? pct(totals.adUnitShare) : "—"}
             </div>
           </div>
           <p className="mt-3 text-xs leading-relaxed text-blue-800/80">
-            Unidades atribuídas à publicidade, com custo por venda calculado a partir do investimento.
+            {totals.organicMetricsSynced
+              ? "Unidades atribuídas à publicidade, com custo por venda calculado a partir do investimento."
+              : "As métricas já existentes de publicidade continuam disponíveis; a divisão orgânico × Ads aguarda sincronização."}
           </p>
         </div>
       </section>
@@ -523,16 +539,18 @@ function AdsIntelligenceContent() {
               </thead>
               <tbody>
                 {productsReport.map((item) => {
-                  const diagnosis =
-                    item.totalUnits === 0
+                  const diagnosis = !item.organicSynced
+                    ? "Orgânico aguardando sync"
+                    : item.totalUnits === 0
                       ? "Sem vendas no período"
                       : item.adShare >= 60
                         ? "Alta dependência de Ads"
                         : item.organicShare >= 60
                           ? "Orgânico forte"
                           : "Mix equilibrado";
-                  const diagnosisClass =
-                    item.adShare >= 60
+                  const diagnosisClass = !item.organicSynced
+                    ? "border-slate-200 bg-slate-50 text-slate-600"
+                    : item.adShare >= 60
                       ? "border-amber-200 bg-amber-50 text-amber-700"
                       : item.organicShare >= 60
                         ? "border-emerald-200 bg-emerald-50 text-emerald-700"
@@ -553,15 +571,21 @@ function AdsIntelligenceContent() {
                       </td>
                       <td className="px-4 py-4 text-right">
                         <div className="font-semibold tabular-nums text-emerald-700">
-                          {item.organicUnits.toLocaleString("pt-BR")}
+                          {item.organicSynced
+                            ? item.organicUnits.toLocaleString("pt-BR")
+                            : "—"}
                         </div>
-                        <div className="text-[11px] text-slate-500">{pct(item.organicShare)}</div>
+                        <div className="text-[11px] text-slate-500">
+                          {item.organicSynced ? pct(item.organicShare) : "Aguardando sync"}
+                        </div>
                       </td>
                       <td className="px-4 py-4 text-right">
                         <div className="font-semibold tabular-nums text-blue-700">
                           {item.adsUnits.toLocaleString("pt-BR")}
                         </div>
-                        <div className="text-[11px] text-slate-500">{pct(item.adShare)}</div>
+                        <div className="text-[11px] text-slate-500">
+                          {item.organicSynced ? pct(item.adShare) : "—"}
+                        </div>
                       </td>
                       <td className="px-4 py-4 text-right font-medium tabular-nums text-slate-900">
                         {money(item.investment)}

@@ -45,7 +45,20 @@ export async function runMarketplaceIntelligence<T = Record<string, unknown>>(
     throw new Error(data?.error || data?.message || "Resposta inválida da integração.");
   }
 
-  return (data?.result ?? data ?? {}) as T;
+  const result = (data?.result ?? data ?? {}) as T;
+
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent("ac360-marketplace-synced", {
+        detail: {
+          action: input.action,
+          account_id: input.account_id,
+        },
+      }),
+    );
+  }
+
+  return result;
 }
 
 

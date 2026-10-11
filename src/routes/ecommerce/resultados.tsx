@@ -23,7 +23,6 @@ import {
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
-  ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
@@ -204,7 +203,8 @@ function ResultadosAcoes() {
 }
 
 function ResultadosAcoesContent() {
-  const { activeAccountId, activeAccount, loading: accLoading } =
+  const {
+    companyId, activeAccountId, activeAccount, loading: accLoading } =
     useEcommerceActiveAccount();
 
   const [tasks, setTasks] = useState<CompletedTask[]>([]);
@@ -233,7 +233,7 @@ function ResultadosAcoesContent() {
       const { count: totalCount, error: totErr } = await supabase
         .from("ecommerce_tasks")
         .select("id", { count: "exact", head: true })
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("account_id", activeAccountId);
       if (totErr) {
         console.error("[resultados] total tasks count error", totErr);
@@ -247,7 +247,7 @@ function ResultadosAcoesContent() {
       const { count: cCount, error: cErr } = await supabase
         .from("ecommerce_tasks")
         .select("id", { count: "exact", head: true })
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("account_id", activeAccountId)
         .eq("status", "completed");
       if (cErr) {
@@ -264,7 +264,7 @@ function ResultadosAcoesContent() {
         .select(
           "id, company_id, account_id, product_id, listing_id, insight_id, task_title, task_type, responsible_name, result_summary, created_by, completed_at, created_at",
         )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("account_id", activeAccountId)
         .eq("status", "completed")
         .order("completed_at", { ascending: false });
@@ -281,7 +281,7 @@ function ResultadosAcoesContent() {
       const { data: rData, error: rErr } = await supabase
         .from("vw_ecommerce_action_results")
         .select("*")
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("account_id", activeAccountId);
       if (rErr) {
         console.warn("[resultados] action results indisponível:", rErr.message);
@@ -755,7 +755,7 @@ function ResultadosAcoesContent() {
             Debug operacional da medição
           </summary>
           <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-1 font-mono">
-            <div><span className="text-slate-500">company_id:</span> {ECOMMERCE_COMPANY_ID}</div>
+            <div><span className="text-slate-500">company_id:</span> {companyId}</div>
             <div><span className="text-slate-500">account_id:</span> {activeAccountId ?? "—"}</div>
             <div><span className="text-slate-500">conta ativa:</span> {activeAccount?.account_name ?? activeAccount?.nickname ?? "—"}</div>
             <div><span className="text-slate-500">total de tarefas encontradas:</span> {totalTasksCount}</div>
@@ -1066,7 +1066,7 @@ function RegistrarResultadoDialog({
     // NOTE: ecommerce_action_results does NOT have account_id.
     // account_id é resolvido via view vw_ecommerce_action_results (join por task_id).
     const payload: Record<string, unknown> = {
-      company_id: ECOMMERCE_COMPANY_ID,
+      company_id:
       task_id: t.id,
       product_id: t.product_id,
       listing_id: t.listing_id,

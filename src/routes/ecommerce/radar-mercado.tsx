@@ -162,7 +162,7 @@ function RadarMercadoContent() {
 
     void autoSyncMarketplaceIntelligence({
       action: "market_radar_sync",
-      company_id:
+      company_id: companyId,
       account_id: activeAccountId,
     })
       .then(({ executed }) => {

@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
-  ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
@@ -103,7 +102,8 @@ function AdsIntelligencePage() {
 }
 
 function AdsIntelligenceContent() {
-  const { activeAccountId, activeAccount, loading: accountLoading } =
+  const {
+    companyId, activeAccountId, activeAccount, loading: accountLoading } =
     useEcommerceActiveAccount();
   const [days, setDays] = useState(30);
   const [rows, setRows] = useState<AdsMetric[]>([]);
@@ -126,7 +126,7 @@ function AdsIntelligenceContent() {
         .select(
           "id,account_id,product_id,listing_id,metric_date,campaign_id,campaign_name,ad_group_id,impressions,clicks,ads_sales_count,ads_units_sold,investment,ads_revenue,total_revenue,roas,acos,tacos,ctr,cpc,organic_sales_count,organic_units_sold,organic_revenue,organic_metrics_synced,direct_sales_count,indirect_sales_count,direct_units_sold,indirect_units_sold,direct_revenue,indirect_revenue,cvr,sov,impression_share,top_impression_share,lost_impression_share_by_budget,lost_impression_share_by_ad_rank,acos_benchmark,status,ai_action_suggestion",
         )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("metric_scope", "product_period")
         .eq("period_days", days)
         .order("metric_date", { ascending: false })
@@ -164,7 +164,7 @@ function AdsIntelligenceContent() {
       const { data: productRows, error: productError } = await supabase
         .from("ecommerce_products")
         .select("id,sku,product_name")
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .in("id", productIds);
 
       if (cancelled) return;
@@ -192,7 +192,7 @@ function AdsIntelligenceContent() {
 
     void autoSyncMarketplaceIntelligence({
       action: "ads_sync",
-      company_id: ECOMMERCE_COMPANY_ID,
+      company_id:
       account_id: activeAccountId,
       days,
     })
@@ -225,7 +225,7 @@ function AdsIntelligenceContent() {
         mapped_ad_groups?: number;
       }>({
         action: "ads_sync",
-        company_id: ECOMMERCE_COMPANY_ID,
+        company_id:
         account_id: activeAccountId,
         days,
       });

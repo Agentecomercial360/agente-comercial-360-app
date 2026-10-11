@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Activity, CheckCircle2, AlertTriangle, Clock, RefreshCcw } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { ECOMMERCE_COMPANY_ID } from "@/lib/ecommerce-active-account";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 
 type AccountRow = {
   id: string;
@@ -93,12 +93,19 @@ export function AccountsSyncStatus({
   scope?: "active" | "all";
   activeAccountId?: string | null;
 } = {}) {
+  const { companyId } = useEcommerceActiveAccount();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
   const [runs, setRuns] = useState<SyncRun[]>([]);
 
   async function load() {
+    if (!companyId) {
+      setAccounts([]);
+      setRuns([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -106,14 +113,14 @@ export function AccountsSyncStatus({
         supabase
           .from("ecommerce_accounts")
           .select("id, account_name, nickname, marketplace, is_active")
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .eq("marketplace", "mercado_livre"),
         supabase
           .from("ecommerce_sync_runs")
           .select(
             "account_id, status, days, total_found, orders_upserted, items_upserted, items_linked, products_created, orders_pending_cost, error_message, created_at",
           )
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .order("created_at", { ascending: false })
           .limit(500),
       ]);
@@ -130,7 +137,7 @@ export function AccountsSyncStatus({
 
   useEffect(() => {
     void load();
-  }, []);
+  }, [companyId]);
 
   const rows: Row[] = useMemo(() => {
     const latestByAccount = new Map<string, SyncRun>();

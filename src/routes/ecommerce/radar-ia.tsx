@@ -734,7 +734,7 @@ function RadarIAContent() {
       const { data, error } = await supabase.rpc(
         "generate_ecommerce_insights_v1",
         {
-          p_company_id:
+          p_company_id: companyId,
           p_account_id: accountId,
         },
       );

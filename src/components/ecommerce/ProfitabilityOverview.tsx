@@ -183,7 +183,7 @@ function statusMeta(status: ProductProfitability["profit_status"]) {
     };
   }
   return {
-    label: "Aguardando custo",
+    label: "Sem CMV",
     className: "border-slate-200 bg-slate-50 text-slate-600",
   };
 }
@@ -304,7 +304,7 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
         icon: BadgeDollarSign,
       },
       {
-        label: "Custo dos produtos confirmado",
+        label: "CMV informado",
         value: summary.product_cost,
         icon: Package,
       },

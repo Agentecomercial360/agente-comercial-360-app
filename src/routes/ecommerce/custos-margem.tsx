@@ -175,7 +175,7 @@ function DailyTooltip({
       <div className="grid gap-1">
         <Row label="Faturamento total" value={formatBRLZero(p.faturamento_total)} />
         <Row
-          label="Faturamento bloqueado"
+          label="Faturamento sem CMV"
           value={formatBRLZero(p.faturamento_bloqueado)}
           color="text-rose-700"
         />
@@ -186,7 +186,7 @@ function DailyTooltip({
         />
         <div className="mt-1 border-t border-slate-100 pt-1.5 grid gap-0.5 text-[11px] text-muted-foreground">
           <div className="flex justify-between gap-6">
-            <span>Pedidos pendentes de custo</span>
+            <span>Pedidos sem CMV</span>
             <span className="font-medium text-foreground">
               {p.pedidos_pendentes_custo.toLocaleString("pt-BR")}
             </span>
@@ -198,7 +198,7 @@ function DailyTooltip({
             </span>
           </div>
           <div className="flex justify-between gap-6">
-            <span>Produtos vendidos sem custo</span>
+            <span>Produtos vendidos sem CMV</span>
             <span className="font-medium text-foreground">
               {p.produtos_vendidos_sem_custo.toLocaleString("pt-BR")}
             </span>
@@ -745,7 +745,7 @@ function CustosMargemContent() {
       tone: "text-emerald-700",
     },
     {
-      label: "Produtos aguardando custo",
+      label: "Produtos sem CMV",
       value: accountMetrics.produtosAguardandoCusto.toLocaleString("pt-BR"),
       icon: AlertTriangle,
       accent: "from-amber-600 to-orange-700",
@@ -787,7 +787,7 @@ function CustosMargemContent() {
                 : "Central de Lucro Real"}
             </h1>
             <p className="text-[13px] text-slate-600 max-w-2xl leading-relaxed">
-              Cadastre o custo dos SKUs prioritários para liberar margem real e lucro por pedido.
+              O Mercado Livre não fornece o CMV pela API. Este módulo é opcional: informe ou importe custos quando quiser transformar o resultado operacional em lucro líquido real.
             </p>
             </div>
           </div>
@@ -890,25 +890,25 @@ function CustosMargemContent() {
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 p-5 md:p-6">
               {[
                 {
-                  label: "Faturamento bloqueado",
+                  label: "Faturamento sem CMV",
                   value: formatBRL(impactSummary.faturamento_bloqueado),
-                  hint: "Valor vendido que ainda não possui margem real por falta de custo cadastrado.",
+                  hint: "Valor vendido cujo CMV não foi informado; os demais indicadores financeiros continuam disponíveis.",
                   icon: DollarSign,
                   accent: "from-rose-600 to-rose-800",
                   tone: "text-rose-700",
                 },
                 {
-                  label: "Pedidos pendentes de custo",
+                  label: "Pedidos sem CMV",
                   value: impactSummary.pedidos_pendentes_custo.toLocaleString("pt-BR"),
-                  hint: "Pedidos reais sincronizados, mas ainda sem lucro validado.",
+                  hint: "Pedidos reais sincronizados normalmente; apenas o lucro líquido depende do CMV.",
                   icon: AlertTriangle,
                   accent: "from-amber-600 to-orange-700",
                   tone: "text-amber-700",
                 },
                 {
-                  label: "Produtos vendidos sem custo",
+                  label: "Produtos vendidos sem CMV",
                   value: impactSummary.produtos_vendidos_sem_custo.toLocaleString("pt-BR"),
-                  hint: "Produtos que precisam de custo para liberar o cálculo de margem.",
+                  hint: "Produtos cujo CMV pode ser adicionado opcionalmente para calcular margem líquida.",
                   icon: Package,
                   accent: "from-orange-600 to-rose-700",
                   tone: "text-orange-700",
@@ -1070,7 +1070,7 @@ function CustosMargemContent() {
                       wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
                       formatter={(value) =>
                         value === "faturamento_bloqueado"
-                          ? "Faturamento bloqueado"
+                          ? "Faturamento sem CMV"
                           : "Faturamento liberado"
                       }
                     />
@@ -1117,7 +1117,7 @@ function CustosMargemContent() {
                   % do faturamento aguardando custo nesta conta.
                 </h3>
                 <p className="text-[13px] text-slate-600 leading-relaxed max-w-3xl">
-                  Cadastre primeiro o custo deste produto para liberar a maior parte da análise de margem.
+                  Se o cliente optar por informar CMV, comece por este produto para ampliar rapidamente a cobertura de lucro líquido.
                 </p>
               </div>
             </div>
@@ -1162,7 +1162,7 @@ function CustosMargemContent() {
                     <th className="text-center px-3 py-3 font-semibold">#</th>
                     <th className="text-left px-3 py-3 font-semibold">SKU</th>
                     <th className="text-left px-3 py-3 font-semibold">Produto</th>
-                    <th className="text-right px-3 py-3 font-semibold">Faturamento bloqueado</th>
+                    <th className="text-right px-3 py-3 font-semibold">Faturamento sem CMV</th>
                     <th className="text-right px-3 py-3 font-semibold">% do bloqueado</th>
                     <th className="text-right px-3 py-3 font-semibold">Unidades</th>
                     <th className="text-right px-3 py-3 font-semibold">Pedidos</th>
@@ -1301,7 +1301,7 @@ function CustosMargemContent() {
           )}
         </section>
 
-        {/* Produtos vendidos sem custo */}
+        {/* Produtos vendidos sem CMV */}
 
         <section className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50/60 to-amber-50/40 shadow-[var(--shadow-soft)] overflow-hidden">
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-rose-200/70 px-5 py-4">
@@ -1311,7 +1311,7 @@ function CustosMargemContent() {
               </div>
               <div className="space-y-1 max-w-2xl">
                 <h2 className="font-display text-lg font-bold text-foreground">
-                  Produtos vendidos sem custo
+                  Produtos vendidos sem CMV
                 </h2>
                 <p className="text-xs md:text-[13px] text-muted-foreground">
                   Esses produtos já venderam, mas ainda não possuem custo cadastrado.

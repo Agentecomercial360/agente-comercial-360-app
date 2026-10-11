@@ -8,8 +8,16 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import { Radar as RadarIcon, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react";
+import {
+  AlertTriangle,
+  Loader2,
+  Minus,
+  Radar as RadarIcon,
+  TrendingDown,
+  TrendingUp,
+} from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -32,49 +40,26 @@ export type RankEntry = {
   position: number;
   previousManual?: number | null;
   note?: string;
-  checkedAt: string; // ISO — data da verificação
-  createdAt: string; // ISO
+  checkedAt: string;
+  createdAt: string;
 };
 
-const STORAGE_KEY = "ac360:ranking-radar:v2";
-const LEGACY_KEY = "ac360:ranking-radar:v1";
+type RankDbRow = {
+  id: string;
+  listing_id: string;
+  keyword: string;
+  position: number;
+  previous_position: number | null;
+  note: string | null;
+  checked_at: string;
+  created_at: string;
+};
 
-function loadAll(): Record<string, RankEntry[]> {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw) as Record<string, RankEntry[]>;
-    // migrate from v1
-    const legacy = window.localStorage.getItem(LEGACY_KEY);
-    if (legacy) {
-      const parsed = JSON.parse(legacy) as Record<string, Array<Omit<RankEntry, "checkedAt"> & { checkedAt?: string }>>;
-      const migrated: Record<string, RankEntry[]> = {};
-      for (const [k, list] of Object.entries(parsed)) {
-        migrated[k] = list.map((e) => ({ ...e, checkedAt: e.checkedAt ?? e.createdAt }));
-      }
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(migrated));
-      return migrated;
-    }
-    return {};
-  } catch {
-    return {};
-  }
+function normKw(value: string): string {
+  return value.trim().toLowerCase();
 }
 
-function saveAll(data: Record<string, RankEntry[]>) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch {
-    /* ignore */
-  }
-}
-
-function normKw(k: string) {
-  return k.trim().toLowerCase();
-}
-
-function fmtDate(iso: string) {
+function fmtDate(iso: string): string {
   try {
     return new Date(iso).toLocaleString("pt-BR", {
       day: "2-digit",
@@ -97,53 +82,102 @@ function todayISO(): string {
 }
 
 type Props = {
+  companyId: string;
+  accountId: string;
   baseListingId: string;
   baseTitle: string;
   baseSku?: string | null;
 };
 
-export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
-  const [store, setStore] = useState<Record<string, RankEntry[]>>({});
+export function RankingRadar({
+  companyId,
+  accountId,
+  baseListingId,
+  baseTitle,
+  baseSku,
+}: Props) {
+  const [entries, setEntries] = useState<RankEntry[]>([]);
   const [keyword, setKeyword] = useState("");
   const [position, setPosition] = useState("");
   const [previousPos, setPreviousPos] = useState("");
   const [checkedAt, setCheckedAt] = useState<string>(todayISO());
   const [note, setNote] = useState("");
   const [selectedKw, setSelectedKw] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const loadEntries = useCallback(async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from("ecommerce_rank_history")
+      .select("id,listing_id,keyword,position,previous_position,note,checked_at,created_at")
+      .eq("company_id", companyId)
+      .eq("account_id", accountId)
+      .eq("listing_id", baseListingId)
+      .order("checked_at", { ascending: true })
+      .limit(500);
+
+    if (error) {
+      console.error("ranking history", error);
+      toast.error("Não foi possível carregar o histórico de ranking.");
+      setEntries([]);
+    } else {
+      setEntries(
+        ((data || []) as RankDbRow[]).map((row) => ({
+          id: row.id,
+          listingId: row.listing_id,
+          sku: baseSku ?? null,
+          keyword: row.keyword,
+          position: Number(row.position),
+          previousManual:
+            row.previous_position == null ? null : Number(row.previous_position),
+          note: row.note || undefined,
+          checkedAt: row.checked_at,
+          createdAt: row.created_at,
+        })),
+      );
+    }
+    setLoading(false);
+  }, [companyId, accountId, baseListingId, baseSku]);
 
   useEffect(() => {
-    setStore(loadAll());
-  }, []);
+    void loadEntries();
+  }, [loadEntries]);
 
-  const entries = useMemo<RankEntry[]>(() => {
-    const list = store[baseListingId] ?? [];
-    return [...list].sort(
-      (a, b) => new Date(a.checkedAt).getTime() - new Date(b.checkedAt).getTime(),
-    );
-  }, [store, baseListingId]);
+  const sortedEntries = useMemo(
+    () =>
+      [...entries].sort(
+        (a, b) => new Date(a.checkedAt).getTime() - new Date(b.checkedAt).getTime(),
+      ),
+    [entries],
+  );
 
   const keywords = useMemo(() => {
-    const set = new Map<string, string>();
-    for (const e of entries) set.set(normKw(e.keyword), e.keyword);
-    return Array.from(set.entries()).map(([k, label]) => ({ key: k, label }));
-  }, [entries]);
+    const values = new Map<string, string>();
+    for (const entry of sortedEntries) {
+      values.set(normKw(entry.keyword), entry.keyword);
+    }
+    return Array.from(values.entries()).map(([key, label]) => ({ key, label }));
+  }, [sortedEntries]);
 
   useEffect(() => {
     if (!selectedKw && keywords.length > 0) setSelectedKw(keywords[0].key);
-    if (selectedKw && !keywords.find((k) => k.key === selectedKw)) {
+    if (selectedKw && !keywords.find((item) => item.key === selectedKw)) {
       setSelectedKw(keywords[0]?.key ?? "");
     }
   }, [keywords, selectedKw]);
 
   const kwEntries = useMemo(
-    () => entries.filter((e) => normKw(e.keyword) === selectedKw),
-    [entries, selectedKw],
+    () => sortedEntries.filter((entry) => normKw(entry.keyword) === selectedKw),
+    [sortedEntries, selectedKw],
   );
 
-  const handleAdd = useCallback(() => {
+  const handleAdd = useCallback(async () => {
     const kw = keyword.trim();
     const pos = Number.parseInt(position, 10);
-    const prev = previousPos.trim() === "" ? null : Number.parseInt(previousPos, 10);
+    const manualPrevious =
+      previousPos.trim() === "" ? null : Number.parseInt(previousPos, 10);
+
     if (!kw) {
       toast.error("Informe a palavra-chave monitorada.");
       return;
@@ -152,7 +186,10 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
       toast.error("Posição atual inválida. Use um número inteiro maior que zero.");
       return;
     }
-    if (prev != null && (!Number.isFinite(prev) || prev < 1 || prev > 9999)) {
+    if (
+      manualPrevious != null &&
+      (!Number.isFinite(manualPrevious) || manualPrevious < 1 || manualPrevious > 9999)
+    ) {
       toast.error("Posição anterior inválida.");
       return;
     }
@@ -160,58 +197,97 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
       toast.error("Informe a data da verificação.");
       return;
     }
+
+    const previousAutomatic = [...sortedEntries]
+      .filter((entry) => normKw(entry.keyword) === normKw(kw))
+      .sort(
+        (a, b) => new Date(b.checkedAt).getTime() - new Date(a.checkedAt).getTime(),
+      )[0]?.position;
+
+    const previous =
+      manualPrevious ?? (previousAutomatic == null ? null : previousAutomatic);
     const iso = new Date(`${checkedAt}T12:00:00`).toISOString();
-    const entry: RankEntry = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      listingId: baseListingId,
-      sku: baseSku ?? null,
+
+    setSaving(true);
+    const { error } = await supabase.from("ecommerce_rank_history").insert({
+      company_id: companyId,
+      account_id: accountId,
+      listing_id: baseListingId,
       keyword: kw,
       position: pos,
-      previousManual: prev,
-      note: note.trim() || undefined,
-      checkedAt: iso,
-      createdAt: new Date().toISOString(),
-    };
-    setStore((prev) => {
-      const next = { ...prev };
-      const list = next[baseListingId] ? [...next[baseListingId]] : [];
-      list.push(entry);
-      next[baseListingId] = list;
-      saveAll(next);
-      return next;
+      previous_position: previous,
+      source: "manual",
+      note: note.trim() || null,
+      checked_at: iso,
     });
+    setSaving(false);
+
+    if (error) {
+      console.error("insert ranking history", error);
+      toast.error("Não foi possível registrar a posição.");
+      return;
+    }
+
+    const delta = previous == null ? null : previous - pos;
+    if (delta != null && delta > 0) {
+      toast.success(`Ranking melhorou: +${delta} posição(ões).`);
+    } else if (delta != null && delta < 0) {
+      toast.warning(`Ranking caiu ${Math.abs(delta)} posição(ões).`);
+    } else {
+      toast.success("Posição registrada no AC360.");
+    }
+
     setSelectedKw(normKw(kw));
     setPosition("");
     setPreviousPos("");
     setNote("");
     setCheckedAt(todayISO());
-    toast.success("Posição registrada.");
-  }, [keyword, position, previousPos, checkedAt, note, baseListingId, baseSku]);
+    await loadEntries();
+  }, [
+    keyword,
+    position,
+    previousPos,
+    checkedAt,
+    note,
+    companyId,
+    accountId,
+    baseListingId,
+    sortedEntries,
+    loadEntries,
+  ]);
 
   const removeEntry = useCallback(
-    (id: string) => {
-      setStore((prev) => {
-        const next = { ...prev };
-        next[baseListingId] = (next[baseListingId] ?? []).filter((e) => e.id !== id);
-        saveAll(next);
-        return next;
-      });
+    async (id: string) => {
+      const { error } = await supabase
+        .from("ecommerce_rank_history")
+        .delete()
+        .eq("id", id)
+        .eq("company_id", companyId)
+        .eq("account_id", accountId);
+
+      if (error) {
+        toast.error("Não foi possível remover a medição.");
+        return;
+      }
+      setEntries((current) => current.filter((entry) => entry.id !== id));
+      toast.success("Medição removida.");
     },
-    [baseListingId],
+    [companyId, accountId],
   );
 
-  // ---- Stats for selected keyword ----
   const stats = useMemo(() => {
     if (kwEntries.length === 0) return null;
-    const positions = kwEntries.map((e) => e.position);
+    const positions = kwEntries.map((entry) => entry.position);
     const current = positions[positions.length - 1];
     const lastEntry = kwEntries[kwEntries.length - 1];
-    const previousAuto = positions.length > 1 ? positions[positions.length - 2] : null;
+    const previousAuto =
+      positions.length > 1 ? positions[positions.length - 2] : null;
     const previous = lastEntry.previousManual ?? previousAuto;
     const best = Math.min(...positions);
     const worst = Math.max(...positions);
-    const delta = previous == null ? 0 : previous - current; // positive => gained
+    const delta = previous == null ? 0 : previous - current;
     let trend: "up" | "down" | "stable" = "stable";
+
     if (positions.length >= 2) {
       const first = positions[0];
       if (current < first) trend = "up";
@@ -220,61 +296,65 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
       if (current < previous) trend = "up";
       else if (current > previous) trend = "down";
     }
-    return { current, previous, best, worst, delta, trend, count: positions.length };
+
+    return { current, previous, best, worst, delta, trend };
   }, [kwEntries]);
 
   const visibility = useMemo(() => {
     if (!stats) return null;
     if (stats.current > 20)
       return { label: "Baixa visibilidade", tone: "warn" as const };
-    if (stats.current > 10) return { label: "Fora do Top 10", tone: "warn" as const };
-    if (stats.current <= 3) return { label: "Alta visibilidade", tone: "good" as const };
+    if (stats.current > 10)
+      return { label: "Fora do Top 10", tone: "warn" as const };
+    if (stats.current <= 3)
+      return { label: "Alta visibilidade", tone: "good" as const };
     return { label: "Top 10", tone: "good" as const };
   }, [stats]);
 
   const movements = useMemo(() => {
-    const byKw = new Map<string, RankEntry[]>();
-    for (const e of entries) {
-      const k = normKw(e.keyword);
-      if (!byKw.has(k)) byKw.set(k, []);
-      byKw.get(k)!.push(e);
+    const byKeyword = new Map<string, RankEntry[]>();
+    for (const entry of sortedEntries) {
+      const key = normKw(entry.keyword);
+      if (!byKeyword.has(key)) byKeyword.set(key, []);
+      byKeyword.get(key)!.push(entry);
     }
-    const out: Array<{ keyword: string; current: number; previous: number | null; delta: number }> = [];
-    for (const [, list] of byKw) {
-      const sorted = [...list].sort(
-        (a, b) => new Date(a.checkedAt).getTime() - new Date(b.checkedAt).getTime(),
-      );
-      const current = sorted[sorted.length - 1];
-      const prevAuto = sorted.length > 1 ? sorted[sorted.length - 2].position : null;
-      const prev = current.previousManual ?? prevAuto;
-      out.push({
+
+    return Array.from(byKeyword.values()).map((list) => {
+      const current = list[list.length - 1];
+      const previousAuto =
+        list.length > 1 ? list[list.length - 2].position : null;
+      const previous = current.previousManual ?? previousAuto;
+      return {
         keyword: current.keyword,
         current: current.position,
-        previous: prev,
-        delta: prev != null ? prev - current.position : 0,
-      });
-    }
-    return out;
-  }, [entries]);
+        previous,
+        delta: previous == null ? 0 : previous - current.position,
+      };
+    });
+  }, [sortedEntries]);
 
   const losses = useMemo(
-    () => movements.filter((m) => m.delta < 0).sort((a, b) => a.delta - b.delta).slice(0, 5),
+    () =>
+      movements
+        .filter((movement) => movement.delta < 0)
+        .sort((a, b) => a.delta - b.delta)
+        .slice(0, 5),
     [movements],
   );
 
   const chartData = useMemo(
     () =>
-      kwEntries.map((e, i) => ({
-        idx: i + 1,
-        date: fmtDate(e.checkedAt),
-        position: e.position,
+      kwEntries.map((entry, index) => ({
+        idx: index + 1,
+        date: fmtDate(entry.checkedAt),
+        position: entry.position,
       })),
     [kwEntries],
   );
 
   const yDomain = useMemo<[number, number]>(() => {
     if (kwEntries.length === 0) return [1, 10];
-    const max = Math.max(...kwEntries.map((e) => e.position));
+    const max = Math.max(...kwEntries.map((entry) => entry.position));
     return [1, Math.max(10, max + 2)];
   }, [kwEntries]);
 
@@ -292,10 +372,14 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
   const alerts = useMemo(() => {
     const out: Array<{ tone: "warn" | "good" | "info"; text: string }> = [];
     if (!stats) return out;
-    if (stats.current > 20) out.push({ tone: "warn", text: "Baixa visibilidade" });
-    else if (stats.current > 10) out.push({ tone: "warn", text: "Produto saiu do Top 10" });
-    if (stats.delta <= -5) out.push({ tone: "warn", text: "Produto perdeu mais de 5 posições" });
-    if (stats.delta >= 3) out.push({ tone: "good", text: "Produto ganhou posição relevante" });
+    if (stats.current > 20)
+      out.push({ tone: "warn", text: "Baixa visibilidade" });
+    else if (stats.current > 10)
+      out.push({ tone: "warn", text: "Produto saiu do Top 10" });
+    if (stats.delta <= -5)
+      out.push({ tone: "warn", text: "Produto perdeu mais de 5 posições" });
+    if (stats.delta >= 3)
+      out.push({ tone: "good", text: "Produto ganhou posição relevante" });
     if (stats.previous != null && stats.delta === 0)
       out.push({ tone: "info", text: "Produto está estável" });
     return out;
@@ -329,8 +413,8 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
             Radar de Rankeamento
           </CardTitle>
           <p className="mt-1 text-xs text-muted-foreground">
-            Acompanhe a posição dos seus produtos por palavra-chave e identifique perda ou ganho de
-            visibilidade no Mercado Livre.
+            Histórico salvo no AC360 para acompanhar posição por palavra-chave e
+            identificar perda ou ganho de visibilidade.
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
             Produto monitorado: <span className="font-medium">{baseTitle}</span>
@@ -342,15 +426,22 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
           </p>
         </div>
       </CardHeader>
+
       <CardContent className="space-y-6">
-        {/* Form */}
+        {loading ? (
+          <div className="flex items-center justify-center gap-2 rounded-lg border px-4 py-8 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            Carregando histórico de ranking…
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-6">
-          <div className="sm:col-span-3 space-y-1.5">
+          <div className="space-y-1.5 sm:col-span-3">
             <Label htmlFor="rr-kw">Palavra-chave monitorada</Label>
             <Input
               id="rr-kw"
               value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
+              onChange={(event) => setKeyword(event.target.value)}
               placeholder="Ex.: robô cachorro infantil"
             />
           </div>
@@ -360,8 +451,10 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
               id="rr-prev"
               inputMode="numeric"
               value={previousPos}
-              onChange={(e) => setPreviousPos(e.target.value.replace(/[^0-9]/g, ""))}
-              placeholder="Opcional"
+              onChange={(event) =>
+                setPreviousPos(event.target.value.replace(/[^0-9]/g, ""))
+              }
+              placeholder="Automática"
             />
           </div>
           <div className="space-y-1.5">
@@ -370,7 +463,9 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
               id="rr-pos"
               inputMode="numeric"
               value={position}
-              onChange={(e) => setPosition(e.target.value.replace(/[^0-9]/g, ""))}
+              onChange={(event) =>
+                setPosition(event.target.value.replace(/[^0-9]/g, ""))
+              }
               placeholder="Ex.: 3"
             />
           </div>
@@ -380,56 +475,65 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
               id="rr-date"
               type="date"
               value={checkedAt}
-              onChange={(e) => setCheckedAt(e.target.value)}
+              onChange={(event) => setCheckedAt(event.target.value)}
             />
           </div>
-          <div className="sm:col-span-6 space-y-1.5">
+          <div className="space-y-1.5 sm:col-span-6">
             <Label htmlFor="rr-note">Observações</Label>
             <Input
               id="rr-note"
               value={note}
-              onChange={(e) => setNote(e.target.value)}
+              onChange={(event) => setNote(event.target.value)}
               placeholder="Ex.: verificação após ajuste de título"
             />
           </div>
-          <div className="sm:col-span-6 flex justify-end">
-            <Button onClick={handleAdd}>Registrar posição</Button>
+          <div className="flex justify-end sm:col-span-6">
+            <Button onClick={handleAdd} disabled={saving}>
+              {saving ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Salvando…
+                </>
+              ) : (
+                "Registrar posição"
+              )}
+            </Button>
           </div>
         </div>
 
-        {/* Keyword selector */}
         {keywords.length > 0 ? (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-muted-foreground">Posição monitorada:</span>
-            {keywords.map((k) => (
+            <span className="text-xs text-muted-foreground">
+              Palavra-chave:
+            </span>
+            {keywords.map((item) => (
               <button
-                key={k.key}
+                key={item.key}
                 type="button"
-                onClick={() => setSelectedKw(k.key)}
+                onClick={() => setSelectedKw(item.key)}
                 className={`rounded-full border px-3 py-1 text-xs transition-colors ${
-                  selectedKw === k.key
+                  selectedKw === item.key
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-input bg-background hover:bg-accent"
                 }`}
               >
-                {k.label}
+                {item.label}
               </button>
             ))}
           </div>
-        ) : (
+        ) : !loading ? (
           <p className="text-sm text-muted-foreground">
             Nenhuma medição registrada ainda. Adicione a primeira posição acima.
           </p>
-        )}
+        ) : null}
 
-        {/* Stats cards */}
         {stats ? (
           <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
             <StatCard label="Posição atual" value={String(stats.current)} />
-            <StatCard label="Melhor posição registrada" value={String(stats.best)} />
-            <StatCard label="Pior posição registrada" value={String(stats.worst)} />
+            <StatCard label="Melhor posição" value={String(stats.best)} />
+            <StatCard label="Pior posição" value={String(stats.worst)} />
             <StatCard
-              label="Variação da última medição"
+              label="Última variação"
               value={
                 stats.previous == null
                   ? "—"
@@ -442,12 +546,20 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
                   ? "Sem medição anterior"
                   : `De ${stats.previous} → ${stats.current}`
               }
-              tone={stats.delta > 0 ? "good" : stats.delta < 0 ? "warn" : "neutral"}
+              tone={
+                stats.delta > 0 ? "good" : stats.delta < 0 ? "warn" : "neutral"
+              }
             />
             <StatCard
-              label="Status de visibilidade"
+              label="Visibilidade"
               value={visibility?.label ?? "—"}
-              tone={visibility?.tone === "warn" ? "warn" : visibility?.tone === "good" ? "good" : "neutral"}
+              tone={
+                visibility?.tone === "warn"
+                  ? "warn"
+                  : visibility?.tone === "good"
+                    ? "good"
+                    : "neutral"
+              }
               icon={
                 stats.trend === "up" ? (
                   <TrendingUp className="h-3.5 w-3.5" />
@@ -461,29 +573,29 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
           </div>
         ) : null}
 
-        {/* Alerts */}
         {alerts.length > 0 ? (
           <div className="flex flex-wrap gap-2">
-            {alerts.map((a, i) => (
+            {alerts.map((alert, index) => (
               <Badge
-                key={i}
+                key={index}
                 variant="outline"
                 className={
-                  a.tone === "warn"
+                  alert.tone === "warn"
                     ? "border-amber-300 bg-amber-50 text-amber-900"
-                    : a.tone === "good"
+                    : alert.tone === "good"
                       ? "border-emerald-300 bg-emerald-50 text-emerald-900"
                       : ""
                 }
               >
-                {a.tone === "warn" ? <AlertTriangle className="mr-1 h-3 w-3" /> : null}
-                {a.text}
+                {alert.tone === "warn" ? (
+                  <AlertTriangle className="mr-1 h-3 w-3" />
+                ) : null}
+                {alert.text}
               </Badge>
             ))}
           </div>
         ) : null}
 
-        {/* Executive text + actions */}
         {executive ? (
           <div className="rounded-lg border bg-muted/30 p-4">
             <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -492,10 +604,12 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
             <p className="mt-2 text-sm">{executive}</p>
             {actions.length > 0 ? (
               <>
-                <div className="mt-3 text-xs font-medium text-muted-foreground">Ação sugerida</div>
+                <div className="mt-3 text-xs font-medium text-muted-foreground">
+                  Ação sugerida
+                </div>
                 <ul className="mt-1 list-disc space-y-1 pl-5 text-xs text-muted-foreground">
-                  {actions.map((a, i) => (
-                    <li key={i}>{a}</li>
+                  {actions.map((action, index) => (
+                    <li key={index}>{action}</li>
                   ))}
                 </ul>
               </>
@@ -503,7 +617,6 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
           </div>
         ) : null}
 
-        {/* Chart */}
         {chartData.length > 1 ? (
           <div className="rounded-lg border p-4">
             <div className="mb-2 text-xs font-medium text-muted-foreground">
@@ -511,7 +624,10 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
             </div>
             <div className="h-56 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
+                <LineChart
+                  data={chartData}
+                  margin={{ top: 8, right: 12, bottom: 8, left: 0 }}
+                >
                   <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                   <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                   <YAxis
@@ -527,8 +643,8 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
                     }}
                   />
                   <Tooltip
-                    formatter={(v: number) => [`Posição ${v}`, ""]}
-                    labelFormatter={(l) => String(l)}
+                    formatter={(value: number) => [`Posição ${value}`, ""]}
+                    labelFormatter={(label) => String(label)}
                   />
                   <Line
                     type="monotone"
@@ -546,18 +662,20 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
           </div>
         ) : null}
 
-        {/* Losses list */}
         {losses.length > 0 ? (
           <div className="rounded-lg border p-4">
             <div className="mb-2 text-xs font-medium text-muted-foreground">
               Palavras-chave com maior perda de ranking
             </div>
             <ul className="space-y-1 text-sm">
-              {losses.map((m) => (
-                <li key={m.keyword} className="flex items-center justify-between">
-                  <span>{m.keyword}</span>
+              {losses.map((movement) => (
+                <li
+                  key={movement.keyword}
+                  className="flex items-center justify-between"
+                >
+                  <span>{movement.keyword}</span>
                   <span className="text-amber-700">
-                    {m.previous} → {m.current} ({m.delta})
+                    {movement.previous} → {movement.current} ({movement.delta})
                   </span>
                 </li>
               ))}
@@ -565,8 +683,7 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
           </div>
         ) : null}
 
-        {/* History table */}
-        {entries.length > 0 ? (
+        {sortedEntries.length > 0 ? (
           <div className="overflow-x-auto rounded-lg border">
             <Table>
               <TableHeader>
@@ -575,8 +692,8 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
                   <TableHead>Produto</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Palavra-chave</TableHead>
-                  <TableHead className="text-right">Posição anterior</TableHead>
-                  <TableHead className="text-right">Posição atual</TableHead>
+                  <TableHead className="text-right">Anterior</TableHead>
+                  <TableHead className="text-right">Atual</TableHead>
                   <TableHead className="text-right">Variação</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Observações</TableHead>
@@ -584,60 +701,74 @@ export function RankingRadar({ baseListingId, baseTitle, baseSku }: Props) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {entries
-                  .slice()
-                  .reverse()
-                  .map((e) => {
-                    // find auto previous within same keyword
-                    const sameKw = entries.filter((x) => normKw(x.keyword) === normKw(e.keyword));
-                    const idxInKw = sameKw.findIndex((x) => x.id === e.id);
-                    const autoPrev = idxInKw > 0 ? sameKw[idxInKw - 1].position : null;
-                    const prev = e.previousManual ?? autoPrev;
-                    const delta = prev == null ? 0 : prev - e.position;
-                    const status =
-                      prev == null
-                        ? "Primeira medição"
-                        : delta > 0
-                          ? "Ganho de ranking"
-                          : delta < 0
-                            ? "Perda de ranking"
-                            : "Estável";
-                    return (
-                      <TableRow key={e.id}>
-                        <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
-                          {fmtDate(e.checkedAt)}
-                        </TableCell>
-                        <TableCell className="text-xs">{baseTitle}</TableCell>
-                        <TableCell className="font-mono text-xs">{e.sku ?? "—"}</TableCell>
-                        <TableCell className="text-sm">{e.keyword}</TableCell>
-                        <TableCell className="text-right text-muted-foreground">
-                          {prev ?? "—"}
-                        </TableCell>
-                        <TableCell className="text-right font-medium">{e.position}</TableCell>
-                        <TableCell
-                          className={`text-right ${
-                            delta > 0 ? "text-emerald-700" : delta < 0 ? "text-amber-700" : ""
-                          }`}
+                {[...sortedEntries].reverse().map((entry) => {
+                  const sameKeyword = sortedEntries.filter(
+                    (item) => normKw(item.keyword) === normKw(entry.keyword),
+                  );
+                  const index = sameKeyword.findIndex(
+                    (item) => item.id === entry.id,
+                  );
+                  const autoPrevious =
+                    index > 0 ? sameKeyword[index - 1].position : null;
+                  const previous = entry.previousManual ?? autoPrevious;
+                  const delta =
+                    previous == null ? 0 : previous - entry.position;
+                  const status =
+                    previous == null
+                      ? "Primeira medição"
+                      : delta > 0
+                        ? "Ganho de ranking"
+                        : delta < 0
+                          ? "Perda de ranking"
+                          : "Estável";
+
+                  return (
+                    <TableRow key={entry.id}>
+                      <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        {fmtDate(entry.checkedAt)}
+                      </TableCell>
+                      <TableCell className="text-xs">{baseTitle}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {entry.sku ?? "—"}
+                      </TableCell>
+                      <TableCell className="text-sm">{entry.keyword}</TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {previous ?? "—"}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {entry.position}
+                      </TableCell>
+                      <TableCell
+                        className={`text-right ${
+                          delta > 0
+                            ? "text-emerald-700"
+                            : delta < 0
+                              ? "text-amber-700"
+                              : ""
+                        }`}
+                      >
+                        {previous == null
+                          ? "—"
+                          : delta > 0
+                            ? `+${delta}`
+                            : delta}
+                      </TableCell>
+                      <TableCell className="text-xs">{status}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">
+                        {entry.note ?? ""}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => void removeEntry(entry.id)}
                         >
-                          {prev == null ? "—" : delta > 0 ? `+${delta}` : delta}
-                        </TableCell>
-                        <TableCell className="text-xs">{status}</TableCell>
-                        <TableCell className="text-xs text-muted-foreground">
-                          {e.note ?? ""}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removeEntry(e.id)}
-                            title="Remover"
-                          >
-                            Remover
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                          Remover
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -666,14 +797,21 @@ function StatCard({
       : tone === "warn"
         ? "text-amber-700"
         : "text-foreground";
+
   return (
     <div className="rounded-lg border p-3">
-      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className={`mt-1 flex items-center gap-1 text-lg font-semibold ${toneClass}`}>
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+        {label}
+      </div>
+      <div
+        className={`mt-1 flex items-center gap-1 text-lg font-semibold ${toneClass}`}
+      >
         {icon}
         {value}
       </div>
-      {hint ? <div className="mt-0.5 text-[11px] text-muted-foreground">{hint}</div> : null}
+      {hint ? (
+        <div className="mt-0.5 text-[11px] text-muted-foreground">{hint}</div>
+      ) : null}
     </div>
   );
 }

@@ -20,6 +20,7 @@ type Props = {
 
 type OrderProfitRow = {
   id: string;
+  external_order_id: string | null;
   total_amount: number | null;
   marketplace_fee: number | null;
   mercadolivre_fee: number | null;
@@ -65,7 +66,7 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
       let query = supabase
         .from("ecommerce_orders")
         .select(
-          "id,total_amount,marketplace_fee,mercadolivre_fee,mercadopago_fee,seller_shipping_cost,ads_cost,tax_amount,product_cost_total,discount_amount,net_profit,refunded_amount,has_refund,financial_review_required,profit_confidence,order_date",
+          "id,external_order_id,total_amount,marketplace_fee,mercadolivre_fee,mercadopago_fee,seller_shipping_cost,ads_cost,tax_amount,product_cost_total,discount_amount,net_profit,refunded_amount,has_refund,financial_review_required,profit_confidence,order_date",
         )
         .eq("company_id", companyId)
         .eq("is_cancelled", false)
@@ -193,7 +194,7 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
           </p>
         </div>
         <div className="flex rounded-xl border border-white/10 bg-white/5 p-1">
-          {[7, 30, 90].map((period) => (
+          {[1, 7, 30, 90].map((period) => (
             <button
               key={period}
               type="button"
@@ -204,7 +205,7 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
                   : "text-slate-300 hover:bg-white/10 hover:text-white"
               }`}
             >
-              {period} dias
+              {period === 1 ? "Hoje" : `${period} dias`}
             </button>
           ))}
         </div>
@@ -343,6 +344,127 @@ export function ProfitabilityOverview({ companyId, accountId, accountName }: Pro
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+          <div className="border-t border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 md:px-6">
+              <div>
+                <h3 className="font-display text-base font-bold text-slate-900">
+                  Auditoria por pedido
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Últimos pedidos do período com cada componente financeiro separado.
+                </p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-600">
+                Até 50 pedidos recentes
+              </span>
+            </div>
+
+            <div className="overflow-x-auto border-t border-slate-100">
+              <table className="w-full min-w-[1200px] text-sm">
+                <thead>
+                  <tr className="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-500">
+                    <th className="px-4 py-3 text-left font-semibold">Pedido</th>
+                    <th className="px-4 py-3 text-right font-semibold">Venda</th>
+                    <th className="px-4 py-3 text-right font-semibold">Taxas ML</th>
+                    <th className="px-4 py-3 text-right font-semibold">Frete</th>
+                    <th className="px-4 py-3 text-right font-semibold">Ads</th>
+                    <th className="px-4 py-3 text-right font-semibold">Imposto</th>
+                    <th className="px-4 py-3 text-right font-semibold">Custo produto</th>
+                    <th className="px-4 py-3 text-right font-semibold">Desconto</th>
+                    <th className="px-4 py-3 text-right font-semibold">Devolução</th>
+                    <th className="px-4 py-3 text-right font-semibold">Lucro</th>
+                    <th className="px-4 py-3 text-left font-semibold">Confiança</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.slice(0, 50).map((row) => {
+                    const marketplace = n(row.marketplace_fee);
+                    const fees =
+                      marketplace > 0
+                        ? marketplace
+                        : n(row.mercadolivre_fee) + n(row.mercadopago_fee);
+                    const fallbackProfit =
+                      n(row.total_amount) -
+                      fees -
+                      n(row.seller_shipping_cost) -
+                      n(row.ads_cost) -
+                      n(row.tax_amount) -
+                      n(row.product_cost_total) -
+                      n(row.refunded_amount);
+                    const profit =
+                      row.net_profit == null ? fallbackProfit : n(row.net_profit);
+
+                    return (
+                      <tr key={row.id} className="border-t border-slate-100">
+                        <td className="px-4 py-3">
+                          <div className="font-semibold text-slate-900">
+                            {row.external_order_id || row.id.slice(0, 8)}
+                          </div>
+                          <div className="text-[10px] text-slate-500">
+                            {new Date(row.order_date).toLocaleDateString("pt-BR")}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-right font-medium tabular-nums text-slate-900">
+                          {money(n(row.total_amount))}
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-rose-700">
+                          {money(fees)}
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-rose-700">
+                          {money(n(row.seller_shipping_cost))}
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-rose-700">
+                          {money(n(row.ads_cost))}
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-rose-700">
+                          {money(n(row.tax_amount))}
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-rose-700">
+                          {money(n(row.product_cost_total))}
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-amber-700">
+                          {money(n(row.discount_amount))}
+                        </td>
+                        <td className="px-4 py-3 text-right tabular-nums text-rose-700">
+                          {money(n(row.refunded_amount))}
+                        </td>
+                        <td
+                          className={`px-4 py-3 text-right font-bold tabular-nums ${
+                            profit >= 0 ? "text-emerald-700" : "text-rose-700"
+                          }`}
+                        >
+                          {money(profit)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-wider ${
+                              row.profit_confidence === "high"
+                                ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                                : row.financial_review_required
+                                  ? "border-amber-200 bg-amber-50 text-amber-700"
+                                  : "border-slate-200 bg-slate-50 text-slate-600"
+                            }`}
+                          >
+                            {row.profit_confidence === "high"
+                              ? "Alta"
+                              : row.financial_review_required
+                                ? "Revisar"
+                                : row.profit_confidence || "Pendente"}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <div className="border-t border-slate-100 bg-slate-50/70 px-5 py-3 text-[11px] leading-relaxed text-slate-500 md:px-6">
+              Descontos são exibidos para auditoria, mas não são subtraídos novamente
+              do lucro nesta tela: nos dados atuais do AC360 eles já estão refletidos
+              no valor final da venda. O lucro líquido segue o cálculo canônico salvo
+              no pedido sempre que disponível.
             </div>
           </div>
         </>

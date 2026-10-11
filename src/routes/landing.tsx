@@ -902,11 +902,11 @@ export function LandingPage() {
               <div className="relative mx-auto flex min-h-12 max-w-7xl items-center justify-center gap-3 px-4 py-2.5 text-center sm:px-6 lg:px-10">
                 <span className="hidden items-center gap-2 rounded-full border border-white/25 bg-[#06183b]/38 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.15em] text-white shadow-[0_0_26px_rgba(255,255,255,.10)] sm:inline-flex">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#ffcf4a] shadow-[0_0_14px_rgba(255,207,74,.95)]" />
-                  Nova rodada AC360
+                  Diagnóstico AC360
                 </span>
                 <p className="text-[10.5px] font-semibold text-white sm:text-[11.5px]">
-                  Descubra o que está travando margem, estoque e anúncios na sua operação
-                  <span className="hidden text-white/55 lg:inline"> · diagnóstico estratégico AC360</span>
+                  Identifique gargalos de margem, estoque e anúncios no Mercado Livre
+                  <span className="hidden text-white/55 xl:inline"> · saiba o que priorizar primeiro</span>
                 </p>
                 <a
                   href="#cta-final"
@@ -954,7 +954,7 @@ export function LandingPage() {
             </div>
           </div>
 
-          <div className="mx-auto flex max-w-7xl flex-col items-center px-6 pb-24 pt-48 text-center lg:px-10 lg:pt-52">
+          <div className="mx-auto flex max-w-7xl flex-col items-center px-6 pb-24 pt-[164px] text-center lg:px-10 lg:pt-[180px]">
             <Reveal className="mx-auto flex max-w-6xl flex-col items-center">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-200/30 bg-white/[0.05] px-4 py-2 shadow-[0_0_28px_rgba(59,130,246,.18)] backdrop-blur-xl">
                 <span className="h-2 w-2 rounded-full bg-[#ffbf31] shadow-[0_0_16px_rgba(255,191,49,.72)]" />
@@ -1005,9 +1005,9 @@ export function LandingPage() {
                 ].map(({ label, icon: Icon }) => (
                   <span
                     key={label}
-                    className="inline-flex items-center gap-2 rounded-full border border-cyan-200/25 bg-[#071a43]/48 px-4 py-2 text-[10.5px] font-semibold text-white/82 shadow-[0_0_20px_rgba(37,99,235,.12)] backdrop-blur"
+                    className="inline-flex items-center gap-2 rounded-full border border-cyan-200/40 bg-white/[0.09] px-4 py-2 text-[10.5px] font-semibold text-white/95 shadow-[0_0_24px_rgba(37,99,235,.18)] backdrop-blur transition hover:-translate-y-0.5 hover:border-cyan-100/60 hover:bg-white/[0.13]"
                   >
-                    <Icon className="h-3.5 w-3.5 text-cyan-200" />
+                    <Icon className="h-3.5 w-3.5 text-cyan-100" />
                     {label}
                   </span>
                 ))}
@@ -1167,18 +1167,22 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden bg-white py-20 sm:py-24">
+      <section className="relative overflow-hidden bg-white pb-20 pt-24 sm:pb-24 sm:pt-28">
         <div
           aria-hidden
-          className="pointer-events-none absolute -top-[92px] left-1/2 h-[130px] w-[118%] -translate-x-1/2 rounded-[50%] bg-white"
+          className="pointer-events-none absolute -top-[108px] left-1/2 h-[150px] w-[122%] -translate-x-1/2 rounded-[50%] bg-white shadow-[0_-20px_60px_-44px_rgba(59,130,246,.45)]"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-0 h-px w-[78%] -translate-x-1/2 bg-gradient-to-r from-transparent via-blue-200/70 to-transparent"
         />
 
         <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
           <Reveal className="text-center">
-            <span className="text-[10px] font-bold uppercase tracking-[0.30em] text-blue-500">
+            <span className="text-[10px] font-bold uppercase tracking-[0.30em] text-blue-600">
               Do diagnóstico ao resultado
             </span>
-            <h2 className="mx-auto mt-4 max-w-3xl text-3xl font-bold tracking-[-0.04em] text-[#0A1F44] sm:text-5xl">
+            <h2 className="mx-auto mt-4 max-w-3xl text-3xl font-bold leading-[1.04] tracking-[-0.045em] text-[#0A1F44] sm:text-5xl">
               Inteligência e consultoria para vendedores de Mercado Livre
             </h2>
             <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-slate-500">

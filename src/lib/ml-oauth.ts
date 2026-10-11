@@ -18,10 +18,16 @@ function wait(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-async function isMercadoLivreConnected(
+type ConnectionSnapshot = {
+  connected: boolean;
+  updatedAt: string | null;
+  expiresAt: string | null;
+};
+
+async function getMercadoLivreConnectionSnapshot(
   companyId: string,
   accountId: string,
-): Promise<boolean> {
+): Promise<ConnectionSnapshot> {
   const [{ data: integration, error: integrationError }, { data: account, error: accountError }] =
     await Promise.all([
       supabase
@@ -44,15 +50,18 @@ async function isMercadoLivreConnected(
   if (integrationError) throw new Error(integrationError.message);
   if (accountError) throw new Error(accountError.message);
 
-  const expiresAt = integration?.expires_at
+  const expiresAtMs = integration?.expires_at
     ? new Date(integration.expires_at).getTime()
     : 0;
 
-  return (
-    integration?.integration_status === "connected" &&
-    account?.auth_status === "connected" &&
-    expiresAt > Date.now() + 60_000
-  );
+  return {
+    connected:
+      integration?.integration_status === "connected" &&
+      account?.auth_status === "connected" &&
+      expiresAtMs > Date.now() + 60_000,
+    updatedAt: integration?.updated_at ?? null,
+    expiresAt: integration?.expires_at ?? null,
+  };
 }
 
 export async function startMercadoLivreOAuth({
@@ -82,6 +91,8 @@ export async function startMercadoLivreOAuth({
     '<div style="font-family:Arial,sans-serif;padding:32px;color:#0f172a">Preparando conexão segura com o Mercado Livre…</div>';
 
   try {
+    const baseline = await getMercadoLivreConnectionSnapshot(companyId, accountId);
+
     const { data: sessionData, error: sessionError } =
       await supabase.auth.getSession();
 
@@ -128,7 +139,12 @@ export async function startMercadoLivreOAuth({
       }
 
       try {
-        if (await isMercadoLivreConnected(companyId, accountId)) {
+        const current = await getMercadoLivreConnectionSnapshot(companyId, accountId);
+        const changed =
+          current.updatedAt !== baseline.updatedAt ||
+          current.expiresAt !== baseline.expiresAt;
+
+        if (current.connected && changed) {
           popup.close();
           window.dispatchEvent(
             new CustomEvent("ac360-mercadolivre-auth-changed", {

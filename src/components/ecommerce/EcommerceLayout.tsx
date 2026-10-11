@@ -21,6 +21,8 @@ import {
   DollarSign,
   ClipboardList,
   GraduationCap,
+  PackageCheck,
+  Target,
 
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
@@ -51,6 +53,7 @@ const navGroups = [
       { label: "Produtos e Anúncios", to: "/ecommerce/produtos", icon: ShoppingCart },
       { label: "Custos e Margem", to: "/ecommerce/custos-margem", icon: DollarSign },
       { label: "Estoque e Compras", to: "/ecommerce/estoque", icon: Boxes },
+      { label: "Expedição Inteligente", to: "/ecommerce/expedicao", icon: PackageCheck },
       { label: "Mapa de Vendas", to: "/ecommerce/mapa-vendas", icon: Map },
     ],
   },
@@ -58,6 +61,8 @@ const navGroups = [
     title: "Crescimento",
     items: [
       { label: "Anúncios e Ads", to: "/ecommerce/ads", icon: Zap },
+      { label: "Concorrência & Ranking", to: "/ecommerce/concorrencia", icon: Target },
+      { label: "Radar de Mercado", to: "/ecommerce/radar-mercado", icon: Radar },
     ],
   },
   {

@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { RankingRadar } from "@/components/ecommerce/RankingRadar";
+import { CatalogCompetitionStatus } from "@/components/ecommerce/CatalogCompetitionStatus";
 import {
   ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
@@ -1642,8 +1643,20 @@ function ConcorrenciaInner() {
         </CardContent>
       </Card>
 
-      {selectedBase ? (
+      {selectedBase && activeAccountId ? (
+        <CatalogCompetitionStatus
+          companyId={ECOMMERCE_COMPANY_ID}
+          accountId={activeAccountId}
+          listingId={selectedBase.listing_id}
+          mlItemId={selectedBase.ml_item_id}
+          title={selectedBase.title}
+        />
+      ) : null}
+
+      {selectedBase && activeAccountId ? (
         <RankingRadar
+          companyId={ECOMMERCE_COMPANY_ID}
+          accountId={activeAccountId}
           baseListingId={selectedBase.listing_id}
           baseTitle={selectedBase.title}
           baseSku={selectedBase.sku}

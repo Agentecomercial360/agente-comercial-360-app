@@ -21,7 +21,6 @@ import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { SalesMap, type CityPoint } from "@/components/ecommerce/SalesMap";
 import { supabase } from "@/lib/supabase";
 import {
-  ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { normalizeLocation, cityKey, type CanonicalLocation } from "@/lib/br-locations";
@@ -143,7 +142,8 @@ function MapaVendas() {
 }
 
 function MapaVendasContent() {
-  const { accounts, activeAccountId, activeAccount, loading: accLoading } =
+  const {
+    companyId, accounts, activeAccountId, activeAccount, loading: accLoading } =
     useEcommerceActiveAccount();
 
   const [loading, setLoading] = useState(true);
@@ -182,7 +182,7 @@ function MapaVendasContent() {
         .select(
           "id, account_id, external_order_id, order_date, buyer_name, buyer_nickname, buyer_city, buyer_state, order_status, payment_status, shipping_status, total_amount, profit_status, profit_confidence",
         )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .gte("order_date", range.sinceISO)
         .lte("order_date", range.untilISO)
         .order("order_date", { ascending: false })

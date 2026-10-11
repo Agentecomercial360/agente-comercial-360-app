@@ -17,7 +17,8 @@ import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
 import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 import { PendingCostsTable, type PendingCostRow } from "@/components/ecommerce/PendingCostsTable";
-import { PriorityImpactSection } from "@/components/ecommerce/PriorityImpactSection";\nimport { ProfitabilityOverview } from "@/components/ecommerce/ProfitabilityOverview";
+import { PriorityImpactSection } from "@/components/ecommerce/PriorityImpactSection";
+import { ProfitabilityOverview } from "@/components/ecommerce/ProfitabilityOverview";
 import {
   ResponsiveContainer,
   ComposedChart,

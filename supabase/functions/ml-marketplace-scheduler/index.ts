@@ -222,8 +222,12 @@ Deno.serve(async (req: Request) => {
     return true;
   }
 
+  const readyAccounts: Account[] = [];
+
+  // Phase 1: authentication first. This prevents Ads/Radar/competition
+  // from consuming the workload budget before every account gets a
+  // chance to renew its Mercado Livre token.
   for (const account of accountRows) {
-    if (executions.length >= MAX_EXECUTIONS) break;
     const integration = latestIntegrationByAccount.get(account.id);
     let effectiveExpiresAt = integration?.expires_at ?? null;
     let tokenValid = effectiveExpiresAt
@@ -231,11 +235,12 @@ Deno.serve(async (req: Request) => {
       : false;
     let refreshResult: { ok: boolean; status: number; data: any } | null = null;
 
-    if (integration && !tokenValid && executions.length < MAX_EXECUTIONS) {
+    if (integration && !tokenValid) {
       const started = Date.now();
       refreshResult = await refreshMercadoLivreToken(account, candidate);
       const refreshedExpiresAt =
         refreshResult.data?.summary?.new_expires_at ?? null;
+
       tokenValid =
         refreshResult.ok &&
         Boolean(refreshedExpiresAt) &&
@@ -329,6 +334,14 @@ Deno.serve(async (req: Request) => {
         },
       );
 
+    readyAccounts.push(account);
+  }
+
+  // Phase 2: only accounts with valid auth can spend the intelligence
+  // workload budget.
+  for (const account of readyAccounts) {
+    if (executions.length >= MAX_EXECUTIONS) break;
+
     for (const days of [1, 7, 30, 90]) {
       if (executions.length >= MAX_EXECUTIONS) break;
       const key = [account.id, "ads", `period:${days}`].join("|");
@@ -362,7 +375,6 @@ Deno.serve(async (req: Request) => {
       );
     }
   }
-
   return json(200, {
     status: "success",
     accounts: accountRows.length,

@@ -587,7 +587,7 @@ function ConcorrenciaInner() {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({
-          company_id:
+          company_id: companyId,
           account_id: activeAccountId,
           item_id: extractedId,
           item_url: trimmed,

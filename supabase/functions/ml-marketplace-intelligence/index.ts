@@ -447,11 +447,6 @@ const METRICS = [
   "SOV",
   "CVR",
   "ROAS",
-  "IMPRESSION_SHARE",
-  "TOP_IMPRESSION_SHARE",
-  "LOST_IMPRESSION_SHARE_BY_BUDGET",
-  "LOST_IMPRESSION_SHARE_BY_AD_RANK",
-  "ACOS_BENCHMARK",
 ].join(",");
 
 async function syncAds(
@@ -467,12 +462,24 @@ async function syncAds(
     return { rows: 0, ad_groups: 0, message: "Nenhum anúncio ativo encontrado." };
   }
 
-  const preferredSite = siteFromListings(listings);
+  const realListings = listings.filter((listing) =>
+    /^ML[A-Z]\d+$/i.test(listing.ml_item_id),
+  );
+
+  if (!realListings.length) {
+    return {
+      rows: 0,
+      ad_groups: 0,
+      message: "Nenhum item_id real do Mercado Livre disponível para Product Ads.",
+    };
+  }
+
+  const preferredSite = siteFromListings(realListings);
   const advertiser = await advertiserForToken(token, preferredSite, accountLabel);
-  const itemMap = new Map(listings.map((l) => [l.ml_item_id, l]));
+  const itemMap = new Map(realListings.map((l) => [l.ml_item_id, l]));
   const groupToListing = new Map<string, Listing>();
 
-  for (const batch of chunk(listings.map((l) => l.ml_item_id), 40)) {
+  for (const batch of chunk(realListings.map((l) => l.ml_item_id), 40)) {
     const params = new URLSearchParams();
     params.set("filters[item_ids]", batch.join(","));
     params.set("limit", "50");
@@ -752,24 +759,42 @@ async function syncRadar(
     });
   }
 
+  const skippedCategories: Array<{
+    category_id: string;
+    error: string;
+  }> = [];
+
   await addTrends(null);
   for (const category of categories) {
-    await addTrends(category);
-    const best = await mlJson(`/highlights/${site}/category/${category}`, token);
-    for (const item of best?.content ?? []) {
-      rows.push({
-        company_id: companyId,
-        account_id: accountId,
-        site_id: site,
+    try {
+      await addTrends(category);
+      const best = await mlJson(
+        `/highlights/${site}/category/${category}`,
+        token,
+      );
+      for (const item of best?.content ?? []) {
+        rows.push({
+          company_id: companyId,
+          account_id: accountId,
+          site_id: site,
+          category_id: category,
+          category_name: category,
+          trend_type: "best_seller",
+          rank: Math.round(num(item?.position)),
+          entity_id: item?.id ?? null,
+          entity_type: item?.type ?? null,
+          title: item?.id ?? null,
+          snapshot_date: snapshot,
+          metadata: { criteria: best?.query_data?.criteria ?? "CATEGORY" },
+        });
+      }
+    } catch (categoryError) {
+      skippedCategories.push({
         category_id: category,
-        category_name: category,
-        trend_type: "best_seller",
-        rank: Math.round(num(item?.position)),
-        entity_id: item?.id ?? null,
-        entity_type: item?.type ?? null,
-        title: item?.id ?? null,
-        snapshot_date: snapshot,
-        metadata: { criteria: best?.query_data?.criteria ?? "CATEGORY" },
+        error:
+          categoryError instanceof Error
+            ? categoryError.message.slice(0, 160)
+            : "Categoria indisponível no Mercado Livre.",
       });
     }
   }
@@ -796,6 +821,7 @@ async function syncRadar(
     growing: rows.filter((r) => r.trend_type === "growing").length,
     desired: rows.filter((r) => r.trend_type === "desired").length,
     popular: rows.filter((r) => r.trend_type === "popular").length,
+    skipped_categories: skippedCategories,
   };
 }
 

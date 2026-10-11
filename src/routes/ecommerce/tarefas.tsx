@@ -288,7 +288,7 @@ function TarefasOperadoresContent() {
     try {
       // eslint-disable-next-line no-console
       console.debug("[tarefas] querying ecommerce_tasks", {
-        company_id:
+        company_id: companyId,
         account_id: resolvedActiveAccountId,
       });
       const { data, error } = await supabase

@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
-import { ECOMMERCE_COMPANY_ID } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
 import { startMercadoLivreOAuth } from "@/lib/ml-oauth";
 
@@ -215,17 +214,17 @@ function IntegrationCard({
       <div className="mt-4 flex justify-end">
         <button
           type="button"
-          disabled={connecting || !row.account_id}
+          disabled={connecting || !row.account_id || !row.company_id}
           onClick={async () => {
-            if (!row.account_id) {
-              toast.error("Conta Mercado Livre não identificada para esta integração.");
+            if (!row.account_id || !row.company_id) {
+              toast.error("Conta ou empresa não identificada para esta integração.");
               return;
             }
 
             setConnecting(true);
             try {
               await startMercadoLivreOAuth({
-                companyId: row.company_id || ECOMMERCE_COMPANY_ID,
+                companyId: row.company_id,
                 accountId: row.account_id,
               });
               toast.success("Mercado Livre conectado com sucesso.", {

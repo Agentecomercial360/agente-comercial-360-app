@@ -21,7 +21,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
-  ECOMMERCE_COMPANY_ID,
   isAccountConnected,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
@@ -224,6 +223,7 @@ function TarefasOperadores() {
 
 function TarefasOperadoresContent() {
   const {
+    companyId,
     accounts,
     activeAccount,
     activeAccountId,
@@ -263,7 +263,7 @@ function TarefasOperadoresContent() {
     const firstConnected = accounts.find(isAccountConnected);
     if (firstConnected?.id) return firstConnected.id;
 
-    if (!accLoading && ECOMMERCE_COMPANY_ID === "ac7d24b9-5227-46ac-9ced-b66473422a17") {
+    if (!accLoading && companyId === "ac7d24b9-5227-46ac-9ced-b66473422a17") {
       return ROBOMIX_NIGHTLED_ACCOUNT_ID;
     }
 
@@ -288,7 +288,7 @@ function TarefasOperadoresContent() {
     try {
       // eslint-disable-next-line no-console
       console.debug("[tarefas] querying ecommerce_tasks", {
-        company_id: ECOMMERCE_COMPANY_ID,
+        company_id: companyId,
         account_id: resolvedActiveAccountId,
       });
       const { data, error } = await supabase
@@ -296,7 +296,7 @@ function TarefasOperadoresContent() {
         .select(
           "id, company_id, account_id, product_id, listing_id, insight_id, task_title, task_description, task_type, priority, status, responsible_name, responsible_email, due_date, expected_impact, result_summary, created_by, completed_at, created_at, updated_at",
         )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("account_id", resolvedActiveAccountId)
         .order("created_at", { ascending: false });
       if (error) {
@@ -466,7 +466,7 @@ function TarefasOperadoresContent() {
         .from("ecommerce_tasks")
         .update(patch)
         .eq("id", currentDetail.id)
-        .eq("company_id", ECOMMERCE_COMPANY_ID);
+        .eq("company_id", companyId);
       if (error) {
         console.error("[tarefas] save error", error);
         toast.error("Não foi possível salvar. Tente novamente.");
@@ -478,7 +478,7 @@ function TarefasOperadoresContent() {
             .from("ecommerce_ai_insights")
             .update({ status: "monitoring", updated_at: now })
             .eq("id", currentDetail.insight_id)
-            .eq("company_id", ECOMMERCE_COMPANY_ID);
+            .eq("company_id", companyId);
         } catch (e) {
           console.debug("[tarefas] insight status update skipped", e);
         }
@@ -517,7 +517,7 @@ function TarefasOperadoresContent() {
         .from("ecommerce_tasks")
         .update(patch)
         .eq("id", task.id)
-        .eq("company_id", ECOMMERCE_COMPANY_ID);
+        .eq("company_id", companyId);
       if (error) {
         console.error("[tarefas] complete error", error);
         toast.error("Não foi possível concluir a tarefa.");
@@ -530,7 +530,7 @@ function TarefasOperadoresContent() {
             .from("ecommerce_ai_insights")
             .update({ status: "monitoring", updated_at: now })
             .eq("id", task.insight_id)
-            .eq("company_id", ECOMMERCE_COMPANY_ID);
+            .eq("company_id", companyId);
         } catch (e) {
           console.debug("[tarefas] insight status update skipped", e);
         }

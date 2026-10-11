@@ -30,7 +30,6 @@ import {
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
-  ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
@@ -483,7 +482,8 @@ type ListingInfo = {
 };
 
 function RadarIAContent() {
-  const { activeAccountId, activeAccount } = useEcommerceActiveAccount();
+  const {
+    companyId, activeAccountId, activeAccount } = useEcommerceActiveAccount();
   const accountId = activeAccountId || FALLBACK_ACCOUNT_ID;
   const accountLabel =
     activeAccount?.account_name ||
@@ -515,7 +515,7 @@ function RadarIAContent() {
         const res = await supabase
           .from("ecommerce_ai_insights")
           .select(`${baseCols}, model`)
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .eq("account_id", accountId)
           .order("created_at", { ascending: false });
         data = res.data as unknown[] | null;
@@ -525,7 +525,7 @@ function RadarIAContent() {
         const res = await supabase
           .from("ecommerce_ai_insights")
           .select(baseCols)
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .eq("account_id", accountId)
           .order("created_at", { ascending: false });
         data = res.data as unknown[] | null;
@@ -563,7 +563,7 @@ function RadarIAContent() {
           const { data, error } = await supabase
             .from("ecommerce_products")
             .select("id, name, sku")
-            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .eq("company_id", companyId)
             .in("id", productIds);
           if (error) throw error;
           const map: Record<string, ProductInfo> = {};
@@ -584,7 +584,7 @@ function RadarIAContent() {
           const { data, error } = await supabase
             .from("ecommerce_listings")
             .select("id, ml_item_id, status, title")
-            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .eq("company_id", companyId)
             .in("id", listingIds);
           if (error) throw error;
           const map: Record<string, ListingInfo> = {};
@@ -610,7 +610,7 @@ function RadarIAContent() {
       const { data, error } = await supabase
         .from("vw_ecommerce_action_results")
         .select("*")
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("account_id", accountId);
       if (error) {
         console.error("[Impacto das Ações] Erro Supabase:", {
@@ -660,7 +660,7 @@ function RadarIAContent() {
         .select(
           "id, company_id, account_id, category, title, description, priority, status, updated_at",
         )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("status", "active");
       // Regras da conta ativa OU regras globais (account_id null)
       q = q.or(`account_id.is.null,account_id.eq.${accountId}`);
@@ -714,7 +714,7 @@ function RadarIAContent() {
     setPreviewData(null);
     try {
       const result = await runInsightsEnginePreview({
-        companyId: ECOMMERCE_COMPANY_ID,
+        companyId,
         accountId: accountId,
       });
       setPreviewData(result);
@@ -734,7 +734,7 @@ function RadarIAContent() {
       const { data, error } = await supabase.rpc(
         "generate_ecommerce_insights_v1",
         {
-          p_company_id: ECOMMERCE_COMPANY_ID,
+          p_company_id: companyId,
           p_account_id: accountId,
         },
       );
@@ -938,7 +938,7 @@ function RadarIAContent() {
         .from("ecommerce_ai_insights")
         .update({ status: next, updated_at: new Date().toISOString() })
         .eq("id", insight.id)
-        .eq("company_id", ECOMMERCE_COMPANY_ID);
+        .eq("company_id", companyId);
       if (insight.account_id) q = q.eq("account_id", insight.account_id);
       const { error } = await q;
       if (error) {

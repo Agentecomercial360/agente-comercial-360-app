@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { supabase } from "@/lib/supabase";
+import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
 
 export const Route = createFileRoute("/ecommerce/estoque")({
   component: EstoqueCompras,
@@ -22,7 +23,6 @@ export const Route = createFileRoute("/ecommerce/estoque")({
   }),
 });
 
-const COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
 
 type StockStatus =
   | "risk_of_stockout"
@@ -156,6 +156,7 @@ function marketplaceLabel(m: string | null | undefined): string {
 }
 
 function EstoqueCompras() {
+  const { companyId } = useEcommerceActiveAccount();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [inventory, setInventory] = useState<InventoryRow[]>([]);
@@ -167,6 +168,14 @@ function EstoqueCompras() {
   useEffect(() => {
     let cancel = false;
     async function load() {
+      if (!companyId) {
+        setInventory([]);
+        setProducts(new Map());
+        setListings([]);
+        setAccounts(new Map());
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       setError(null);
       try {
@@ -175,7 +184,7 @@ function EstoqueCompras() {
           .select(
             "id,product_id,total_stock,available_stock,reserved_stock,incoming_stock,average_monthly_sales,coverage_days,days_without_sale,estimated_stock_value,stock_status,last_sale_at",
           )
-          .eq("company_id", COMPANY_ID);
+          .eq("company_id", companyId);
         if (ei) throw ei;
         const invRows = (inv || []) as InventoryRow[];
         if (cancel) return;
@@ -197,17 +206,17 @@ function EstoqueCompras() {
             supabase
               .from("ecommerce_products")
               .select("id,sku,product_name,category")
-              .eq("company_id", COMPANY_ID)
+              .eq("company_id", companyId)
               .in("id", productIds),
             supabase
               .from("ecommerce_listings")
               .select("id,product_id,account_id,title,status")
-              .eq("company_id", COMPANY_ID)
+              .eq("company_id", companyId)
               .in("product_id", productIds),
             supabase
               .from("ecommerce_accounts")
               .select("id,account_name,marketplace,nickname")
-              .eq("company_id", COMPANY_ID),
+              .eq("company_id", companyId),
           ]);
         if (ep) throw ep;
         if (el) throw el;
@@ -233,7 +242,7 @@ function EstoqueCompras() {
     return () => {
       cancel = true;
     };
-  }, []);
+  }, [companyId]);
 
   const listingsByProduct = useMemo(() => {
     const m = new Map<string, ListingRow[]>();

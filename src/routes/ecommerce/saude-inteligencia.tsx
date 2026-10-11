@@ -18,7 +18,6 @@ import {
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
-  ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
   type EcommerceAccount,
 } from "@/lib/ecommerce-active-account";
@@ -75,6 +74,7 @@ function accountLabel(account: EcommerceAccount) {
 
 function IntelligenceHealthContent() {
   const {
+    companyId,
     accounts,
     activeAccountId,
     loading: accountLoading,
@@ -100,7 +100,7 @@ function IntelligenceHealthContent() {
         .select(
           "id,account_id,capability,resource_key,status,last_attempt_at,last_success_at,next_due_at,last_error_message,updated_at",
         )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .order("updated_at", { ascending: false })
         .limit(10000);
 
@@ -308,7 +308,7 @@ function IntelligenceHealthContent() {
     setBusyAccountId(account.id);
     try {
       await startMercadoLivreOAuth({
-        companyId: ECOMMERCE_COMPANY_ID,
+        companyId,
         accountId: account.id,
       });
       await Promise.all([reloadAccounts(), load(true)]);
@@ -332,7 +332,7 @@ function IntelligenceHealthContent() {
       const { data: listings } = await supabase
         .from("ecommerce_listings")
         .select("id,ml_item_id")
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .eq("account_id", account.id)
         .eq("is_active", true)
         .not("ml_item_id", "is", null)
@@ -346,19 +346,19 @@ function IntelligenceHealthContent() {
       const jobs: Array<Promise<unknown>> = [
         runMarketplaceIntelligence({
           action: "ads_sync",
-          company_id: ECOMMERCE_COMPANY_ID,
+          company_id: companyId,
           account_id: account.id,
           days: 30,
         }),
         runMarketplaceIntelligence({
           action: "market_radar_sync",
-          company_id: ECOMMERCE_COMPANY_ID,
+          company_id: companyId,
           account_id: account.id,
         }),
         ...listingIds.map((listingId) =>
           runMarketplaceIntelligence({
             action: "competition_sync",
-            company_id: ECOMMERCE_COMPANY_ID,
+            company_id: companyId,
             account_id: account.id,
             listing_id: listingId,
           }),

@@ -293,7 +293,13 @@ function ContasML() {
   async function handleSyncAccount(accountId: string) {
     setSyncingId(accountId);
     try {
-      const result = await runSmartAccountSync(accountId, { days: 1 });
+      if (!companyId) {
+        throw new Error("Empresa não identificada para a sincronização.");
+      }
+      const result = await runSmartAccountSync(accountId, {
+        days: 1,
+        companyId,
+      });
       console.log("Resposta sync-account-smart:", result.raw);
       toast.success(formatSmartSyncMessage(result));
       window.dispatchEvent(new CustomEvent("mercadolivre-products-synced"));

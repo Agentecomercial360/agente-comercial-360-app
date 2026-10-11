@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
-  ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
@@ -102,7 +101,8 @@ function RadarMercadoPage() {
 }
 
 function RadarMercadoContent() {
-  const { activeAccountId, activeAccount, loading: accountLoading } =
+  const {
+    companyId, activeAccountId, activeAccount, loading: accountLoading } =
     useEcommerceActiveAccount();
   const [rows, setRows] = useState<TrendRow[]>([]);
   const [products, setProducts] = useState<ProductRow[]>([]);
@@ -125,7 +125,7 @@ function RadarMercadoContent() {
         .select(
           "id,account_id,site_id,category_id,category_name,trend_type,rank,keyword,entity_id,entity_type,title,url,image_url,snapshot_date,metadata",
         )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .order("snapshot_date", { ascending: false })
         .order("rank", { ascending: true })
         .limit(5000);
@@ -139,7 +139,7 @@ function RadarMercadoContent() {
         supabase
           .from("ecommerce_products")
           .select("id,sku,product_name,category")
-          .eq("company_id", ECOMMERCE_COMPANY_ID)
+          .eq("company_id", companyId)
           .eq("is_active", true)
           .limit(10000),
       ]);
@@ -162,7 +162,7 @@ function RadarMercadoContent() {
 
     void autoSyncMarketplaceIntelligence({
       action: "market_radar_sync",
-      company_id: ECOMMERCE_COMPANY_ID,
+      company_id: companyId,
       account_id: activeAccountId,
     })
       .then(({ executed }) => {
@@ -195,7 +195,7 @@ function RadarMercadoContent() {
         popular?: number;
       }>({
         action: "market_radar_sync",
-        company_id: ECOMMERCE_COMPANY_ID,
+        company_id: companyId,
         account_id: activeAccountId,
       });
 

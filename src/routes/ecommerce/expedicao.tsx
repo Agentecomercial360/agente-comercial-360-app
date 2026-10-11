@@ -14,7 +14,6 @@ import {
 import { toast } from "sonner";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
-  ECOMMERCE_COMPANY_ID,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
@@ -71,7 +70,8 @@ function ExpedicaoPage() {
 }
 
 function ExpedicaoContent() {
-  const { activeAccountId, activeAccount, loading: accountsLoading } =
+  const {
+    companyId, activeAccountId, activeAccount, loading: accountsLoading } =
     useEcommerceActiveAccount();
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [items, setItems] = useState<ItemRow[]>([]);
@@ -94,7 +94,7 @@ function ExpedicaoContent() {
         .select(
           "id,external_order_id,external_pack_id,shipment_id,order_date,order_status,payment_status,shipping_status,total_amount,is_cancelled",
         )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .gte("order_date", from.toISOString())
         .eq("is_cancelled", false)
         .not("shipment_id", "is", null)
@@ -131,7 +131,7 @@ function ExpedicaoContent() {
           supabase
             .from("ecommerce_order_items")
             .select("id,order_id,sku,seller_sku,product_name,title,quantity")
-            .eq("company_id", ECOMMERCE_COMPANY_ID)
+            .eq("company_id", companyId)
             .in("order_id", chunk)
             .limit(10000),
         ),
@@ -276,7 +276,7 @@ function ExpedicaoContent() {
         groups?: number;
       }>({
         action: "shipment_labels",
-        company_id: ECOMMERCE_COMPANY_ID,
+        company_id: companyId,
         account_id: activeAccountId,
         groups: labelGroups,
       });

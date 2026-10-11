@@ -9,7 +9,6 @@ import {
 } from "react";
 import { supabase } from "@/lib/supabase";
 
-export const ECOMMERCE_COMPANY_ID = "ac7d24b9-5227-46ac-9ced-b66473422a17";
 const STORAGE_KEY = "ac360_ecommerce_active_account_id";
 const ALL_ACCOUNTS_STORAGE_VALUE = "__all_accounts__";
 
@@ -27,9 +26,15 @@ export type EcommerceAccount = {
 };
 
 const CONNECTED_VALUES = new Set([
-  "connected", "conectada", "conectado",
-  "active", "ativa", "ativo",
-  "authorized", "autorizada", "autorizado",
+  "connected",
+  "conectada",
+  "conectado",
+  "active",
+  "ativa",
+  "ativo",
+  "authorized",
+  "autorizada",
+  "autorizado",
 ]);
 
 export function isAccountConnected(a: EcommerceAccount | null | undefined): boolean {
@@ -46,6 +51,8 @@ function isMercadoLivre(value: string | null | undefined): boolean {
 }
 
 type Ctx = {
+  companyId: string | null;
+  companyName: string | null;
   accounts: EcommerceAccount[];
   loading: boolean;
   activeAccountId: string | null;
@@ -58,6 +65,8 @@ type Ctx = {
 const EcommerceAccountCtx = createContext<Ctx | null>(null);
 
 export function EcommerceActiveAccountProvider({ children }: { children: ReactNode }) {
+  const [companyId, setCompanyId] = useState<string | null>(null);
+  const [companyName, setCompanyName] = useState<string | null>(null);
   const [accounts, setAccounts] = useState<EcommerceAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeAccountId, setActiveAccountIdState] = useState<string | null>(() => {
@@ -82,70 +91,109 @@ export function EcommerceActiveAccountProvider({ children }: { children: ReactNo
 
   const reloadAccounts = useCallback(async () => {
     setLoading(true);
+
     try {
+      const { data: access, error: accessError } = await supabase
+        .from("vw_user_access_context")
+        .select("company_id,company_name,has_ecommerce_access")
+        .maybeSingle();
+
+      if (accessError) throw accessError;
+
+      const currentCompanyId =
+        access?.has_ecommerce_access === true && access?.company_id
+          ? String(access.company_id)
+          : null;
+
+      setCompanyId(currentCompanyId);
+      setCompanyName(access?.company_name ? String(access.company_name) : null);
+
+      if (!currentCompanyId) {
+        setAccounts([]);
+        setActiveAccountIdState(null);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("ecommerce_accounts")
         .select(
           "id, account_name, nickname, marketplace, auth_status, ml_user_id, external_account_id, external_account_code, is_active, last_sync_at",
         )
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", currentCompanyId)
         .eq("is_active", true)
         .order("account_name", { ascending: true });
+
       if (error) throw error;
-      const list = ((data as EcommerceAccount[]) ?? []).filter((a) =>
-        isMercadoLivre(a.marketplace),
+
+      const list = ((data as EcommerceAccount[]) ?? []).filter((account) =>
+        isMercadoLivre(account.marketplace),
       );
       setAccounts(list);
 
-      // Validate / default selection
       if (list.length === 0) {
         setActiveAccountIdState(null);
         return;
       }
+
       const allAccountsSelected =
         typeof window !== "undefined" &&
         window.localStorage.getItem(STORAGE_KEY) === ALL_ACCOUNTS_STORAGE_VALUE;
+
       if (allAccountsSelected) {
         setActiveAccountIdState(null);
         return;
       }
 
-      const stored = activeAccountId && list.find((a) => a.id === activeAccountId);
-      if (!stored) {
-        const nightled = list.find((a) =>
-          (a.account_name || "").toLowerCase().includes("nightled"),
-        );
+      const currentSelection =
+        activeAccountId && list.find((account) => account.id === activeAccountId);
+
+      if (!currentSelection) {
         const firstConnected = list.find(isAccountConnected);
-        const fallback =
-          (nightled && isAccountConnected(nightled) ? nightled : firstConnected) || list[0];
-        setActiveAccountId(fallback.id);
+        setActiveAccountId((firstConnected || list[0]).id);
       }
-    } catch {
-      /* swallow — page-level UI will show empty state */
+    } catch (error) {
+      console.error("[ecommerce-active-account] reload", error);
+      setCompanyId(null);
+      setCompanyName(null);
+      setAccounts([]);
+      setActiveAccountIdState(null);
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [activeAccountId, setActiveAccountId]);
 
   useEffect(() => {
     void reloadAccounts();
   }, [reloadAccounts]);
 
   const activeAccount = useMemo(
-    () => accounts.find((a) => a.id === activeAccountId) ?? null,
+    () => accounts.find((account) => account.id === activeAccountId) ?? null,
     [accounts, activeAccountId],
   );
 
-  const value: Ctx = {
-    accounts,
-    loading,
-    activeAccountId,
-    activeAccount,
-    isActiveConnected: isAccountConnected(activeAccount),
-    setActiveAccountId,
-    reloadAccounts,
-  };
+  const value = useMemo<Ctx>(
+    () => ({
+      companyId,
+      companyName,
+      accounts,
+      loading,
+      activeAccountId,
+      activeAccount,
+      isActiveConnected: isAccountConnected(activeAccount),
+      setActiveAccountId,
+      reloadAccounts,
+    }),
+    [
+      companyId,
+      companyName,
+      accounts,
+      loading,
+      activeAccountId,
+      activeAccount,
+      setActiveAccountId,
+      reloadAccounts,
+    ],
+  );
 
   return (
     <EcommerceAccountCtx.Provider value={value}>{children}</EcommerceAccountCtx.Provider>
@@ -154,9 +202,11 @@ export function EcommerceActiveAccountProvider({ children }: { children: ReactNo
 
 export function useEcommerceActiveAccount(): Ctx {
   const ctx = useContext(EcommerceAccountCtx);
+
   if (!ctx) {
-    // Fail-safe fallback so pages that render outside the provider don't crash.
     return {
+      companyId: null,
+      companyName: null,
       accounts: [],
       loading: false,
       activeAccountId: null,
@@ -166,5 +216,6 @@ export function useEcommerceActiveAccount(): Ctx {
       reloadAccounts: async () => {},
     };
   }
+
   return ctx;
 }

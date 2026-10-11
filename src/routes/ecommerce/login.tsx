@@ -25,17 +25,72 @@ export const Route = createFileRoute("/ecommerce/login")({
 function EcommerceLoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
   const [errorMsg, setErrorMsg] = useState<string | null>(() => consumeAuthMessage());
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+    setSuccessMsg(null);
     setLoading(true);
 
     try {
+      if (mode === "signup") {
+        if (name.trim().length < 2) {
+          setErrorMsg("Informe seu nome.");
+          setLoading(false);
+          return;
+        }
+
+        if (password.length < 8) {
+          setErrorMsg("Use uma senha com pelo menos 8 caracteres.");
+          setLoading(false);
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          setErrorMsg("As senhas não conferem.");
+          setLoading(false);
+          return;
+        }
+
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            data: {
+              name: name.trim(),
+            },
+          },
+        });
+
+        if (signUpError || !signUpData.user) {
+          setErrorMsg(signUpError?.message || "Não foi possível criar seu acesso.");
+          setLoading(false);
+          return;
+        }
+
+        if (signUpData.session) {
+          navigate({ to: "/ecommerce/onboarding" });
+          return;
+        }
+
+        setSuccessMsg(
+          "Seu acesso foi criado. Confirme o e-mail enviado para você e depois entre no AC360.",
+        );
+        setMode("login");
+        setPassword("");
+        setConfirmPassword("");
+        setLoading(false);
+        return;
+      }
+
       const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
@@ -49,14 +104,24 @@ function EcommerceLoginPage() {
 
       const { data: accessCtx, error: ctxError } = await supabase
         .from("vw_user_access_context")
-        .select("has_ecommerce_access")
+        .select("company_id,has_ecommerce_access")
         .maybeSingle();
 
-      const hasAccess = !ctxError && accessCtx?.has_ecommerce_access === true;
-
-      if (!hasAccess) {
+      if (ctxError) {
         await supabase.auth.signOut();
-        setErrorMsg("Usuário sem acesso ao módulo E-commerce.");
+        setErrorMsg("Não foi possível validar seu acesso agora. Tente novamente.");
+        setLoading(false);
+        return;
+      }
+
+      if (!accessCtx?.company_id) {
+        navigate({ to: "/ecommerce/onboarding" });
+        return;
+      }
+
+      if (accessCtx.has_ecommerce_access !== true) {
+        await supabase.auth.signOut();
+        setErrorMsg("Sua empresa ainda não possui acesso ao módulo E-commerce.");
         setLoading(false);
         return;
       }
@@ -64,7 +129,7 @@ function EcommerceLoginPage() {
       navigate({ to: "/ecommerce/dashboard" });
     } catch (err) {
       console.error("[ecommerce/login]", err);
-      setErrorMsg("Não foi possível entrar agora. Tente novamente em instantes.");
+      setErrorMsg("Não foi possível concluir agora. Tente novamente em instantes.");
       setLoading(false);
     }
   };
@@ -107,15 +172,72 @@ function EcommerceLoginPage() {
             </div>
 
             <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl leading-[1.15]">
-              Acesse sua <span className="text-primary">central E-commerce</span>
+              {mode === "login" ? (
+                <>Acesse sua <span className="text-primary">central E-commerce</span></>
+              ) : (
+                <>Crie seu acesso ao <span className="text-primary">AC360 E-commerce</span></>
+              )}
             </h1>
             <p className="mt-4 text-[15px] leading-relaxed text-muted-foreground/80">
-              Entre para acompanhar contas, produtos, estoque, Ads e prioridades da sua operação em uma central inteligente.
+              {mode === "login"
+                ? "Entre para acompanhar contas, produtos, estoque, Ads e prioridades da sua operação em uma central inteligente."
+                : "Crie seu acesso, cadastre sua empresa e conecte o Mercado Livre sem precisar configurar chaves de API."}
             </p>
 
             {/* Card */}
             <div className="mt-10 rounded-2xl border border-border/60 bg-card p-6 shadow-[0_20px_50px_-12px_oklch(0.28_0.14_262_/_0.12)] sm:p-8">
+              <div className="mb-6 grid grid-cols-2 rounded-xl border border-border bg-muted/40 p-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("login");
+                    setErrorMsg(null);
+                    setSuccessMsg(null);
+                  }}
+                  className={`rounded-lg px-3 py-2 text-xs font-bold transition ${
+                    mode === "login"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Entrar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode("signup");
+                    setErrorMsg(null);
+                    setSuccessMsg(null);
+                  }}
+                  className={`rounded-lg px-3 py-2 text-xs font-bold transition ${
+                    mode === "signup"
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Criar acesso
+                </button>
+              </div>
+
               <form onSubmit={onSubmit} className="space-y-5">
+                {mode === "signup" ? (
+                  <div className="space-y-2">
+                    <label htmlFor="name" className="text-sm font-medium text-foreground">
+                      Seu nome
+                    </label>
+                    <input
+                      id="name"
+                      type="text"
+                      autoComplete="name"
+                      required
+                      placeholder="Seu nome"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="h-12 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15"
+                    />
+                  </div>
+                ) : null}
+
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium text-foreground">
                     E-mail
@@ -140,9 +262,15 @@ function EcommerceLoginPage() {
                     <label htmlFor="password" className="text-sm font-medium text-foreground">
                       Senha
                     </label>
-                    <a href="#" className="text-xs font-medium text-primary hover:underline">
-                      Esqueci minha senha
-                    </a>
+                    {mode === "login" ? (
+                      <span className="text-[11px] text-muted-foreground">
+                        Acesso da sua operação
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-muted-foreground">
+                        Mínimo de 8 caracteres
+                      </span>
+                    )}
                   </div>
                   <div className="relative">
                     <Lock className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-primary/70" />
@@ -167,6 +295,33 @@ function EcommerceLoginPage() {
                   </div>
                 </div>
 
+                {mode === "signup" ? (
+                  <div className="space-y-2">
+                    <label htmlFor="confirm-password" className="text-sm font-medium text-foreground">
+                      Confirmar senha
+                    </label>
+                    <input
+                      id="confirm-password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="new-password"
+                      required
+                      placeholder="Repita sua senha"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="h-12 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground shadow-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-primary/15"
+                    />
+                  </div>
+                ) : null}
+
+                {successMsg ? (
+                  <div
+                    role="status"
+                    className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-medium leading-relaxed text-emerald-700"
+                  >
+                    {successMsg}
+                  </div>
+                ) : null}
+
                 {errorMsg && (
                   <div
                     role="alert"
@@ -182,12 +337,20 @@ function EcommerceLoginPage() {
                   className="relative h-12 w-full overflow-hidden rounded-xl text-[15px] font-bold text-primary-foreground shadow-[0_10px_30px_-10px_oklch(0.55_0.22_258_/_0.55)] transition active:scale-[0.98] hover:opacity-95 disabled:opacity-70"
                   style={{ background: "var(--gradient-brand)" }}
                 >
-                  {loading ? "Entrando..." : "Entrar no AC360 E-commerce"}
+                  {loading
+                    ? mode === "login"
+                      ? "Entrando..."
+                      : "Criando acesso..."
+                    : mode === "login"
+                      ? "Entrar no AC360 E-commerce"
+                      : "Criar acesso e começar"}
                 </button>
 
                 <p className="flex items-center justify-center gap-1.5 pt-1 text-[11px] font-medium text-muted-foreground/80">
                   <ShieldCheck className="h-3.5 w-3.5 text-primary/70" />
-                  Acesso exclusivo para operações cadastradas no AC360 E-commerce.
+                  {mode === "login"
+                    ? "Acesso seguro para sua operação no AC360 E-commerce."
+                    : "Você conectará o Mercado Livre somente depois de criar sua empresa."}
                 </p>
               </form>
             </div>

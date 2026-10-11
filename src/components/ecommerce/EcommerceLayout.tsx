@@ -35,7 +35,6 @@ import acLogo from "@/assets/ac-logo.png";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import {
-  ECOMMERCE_COMPANY_ID,
   EcommerceActiveAccountProvider,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
@@ -187,7 +186,8 @@ function SidebarNav({ path, signingOut, onSignOut, onNavigate }: SidebarNavProps
 }
 
 function ActiveAccountSelector() {
-  const { accounts, loading, activeAccountId, activeAccount, isActiveConnected, setActiveAccountId } =
+  const {
+    companyId, accounts, loading, activeAccountId, activeAccount, isActiveConnected, setActiveAccountId } =
     useEcommerceActiveAccount();
 
   if (loading && accounts.length === 0) {
@@ -298,7 +298,7 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
       let query = supabase
         .from("ecommerce_marketplace_sync_state")
         .select("status,next_due_at")
-        .eq("company_id", ECOMMERCE_COMPANY_ID)
+        .eq("company_id", companyId)
         .limit(5000);
 
       if (activeAccountId) {
@@ -352,13 +352,13 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
     void Promise.allSettled([
       autoSyncMarketplaceIntelligence({
         action: "ads_sync",
-        company_id: ECOMMERCE_COMPANY_ID,
+        company_id: companyId,
         account_id: activeAccountId,
         days: 30,
       }),
       autoSyncMarketplaceIntelligence({
         action: "market_radar_sync",
-        company_id: ECOMMERCE_COMPANY_ID,
+        company_id: companyId,
         account_id: activeAccountId,
       }),
     ]).then((results) => {

@@ -48,22 +48,25 @@ Campos mínimos:
 - sov / impression_share quando disponível
 - acos_benchmark quando disponível
 
-### Endpoint sugerido
+### Implementação atual
 
-`POST /api/mercadolivre/ads/sync`
+A sincronização está implementada na Supabase Edge Function
+`ml-marketplace-intelligence`, ação `ads_sync`.
 
 Body:
 
 ```json
 {
+  "action": "ads_sync",
   "company_id": "uuid",
   "account_id": "uuid",
-  "date_from": "YYYY-MM-DD",
-  "date_to": "YYYY-MM-DD"
+  "days": 30
 }
 ```
 
-A autorização deve validar o tenant antes de iniciar a sincronização.
+A função valida a sessão do usuário e o acesso ao tenant, renova a sessão do Mercado
+Livre pelo sincronizador existente quando necessário, resolve `ad_group_id` por
+`item_id` e grava snapshots por período (1, 7, 30 ou 90 dias).
 
 ## 2. Competição de catálogo
 
@@ -131,23 +134,21 @@ Popular `public.ecommerce_market_trends` com snapshots separados:
 - Mais vendidos: recurso oficial de highlights/best sellers por categoria.
 - Tendências: recurso oficial de trends por site/categoria.
 
-### Endpoint sugerido
+### Implementação atual
 
-`POST /api/mercadolivre/market-radar/sync`
-
-Body:
+A mesma Edge Function atende a ação `market_radar_sync`:
 
 ```json
 {
+  "action": "market_radar_sync",
   "company_id": "uuid",
-  "account_id": "uuid|null",
-  "site_id": "MLB",
+  "account_id": "uuid",
   "category_ids": ["MLB..."]
 }
 ```
 
-O backend deve salvar snapshots, não apenas sobrescrever o valor atual, para o AC360
-conseguir calcular aceleração e mudança de posição ao longo das semanas.
+Quando `category_ids` não é enviado, o AC360 usa as categorias presentes nos anúncios
+da conta. Os snapshots diários ficam em `ecommerce_market_trends`.
 
 ## 5. Expedição e etiquetas
 
@@ -156,17 +157,15 @@ O frontend já agrupa os pedidos por produto/SKU e produz uma lista ordenada de
 
 A geração de PDF/ZPL precisa ocorrer no backend para proteger os tokens do Mercado Livre.
 
-### Endpoint sugerido
+### Implementação atual
 
-`POST /api/mercadolivre/shipments/labels`
-
-Body:
+A ação `shipment_labels` recebe os grupos já ordenados pelo frontend:
 
 ```json
 {
+  "action": "shipment_labels",
   "company_id": "uuid",
   "account_id": "uuid",
-  "format": "pdf",
   "groups": [
     {
       "sku": "ABC-123",
@@ -176,13 +175,10 @@ Body:
 }
 ```
 
-Regras:
-
-- respeitar os limites atuais da API do Mercado Livre por lote;
-- processar lotes por grupo/SKU;
-- retornar um arquivo final na sequência dos grupos solicitados;
-- registrar falhas por shipment_id sem invalidar os grupos já processados;
-- não expor token do marketplace ao navegador.
+A Edge Function processa até 50 `shipment_id` por chamada ao Mercado Livre, mantém
+os lotes separados por grupo/SKU, mescla os PDFs no backend e devolve um único PDF em
+base64 ao navegador. O AC360 limita cada arquivo a 250 etiquetas para manter a geração
+estável. ZPL poderá ser adicionado como formato alternativo depois.
 
 ## 6. Rentabilidade, descontos e devoluções
 
@@ -212,17 +208,19 @@ diferenças entre telas.
 
 ## 7. Segurança
 
-- service_role somente no backend;
+- secret/service_role somente no backend;
+- `access_token`, `refresh_token` e `raw_auth_payload` não têm SELECT para o papel `authenticated`;
 - frontend usa sessão Supabase normal e RLS;
 - validar company_id/account_id em todo endpoint;
 - nunca confiar apenas em IDs enviados pelo cliente;
 - persistir raw_payload somente quando necessário para auditoria;
 - evitar PII desnecessária nos logs.
 
-## 8. Ordem de implementação do backend
+## 8. Status da implementação
 
-1. ADS sync atual (Ad Groups)
-2. competição de catálogo + eventos de ganho/perda
-3. Radar de Mercado (highlights + trends)
-4. etiquetas PDF/ZPL por grupos ordenados
-5. alertas automáticos para Central de Ações
+1. ADS sync atual por Ad Groups: implementado.
+2. Consulta de competição de catálogo e histórico: implementado.
+3. Radar de Mercado (highlights + trends): implementado.
+4. Etiquetas oficiais PDF agrupadas por SKU: implementado.
+5. Alertas automáticos para Central de Ações: implementado via triggers do Postgres.
+6. Próxima evolução: ingestão automática das notificações de competição e agendamentos periódicos sem depender do clique do usuário.

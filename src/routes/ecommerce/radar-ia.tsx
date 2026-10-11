@@ -714,7 +714,7 @@ function RadarIAContent() {
     setPreviewData(null);
     try {
       const result = await runInsightsEnginePreview({
-        companyId:
+        companyId,
         accountId: accountId,
       });
       setPreviewData(result);

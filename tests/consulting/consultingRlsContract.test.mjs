@@ -16,4 +16,8 @@ for (const policy of ["assignments_read","sessions_read","plans_read","tasks_rea
   assert.match(body, /auth\.uid\(\)/, `Authenticated consultant check missing: ${policy}`);
 }
 assert.ok(!/using\s*\(\s*true\s*\)/i.test(sql), "Unrestricted row reads detected");
+assert.match(sql, /company_display_name text not null/, "Assigned company label must exist");
+const portfolio = readFileSync(new URL("../../src/routes/consultoria/carteira.tsx", import.meta.url), "utf8");
+assert.match(portfolio, /company_display_name/, "Portfolio must display assigned company label");
+assert.doesNotMatch(portfolio, /from\(["']companies["']\)/, "Consultant portfolio must not query the company directory");
 console.log("AC360 consulting SQL access contract checks passed");

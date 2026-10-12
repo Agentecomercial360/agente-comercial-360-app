@@ -47,7 +47,7 @@ function AdminConsultores() {
     const [consultantsResult, assignmentsResult, companiesResult] = await Promise.all([
       supabase.from("ac360_consultants").select("id,user_id,display_name,email,status,capacity").order("display_name"),
       supabase.from("ac360_consultant_assignments").select("id,consultant_id,company_id,company_display_name,role,active").eq("active", true),
-      supabase.from("ecommerce_accounts").select("company_id").limit(5000),
+      supabase.rpc("ac360_admin_ecommerce_company_directory"),
     ]);
     if (consultantsResult.error || assignmentsResult.error || companiesResult.error) {
       setError(
@@ -59,14 +59,7 @@ function AdminConsultores() {
     } else {
       setConsultants((consultantsResult.data ?? []) as Consultant[]);
       setAssignments((assignmentsResult.data ?? []) as Assignment[]);
-      const companyIds = [...new Set((companiesResult.data ?? []).map((account) => account.company_id).filter(Boolean))];
-      if (companyIds.length === 0) {
-        setCompanies([]);
-      } else {
-        const { data: eligibleCompanies, error: directoryError } = await supabase.from("companies").select("id,name").in("id", companyIds).order("name");
-        if (directoryError) setError(directoryError.message);
-        else setCompanies((eligibleCompanies ?? []) as Company[]);
-      }
+      setCompanies((companiesResult.data ?? []) as Company[]);
     }
     setLoading(false);
   }

@@ -9,7 +9,7 @@ import { createClient } from "@supabase/supabase-js";
 
 const env = process.env;
 const required = [
-  "AC360_RLS_TEST_URL", "AC360_RLS_TEST_ANON_KEY",
+  "AC360_RLS_TEST_URL", "AC360_RLS_TEST_ANON_KEY", "AC360_RLS_TEST_PROJECT_REF",
   "AC360_RLS_TEST_ADMIN_EMAIL", "AC360_RLS_TEST_ADMIN_PASSWORD",
   "AC360_RLS_TEST_A_EMAIL", "AC360_RLS_TEST_A_PASSWORD",
   "AC360_RLS_TEST_B_EMAIL", "AC360_RLS_TEST_B_PASSWORD",
@@ -20,6 +20,8 @@ const url = new URL(env.AC360_RLS_TEST_URL);
 assert.equal(url.protocol, "https:");
 assert.ok(url.hostname.endsWith(".supabase.co"), "Test URL must be a Supabase host");
 assert.notEqual(url.hostname, "dmwcbecihuxqzzjouevk.supabase.co", "Refusing production project");
+assert.notEqual(env.AC360_RLS_TEST_PROJECT_REF, "dmwcbecihuxqzzjouevk", "Production reference forbidden");
+assert.equal(url.hostname, `${env.AC360_RLS_TEST_PROJECT_REF}.supabase.co`, "Test project reference must match the configured host");
 assert.match(url.hostname, /^[a-z0-9-]+\.supabase\.co$/, "Test hostname must be an exact Supabase project host");
 assert.equal(env.AC360_RLS_TEST_ISOLATED, "YES", "Explicitly acknowledge isolated synthetic test data");
 assert.notEqual(env.AC360_RLS_TEST_A_ASSIGNMENT_ID, env.AC360_RLS_TEST_B_ASSIGNMENT_ID);

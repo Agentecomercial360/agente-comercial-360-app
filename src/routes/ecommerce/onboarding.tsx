@@ -490,7 +490,7 @@ function EcommerceOnboardingPage() {
                     )}
                     {creatingAccount
                       ? "Criando conta…"
-                      : "Criar e autorizar Mercado Livre"}
+                      : "Criar conta e continuar"}
                   </button>
                 </div>
               </div>

@@ -65,4 +65,66 @@ begin
 end
 $tests$;
 reset role;
-\echo PASS: ephemeral PostgreSQL RLS contract: tenant reads, INSERT deny, inactive revocation
+
+-- Verify anonymous users have no read privileges on any consultation data.
+set role anon;
+do $anon$
+declare rec record; n integer;
+begin
+ for rec in select unnest(array[
+   'ac360_consultants','ac360_consultant_assignments','ac360_consulting_sessions',
+   'ac360_consulting_plans','ac360_consulting_tasks']) as tbl loop
+   begin
+     execute format('select count(*) from public.%I',rec.tbl) into n;
+     if n <> 0 then raise exception 'SECURITY FAILURE: anonymous read % rows of %',n,rec.tbl; end if;
+   exception when insufficient_privilege then null;
+   end;
+ end loop;
+end
+$anon$;
+reset role;
+
+-- Capture baseline before attempting cross-tenant UPDATE as consultant B.
+select company_display_name as original_name from public.ac360_consultant_assignments
+where id=:'b_assignment' \gset
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000002';
+update public.ac360_consultant_assignments
+set company_display_name='UNAUTHORIZED EDIT'
+where id=:'b_assignment';
+reset role;
+do $verify$
+declare actual text;
+begin
+ select company_display_name into actual from public.ac360_consultant_assignments
+ where id=current_setting('ac360.fixture.b_assignment')::uuid;
+ if actual='UNAUTHORIZED EDIT' then
+   raise exception 'SECURITY FAILURE: consultant A modified consultant B assignment';
+ end if;
+end
+$verify$;
+
+-- Administrator closes A assignment; verify former A has no portfolio data.
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000001';
+update public.ac360_consultants
+set status='active'
+where user_id='00000000-0000-4000-8000-000000000002';
+update public.ac360_consultant_assignments
+set active=false, ended_at=now()
+where company_display_name='Synthetic A';
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000002';
+do $closed$
+declare n integer;
+begin
+ select count(*) into n from public.ac360_consulting_sessions;
+ if n<>0 then raise exception 'Closed assignment leaked sessions: %',n; end if;
+ select count(*) into n from public.ac360_consulting_plans;
+ if n<>0 then raise exception 'Closed assignment leaked plans: %',n; end if;
+ select count(*) into n from public.ac360_consulting_tasks;
+ if n<>0 then raise exception 'Closed assignment leaked tasks: %',n; end if;
+end
+$closed$;
+reset role;
+
+\echo PASS: ephemeral PostgreSQL RLS contract: tenant reads, INSERT deny, inactive revocation, anonymous access, UPDATE isolation, closed assignment

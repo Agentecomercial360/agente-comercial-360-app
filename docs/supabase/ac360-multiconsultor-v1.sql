@@ -72,7 +72,7 @@ create policy assignments_read on public.ac360_consultant_assignments
   for select to authenticated using (
     public.is_platform_admin() or exists (
       select 1 from public.ac360_consultants c
-      where c.id = consultant_id and c.user_id = (select auth.uid())
+      where c.id = consultant_id and c.status = 'active' and c.user_id = (select auth.uid())
     )
   );
 create policy assignments_admin_insert on public.ac360_consultant_assignments
@@ -86,7 +86,7 @@ create policy sessions_read on public.ac360_consulting_sessions
     public.is_platform_admin() or exists (
       select 1 from public.ac360_consultant_assignments a
       join public.ac360_consultants c on c.id = a.consultant_id
-      where a.id = assignment_id and a.active and c.user_id = (select auth.uid())
+      where a.id = assignment_id and a.active and c.status = 'active' and c.user_id = (select auth.uid())
     )
   );
 create policy sessions_insert on public.ac360_consulting_sessions
@@ -119,7 +119,7 @@ create policy plans_read on public.ac360_consulting_plans
     public.is_platform_admin() or exists (
       select 1 from public.ac360_consultant_assignments a
       join public.ac360_consultants c on c.id = a.consultant_id
-      where a.id = assignment_id and a.active and c.user_id = (select auth.uid())
+      where a.id = assignment_id and a.active and c.status = 'active' and c.user_id = (select auth.uid())
     )
   );
 create policy plans_insert on public.ac360_consulting_plans
@@ -153,7 +153,7 @@ create policy tasks_read on public.ac360_consulting_tasks
       select 1 from public.ac360_consulting_plans p
       join public.ac360_consultant_assignments a on a.id = p.assignment_id
       join public.ac360_consultants c on c.id = a.consultant_id
-      where p.id = plan_id and a.active and c.user_id = (select auth.uid())
+      where p.id = plan_id and a.active and c.status = 'active' and c.user_id = (select auth.uid())
     )
   );
 create policy tasks_insert on public.ac360_consulting_tasks

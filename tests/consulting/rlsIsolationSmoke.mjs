@@ -94,6 +94,16 @@ const { data: adminVisible, error: adminVisibilityError } = await admin
 assert.ifError(adminVisibilityError);
 assert.equal(adminVisible?.length, 2, "Test administrator must see BOTH synthetic assignments");
 
+// Verify the administrative company directory via actual Supabase Auth + Data API.
+const { data: directory, error: directoryError } = await admin.rpc("ac360_admin_ecommerce_company_directory");
+assert.ifError(directoryError);
+assert.ok(Array.isArray(directory), "Admin directory RPC must return a list");
+for (const db of [a, b]) {
+  const { data: forbiddenDirectory, error: forbiddenDirectoryError } = await db.rpc("ac360_admin_ecommerce_company_directory");
+  assert.ok(forbiddenDirectoryError, "SECURITY FAILURE: consultant accessed the admin-only directory");
+  assert.equal(forbiddenDirectory ?? null, null, "Consultant directory must not return data");
+}
+
 for (const fixtureAssignmentId of [env.AC360_RLS_TEST_A_ASSIGNMENT_ID, env.AC360_RLS_TEST_B_ASSIGNMENT_ID]) {
   for (const table of ["ac360_consulting_sessions", "ac360_consulting_plans"]) {
     const { data: fixtureRows, error: fixtureError } = await admin

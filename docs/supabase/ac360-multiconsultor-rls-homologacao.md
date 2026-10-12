@@ -41,6 +41,7 @@ Após migrar **somente um projeto separado** e criar as atribuições de teste, 
 ```bash
 AC360_RLS_TEST_ISOLATED=YES \
 AC360_RLS_TEST_URL=https://SEU-PROJETO-DE-TESTE.supabase.co \
+AC360_RLS_TEST_PROJECT_REF=SEU-PROJETO-DE-TESTE \
 AC360_RLS_TEST_ANON_KEY=chave_publica_de_teste \
 AC360_RLS_TEST_A_EMAIL=consultor-a@example.test \
 AC360_RLS_TEST_A_PASSWORD=senha-de-teste \
@@ -56,3 +57,5 @@ node tests/consulting/rlsIsolationSmoke.mjs
 O script se recusa a usar o hostname do projeto de produção e exige a confirmação `AC360_RLS_TEST_ISOLATED=YES`. Ele autentica ambos os consultores, testa leitura própria, bloqueio de leitura cruzada de vínculos/reuniões/planos e leitura anônima das cinco tabelas. O script também tenta alterar o nome de exibição de um vínculo de outro consultor e inserir reuniões e planos na carteira de outro consultor e exige bloqueio por RLS. Em caso de falha de segurança, a inserção pode criar registros no projeto de teste. O teste falha imediatamente e esses registros sintéticos devem ser limpos manualmente no ambiente isolado. A verificação usa a resposta do INSERT, sem depender da política de SELECT para detectar inserções indevidas. **Não execute em produção.** Ele ainda não substitui testes de UPDATE em planos/tarefas, reatribuição, inativação e integridade.
 
 A conta `AC360_RLS_TEST_ADMIN_EMAIL` deve ser **administradora somente do ambiente isolado**, com acesso para ler atribuições de teste. O teste de `UPDATE` compara valores antes/depois por esse acesso independente, eliminando falso positivo causado por SELECT/RLS do consultor. Não use contas ou senhas de produção.
+
+O parâmetro `AC360_RLS_TEST_PROJECT_REF` deve corresponder exatamente ao identificador do projeto de homologação no endereço Supabase. O script rejeita o ID conhecido de produção e divergências entre URL e referência; ainda assim, confirme manualmente que o projeto informado é isolado.

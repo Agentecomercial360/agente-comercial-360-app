@@ -37,4 +37,7 @@ for (const policy of ["sessions_insert", "sessions_update", "plans_insert", "pla
   assert.match(body, /auth\.uid\(\)/, `Writer must be bound to authenticated consultant: ${policy}`);
   assert.match(body, /with check\s*\(/, `New values must pass tenant authorization: ${policy}`);
 }
+const roster = readFileSync(new URL("../../src/routes/admin/consultores.tsx", import.meta.url), "utf8");
+assert.match(roster, /from\(["']ecommerce_accounts["']\)/, "Consultants must only be assigned to ecommerce customers");
+assert.match(roster, /company_display_name/, "Assignment must store a safe display name");
 console.log("AC360 consulting SQL access contract checks passed");

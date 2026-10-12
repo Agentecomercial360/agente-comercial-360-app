@@ -61,14 +61,15 @@ function ConsultoriaCarteira() {
   }, []);
   const companyName = (id: string) => assignments.find((a) => a.company_id === id)?.company_display_name ?? "Empresa atribuída";
   async function updateTask(task: Task, nextStatus: "pending" | "doing" | "done") {
+    if (savingTask) return;
     setSavingTask(task.id);
     setError(null);
     try {
       const { data: changed, error: updateError } = await supabase.from("ac360_consulting_tasks")
-        .update({ status: nextStatus }).eq("id", task.id).select("id");
+        .update({ status: nextStatus }).eq("id", task.id).eq("status", task.status).select("id,status");
       if (updateError) throw updateError;
-      if (!changed?.length) throw new Error("A tarefa não pôde ser atualizada. Sua carteira pode ter sido alterada; atualize a página.");
-      setTasks((current) => current.map((t) => t.id === task.id ? { ...t, status: nextStatus } : t));
+      if (changed?.length !== 1) throw new Error("A tarefa não pôde ser atualizada. O status ou acesso pode ter mudado; atualize a página.");
+      setTasks((current) => current.map((t) => t.id === task.id ? { ...t, status: changed[0].status } : t));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não foi possível atualizar a tarefa.");
     } finally {

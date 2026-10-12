@@ -137,7 +137,7 @@ create policy assignments_read on public.ac360_consultant_assignments
   for select to authenticated using (
     public.is_platform_admin() or exists (
       select 1 from public.ac360_consultants c
-      where c.id = consultant_id and c.status = 'active' and c.user_id = (select auth.uid())
+      where c.id = consultant_id and active = true and c.status = 'active' and c.user_id = (select auth.uid())
     )
   );
 create policy assignments_admin_insert on public.ac360_consultant_assignments

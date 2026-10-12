@@ -130,6 +130,7 @@ export async function startMercadoLivreOAuth({
     popup.location.href = payload.authorization_url;
 
     const startedAt = Date.now();
+    let popupClosedAt: number | null = null;
 
     while (Date.now() - startedAt < timeoutMs) {
       // The provider may close its window immediately after completing OAuth.
@@ -159,9 +160,14 @@ export async function startMercadoLivreOAuth({
       }
 
       if (popup.closed) {
-        throw new Error(
-          "A janela de autorização foi fechada antes da conexão terminar.",
-        );
+        // OAuth callbacks can complete just after the provider closes its window.
+        // Allow a short grace period for the authenticated status view to update.
+        popupClosedAt ??= Date.now();
+        if (Date.now() - popupClosedAt >= 9_000) {
+          throw new Error(
+            "A janela de autorização foi fechada antes da conexão terminar.",
+          );
+        }
       }
 
       await wait(1_500);

@@ -262,3 +262,22 @@ revoke all on public.ac360_consultants,
   public.ac360_consulting_sessions,
   public.ac360_consulting_plans,
   public.ac360_consulting_tasks from anon;
+
+-- Admin-only ecommerce tenant directory for the consultant assignment UI.
+-- Returns minimal fields; does not grant broad access to companies or marketplace accounts.
+create or replace function public.ac360_admin_ecommerce_company_directory()
+returns table (id uuid, name text)
+language plpgsql security definer set search_path = '' as $ac360_directory$
+begin
+  if (select auth.uid()) is null or not public.is_platform_admin() then
+    raise exception 'AC360 administrator privileges required' using errcode = '42501';
+  end if;
+  return query
+    select c.id, c.name
+    from public.companies c
+    where exists (select 1 from public.ecommerce_accounts e where e.company_id = c.id)
+    order by c.name, c.id;
+end;
+$ac360_directory$;
+revoke all on function public.ac360_admin_ecommerce_company_directory() from public, anon;
+grant execute on function public.ac360_admin_ecommerce_company_directory() to authenticated;

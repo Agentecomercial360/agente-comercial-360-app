@@ -59,3 +59,5 @@ O script se recusa a usar o hostname do projeto de produção e exige a confirma
 A conta `AC360_RLS_TEST_ADMIN_EMAIL` deve ser **administradora somente do ambiente isolado**, com acesso para ler atribuições de teste. O teste de `UPDATE` compara valores antes/depois por esse acesso independente, eliminando falso positivo causado por SELECT/RLS do consultor. Não use contas ou senhas de produção.
 
 O parâmetro `AC360_RLS_TEST_PROJECT_REF` deve corresponder exatamente ao identificador do projeto de homologação no endereço Supabase. O script rejeita o ID conhecido de produção e divergências entre URL e referência; ainda assim, confirme manualmente que o projeto informado é isolado.
+
+**Pré-condição obrigatória para o smoke test:** criar no banco isolado ao menos uma reunião e um plano em cada atribuição fictícia. O script agora confirma esses quatro registros através da conta administradora antes de testar o bloqueio da leitura cruzada. Caso estejam ausentes, o teste falha por fixtures incompletas (não por falha de RLS).

@@ -140,8 +140,17 @@ function EcommerceOnboardingPage() {
         .eq("company_id", nextCtx.company_id),
     ]);
 
-    if (accountError) setError(accountError.message);
-    if (integrationError) setError(integrationError.message);
+    // Avoid treating a failed lookup as an empty tenant and inviting the user
+    // to create duplicate accounts or repeat the authorization flow.
+    if (accountError || integrationError) {
+      setError(
+        accountError?.message ||
+          integrationError?.message ||
+          "Não foi possível consultar o estado da sua integração. Tente novamente.",
+      );
+      setLoading(false);
+      return;
+    }
     if (ordersError) console.warn("[onboarding orders count]", ordersError);
 
     const validAccountIds = new Set(
@@ -413,12 +422,19 @@ function EcommerceOnboardingPage() {
 
           <div className="p-6 md:p-8">
             {error ? (
-              <div className="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+              <div className="mb-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700" role="alert">
                 {error}
+                <button
+                  type="button"
+                  onClick={() => void loadState()}
+                  className="mt-2 block text-xs font-bold underline underline-offset-2"
+                >
+                  Tentar consultar novamente
+                </button>
               </div>
             ) : null}
 
-            {stage === "company" ? (
+            {!error && stage === "company" ? (
               <div className="mx-auto max-w-xl">
                 <StepHeading
                   icon={Building2}
@@ -459,7 +475,7 @@ function EcommerceOnboardingPage() {
               </div>
             ) : null}
 
-            {stage === "account" ? (
+            {!error && stage === "account" ? (
               <div className="mx-auto max-w-xl">
                 <StepHeading
                   icon={Store}
@@ -496,7 +512,7 @@ function EcommerceOnboardingPage() {
               </div>
             ) : null}
 
-            {stage === "authorization" && pendingAccount ? (
+            {!error && stage === "authorization" && pendingAccount ? (
               <div className="mx-auto max-w-xl text-center">
                 <StepHeading
                   icon={ShieldCheck}
@@ -533,7 +549,7 @@ function EcommerceOnboardingPage() {
               </div>
             ) : null}
 
-            {stage === "sync" && connectedAccount ? (
+            {!error && stage === "sync" && connectedAccount ? (
               <div className="mx-auto max-w-xl text-center">
                 <StepHeading
                   icon={PackageSearch}
@@ -585,7 +601,7 @@ function EcommerceOnboardingPage() {
               </div>
             ) : null}
 
-            {stage === "ready" ? (
+            {!error && stage === "ready" ? (
               <div className="mx-auto max-w-xl text-center">
                 <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
                   <CheckCircle2 className="h-8 w-8" />

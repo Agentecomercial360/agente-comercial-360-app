@@ -127,4 +127,44 @@ end
 $closed$;
 reset role;
 
+
+-- Reassign company A to consultant B without changing the historical assignment.
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000001';
+insert into public.ac360_consultant_assignments(consultant_id, company_id, company_display_name)
+select id, '10000000-0000-4000-8000-000000000001', 'Synthetic A - successor'
+from public.ac360_consultants
+where user_id='00000000-0000-4000-8000-000000000003';
+
+do $transfer$
+declare old_id uuid; new_id uuid; n integer;
+begin
+ select id into old_id from public.ac360_consultant_assignments where company_display_name='Synthetic A';
+ select id into new_id from public.ac360_consultant_assignments where company_display_name='Synthetic A - successor';
+ if old_id = new_id then raise exception 'Transfer reused historical assignment'; end if;
+ select count(*) into n from public.ac360_consulting_plans where assignment_id=old_id;
+ if n<>1 then raise exception 'Historical plan was lost after transfer'; end if;
+ select count(*) into n from public.ac360_consulting_plans where assignment_id=new_id;
+ if n<>0 then raise exception 'Historical plan migrated to successor'; end if;
+ -- Even an admin must not rewrite a historical plan's ownership.
+ begin
+  update public.ac360_consulting_plans set assignment_id=new_id where assignment_id=old_id;
+  raise exception 'SECURITY FAILURE: historical plan owner was modified';
+ exception when check_violation then null;
+ end;
+end
+$transfer$;
+
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000003';
+do $successor$
+declare n integer;
+begin
+ select count(*) into n from public.ac360_consultant_assignments;
+ if n<>2 then raise exception 'Successor expected two active assignments, got %',n; end if;
+ select count(*) into n from public.ac360_consulting_plans;
+ if n<>1 then raise exception 'Successor can read old historical plans: %',n; end if;
+end
+$successor$;
+reset role;
+
 \echo PASS: ephemeral PostgreSQL RLS contract: tenant reads, INSERT deny, inactive revocation, anonymous access, UPDATE isolation, closed assignment

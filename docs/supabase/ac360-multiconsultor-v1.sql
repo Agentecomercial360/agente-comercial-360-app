@@ -23,7 +23,7 @@ create table if not exists public.ac360_consultant_assignments (
 -- Only ecommerce tenants with a registered marketplace account can be assigned.
 -- Enforced server-side, not merely by the administrative dropdown.
 create or replace function public.ac360_validate_ecommerce_assignment()
-returns trigger language plpgsql set search_path = '' as $
+returns trigger language plpgsql set search_path = '' as $ac360$
 begin
   if not exists (
     select 1 from public.ecommerce_accounts ea
@@ -34,7 +34,7 @@ begin
   end if;
   return new;
 end;
-$;
+$ac360$;
 revoke all on function public.ac360_validate_ecommerce_assignment() from public, anon, authenticated;
 create trigger ac360_validate_ecommerce_assignment_trigger
 before insert or update of company_id on public.ac360_consultant_assignments

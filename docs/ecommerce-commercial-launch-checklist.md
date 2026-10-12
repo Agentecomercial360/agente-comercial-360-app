@@ -15,7 +15,7 @@ Estado: preparação de lançamento. Este documento é um checklist de validaç�
 ## Impedimentos para abrir venda self-service sem acompanhamento
 
 - [ ] Confirmar URL e deployment de **produção** Vercel após o merge em main. Preview verde não comprova promoção a produção. Resolver limite de builds se persistir.
-- [ ] Identificar o projeto Railway que de fato hospeda `ac360-mercadolivre-api-production.up.railway.app`; o projeto Railway “Agente Comercial 360 - Backend” acessível nesta revisão lista n8n e postgres, não a API ML.
+- [x] Identificado no Railway o projeto `attractive-youthfulness`, serviço `ac360-mercadolivre-api`, ambiente `production`, domínio `ac360-mercadolivre-api-production.up.railway.app`, origem `Agentecomercial360/ac360-mercadolivre-api` branch `main`. Último deploy consultado com status `SUCCESS`. **Ainda falta validar saúde HTTP, autenticação, OAuth e sincronização ponta a ponta**.
 - [ ] Confirmar no Supabase de produção todas as migrações/RPCs e views exigidas pelo onboarding, especialmente `create_ecommerce_onboarding_company_v1`, `vw_user_access_context`, `vw_ecommerce_integration_status`.
 - [ ] Executar cadastro **real** com email de teste, confirmar email, criar empresa e conectar uma conta ML de teste autorizada pelo titular, em Safari iOS e Chrome desktop.
 - [ ] Testar isolamento com dois usuários/empresas independentes: consultas de pedidos, produtos, contas e integrações; inserção e alteração com `company_id` de outra empresa devem ser negadas pelo banco/API.

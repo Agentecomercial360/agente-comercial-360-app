@@ -40,4 +40,7 @@ for (const policy of ["sessions_insert", "sessions_update", "plans_insert", "pla
 const roster = readFileSync(new URL("../../src/routes/admin/consultores.tsx", import.meta.url), "utf8");
 assert.match(roster, /from\(["']ecommerce_accounts["']\)/, "Consultants must only be assigned to ecommerce customers");
 assert.match(roster, /company_display_name/, "Assignment must store a safe display name");
+assert.match(sql, /create trigger ac360_validate_ecommerce_assignment_trigger/, "Database must enforce ecommerce-only assignments");
+assert.match(sql, /from public\.ecommerce_accounts ea/, "Assignment trigger must verify ecommerce registration");
+assert.match(sql, /before insert or update of company_id/, "Assignment trigger must cover inserts and company reassignment");
 console.log("AC360 consulting SQL access contract checks passed");

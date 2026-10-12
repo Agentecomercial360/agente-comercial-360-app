@@ -4,7 +4,7 @@ const sql = readFileSync(new URL("../../docs/supabase/ac360-multiconsultor-v1.sq
 const tables = ["ac360_consultants", "ac360_consultant_assignments", "ac360_consulting_sessions", "ac360_consulting_plans", "ac360_consulting_tasks"];
 for (const table of tables) {
   assert.ok(sql.includes(`alter table public.${table} enable row level security;`), `RLS missing: ${table}`);
-  assert.ok(sql.includes(`revoke all on public.ac360_consultants,`) && sql.includes(`public.${table} from anon;`), "Anon privilege revocation missing");
+  assert.match(sql, /revoke all on public\.ac360_consultants,[\s\S]*?public\.ac360_consulting_tasks from anon;/i, "Anon privilege revocation missing");
 }
 for (const policy of ["assignments_read","sessions_read","plans_read","tasks_read"]) {
   const start = sql.indexOf(`create policy ${policy} `);

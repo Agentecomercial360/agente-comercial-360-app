@@ -74,7 +74,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50/50">
+    <div className="flex min-h-screen w-full max-w-full overflow-x-hidden bg-slate-50/50">
       {/* Sidebar Admin */}
       <aside className="hidden md:flex md:w-64 lg:w-72 flex-col sticky top-0 h-screen bg-slate-900 text-slate-300 border-r border-slate-800 shadow-xl">
         <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-800 bg-slate-900/50">
@@ -144,10 +144,10 @@ export function AdminLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex min-w-0 flex-1 flex-col overflow-x-hidden">
         {/* Topbar Admin */}
         <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between px-6 py-4">
+          <div className="flex min-w-0 items-center justify-between gap-2 px-3 py-3 sm:px-6 sm:py-4">
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 border border-blue-100">
                 <ShieldCheck className="h-3.5 w-3.5 text-blue-600" />
@@ -159,7 +159,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <div className="relative hidden xl:block">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <input 
@@ -177,7 +177,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
               <button
                 onClick={handleRefresh}
                 disabled={isUpdating}
-                className="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition disabled:opacity-60"
+                className="inline-flex min-w-0 items-center gap-2 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold sm:px-4 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition disabled:opacity-60"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isUpdating ? "animate-spin" : ""}`} />
                 {isUpdating ? "Atualizando..." : "Sincronizar"}
@@ -186,11 +186,15 @@ export function AdminLayout({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 px-6 py-8">
+        <nav aria-label="Navegação administrativa móvel" className="flex w-full gap-2 overflow-x-auto border-b border-slate-200 bg-white px-3 py-2 md:hidden">
+          <Link to="/admin/consultores" className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold ${path === "/admin/consultores" ? "bg-blue-700 text-white" : "bg-slate-100 text-slate-700"}`}>Consultores</Link>
+          <Link to="/admin/acompanhamento" className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold ${path === "/admin/acompanhamento" ? "bg-blue-700 text-white" : "bg-slate-100 text-slate-700"}`}>Acompanhamento</Link>
+        </nav>
+        <main className="min-w-0 flex-1 overflow-x-hidden px-3 py-5 sm:px-6 sm:py-8">
           {children}
         </main>
         
-        <footer className="px-6 py-4 border-t border-slate-200 text-center">
+        <footer className="px-3 py-4 sm:px-6 border-t border-slate-200 text-center">
           <p className="text-[11px] text-slate-400 uppercase tracking-[0.2em] font-medium">
             Agente Comercial 360 · Sistema Interno de Gestão · v2.4.0
           </p>

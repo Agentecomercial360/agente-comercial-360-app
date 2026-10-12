@@ -43,4 +43,6 @@ assert.match(roster, /company_display_name/, "Assignment must store a safe displ
 assert.match(sql, /create trigger ac360_validate_ecommerce_assignment_trigger/, "Database must enforce ecommerce-only assignments");
 assert.match(sql, /from public\.ecommerce_accounts ea/, "Assignment trigger must verify ecommerce registration");
 assert.match(sql, /before insert or update of company_id/, "Assignment trigger must cover inserts and company reassignment");
+assert.match(sql, /returns trigger language plpgsql set search_path = '' as \$ac360\$[\s\S]*?end;\s*\$ac360\$;/, "Trigger body must have valid paired SQL dollar delimiters");
+assert.doesNotMatch(sql, /as \$\n/, "Bare dollar sign is not a valid PL/pgSQL delimiter");
 console.log("AC360 consulting SQL access contract checks passed");

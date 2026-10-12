@@ -1,4 +1,5 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { supabase } from "@/lib/supabase";
 import {
   LayoutDashboard,
   Building2,
@@ -42,6 +43,15 @@ const navGroups = [
 export function AdminLayout({ children }: { children: ReactNode }) {
   const { allowed, checking } = useModuleGuard("admin");
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const navigate = useNavigate();
+  const [signingOut, setSigningOut] = useState(false);
+  async function handleSignOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    const { error } = await supabase.auth.signOut();
+    if (error) { toast.error("Não foi possível encerrar a sessão."); setSigningOut(false); return; }
+    await navigate({ to: "/login", replace: true });
+  }
   const [today, setToday] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -136,7 +146,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
               <span className="text-[10px] text-slate-500 truncate text-uppercase tracking-wider">Super Admin</span>
             </div>
           </div>
-          <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors">
+          <button type="button" onClick={() => void handleSignOut()} disabled={signingOut} className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-colors disabled:opacity-50">
             <LogOut className="h-4 w-4" />
             Sair do Admin
           </button>

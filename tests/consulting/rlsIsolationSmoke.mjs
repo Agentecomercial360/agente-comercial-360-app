@@ -38,7 +38,7 @@ async function read(db, table, column, id) {
   assert.ifError(error);
   return data ?? [];
 }
-async function exercise(db, own, foreign, label) {
+async function exercise(db, admin, own, foreign, label) {
   const ownRows = await read(db, "ac360_consultant_assignments", "id", own);
   assert.equal(ownRows.length, 1, `${label}: must see own assignment`);
   const foreignRows = await read(db, "ac360_consultant_assignments", "id", foreign);
@@ -63,21 +63,26 @@ async function exercise(db, own, foreign, label) {
   // Foreign assignment mutations must affect zero rows or be rejected.
   // Executed exclusively on synthetic data in the isolated test project.
   const attemptedName = `BLOCKED-RLS-TEST-${label.replaceAll(" ", "-")}`;
-  const { data: changed, error: updateError } = await db
-    .from("ac360_consultant_assignments")
-    .update({ company_display_name: attemptedName })
-    .eq("id", foreign)
-    .select("id");
-  assert.ok(updateError || (changed?.length ?? 0) === 0,
-    `${label}: SECURITY FAILURE: changed foreign consultant assignment. Restore synthetic fixture.`);
+  const { data: baseline, error: baselineError } = await admin
+    .from("ac360_consultant_assignments").select("company_display_name").eq("id", foreign).single();
+  assert.ifError(baselineError);
+  const { error: updateError } = await db
+    .from("ac360_consultant_assignments").update({ company_display_name: attemptedName }).eq("id", foreign);
+  const { data: after, error: afterError } = await admin
+    .from("ac360_consultant_assignments").select("company_display_name").eq("id", foreign).single();
+  assert.ifError(afterError);
+  assert.equal(after.company_display_name, baseline.company_display_name,
+    `${label}: SECURITY FAILURE: foreign assignment was modified. Restore synthetic fixture.`);
+  if (!updateError) console.log(`${label}: forbidden UPDATE returned no error but admin verified zero mutation`);
   console.log(`${label}: assignment and child-table cross-tenant reads denied`);
 }
+const admin = await login(env.AC360_RLS_TEST_ADMIN_EMAIL, env.AC360_RLS_TEST_ADMIN_PASSWORD);
 const a = await login(env.AC360_RLS_TEST_A_EMAIL, env.AC360_RLS_TEST_A_PASSWORD);
 const b = await login(env.AC360_RLS_TEST_B_EMAIL, env.AC360_RLS_TEST_B_PASSWORD);
 const [{ data: aIdentity }, { data: bIdentity }] = await Promise.all([a.auth.getUser(), b.auth.getUser()]);
 assert.ok(aIdentity.user && bIdentity.user && aIdentity.user.id !== bIdentity.user.id, "Consultants A and B must be distinct authenticated users");
-await exercise(a, env.AC360_RLS_TEST_A_ASSIGNMENT_ID, env.AC360_RLS_TEST_B_ASSIGNMENT_ID, "Consultant A");
-await exercise(b, env.AC360_RLS_TEST_B_ASSIGNMENT_ID, env.AC360_RLS_TEST_A_ASSIGNMENT_ID, "Consultant B");
+await exercise(a, admin, env.AC360_RLS_TEST_A_ASSIGNMENT_ID, env.AC360_RLS_TEST_B_ASSIGNMENT_ID, "Consultant A");
+await exercise(b, admin, env.AC360_RLS_TEST_B_ASSIGNMENT_ID, env.AC360_RLS_TEST_A_ASSIGNMENT_ID, "Consultant B");
 const anonymous = client();
 for (const table of ["ac360_consultants", "ac360_consultant_assignments", "ac360_consulting_sessions", "ac360_consulting_plans", "ac360_consulting_tasks"]) {
   const { data, error } = await anonymous.from(table).select("id").limit(1);

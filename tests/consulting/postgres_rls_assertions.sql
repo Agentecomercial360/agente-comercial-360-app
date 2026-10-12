@@ -336,3 +336,37 @@ begin
 end
 $inactive_write_denial$;
 reset role;
+
+
+-- Positive end-to-end RLS check: active consultant can update an assigned task,
+-- while another consultant's task stays inaccessible.
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000003';
+do $own_task_write$
+declare n integer;
+begin
+ update public.ac360_consulting_tasks t
+ set status='doing'
+ where t.title='Synthetic task' and t.status='pending';
+ get diagnostics n=row_count;
+ if n<>1 then raise exception 'Active consultant expected to update exactly one own task; updated %', n; end if;
+ select count(*) into n from public.ac360_consulting_tasks t where t.title='Synthetic task' and t.status='doing';
+ if n<>1 then raise exception 'Updated task not visible to its active consultant'; end if;
+end
+$own_task_write$;
+reset role;
+do $own_task_verify$
+declare n integer;
+begin
+ select count(*) into n from public.ac360_consulting_tasks t
+ join public.ac360_consulting_plans p on p.id=t.plan_id
+ join public.ac360_consultant_assignments a on a.id=p.assignment_id
+ where t.title='Synthetic task' and t.status='doing' and a.company_display_name='Synthetic B';
+ if n<>1 then raise exception 'Active consultant task update did not persist on own client'; end if;
+ select count(*) into n from public.ac360_consulting_tasks t
+ join public.ac360_consulting_plans p on p.id=t.plan_id
+ join public.ac360_consultant_assignments a on a.id=p.assignment_id
+ where t.title='Synthetic task' and t.status='pending' and a.company_display_name='Synthetic A';
+ if n<>1 then raise exception 'Consultant changed former other consultant task'; end if;
+end
+$own_task_verify$;

@@ -47,7 +47,7 @@ function AdminConsultores() {
     const [consultantsResult, assignmentsResult, companiesResult] = await Promise.all([
       supabase.from("ac360_consultants").select("id,user_id,display_name,email,status,capacity").order("display_name"),
       supabase.from("ac360_consultant_assignments").select("id,consultant_id,company_id,company_display_name,role,active").eq("active", true),
-      supabase.from("companies").select("id,name").order("name"),
+      supabase.from("ecommerce_accounts").select("company_id").limit(5000),
     ]);
     if (consultantsResult.error || assignmentsResult.error || companiesResult.error) {
       setError(
@@ -59,7 +59,14 @@ function AdminConsultores() {
     } else {
       setConsultants((consultantsResult.data ?? []) as Consultant[]);
       setAssignments((assignmentsResult.data ?? []) as Assignment[]);
-      setCompanies((companiesResult.data ?? []) as Company[]);
+      const companyIds = [...new Set((companiesResult.data ?? []).map((account) => account.company_id).filter(Boolean))];
+      if (companyIds.length === 0) {
+        setCompanies([]);
+      } else {
+        const { data: eligibleCompanies, error: directoryError } = await supabase.from("companies").select("id,name").in("id", companyIds).order("name");
+        if (directoryError) setError(directoryError.message);
+        else setCompanies((eligibleCompanies ?? []) as Company[]);
+      }
     }
     setLoading(false);
   }
@@ -158,7 +165,7 @@ function AdminConsultores() {
                   {consultants.filter((c) => c.status === "active").map((c) => <option key={c.id} value={c.id}>{c.display_name}</option>)}
                 </select>
               </label>
-              <label className="block text-sm font-medium">Empresa ainda sem consultor
+              <label className="block text-sm font-medium">Empresa de e-commerce sem consultor
                 <select required value={companyId} onChange={(e) => setCompanyId(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-2">
                   <option value="">Selecione</option>
                   {unassigned.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}

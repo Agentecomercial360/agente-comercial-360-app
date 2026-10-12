@@ -1,0 +1,75 @@
+\set ON_ERROR_STOP on
+-- Execution order: bootstrap, AC360 migration, this fixture/assertion script.
+-- All rows synthetic; run exclusively in the ephemeral GitHub Actions PostgreSQL container.
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000001';
+insert into public.ac360_consultants(user_id,display_name) values
+ ('00000000-0000-4000-8000-000000000002','Test Consultant A'),
+ ('00000000-0000-4000-8000-000000000003','Test Consultant B');
+insert into public.ac360_consultant_assignments(consultant_id,company_id,company_display_name)
+select id,'10000000-0000-4000-8000-000000000001','Synthetic A'
+from public.ac360_consultants where user_id='00000000-0000-4000-8000-000000000002';
+insert into public.ac360_consultant_assignments(consultant_id,company_id,company_display_name)
+select id,'10000000-0000-4000-8000-000000000002','Synthetic B'
+from public.ac360_consultants where user_id='00000000-0000-4000-8000-000000000003';
+insert into public.ac360_consulting_plans(assignment_id,title)
+select id,'Synthetic plan' from public.ac360_consultant_assignments;
+insert into public.ac360_consulting_sessions(assignment_id,scheduled_at)
+select id,now() from public.ac360_consultant_assignments;
+insert into public.ac360_consulting_tasks(plan_id,title)
+select id,'Synthetic task' from public.ac360_consulting_plans;
+
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000002';
+do $tests$
+declare own uuid; foreign_id uuid; n int;
+begin
+ select id into own from public.ac360_consultant_assignments where company_display_name='Synthetic A';
+ select count(*) into n from public.ac360_consultant_assignments;
+ if n<>1 then raise exception 'A can read % assignment rows; expected 1',n; end if;
+ select count(*) into n from public.ac360_consulting_sessions;
+ if n<>1 then raise exception 'A sessions: % (expected 1)',n; end if;
+ select count(*) into n from public.ac360_consulting_plans;
+ if n<>1 then raise exception 'A plans: % (expected 1)',n; end if;
+ select count(*) into n from public.ac360_consulting_tasks;
+ if n<>1 then raise exception 'A tasks: % (expected 1)',n; end if;
+ -- Distinct foreign ID is retrieved as a fixture constant, never through RLS.
+ foreign_id := '00000000-0000-0000-0000-000000000000';
+ begin
+  insert into public.ac360_consulting_plans(assignment_id,title) values (foreign_id,'Wrong client');
+  raise exception 'Unexpected successful cross-tenant insert';
+ exception when foreign_key_violation then
+  null; -- Invalid fixture UUID; real second-assignment test below uses admin-seeded ID.
+ end;
+end
+$tests$;
+
+reset role;
+select id as b_assignment from public.ac360_consultant_assignments where company_display_name='Synthetic B' \gset
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000002';
+select set_config('ac360.fixture.b_assignment', :'b_assignment', false);
+do $tests$
+begin
+ begin
+   insert into public.ac360_consulting_plans(assignment_id,title)
+   values (current_setting('ac360.fixture.b_assignment')::uuid,'Forbidden plan');
+   raise exception 'SECURITY FAILURE: A inserted B plan';
+ exception when insufficient_privilege then null;
+ end;
+end
+$tests$;
+reset role;
+update public.ac360_consultants set status='inactive' where user_id='00000000-0000-4000-8000-000000000002';
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000002';
+do $tests$
+declare n int;
+begin
+ select count(*) into n from public.ac360_consultant_assignments;
+ if n <> 0 then raise exception 'Inactive consultant retained % assignments',n; end if;
+ select count(*) into n from public.ac360_consulting_tasks;
+ if n <> 0 then raise exception 'Inactive consultant retained % tasks',n; end if;
+end
+$tests$;
+reset role;
+\echo PASS: ephemeral PostgreSQL RLS contract: tenant reads, INSERT deny, inactive revocation

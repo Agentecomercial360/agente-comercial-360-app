@@ -170,6 +170,34 @@ reset role;
 \echo PASS: ephemeral PostgreSQL RLS contract: tenant reads, INSERT deny, inactive revocation, anonymous access, UPDATE isolation, closed assignment
 
 
+-- Verify immutable history on all three child-table variants after a portfolio transfer.
+-- The synthetic fixtures have meetings, plans and tasks for both original companies.
+do $history$
+declare old_assignment uuid; successor uuid; old_plan uuid; other_plan uuid;
+begin
+ select id into old_assignment from public.ac360_consultant_assignments where company_display_name='Synthetic A';
+ select id into successor from public.ac360_consultant_assignments where company_display_name='Synthetic A - successor';
+ select id into old_plan from public.ac360_consulting_plans where assignment_id=old_assignment limit 1;
+ select id into other_plan from public.ac360_consulting_plans where assignment_id<>old_assignment limit 1;
+ begin
+  update public.ac360_consulting_sessions
+  set assignment_id=successor where assignment_id=old_assignment;
+  raise exception 'SECURITY FAILURE: meeting ownership was moved';
+ exception when check_violation then null;
+ end;
+ begin
+  update public.ac360_consulting_tasks
+  set plan_id=other_plan where plan_id=old_plan;
+  raise exception 'SECURITY FAILURE: task was moved to another plan';
+ exception when check_violation then null;
+ end;
+ if (select count(*) from public.ac360_consulting_sessions where assignment_id=old_assignment)<>1
+ then raise exception 'Meeting history lost'; end if;
+ if (select count(*) from public.ac360_consulting_tasks where plan_id=old_plan)<>1
+ then raise exception 'Task history lost'; end if;
+end
+$history$;
+
 -- Exercise actual admin session writes and RLS, not only postgres bypass mode.
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000001';

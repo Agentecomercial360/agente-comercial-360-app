@@ -50,23 +50,22 @@ async function exercise(db, own, foreign, label) {
   assert.equal(sessions.length, 0, `${label}: foreign sessions exposed`);
   assert.equal(plans.length, 0, `${label}: foreign plans exposed`);
   // Expected-denial writes operate only on isolated synthetic fixtures.
-  // If a policy unexpectedly allows an insert, remove the inserted test row and fail.
+  // A successful forbidden insert is a critical failure; clean up in the isolated test project.
   const forbiddenWrites = [
     { table: "ac360_consulting_sessions", row: { assignment_id: foreign, scheduled_at: new Date(Date.now() + 86400000).toISOString(), summary: "AC360 isolated authorization test" } },
     { table: "ac360_consulting_plans", row: { assignment_id: foreign, title: "AC360 cross-tenant RLS negative test" } },
   ];
   for (const check of forbiddenWrites) {
-    const { data: inserted, error: insertError } = await db.from(check.table).insert(check.row).select("id");
-    if (!insertError && inserted?.length) {
-      const cleanup = await db.from(check.table).delete().eq("id", inserted[0].id);
-      throw new Error(`${label}: SECURITY FAILURE: cross-tenant insert allowed in ${check.table}. Cleanup error: ${cleanup.error?.message ?? "none"}`);
-    }
-    assert.ok(insertError, `${label}: cross-tenant insert unexpectedly succeeded in ${check.table}`);
+    const { error: insertError } = await db.from(check.table).insert(check.row);
+    assert.ok(insertError, `${label}: SECURITY FAILURE: cross-tenant insert was accepted by ${check.table}. Inspect and clean up isolated fixtures.`);
+
   }
   console.log(`${label}: assignment and child-table cross-tenant reads denied`);
 }
 const a = await login(env.AC360_RLS_TEST_A_EMAIL, env.AC360_RLS_TEST_A_PASSWORD);
 const b = await login(env.AC360_RLS_TEST_B_EMAIL, env.AC360_RLS_TEST_B_PASSWORD);
+const [{ data: aIdentity }, { data: bIdentity }] = await Promise.all([a.auth.getUser(), b.auth.getUser()]);
+assert.ok(aIdentity.user && bIdentity.user && aIdentity.user.id !== bIdentity.user.id, "Consultants A and B must be distinct authenticated users");
 await exercise(a, env.AC360_RLS_TEST_A_ASSIGNMENT_ID, env.AC360_RLS_TEST_B_ASSIGNMENT_ID, "Consultant A");
 await exercise(b, env.AC360_RLS_TEST_B_ASSIGNMENT_ID, env.AC360_RLS_TEST_A_ASSIGNMENT_ID, "Consultant B");
 const anonymous = client();

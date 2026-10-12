@@ -3,11 +3,9 @@ import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, ShieldCheck } from "lucide-react";
 import { MessageCircle, Users, Sparkles } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
-import loginHeroAsset from "@/assets/login-hero-v2.jpg.asset.json";
 import { supabase } from "@/lib/supabase";
 import { consumeAuthMessage } from "@/lib/use-module-guard";
 
-const loginHero = loginHeroAsset.url;
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -226,14 +224,7 @@ function LoginPage() {
           className="relative hidden overflow-hidden lg:block"
           style={{ background: "var(--gradient-brand)" }}
         >
-          <img
-            src={loginHero}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 h-full w-full object-cover object-center opacity-40"
-            loading="eager"
-            decoding="async"
-          />
+          {/* Gradient background replaces an unavailable remote hero image. */}
           <div
             aria-hidden
             className="absolute inset-0"

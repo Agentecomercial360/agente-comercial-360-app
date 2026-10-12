@@ -34,6 +34,8 @@ function AdminAcompanhamento() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
+  const [meetingSummary, setMeetingSummary] = useState("");
   const [loading, setLoading] = useState(true);
 
   async function load() {
@@ -78,6 +80,26 @@ function AdminAcompanhamento() {
     if (insertError) setError(insertError.message);
     else { setDate(""); setMessage("Reunião registrada."); await load(); }
     setSaving(false);
+  }
+
+  async function finishMeeting(meeting: Session) {
+    if (meetingSummary.trim().length < 10) {
+      setError("Registre pelo menos 10 caracteres no resumo da reunião.");
+      return;
+    }
+    setSaving(true);
+    setError(null); setMessage(null);
+    try {
+      const { error: updateError } = await supabase.from("ac360_consulting_sessions")
+        .update({ status: "completed", summary: meetingSummary.trim() })
+        .eq("id", meeting.id).eq("status", "scheduled");
+      if (updateError) throw updateError;
+      setEditingMeetingId(null); setMeetingSummary("");
+      await load();
+      setMessage("Reunião concluída e resumo registrado.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível concluir a reunião.");
+    } finally { setSaving(false); }
   }
 
   async function createPlan(e: React.FormEvent<HTMLFormElement>) {
@@ -163,7 +185,16 @@ function AdminAcompanhamento() {
       <section className="rounded-xl border border-slate-200 bg-white p-5"><h2 className="mb-4 font-bold">Próximas reuniões e histórico</h2>
         {loading ? <p className="text-sm text-slate-500">Carregando…</p> : sessions.length ? <div className="space-y-3">{sessions.map((s) => <div key={s.id} className="border-b border-slate-100 pb-3 text-sm">
           <p className="font-semibold">{new Date(s.scheduled_at).toLocaleString("pt-BR")} · {s.duration_minutes} min</p>
-          <p className="text-slate-600">{owner(s.assignment_id)}</p><p className="text-xs text-slate-500">Status: {s.status}</p>
+          <p className="text-slate-600">{owner(s.assignment_id)}</p><p className="text-xs text-slate-500">Status: {s.status === "completed" ? "Concluída" : s.status === "cancelled" ? "Cancelada" : "Agendada"}</p>
+          {s.summary && <p className="mt-1 text-xs text-slate-600">Resumo: {s.summary}</p>}
+          {s.status === "scheduled" && editingMeetingId !== s.id && <button type="button" onClick={() => { setEditingMeetingId(s.id); setMeetingSummary(s.summary ?? ""); }} className="mt-2 rounded-md border border-slate-300 px-3 py-1 text-xs">Registrar conclusão</button>}
+          {editingMeetingId === s.id && <div className="mt-2 space-y-2">
+            <textarea value={meetingSummary} onChange={(e) => setMeetingSummary(e.target.value)}
+              aria-label="Resumo da reunião" rows={3} maxLength={4000} className="w-full rounded-lg border border-slate-300 p-2 text-sm"
+              placeholder="Decisões, diagnóstico e próximos passos" />
+            <button type="button" disabled={saving || meetingSummary.trim().length < 10} onClick={() => void finishMeeting(s)} className="rounded-md bg-blue-700 px-3 py-2 text-xs font-semibold text-white disabled:opacity-50">Concluir reunião</button>
+            <button type="button" onClick={() => { setEditingMeetingId(null); setMeetingSummary(""); }} className="ml-2 rounded-md border px-3 py-2 text-xs">Cancelar</button>
+          </div>}
         </div>)}</div> : <p className="text-sm text-slate-500">Nenhuma reunião registrada.</p>}
       </section>
       <section className="rounded-xl border border-slate-200 bg-white p-5"><h2 className="mb-4 font-bold">Planos de ação</h2>

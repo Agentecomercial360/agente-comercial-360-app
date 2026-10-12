@@ -60,6 +60,16 @@ async function exercise(db, own, foreign, label) {
     assert.ok(insertError, `${label}: SECURITY FAILURE: cross-tenant insert was accepted by ${check.table}. Inspect and clean up isolated fixtures.`);
 
   }
+  // Foreign assignment mutations must affect zero rows or be rejected.
+  // Executed exclusively on synthetic data in the isolated test project.
+  const attemptedName = `BLOCKED-RLS-TEST-${label.replaceAll(" ", "-")}`;
+  const { data: changed, error: updateError } = await db
+    .from("ac360_consultant_assignments")
+    .update({ company_display_name: attemptedName })
+    .eq("id", foreign)
+    .select("id");
+  assert.ok(updateError || (changed?.length ?? 0) === 0,
+    `${label}: SECURITY FAILURE: changed foreign consultant assignment. Restore synthetic fixture.`);
   console.log(`${label}: assignment and child-table cross-tenant reads denied`);
 }
 const a = await login(env.AC360_RLS_TEST_A_EMAIL, env.AC360_RLS_TEST_A_PASSWORD);

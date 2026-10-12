@@ -121,6 +121,25 @@ function AdminConsultores() {
     setSaving(false);
   }
 
+  async function finishAssignment(a: Assignment) {
+    if (saving || !window.confirm(`Encerrar o atendimento de ${a.company_display_name}? A carteira deixa de aparecer para o consultor atual; o histórico permanece.`)) return;
+    setSaving(true); setError(null); setNotice(null);
+    try {
+      const { data, error: changeError } = await supabase
+        .from("ac360_consultant_assignments")
+        .update({ active: false, ended_at: new Date().toISOString() })
+        .eq("id", a.id).eq("active", true).select("id");
+      if (changeError) throw changeError;
+      if (!data?.length) throw new Error("Atribuição já foi alterada. Atualize a página.");
+      await reload();
+      setNotice("Vínculo encerrado. A empresa já pode ser atribuída a outro consultor.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Falha ao encerrar o vínculo.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <AdminLayout>
       <div className="mx-auto max-w-6xl space-y-6">
@@ -188,7 +207,13 @@ function AdminConsultores() {
               return <div key={c.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
                 <div><p className="font-semibold text-slate-900">{c.display_name}</p><p className="text-xs text-slate-500">{c.email || "Sem e-mail cadastrado"} · {c.status === "active" ? "Ativo" : "Inativo"}</p></div>
                 <div className="text-right"><p className="text-sm font-semibold">{assigned.length} / {c.capacity} empresas</p>
-                <p className="text-xs text-slate-500">{assigned.map((a) => a.company_display_name).join(", ") || "Sem empresas atribuídas"}</p></div>
+                <div className="mt-2 flex flex-wrap justify-end gap-2">
+                  {assigned.map((a) => <div key={a.id} className="inline-flex items-center gap-2 rounded-lg bg-slate-50 px-2 py-1">
+                    <span className="text-xs text-slate-600">{a.company_display_name}</span>
+                    <button type="button" disabled={saving} onClick={() => void finishAssignment(a)} className="text-xs font-semibold text-rose-700 hover:underline disabled:opacity-50">Encerrar</button>
+                  </div>)}
+                  {!assigned.length && <span className="text-xs text-slate-500">Sem empresas atribuídas</span>}
+                </div></div>
               </div>;
             })}
           </div>}

@@ -13,6 +13,7 @@ create table if not exists public.ac360_consultant_assignments (
   id uuid primary key default gen_random_uuid(),
   consultant_id uuid not null references public.ac360_consultants(id) on delete restrict,
   company_id uuid not null references public.companies(id) on delete cascade,
+  company_display_name text not null check (length(trim(company_display_name)) between 2 and 160),
   role text not null default 'lead' check (role in ('lead','support')),
   active boolean not null default true,
   started_at timestamptz not null default now(),

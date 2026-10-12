@@ -49,6 +49,30 @@ function LoginPage() {
         return;
       }
 
+      // Isolated consulting preview uses its own roles, not the CRM entitlement.
+      if (import.meta.env.VITE_AC360_EXPECTED_SUPABASE_PROJECT_REF === "iiegcdekryjyrkxpxcmr") {
+        const { data: admin, error: adminError } = await supabase
+          .from("platform_admins").select("user_id")
+          .eq("user_id", signInData.user.id).eq("is_active", true).maybeSingle();
+        if (adminError) throw adminError;
+        if (admin) {
+          navigate({ to: "/admin/consultores" });
+          return;
+        }
+        const { data: consultant, error: consultantError } = await supabase
+          .from("ac360_consultants").select("id")
+          .eq("user_id", signInData.user.id).eq("status", "active").maybeSingle();
+        if (consultantError) throw consultantError;
+        if (consultant) {
+          navigate({ to: "/consultoria/carteira" });
+          return;
+        }
+        await supabase.auth.signOut();
+        setErrorMsg("Usuário sem acesso à homologação de consultoria.");
+        setLoading(false);
+        return;
+      }
+
       const { data: ctx, error: ctxError } = await supabase
         .from("vw_user_access_context")
         .select("has_crm_access")

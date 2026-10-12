@@ -94,6 +94,16 @@ const { data: adminVisible, error: adminVisibilityError } = await admin
 assert.ifError(adminVisibilityError);
 assert.equal(adminVisible?.length, 2, "Test administrator must see BOTH synthetic assignments");
 
+for (const fixtureAssignmentId of [env.AC360_RLS_TEST_A_ASSIGNMENT_ID, env.AC360_RLS_TEST_B_ASSIGNMENT_ID]) {
+  for (const table of ["ac360_consulting_sessions", "ac360_consulting_plans"]) {
+    const { data: fixtureRows, error: fixtureError } = await admin
+      .from(table).select("id").eq("assignment_id", fixtureAssignmentId).limit(1);
+    assert.ifError(fixtureError);
+    assert.ok(fixtureRows?.length, `Missing required synthetic ${table} fixture for ${fixtureAssignmentId}`);
+  }
+}
+
+
 assert.ok(aIdentity.user && bIdentity.user && aIdentity.user.id !== bIdentity.user.id, "Consultants A and B must be distinct authenticated users");
 await exercise(a, admin, env.AC360_RLS_TEST_A_ASSIGNMENT_ID, env.AC360_RLS_TEST_B_ASSIGNMENT_ID, "Consultant A");
 await exercise(b, admin, env.AC360_RLS_TEST_B_ASSIGNMENT_ID, env.AC360_RLS_TEST_A_ASSIGNMENT_ID, "Consultant B");

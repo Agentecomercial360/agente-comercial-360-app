@@ -242,3 +242,39 @@ begin
 end
 $directory$;
 reset role;
+
+
+-- Non-administrators must not register staff or assign client portfolios.
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000003';
+do $staff_denial$
+declare before_count integer; after_count integer;
+begin
+ select count(*) into before_count from public.ac360_consultants;
+ begin
+   insert into public.ac360_consultants(user_id,display_name)
+   values ('00000000-0000-4000-8000-000000000004','Unauthorized consultant');
+   raise exception 'SECURITY FAILURE: consultant registered another consultant';
+ exception when insufficient_privilege then null;
+ end;
+ select count(*) into after_count from public.ac360_consultants;
+ if after_count<>before_count then raise exception 'SECURITY FAILURE: consultant roster modified'; end if;
+ begin
+   insert into public.ac360_consultant_assignments(consultant_id,company_id,company_display_name)
+   select id,'10000000-0000-4000-8000-000000000002','Unauthorized assignment'
+   from public.ac360_consultants
+   where user_id='00000000-0000-4000-8000-000000000003';
+   raise exception 'SECURITY FAILURE: consultant assigned company';
+ exception when insufficient_privilege then null;
+ end;
+end
+$staff_denial$;
+reset role;
+do $staff_verify$
+begin
+ if exists (select 1 from public.ac360_consultants where display_name='Unauthorized consultant')
+ then raise exception 'SECURITY FAILURE: unauthorized staff record persists'; end if;
+ if exists (select 1 from public.ac360_consultant_assignments where company_display_name='Unauthorized assignment')
+ then raise exception 'SECURITY FAILURE: unauthorized company assignment persists'; end if;
+end
+$staff_verify$;

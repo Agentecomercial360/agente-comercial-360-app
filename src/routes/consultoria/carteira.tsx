@@ -11,11 +11,14 @@ type Consultant = { id: string; display_name: string; status: string };
 type Assignment = { id: string; company_id: string; company_display_name: string; role: string };
 type Meeting = { id: string; assignment_id: string; scheduled_at: string; status: string };
 type Plan = { id: string; assignment_id: string; title: string; status: string };
+type Task = { id: string; plan_id: string; title: string; status: string; due_on: string | null };
 function ConsultoriaCarteira() {
   const [consultant, setConsultant] = useState<Consultant | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [savingTask, setSavingTask] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
@@ -42,7 +45,12 @@ function ConsultoriaCarteira() {
         setConsultant(own as Consultant);
         setAssignments((links ?? []) as Assignment[]);
         setMeetings((meetingsResult.data ?? []) as Meeting[]);
-        setPlans((plansResult.data ?? []) as Plan[]);
+        const myPlans = (plansResult.data ?? []) as Plan[];
+        const planIds = myPlans.map((p) => p.id);
+        const taskResult = planIds.length ? await supabase.from("ac360_consulting_tasks").select("id,plan_id,title,status,due_on").in("plan_id",planIds).limit(500) : { data: [], error: null };
+        if (taskResult.error) throw taskResult.error;
+        setPlans(myPlans);
+        setTasks((taskResult.data ?? []) as Task[]);
       } catch (e) {
         if (mounted) setError(e instanceof Error ? e.message : "Não foi possível carregar a carteira.");
       } finally { if (mounted) setLoading(false); }
@@ -51,6 +59,20 @@ function ConsultoriaCarteira() {
     return () => { mounted = false; };
   }, []);
   const companyName = (id: string) => assignments.find((a) => a.company_id === id)?.company_display_name ?? "Empresa atribuída";
+  async function updateTask(task: Task, nextStatus: "pending" | "doing" | "done") {
+    setSavingTask(task.id);
+    setError(null);
+    try {
+      const { error: updateError } = await supabase.from("ac360_consulting_tasks")
+        .update({ status: nextStatus }).eq("id", task.id);
+      if (updateError) throw updateError;
+      setTasks((current) => current.map((t) => t.id === task.id ? { ...t, status: nextStatus } : t));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível atualizar a tarefa.");
+    } finally {
+      setSavingTask(null);
+    }
+  }
   return <main className="min-h-screen bg-slate-50 px-4 py-8">
     <div className="mx-auto max-w-5xl space-y-6">
       <header className="rounded-2xl bg-slate-950 p-6 text-white">
@@ -80,6 +102,25 @@ function ConsultoriaCarteira() {
           {meetings.filter((m)=>m.status==="scheduled" && new Date(m.scheduled_at).getTime()>=Date.now()).length===0 ?
             <p className="mt-2 text-sm text-slate-500">Nenhuma reunião futura agendada.</p> :
             <div className="mt-3 space-y-2">{meetings.filter((m)=>m.status==="scheduled" && new Date(m.scheduled_at).getTime()>=Date.now()).map((m)=><p key={m.id} className="text-sm">{new Date(m.scheduled_at).toLocaleString("pt-BR")} · {companyName(assignments.find((a)=>a.id===m.assignment_id)?.company_id ?? "")}</p>)}</div>}
+        </section>
+        <section className="rounded-xl border border-slate-200 bg-white p-5">
+          <h2 className="text-lg font-bold">Tarefas dos meus planos</h2>
+          {tasks.length === 0 ? <p className="mt-2 text-sm text-slate-500">Nenhuma tarefa atribuída aos seus planos.</p> :
+            <div className="mt-3 divide-y divide-slate-100">{tasks.map((task) => {
+              const plan = plans.find((p) => p.id === task.plan_id);
+              if (!plan) return null;
+              return <div key={task.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                <div><p className="text-sm font-semibold">{task.title}</p>
+                  <p className="text-xs text-slate-500">{plan.title}{task.due_on ? ` · Prazo: ${new Date(task.due_on + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}</p>
+                </div>
+                <select aria-label={`Situação: ${task.title}`} disabled={savingTask === task.id}
+                  value={task.status}
+                  onChange={(e) => void updateTask(task, e.target.value as "pending" | "doing" | "done")}
+                  className="rounded-lg border border-slate-300 p-2 text-sm">
+                  <option value="pending">Pendente</option><option value="doing">Em andamento</option><option value="done">Concluída</option>
+                </select>
+              </div>;
+            })}</div>}
         </section>
       </>}
     </div>

@@ -31,7 +31,7 @@ async function getMercadoLivreConnectionSnapshot(
   const [{ data: integration, error: integrationError }, { data: account, error: accountError }] =
     await Promise.all([
       supabase
-        .from("ecommerce_integrations")
+        .from("vw_ecommerce_integration_status")
         .select("integration_status,expires_at,updated_at")
         .eq("company_id", companyId)
         .eq("account_id", accountId)

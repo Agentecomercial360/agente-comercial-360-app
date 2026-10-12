@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Activity,
@@ -380,7 +380,7 @@ function AdminEmpresas() {
                     const open = expanded === row.company_id;
 
                     return (
-                      <>
+                      <Fragment key={row.company_id}>
                         <tr
                           key={row.company_id}
                           className="transition-colors hover:bg-slate-50/60"
@@ -522,7 +522,7 @@ function AdminEmpresas() {
                             </td>
                           </tr>
                         ) : null}
-                      </>
+                      </Fragment>
                     );
                   })}
 

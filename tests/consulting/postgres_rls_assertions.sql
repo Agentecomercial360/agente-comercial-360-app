@@ -278,3 +278,31 @@ begin
  then raise exception 'SECURITY FAILURE: unauthorized company assignment persists'; end if;
 end
 $staff_verify$;
+
+-- An authenticated consultant cannot disable another consultant or close a portfolio.
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000003';
+do $admin_update_denial$
+declare n integer;
+begin
+ update public.ac360_consultants
+ set status='inactive'
+ where user_id='00000000-0000-4000-8000-000000000002';
+ get diagnostics n = row_count;
+ if n <> 0 then raise exception 'SECURITY FAILURE: consultant altered staff status'; end if;
+ update public.ac360_consultant_assignments
+ set active=false, ended_at=now()
+ where company_display_name='Synthetic A - successor';
+ get diagnostics n = row_count;
+ if n <> 0 then raise exception 'SECURITY FAILURE: consultant closed assignment'; end if;
+end
+$admin_update_denial$;
+reset role;
+do $admin_update_verify$
+begin
+ if (select status from public.ac360_consultants where user_id='00000000-0000-4000-8000-000000000002') <> 'active'
+ then raise exception 'SECURITY FAILURE: staff status was changed'; end if;
+ if (select active from public.ac360_consultant_assignments where company_display_name='Synthetic A - successor') is distinct from true
+ then raise exception 'SECURITY FAILURE: consultant assignment was closed'; end if;
+end
+$admin_update_verify$;

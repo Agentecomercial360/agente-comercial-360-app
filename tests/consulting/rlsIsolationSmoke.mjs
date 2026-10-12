@@ -20,7 +20,7 @@ const url = new URL(env.AC360_RLS_TEST_URL);
 assert.equal(url.protocol, "https:");
 assert.ok(url.hostname.endsWith(".supabase.co"), "Test URL must be a Supabase host");
 assert.notEqual(url.hostname, "dmwcbecihuxqzzjouevk.supabase.co", "Refusing production project");
-assert.match(url.hostname, /^[a-z0-9-]+\\.supabase\\.co$/, "Test hostname must be an exact Supabase project host");
+assert.match(url.hostname, /^[a-z0-9-]+\.supabase\.co$/, "Test hostname must be an exact Supabase project host");
 assert.equal(env.AC360_RLS_TEST_ISOLATED, "YES", "Explicitly acknowledge isolated synthetic test data");
 assert.notEqual(env.AC360_RLS_TEST_A_ASSIGNMENT_ID, env.AC360_RLS_TEST_B_ASSIGNMENT_ID);
 

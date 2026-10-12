@@ -9,9 +9,8 @@ export const Route = createFileRoute("/admin/acompanhamento")({
   head: () => ({ meta: [{ title: "Acompanhamento | AC360 Admin" }] }),
 });
 
-type Assignment = { id: string; company_id: string; consultant_id: string; active: boolean };
+type Assignment = { id: string; company_id: string; company_display_name: string; consultant_id: string; active: boolean };
 type Consultant = { id: string; display_name: string };
-type Company = { id: string; name: string };
 type Session = { id: string; assignment_id: string; scheduled_at: string; duration_minutes: number; status: string; summary: string | null };
 type Plan = { id: string; assignment_id: string; title: string; objective: string | null; period_start: string; period_end: string | null; status: string };
 type Task = { id: string; plan_id: string; title: string; status: string; due_on: string | null };
@@ -19,7 +18,6 @@ type Task = { id: string; plan_id: string; title: string; status: string; due_on
 function AdminAcompanhamento() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [consultants, setConsultants] = useState<Consultant[]>([]);
-  const [companies, setCompanies] = useState<Company[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -42,9 +40,8 @@ function AdminAcompanhamento() {
     setLoading(true);
     setError(null);
     const results = await Promise.all([
-      supabase.from("ac360_consultant_assignments").select("id,company_id,consultant_id,active").eq("active", true),
+      supabase.from("ac360_consultant_assignments").select("id,company_id,company_display_name,consultant_id,active").eq("active", true),
       supabase.from("ac360_consultants").select("id,display_name"),
-      supabase.from("companies").select("id,name"),
       supabase.from("ac360_consulting_sessions").select("id,assignment_id,scheduled_at,duration_minutes,status,summary").order("scheduled_at", { ascending: false }).limit(200),
       supabase.from("ac360_consulting_plans").select("id,assignment_id,title,objective,period_start,period_end,status").order("created_at", { ascending: false }).limit(200),
       supabase.from("ac360_consulting_tasks").select("id,plan_id,title,status,due_on").limit(1000),
@@ -54,10 +51,9 @@ function AdminAcompanhamento() {
     else {
       setAssignments((results[0].data ?? []) as Assignment[]);
       setConsultants((results[1].data ?? []) as Consultant[]);
-      setCompanies((results[2].data ?? []) as Company[]);
-      setSessions((results[3].data ?? []) as Session[]);
-      setPlans((results[4].data ?? []) as Plan[]);
-      setTasks((results[5].data ?? []) as Task[]);
+      setSessions((results[2].data ?? []) as Session[]);
+      setPlans((results[3].data ?? []) as Plan[]);
+      setTasks((results[4].data ?? []) as Task[]);
     }
     setLoading(false);
   }
@@ -67,7 +63,7 @@ function AdminAcompanhamento() {
   function owner(aid: string) {
     const a = byId.get(aid);
     if (!a) return "Carteira não encontrada";
-    return `${companies.find((c) => c.id === a.company_id)?.name ?? "Empresa"} · ${consultants.find((c) => c.id === a.consultant_id)?.display_name ?? "Consultor"}`;
+    return `${a.company_display_name || "Empresa"} · ${consultants.find((c) => c.id === a.consultant_id)?.display_name ?? "Consultor"}`;
   }
 
   async function createMeeting(e: React.FormEvent<HTMLFormElement>) {

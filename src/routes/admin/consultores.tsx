@@ -84,7 +84,10 @@ function AdminConsultores() {
     setInviteBusy(true); setError(null); setNotice(null);
     try {
       const { data, error: inviteError } = await supabase.functions.invoke("ac360-invite-consultant", { body: { email: email.trim() } });
-      if (inviteError) throw inviteError;
+      if (inviteError) {
+        const details = await inviteError.context?.json?.().catch(() => null);
+        throw new Error(details?.error || inviteError.message);
+      }
       if (!data?.ok) throw new Error(data?.error ?? "Não foi possível solicitar o convite.");
       setNotice("Convite solicitado. Após o profissional aceitar, localize a conta pelo e-mail.");
     } catch (e) {

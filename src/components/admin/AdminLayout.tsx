@@ -18,7 +18,7 @@ import {
   Lock,
   Calendar
 } from "lucide-react";
-import { type ReactNode, useState, useEffect, useCallback } from "react";
+import { type ReactNode, useState, useEffect } from "react";
 import { toast } from "sonner";
 import acLogo from "@/assets/ac-logo.png";
 import { useModuleGuard } from "@/lib/use-module-guard";
@@ -53,7 +53,6 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     await navigate({ to: "/login", replace: true });
   }
   const [today, setToday] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     setToday(
@@ -66,14 +65,9 @@ export function AdminLayout({ children }: { children: ReactNode }) {
     );
   }, []);
 
-  const handleRefresh = useCallback(() => {
-    if (isUpdating) return;
-    setIsUpdating(true);
-    setTimeout(() => {
-      setIsUpdating(false);
-      toast.success("Dados administrativos atualizados.");
-    }, 1000);
-  }, [isUpdating]);
+  function handleRefresh() {
+    window.location.reload();
+  }
 
   if (checking || !allowed) {
     return (
@@ -186,11 +180,11 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 
               <button
                 onClick={handleRefresh}
-                disabled={isUpdating}
+                
                 className="inline-flex min-w-0 items-center gap-2 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold sm:px-4 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition disabled:opacity-60"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${isUpdating ? "animate-spin" : ""}`} />
-                {isUpdating ? "Atualizando..." : "Sincronizar"}
+                <RefreshCw className={`h-3.5 w-3.5 ${""}`} />
+                Atualizar página
               </button>
             </div>
           </div>

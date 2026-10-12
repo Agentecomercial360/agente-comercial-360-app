@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   Building2,
   Users,
+  UserRoundCheck,
   Layers,
   ShieldCheck,
   CreditCard,
@@ -26,6 +27,7 @@ const navGroups = [
     items: [
       { label: "Dashboard Admin", to: "/admin/dashboard", icon: LayoutDashboard },
       { label: "Empresas", to: "/admin/empresas", icon: Building2 },
+      { label: "Consultores", to: "/admin/consultores", icon: UserRoundCheck },
       { label: "Usuários", to: "/admin/usuarios", icon: Users },
       { label: "Módulos", to: "/admin/modulos", icon: Layers },
       { label: "Acessos", to: "/admin/acessos", icon: Lock },

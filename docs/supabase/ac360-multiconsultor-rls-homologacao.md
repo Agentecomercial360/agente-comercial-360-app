@@ -35,7 +35,7 @@ Registrar usuário autenticado, operação, tabela, UUID sintético da carteira,
 ## Limitações
 Os contratos em `tests/consulting` conferem padrões de código, **não** são prova de execução real de políticas PostgreSQL. Não usar tokens reais de vendedores, usuários reais ou `service_role` para simular acesso de consultores.
 
-## Smoke test de leitura (executável, sem gravações)
+## Smoke test de leitura e tentativas de escrita cruzada (executável, apenas homologação)
 Após migrar **somente um projeto separado** e criar as atribuições de teste, rode a partir da raiz do repositório:
 
 ```bash
@@ -51,4 +51,4 @@ AC360_RLS_TEST_B_ASSIGNMENT_ID=uuid-atribuicao-b \
 node tests/consulting/rlsIsolationSmoke.mjs
 ```
 
-O script se recusa a usar o hostname do projeto de produção e exige a confirmação `AC360_RLS_TEST_ISOLATED=YES`. Ele autentica ambos os consultores, testa leitura própria, bloqueio de leitura cruzada de vínculos/reuniões/planos e leitura anônima das cinco tabelas. É *somente leitura* e **não substitui** os testes dinâmicos de escrita, reatribuição, inativação e integridade restantes.
+O script se recusa a usar o hostname do projeto de produção e exige a confirmação `AC360_RLS_TEST_ISOLATED=YES`. Ele autentica ambos os consultores, testa leitura própria, bloqueio de leitura cruzada de vínculos/reuniões/planos e leitura anônima das cinco tabelas. O script também tenta inserir reuniões e planos na carteira de outro consultor e exige bloqueio por RLS. Em caso de falha de segurança, a inserção pode criar registros no projeto de teste e a limpeza automática pode ser bloqueada (DELETE não autorizado); nesse caso, limpe os registros manualmente no ambiente isolado. **Não execute em produção.** Ele ainda não substitui testes de UPDATE, reatribuição, inativação e integridade.

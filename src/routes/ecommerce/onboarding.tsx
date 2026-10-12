@@ -163,7 +163,7 @@ function EcommerceOnboardingPage() {
     if (!ctx?.company_id) return "company";
     if (accounts.length === 0) return "account";
     if (!connectedAccount) return "authorization";
-    if (ordersCount === 0) return "sync";
+    if (!connectedAccount.last_sync_at && ordersCount === 0) return "sync";
     return "ready";
   }, [ctx?.company_id, accounts.length, connectedAccount, ordersCount]);
 
@@ -563,8 +563,10 @@ function EcommerceOnboardingPage() {
                   Seu AC360 está pronto
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Encontramos {ordersCount.toLocaleString("pt-BR")} pedido(s) na operação.
-                  O scheduler 24/7 continuará atualizando seus dados automaticamente.
+                  {ordersCount > 0
+                    ? `Encontramos ${ordersCount.toLocaleString("pt-BR")} pedido(s) na operação.`
+                    : "Sua conta foi sincronizada e ainda não há pedidos no período inicial."}
+                  {" "}O scheduler 24/7 continuará atualizando seus dados automaticamente.
                 </p>
 
                 <button

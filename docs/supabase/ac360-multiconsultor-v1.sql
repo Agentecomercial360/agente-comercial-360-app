@@ -99,15 +99,19 @@ create table if not exists public.ac360_consulting_tasks (
 create or replace function public.ac360_preserve_consulting_parent()
 returns trigger language plpgsql set search_path = '' as $ac360_parent$
 begin
-  if tg_table_name = 'ac360_consulting_sessions'
-     and new.assignment_id is distinct from old.assignment_id then
-    raise exception 'Meeting assignment cannot be changed' using errcode = '23514';
-  elsif tg_table_name = 'ac360_consulting_plans'
-     and new.assignment_id is distinct from old.assignment_id then
-    raise exception 'Plan assignment cannot be changed' using errcode = '23514';
-  elsif tg_table_name = 'ac360_consulting_tasks'
-     and new.plan_id is distinct from old.plan_id then
-    raise exception 'Task plan cannot be changed' using errcode = '23514';
+  -- Access table-specific NEW/OLD fields only inside their respective branch.
+  if tg_table_name = 'ac360_consulting_sessions' then
+    if new.assignment_id is distinct from old.assignment_id then
+      raise exception 'Meeting assignment cannot be changed' using errcode = '23514';
+    end if;
+  elsif tg_table_name = 'ac360_consulting_plans' then
+    if new.assignment_id is distinct from old.assignment_id then
+      raise exception 'Plan assignment cannot be changed' using errcode = '23514';
+    end if;
+  elsif tg_table_name = 'ac360_consulting_tasks' then
+    if new.plan_id is distinct from old.plan_id then
+      raise exception 'Task plan cannot be changed' using errcode = '23514';
+    end if;
   end if;
   return new;
 end;

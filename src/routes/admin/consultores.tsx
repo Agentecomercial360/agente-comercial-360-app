@@ -35,6 +35,7 @@ function AdminConsultores() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState("");
+  const [lookupBusy, setLookupBusy] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [consultantId, setConsultantId] = useState("");
@@ -76,6 +77,29 @@ function AdminConsultores() {
     () => companies.filter((c) => !leadAssignments.some((a) => a.company_id === c.id)),
     [companies, leadAssignments],
   );
+
+  async function lookupAccount() {
+    const requestedEmail = email.trim();
+    if (!requestedEmail || lookupBusy || saving) return;
+    setLookupBusy(true);
+    setError(null);
+    setNotice(null);
+    setUserId("");
+    try {
+      const { data, error: lookupError } = await supabase.rpc("ac360_admin_lookup_existing_user", { p_email: requestedEmail });
+      if (lookupError) throw lookupError;
+      if (!data?.length) {
+        setError("Conta não encontrada. Crie o acesso AC360 antes de cadastrar o consultor.");
+        return;
+      }
+      setUserId(data[0].user_id);
+      setNotice("Conta localizada. Confira os dados e conclua o cadastro.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Falha ao localizar a conta.");
+    } finally {
+      setLookupBusy(false);
+    }
+  }
 
   async function registerConsultant(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -179,12 +203,13 @@ function AdminConsultores() {
         <div className="grid gap-5 lg:grid-cols-2">
           <section className="rounded-xl border border-slate-200 bg-white p-5">
             <h2 className="text-lg font-semibold">Cadastrar consultor</h2>
-            <p className="mt-1 text-xs text-slate-500">O profissional precisa ter uma conta AC360 existente; use o ID do usuário autenticado, não uma senha.</p>
+            <p className="mt-1 text-xs text-slate-500">O profissional precisa ter uma conta AC360 existente. Localize pelo e-mail, sem copiar o UUID ou informar a senha.</p>
             <form className="mt-4 space-y-3" onSubmit={(e) => void registerConsultant(e)}>
-              <Input label="ID do usuário (UUID)" value={userId} set={setUserId} required />
+              <label className="block text-sm font-medium text-slate-700">Conta localizada<input readOnly value={userId} required placeholder="Localize a conta pelo e-mail" className="mt-1 w-full min-w-0 rounded-lg border border-slate-300 bg-slate-100 p-2 text-xs" /></label>
               {userId.trim() && !validUserId && <p className="text-xs text-amber-700">Informe um UUID válido da conta AC360 do consultor.</p>}
               <Input label="Nome do consultor" value={name} set={setName} required />
-              <Input label="E-mail (opcional)" value={email} set={setEmail} />
+              <Input label="E-mail da conta AC360" value={email} set={(next) => { setEmail(next); setUserId(""); }} required />
+              <button type="button" disabled={lookupBusy || saving || !email.includes("@")} onClick={() => void lookupAccount()} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold disabled:opacity-50">{lookupBusy ? "Localizando..." : "Localizar conta"}</button>
               <button disabled={saving || loading || !validUserId || name.trim().length < 2} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Cadastrar</button>
             </form>
           </section>

@@ -28,6 +28,18 @@ begin
   if not public.is_platform_admin() then
     raise exception 'Only an active AC360 administrator may assign ecommerce clients' using errcode = '42501';
   end if;
+  -- A closed assignment must never silently reopen via direct database update.
+  if tg_op = 'UPDATE' and old.active = false and new.active = true then
+    raise exception 'Closed assignments cannot be reactivated; create a new assignment'
+      using errcode = '23514';
+  end if;
+  if new.active and not exists (
+    select 1 from public.ac360_consultants c
+    where c.id = new.consultant_id and c.status = 'active'
+  ) then
+    raise exception 'An active assignment requires an active consultant'
+      using errcode = '23514';
+  end if;
   if not exists (
     select 1 from public.ecommerce_accounts ea
     where ea.company_id = new.company_id
@@ -40,7 +52,7 @@ end;
 $ac360$;
 revoke all on function public.ac360_validate_ecommerce_assignment() from public, anon, authenticated;
 create trigger ac360_validate_ecommerce_assignment_trigger
-before insert or update of company_id on public.ac360_consultant_assignments
+before insert or update on public.ac360_consultant_assignments
 for each row execute function public.ac360_validate_ecommerce_assignment();
 
 create unique index if not exists ac360_one_lead_per_company

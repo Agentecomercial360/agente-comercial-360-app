@@ -14,7 +14,9 @@ import {
   Search,
   LogOut,
   Lock,
-  Calendar
+  Calendar,
+  ChevronRight,
+  ShieldCheck
 } from "lucide-react";
 import { type ReactNode, useState, useEffect } from "react";
 import { toast } from "sonner";

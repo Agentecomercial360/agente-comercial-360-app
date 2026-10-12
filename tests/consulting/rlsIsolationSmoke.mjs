@@ -79,7 +79,16 @@ async function exercise(db, admin, own, foreign, label) {
 const admin = await login(env.AC360_RLS_TEST_ADMIN_EMAIL, env.AC360_RLS_TEST_ADMIN_PASSWORD);
 const a = await login(env.AC360_RLS_TEST_A_EMAIL, env.AC360_RLS_TEST_A_PASSWORD);
 const b = await login(env.AC360_RLS_TEST_B_EMAIL, env.AC360_RLS_TEST_B_PASSWORD);
-const [{ data: aIdentity }, { data: bIdentity }] = await Promise.all([a.auth.getUser(), b.auth.getUser()]);
+const [{ data: adminIdentity }, { data: aIdentity }, { data: bIdentity }] = await Promise.all([admin.auth.getUser(), a.auth.getUser(), b.auth.getUser()]);
+assert.ok(adminIdentity.user && adminIdentity.user.id !== aIdentity.user?.id && adminIdentity.user.id !== bIdentity.user?.id,
+  "Administrative test identity must be distinct from consultant identities");
+const { data: adminVisible, error: adminVisibilityError } = await admin
+  .from("ac360_consultant_assignments")
+  .select("id")
+  .in("id", [env.AC360_RLS_TEST_A_ASSIGNMENT_ID, env.AC360_RLS_TEST_B_ASSIGNMENT_ID]);
+assert.ifError(adminVisibilityError);
+assert.equal(adminVisible?.length, 2, "Test administrator must see BOTH synthetic assignments");
+
 assert.ok(aIdentity.user && bIdentity.user && aIdentity.user.id !== bIdentity.user.id, "Consultants A and B must be distinct authenticated users");
 await exercise(a, admin, env.AC360_RLS_TEST_A_ASSIGNMENT_ID, env.AC360_RLS_TEST_B_ASSIGNMENT_ID, "Consultant A");
 await exercise(b, admin, env.AC360_RLS_TEST_B_ASSIGNMENT_ID, env.AC360_RLS_TEST_A_ASSIGNMENT_ID, "Consultant B");

@@ -36,6 +36,7 @@ function AdminConsultores() {
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState("");
   const [lookupBusy, setLookupBusy] = useState(false);
+  const [inviteBusy, setInviteBusy] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [consultantId, setConsultantId] = useState("");
@@ -77,6 +78,19 @@ function AdminConsultores() {
     () => companies.filter((c) => !leadAssignments.some((a) => a.company_id === c.id)),
     [companies, leadAssignments],
   );
+
+  async function inviteConsultant() {
+    if (!email.trim() || inviteBusy || saving) return;
+    setInviteBusy(true); setError(null); setNotice(null);
+    try {
+      const { data, error: inviteError } = await supabase.functions.invoke("ac360-invite-consultant", { body: { email: email.trim() } });
+      if (inviteError) throw inviteError;
+      if (!data?.ok) throw new Error(data?.error ?? "Não foi possível solicitar o convite.");
+      setNotice("Convite solicitado. Após o profissional aceitar, localize a conta pelo e-mail.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível enviar o convite.");
+    } finally { setInviteBusy(false); }
+  }
 
   async function lookupAccount() {
     const requestedEmail = email.trim();
@@ -210,6 +224,7 @@ function AdminConsultores() {
               <Input label="Nome do consultor" value={name} set={setName} required />
               <Input label="E-mail da conta AC360" value={email} set={(next) => { setEmail(next); setUserId(""); }} required />
               <button type="button" disabled={lookupBusy || saving || !email.includes("@")} onClick={() => void lookupAccount()} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold disabled:opacity-50">{lookupBusy ? "Localizando..." : "Localizar conta"}</button>
+              <button type="button" disabled={inviteBusy || saving || !email.includes("@")} onClick={() => void inviteConsultant()} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">{inviteBusy ? "Enviando..." : "Convidar novo consultor"}</button>
               <button disabled={saving || loading || !validUserId || name.trim().length < 2} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Cadastrar</button>
             </form>
           </section>

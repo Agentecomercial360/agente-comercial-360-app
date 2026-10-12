@@ -28,6 +28,9 @@ function AdminAcompanhamento() {
   const [duration, setDuration] = useState("45");
   const [title, setTitle] = useState("");
   const [objective, setObjective] = useState("");
+  const [selectedPlanId, setSelectedPlanId] = useState("");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDue, setTaskDue] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -89,6 +92,39 @@ function AdminAcompanhamento() {
     setSaving(false);
   }
 
+  async function createTask(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault(); setError(null); setMessage(null);
+    if (!selectedPlanId || taskTitle.trim().length < 2) return;
+    setSaving(true);
+    try {
+      const { error: insertError } = await supabase.from("ac360_consulting_tasks").insert({
+        plan_id: selectedPlanId,
+        title: taskTitle.trim(),
+        due_on: taskDue || null,
+        status: "pending",
+      });
+      if (insertError) throw insertError;
+      setTaskTitle(""); setTaskDue("");
+      await load();
+      setMessage("Tarefa adicionada ao plano de ação.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível criar a tarefa.");
+    } finally { setSaving(false); }
+  }
+
+  async function setTaskStatus(task: Task, status: "pending" | "doing" | "done") {
+    setSaving(true); setError(null); setMessage(null);
+    try {
+      const { error: updateError } = await supabase.from("ac360_consulting_tasks")
+        .update({ status }).eq("id", task.id);
+      if (updateError) throw updateError;
+      await load();
+      setMessage("Progresso da tarefa atualizado.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível atualizar a tarefa.");
+    } finally { setSaving(false); }
+  }
+
   return <AdminLayout><div className="mx-auto max-w-6xl space-y-6">
     <header><h1 className="text-2xl font-bold text-slate-900">Central de acompanhamento</h1>
       <p className="mt-1 text-sm text-slate-600">Reuniões, planos de ação e execução da carteira de consultoria.</p></header>
@@ -140,6 +176,44 @@ function AdminAcompanhamento() {
         })}</div> : <p className="text-sm text-slate-500">Nenhum plano registrado.</p>}
       </section>
     </div>
+    <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
+      <h2 className="text-lg font-bold">Tarefas dos planos de ação</h2>
+      <form onSubmit={(e) => void createTask(e)} className="grid gap-3 md:grid-cols-4">
+        <label className="text-sm">Plano de ação
+          <select required value={selectedPlanId} onChange={(e) => setSelectedPlanId(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-2">
+            <option value="">Selecione um plano</option>
+            {plans.filter((p) => p.status !== "cancelled" && p.status !== "completed").map((p) => <option key={p.id} value={p.id}>{p.title} — {owner(p.assignment_id)}</option>)}
+          </select>
+        </label>
+        <label className="text-sm">Descrição da tarefa
+          <input required minLength={2} value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-2" />
+        </label>
+        <label className="text-sm">Prazo (opcional)
+          <input type="date" value={taskDue} onChange={(e) => setTaskDue(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-2" />
+        </label>
+        <button disabled={saving || loading || !selectedPlanId || taskTitle.trim().length < 2} className="self-end rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Adicionar tarefa</button>
+      </form>
+      {loading ? <p className="text-sm text-slate-500">Carregando tarefas…</p> : tasks.length === 0 ? <p className="text-sm text-slate-500">Nenhuma tarefa registrada.</p> :
+        <div className="divide-y divide-slate-100">
+          {tasks.map((task) => {
+            const plan = plans.find((p) => p.id === task.plan_id);
+            if (!plan) return null;
+            return <div key={task.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">{task.title}</p>
+                <p className="text-xs text-slate-500">{plan.title}{task.due_on ? ` · Prazo: ${new Date(task.due_on + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}</p>
+              </div>
+              <label className="text-xs text-slate-600">Status
+                <select disabled={saving} value={task.status} onChange={(e) => void setTaskStatus(task, e.target.value as "pending" | "doing" | "done")} className="ml-2 rounded-lg border border-slate-300 p-2">
+                  <option value="pending">Pendente</option>
+                  <option value="doing">Em andamento</option>
+                  <option value="done">Concluída</option>
+                </select>
+              </label>
+            </div>;
+          })}
+        </div>}
+    </section>
     <p className="text-xs text-slate-500">Os indicadores exibem até 200 registros recentes por categoria. Dados de teste não são gerados automaticamente.</p>
   </div></AdminLayout>;
 }

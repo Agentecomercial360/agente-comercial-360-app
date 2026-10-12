@@ -20,4 +20,21 @@ assert.match(sql, /company_display_name text not null/, "Assigned company label 
 const portfolio = readFileSync(new URL("../../src/routes/consultoria/carteira.tsx", import.meta.url), "utf8");
 assert.match(portfolio, /company_display_name/, "Portfolio must display assigned company label");
 assert.doesNotMatch(portfolio, /from\(["']companies["']\)/, "Consultant portfolio must not query the company directory");
+for (const policy of ["consultants_admin_insert", "consultants_admin_update", "assignments_admin_insert", "assignments_admin_update"]) {
+  const start = sql.indexOf(`create policy ${policy} `);
+  assert.ok(start >= 0, `Missing restricted administrative policy ${policy}`);
+  const end = sql.indexOf(";", start);
+  const body = sql.slice(start, end);
+  assert.match(body, /public\.is_platform_admin\(\)/, `Admin authorization required for ${policy}`);
+  assert.doesNotMatch(body, /using\s*\(\s*true\s*\)|with check\s*\(\s*true\s*\)/i, `Unrestricted admin write ${policy}`);
+}
+for (const policy of ["sessions_insert", "sessions_update", "plans_insert", "plans_update", "tasks_insert", "tasks_update"]) {
+  const start = sql.indexOf(`create policy ${policy} `);
+  assert.ok(start >= 0, `Missing consultant write policy ${policy}`);
+  const end = sql.indexOf(";", start);
+  const body = sql.slice(start, end);
+  assert.match(body, /c\.status = 'active'/, `Inactive consultants cannot modify records: ${policy}`);
+  assert.match(body, /auth\.uid\(\)/, `Writer must be bound to authenticated consultant: ${policy}`);
+  assert.match(body, /with check\s*\(/, `New values must pass tenant authorization: ${policy}`);
+}
 console.log("AC360 consulting SQL access contract checks passed");

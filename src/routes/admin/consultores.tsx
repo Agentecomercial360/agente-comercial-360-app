@@ -70,6 +70,8 @@ function AdminConsultores() {
     () => assignments.filter((a) => a.role === "lead"),
     [assignments],
   );
+  const activeConsultants = useMemo(() => consultants.filter((c) => c.status === "active"), [consultants]);
+  const validUserId = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId.trim());
   const unassigned = useMemo(
     () => companies.filter((c) => !leadAssignments.some((a) => a.company_id === c.id)),
     [companies, leadAssignments],
@@ -180,9 +182,10 @@ function AdminConsultores() {
             <p className="mt-1 text-xs text-slate-500">O profissional precisa ter uma conta AC360 existente; use o ID do usuário autenticado, não uma senha.</p>
             <form className="mt-4 space-y-3" onSubmit={(e) => void registerConsultant(e)}>
               <Input label="ID do usuário (UUID)" value={userId} set={setUserId} required />
+              {userId.trim() && !validUserId && <p className="text-xs text-amber-700">Informe um UUID válido da conta AC360 do consultor.</p>}
               <Input label="Nome do consultor" value={name} set={setName} required />
               <Input label="E-mail (opcional)" value={email} set={setEmail} />
-              <button disabled={saving || loading || !userId.trim() || name.trim().length < 2} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Cadastrar</button>
+              <button disabled={saving || loading || !validUserId || name.trim().length < 2} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Cadastrar</button>
             </form>
           </section>
           <section className="rounded-xl border border-slate-200 bg-white p-5">
@@ -192,7 +195,7 @@ function AdminConsultores() {
               <label className="block text-sm font-medium">Consultor
                 <select required value={consultantId} onChange={(e) => setConsultantId(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-2">
                   <option value="">Selecione</option>
-                  {consultants.filter((c) => c.status === "active").map((c) => <option key={c.id} value={c.id}>{c.display_name}</option>)}
+                  {activeConsultants.map((c) => <option key={c.id} value={c.id}>{c.display_name}</option>)}
                 </select>
               </label>
               <label className="block text-sm font-medium">Empresa de e-commerce sem consultor
@@ -201,7 +204,9 @@ function AdminConsultores() {
                   {unassigned.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </label>
-              <button disabled={saving || loading || !consultantId || !companyId} className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Atribuir cliente</button>
+              {!loading && !activeConsultants.length && <p className="text-xs text-amber-700">Cadastre ou ative um consultor para distribuir clientes.</p>}
+              {!loading && !unassigned.length && <p className="text-xs text-slate-600">Não há empresas de e-commerce disponíveis para uma nova atribuição.</p>}
+              <button disabled={saving || loading || !consultantId || !companyId || activeConsultants.length === 0 || unassigned.length === 0} className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Atribuir cliente</button>
             </form>
           </section>
         </div>
@@ -234,7 +239,7 @@ function AdminConsultores() {
         </section>
         <div className="flex items-center gap-2 text-xs text-slate-500">
           <CalendarDays className="h-4 w-4" />
-          Reuniões, planos de ação e tarefas já têm modelo de dados preparado; suas telas operacionais são a próxima etapa.
+          Reuniões, planos de ação e tarefas estão disponíveis no módulo administrativo de Acompanhamento.
         </div>
       </div>
     </AdminLayout>

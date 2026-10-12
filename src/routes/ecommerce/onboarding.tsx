@@ -205,7 +205,8 @@ function EcommerceOnboardingPage() {
     if (!ctx?.company_id) return "company";
     if (accounts.length === 0) return "account";
     if (!connectedAccount) return "authorization";
-    if (!connectedAccount.last_sync_at && ordersCount === 0) return "sync";
+    // Orders from another account cannot prove that this account was synced.
+    if (!connectedAccount.last_sync_at) return "sync";
     return "ready";
   }, [ctx?.company_id, accounts.length, connectedAccount, ordersCount]);
 

@@ -78,6 +78,35 @@ create table if not exists public.ac360_consulting_tasks (
   created_at timestamptz not null default now()
 );
 
+-- Keep historical records attached to their original consultation chain.
+-- To transfer a client, close the old assignment and create another one.
+create or replace function public.ac360_preserve_consulting_parent()
+returns trigger language plpgsql set search_path = '' as $ac360_parent$
+begin
+  if tg_table_name = 'ac360_consulting_sessions'
+     and new.assignment_id is distinct from old.assignment_id then
+    raise exception 'Meeting assignment cannot be changed' using errcode = '23514';
+  elsif tg_table_name = 'ac360_consulting_plans'
+     and new.assignment_id is distinct from old.assignment_id then
+    raise exception 'Plan assignment cannot be changed' using errcode = '23514';
+  elsif tg_table_name = 'ac360_consulting_tasks'
+     and new.plan_id is distinct from old.plan_id then
+    raise exception 'Task plan cannot be changed' using errcode = '23514';
+  end if;
+  return new;
+end;
+$ac360_parent$;
+revoke all on function public.ac360_preserve_consulting_parent() from public, anon, authenticated;
+create trigger ac360_meeting_preserve_parent
+before update on public.ac360_consulting_sessions
+for each row execute function public.ac360_preserve_consulting_parent();
+create trigger ac360_plan_preserve_parent
+before update on public.ac360_consulting_plans
+for each row execute function public.ac360_preserve_consulting_parent();
+create trigger ac360_task_preserve_parent
+before update on public.ac360_consulting_tasks
+for each row execute function public.ac360_preserve_consulting_parent();
+
 alter table public.ac360_consultants enable row level security;
 alter table public.ac360_consultant_assignments enable row level security;
 alter table public.ac360_consulting_sessions enable row level security;

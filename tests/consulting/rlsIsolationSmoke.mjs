@@ -98,6 +98,15 @@ assert.equal(adminVisible?.length, 2, "Test administrator must see BOTH syntheti
 const { data: directory, error: directoryError } = await admin.rpc("ac360_admin_ecommerce_company_directory");
 assert.ifError(directoryError);
 assert.ok(Array.isArray(directory), "Admin directory RPC must return a list");
+assert.ok(directory.length >= 2, "Admin directory must include the two isolated ecommerce fixtures");
+const { data: adminAssignments, error: adminAssignmentsError } = await admin
+  .from("ac360_consultant_assignments").select("company_id")
+  .in("id", [env.AC360_RLS_TEST_A_ASSIGNMENT_ID, env.AC360_RLS_TEST_B_ASSIGNMENT_ID]);
+assert.ifError(adminAssignmentsError);
+for (const assignment of adminAssignments ?? []) {
+  assert.ok(directory.some((company) => company.id === assignment.company_id),
+    "Admin directory must include each assigned ecommerce company");
+}
 for (const db of [a, b]) {
   const { data: forbiddenDirectory, error: forbiddenDirectoryError } = await db.rpc("ac360_admin_ecommerce_company_directory");
   assert.ok(forbiddenDirectoryError, "SECURITY FAILURE: consultant accessed the admin-only directory");

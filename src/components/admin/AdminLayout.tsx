@@ -7,13 +7,11 @@ import {
   UserRoundCheck,
   ClipboardList,
   Layers,
-  ShieldCheck,
   CreditCard,
   Settings,
   RefreshCw,
   Bell,
   Search,
-  ChevronRight,
   LogOut,
   Lock,
   Calendar
@@ -183,7 +181,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
                 
                 className="inline-flex min-w-0 items-center gap-2 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-2 text-xs font-semibold sm:px-4 text-white shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition disabled:opacity-60"
               >
-                <RefreshCw className={`h-3.5 w-3.5 ${""}`} />
+                <RefreshCw className="h-3.5 w-3.5" />
                 Atualizar página
               </button>
             </div>

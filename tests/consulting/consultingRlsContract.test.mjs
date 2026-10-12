@@ -38,7 +38,10 @@ for (const policy of ["sessions_insert", "sessions_update", "plans_insert", "pla
   assert.match(body, /with check\s*\(/, `New values must pass tenant authorization: ${policy}`);
 }
 const roster = readFileSync(new URL("../../src/routes/admin/consultores.tsx", import.meta.url), "utf8");
-assert.match(roster, /from\(["']ecommerce_accounts["']\)/, "Consultants must only be assigned to ecommerce customers");
+assert.match(roster, /rpc\(["']ac360_admin_ecommerce_company_directory["']\)/, "Consultant roster must use admin ecommerce directory RPC");
+assert.match(sql, /create or replace function public\.ac360_admin_ecommerce_company_directory\(\)/, "Admin directory RPC missing");
+assert.match(sql, /from public\.ecommerce_accounts e where e\.company_id = c\.id/, "Directory must filter ecommerce customers");
+assert.match(sql, /not public\.is_platform_admin\(\)/, "Admin directory must restrict callers");
 assert.match(roster, /company_display_name/, "Assignment must store a safe display name");
 assert.match(sql, /create trigger ac360_validate_ecommerce_assignment_trigger/, "Database must enforce ecommerce-only assignments");
 assert.match(sql, /from public\.ecommerce_accounts ea/, "Assignment trigger must verify ecommerce registration");

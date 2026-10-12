@@ -57,4 +57,6 @@ assert.match(sql, /new\.assignment_id is distinct from old\.assignment_id/, "Pre
 assert.match(sql, /new\.plan_id is distinct from old\.plan_id/, "Prevent moving tasks across plans");
 const assignmentRead = sql.match(/create policy assignments_read[\s\S]*?create policy assignments_admin_insert/)?.[0] ?? "";
 assert.match(assignmentRead, /active = true/, "Closed assignments must not remain visible to former consultants");
+assert.match(roster, /update\(\{ status: nextStatus \}\)/, "Administrator needs status-management operation");
+assert.match(roster, /nextStatus === "inactive"/, "Consultant deactivation must be explicit");
 console.log("AC360 consulting SQL access contract checks passed");

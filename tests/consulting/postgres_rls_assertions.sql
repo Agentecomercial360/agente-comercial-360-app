@@ -170,6 +170,8 @@ reset role;
 \echo PASS: ephemeral PostgreSQL RLS contract: tenant reads, INSERT deny, inactive revocation, anonymous access, UPDATE isolation, closed assignment
 
 -- Only admins may list eligible e-commerce companies through the RPC.
+-- Exercise actual authenticated (non-bypassrls) role for the administrator.
+set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000001';
 do $directory$
 declare n integer;
@@ -178,7 +180,6 @@ begin
  if n <> 2 then raise exception 'Expected 2 synthetic ecommerce companies, got %', n; end if;
 end
 $directory$;
-set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000002';
 do $directory$
 begin

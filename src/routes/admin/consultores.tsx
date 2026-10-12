@@ -121,6 +121,24 @@ function AdminConsultores() {
     setSaving(false);
   }
 
+  async function changeConsultantStatus(c: Consultant) {
+    const nextStatus = c.status === "active" ? "inactive" : "active";
+    if (saving || !window.confirm(nextStatus === "inactive"
+      ? `Desativar ${c.display_name}? O acesso às carteiras será bloqueado imediatamente.`
+      : `Reativar o acesso de ${c.display_name}? As atribuições encerradas continuarão encerradas.`)) return;
+    setSaving(true); setError(null); setNotice(null);
+    try {
+      const { data, error: updateError } = await supabase.from("ac360_consultants")
+        .update({ status: nextStatus }).eq("id", c.id).eq("status", c.status).select("id");
+      if (updateError) throw updateError;
+      if (!data?.length) throw new Error("Cadastro alterado por outra operação. Atualize a lista.");
+      await reload();
+      setNotice(nextStatus === "inactive" ? "Consultor desativado e acesso às carteiras suspenso." : "Consultor reativado.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Não foi possível alterar o status.");
+    } finally { setSaving(false); }
+  }
+
   async function finishAssignment(a: Assignment) {
     if (saving || !window.confirm(`Encerrar o atendimento de ${a.company_display_name}? A carteira deixa de aparecer para o consultor atual; o histórico permanece.`)) return;
     setSaving(true); setError(null); setNotice(null);
@@ -205,7 +223,10 @@ function AdminConsultores() {
             {consultants.map((c) => {
               const assigned = leadAssignments.filter((a) => a.consultant_id === c.id);
               return <div key={c.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
-                <div><p className="font-semibold text-slate-900">{c.display_name}</p><p className="text-xs text-slate-500">{c.email || "Sem e-mail cadastrado"} · {c.status === "active" ? "Ativo" : "Inativo"}</p></div>
+                <div><p className="font-semibold text-slate-900">{c.display_name}</p><p className="text-xs text-slate-500">{c.email || "Sem e-mail cadastrado"} · {c.status === "active" ? "Ativo" : "Inativo"}</p>
+                  <button type="button" disabled={saving} onClick={() => void changeConsultantStatus(c)} className="mt-2 rounded-lg border border-slate-300 px-3 py-1 text-xs font-semibold disabled:opacity-50">
+                    {c.status === "active" ? "Desativar consultor" : "Reativar consultor"}
+                  </button></div>
                 <div className="text-right"><p className="text-sm font-semibold">{assigned.length} / {c.capacity} empresas</p>
                 <div className="mt-2 flex flex-wrap justify-end gap-2">
                   {assigned.map((a) => <div key={a.id} className="inline-flex items-center gap-2 rounded-lg bg-slate-50 px-2 py-1">

@@ -36,6 +36,15 @@ jobs:
       - name: Multi-consultant RLS policy contract
         run: node tests/consulting/consultingRlsContract.test.mjs
 
+      - name: Validate Supabase smoke preflight
+        run: |
+          node --check tests/consulting/rlsIsolationSmoke.mjs
+          if node tests/consulting/rlsIsolationSmoke.mjs > /tmp/ac360-guard.log 2>&1; then
+            echo 'Unexpected smoke success without isolated credentials'
+            exit 1
+          fi
+          grep -q 'Missing AC360_RLS_TEST_URL' /tmp/ac360-guard.log
+
       - name: Build application
         run: bun run build
 

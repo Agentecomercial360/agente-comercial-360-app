@@ -49,6 +49,20 @@ async function exercise(db, own, foreign, label) {
   ]);
   assert.equal(sessions.length, 0, `${label}: foreign sessions exposed`);
   assert.equal(plans.length, 0, `${label}: foreign plans exposed`);
+  // Expected-denial writes operate only on isolated synthetic fixtures.
+  // If a policy unexpectedly allows an insert, remove the inserted test row and fail.
+  const forbiddenWrites = [
+    { table: "ac360_consulting_sessions", row: { assignment_id: foreign, scheduled_at: new Date(Date.now() + 86400000).toISOString(), summary: "AC360 isolated authorization test" } },
+    { table: "ac360_consulting_plans", row: { assignment_id: foreign, title: "AC360 cross-tenant RLS negative test" } },
+  ];
+  for (const check of forbiddenWrites) {
+    const { data: inserted, error: insertError } = await db.from(check.table).insert(check.row).select("id");
+    if (!insertError && inserted?.length) {
+      const cleanup = await db.from(check.table).delete().eq("id", inserted[0].id);
+      throw new Error(`${label}: SECURITY FAILURE: cross-tenant insert allowed in ${check.table}. Cleanup error: ${cleanup.error?.message ?? "none"}`);
+    }
+    assert.ok(insertError, `${label}: cross-tenant insert unexpectedly succeeded in ${check.table}`);
+  }
   console.log(`${label}: assignment and child-table cross-tenant reads denied`);
 }
 const a = await login(env.AC360_RLS_TEST_A_EMAIL, env.AC360_RLS_TEST_A_PASSWORD);
@@ -60,4 +74,4 @@ for (const table of ["ac360_consultants", "ac360_consultant_assignments", "ac360
   const { data, error } = await anonymous.from(table).select("id").limit(1);
   assert.ok(error || (data?.length ?? 0) === 0, `Anonymous access exposed ${table}`);
 }
-console.log("PASS: read-only RLS smoke checks (not a complete RLS write test)");
+console.log("PASS: RLS read isolation + cross-tenant INSERT denial (not a complete write/revocation test)");

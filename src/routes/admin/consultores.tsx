@@ -82,12 +82,12 @@ function AdminConsultores() {
     setNotice(null);
     setError(null);
     setSaving(true);
-    const { error: insertError } = await supabase.from("ac360_consultants").insert({
+    const { data: createdConsultant, error: insertError } = await supabase.from("ac360_consultants").insert({
       user_id: userId.trim(),
       display_name: name.trim(),
       email: email.trim() || null,
-    });
-    if (insertError) setError(insertError.message);
+    }).select("id");
+    if (insertError || createdConsultant?.length !== 1) setError(insertError?.message ?? "Não foi possível confirmar o cadastro do consultor.");
     else {
       setUserId(""); setName(""); setEmail("");
       setNotice("Consultor cadastrado. Agora você pode atribuir uma empresa.");
@@ -101,13 +101,13 @@ function AdminConsultores() {
     setNotice(null);
     setError(null);
     setSaving(true);
-    const { error: insertError } = await supabase.from("ac360_consultant_assignments").insert({
+    const { data: createdAssignment, error: insertError } = await supabase.from("ac360_consultant_assignments").insert({
       consultant_id: consultantId,
       company_id: companyId,
       company_display_name: companies.find((c) => c.id === companyId)?.name ?? "",
       role: "lead",
-    });
-    if (insertError) setError(insertError.message);
+    }).select("id");
+    if (insertError || createdAssignment?.length !== 1) setError(insertError?.message ?? "Não foi possível confirmar a atribuição da empresa.");
     else {
       setCompanyId(""); setConsultantId("");
       setNotice("Empresa atribuída ao consultor.");

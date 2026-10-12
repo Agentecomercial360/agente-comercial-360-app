@@ -7,14 +7,17 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  * Usa apenas a anon/publishable key — nunca service_role.
  */
 
-// Valores temporários para preview Lovable. Substituir por variáveis de ambiente em produção.
-const FALLBACK_SUPABASE_URL = "https://dmwcbecihuxqzzjouevk.supabase.co";
-const FALLBACK_SUPABASE_ANON_KEY = "sb_publishable_GYJnzptCXdI_ZLPWXSHSSw_fgBHsp6n";
+// Explicit environment binding prevents preview deployments from silently using production.
+const supabaseUrl = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim();
+const supabaseAnonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim();
+const expectedProjectRef = (import.meta.env.VITE_AC360_EXPECTED_SUPABASE_PROJECT_REF as string | undefined)?.trim();
 
-const supabaseUrl =
-  (import.meta.env.VITE_SUPABASE_URL as string | undefined) ?? FALLBACK_SUPABASE_URL;
-const supabaseAnonKey =
-  (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined) ?? FALLBACK_SUPABASE_ANON_KEY;
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error("Missing required VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY environment variables.");
+}
+if (expectedProjectRef && new URL(supabaseUrl).hostname !== `${expectedProjectRef}.supabase.co`) {
+  throw new Error("Supabase project does not match the configured environment.");
+}
 
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {

@@ -49,6 +49,7 @@ function ConsultoriaCarteira() {
         const planIds = myPlans.map((p) => p.id);
         const taskResult = planIds.length ? await supabase.from("ac360_consulting_tasks").select("id,plan_id,title,status,due_on").in("plan_id",planIds).limit(500) : { data: [], error: null };
         if (taskResult.error) throw taskResult.error;
+        if (!mounted) return;
         setPlans(myPlans);
         setTasks((taskResult.data ?? []) as Task[]);
       } catch (e) {
@@ -63,9 +64,10 @@ function ConsultoriaCarteira() {
     setSavingTask(task.id);
     setError(null);
     try {
-      const { error: updateError } = await supabase.from("ac360_consulting_tasks")
-        .update({ status: nextStatus }).eq("id", task.id);
+      const { data: changed, error: updateError } = await supabase.from("ac360_consulting_tasks")
+        .update({ status: nextStatus }).eq("id", task.id).select("id");
       if (updateError) throw updateError;
+      if (!changed?.length) throw new Error("A tarefa não pôde ser atualizada. Sua carteira pode ter sido alterada; atualize a página.");
       setTasks((current) => current.map((t) => t.id === task.id ? { ...t, status: nextStatus } : t));
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não foi possível atualizar a tarefa.");

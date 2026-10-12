@@ -169,6 +169,29 @@ reset role;
 
 \echo PASS: ephemeral PostgreSQL RLS contract: tenant reads, INSERT deny, inactive revocation, anonymous access, UPDATE isolation, closed assignment
 
+
+-- Exercise actual admin session writes and RLS, not only postgres bypass mode.
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000001';
+do $admin_write$
+declare added_id uuid; n integer;
+begin
+ insert into public.ac360_consulting_plans(assignment_id,title)
+ select id,'Admin-authenticated test plan'
+ from public.ac360_consultant_assignments
+ where company_display_name='Synthetic A - successor'
+ returning id into added_id;
+ if added_id is null then raise exception 'Admin authenticated insert failed'; end if;
+ update public.ac360_consulting_plans
+ set title='Admin-authenticated updated plan'
+ where id=added_id;
+ select count(*) into n from public.ac360_consulting_plans
+ where id=added_id and title='Admin-authenticated updated plan';
+ if n <> 1 then raise exception 'Admin authenticated update did not persist'; end if;
+end
+$admin_write$;
+reset role;
+
 -- Only admins may list eligible e-commerce companies through the RPC.
 -- Exercise actual authenticated (non-bypassrls) role for the administrator.
 set role authenticated;

@@ -48,4 +48,9 @@ assert.doesNotMatch(sql, /as \$\n/, "Bare dollar sign is not a valid PL/pgSQL de
 assert.match(sql, /returns trigger language plpgsql security definer set search_path = ''/, "Trigger needs controlled privileges to check ecommerce account eligibility");
 assert.match(sql, /if not public\.is_platform_admin\(\) then/, "Privileged trigger must verify administrator identity");
 assert.match(sql, /revoke all on function public\.ac360_validate_ecommerce_assignment\(\) from public, anon, authenticated/, "Trigger must not expose direct execution");
+for (const trigger of ["ac360_meeting_preserve_parent", "ac360_plan_preserve_parent", "ac360_task_preserve_parent"]) {
+  assert.ok(sql.includes(`create trigger ${trigger}`), `Missing immutable history safeguard: ${trigger}`);
+}
+assert.match(sql, /new\.assignment_id is distinct from old\.assignment_id/, "Prevent reassignment of meetings/plans");
+assert.match(sql, /new\.plan_id is distinct from old\.plan_id/, "Prevent moving tasks across plans");
 console.log("AC360 consulting SQL access contract checks passed");

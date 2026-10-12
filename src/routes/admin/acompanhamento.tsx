@@ -116,13 +116,14 @@ function AdminAcompanhamento() {
     if (!selectedPlanId || taskTitle.trim().length < 2) return;
     setSaving(true);
     try {
-      const { error: insertError } = await supabase.from("ac360_consulting_tasks").insert({
+      const { data: createdTask, error: insertError } = await supabase.from("ac360_consulting_tasks").insert({
         plan_id: selectedPlanId,
         title: taskTitle.trim(),
         due_on: taskDue || null,
         status: "pending",
-      });
+      }).select("id");
       if (insertError) throw insertError;
+      if (createdTask?.length !== 1) throw new Error("Não foi possível confirmar a criação da tarefa.");
       setTaskTitle(""); setTaskDue("");
       await load();
       setMessage("Tarefa adicionada ao plano de ação.");

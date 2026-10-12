@@ -8,14 +8,12 @@ export const Route = createFileRoute("/consultoria/carteira")({
   head: () => ({ meta: [{ title: "Minha carteira | AC360 Consultoria" }] }),
 });
 type Consultant = { id: string; display_name: string; status: string };
-type Assignment = { id: string; company_id: string; role: string };
-type Company = { id: string; name: string };
+type Assignment = { id: string; company_id: string; company_display_name: string; role: string };
 type Meeting = { id: string; assignment_id: string; scheduled_at: string; status: string };
 type Plan = { id: string; assignment_id: string; title: string; status: string };
 function ConsultoriaCarteira() {
   const [consultant, setConsultant] = useState<Consultant | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [companies, setCompanies] = useState<Company[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,21 +29,18 @@ function ConsultoriaCarteira() {
         if (consultantError) throw consultantError;
         if (!own || own.status !== "active") throw new Error("Seu cadastro de consultor não está ativo.");
         const { data: links, error: linksError } = await supabase.from("ac360_consultant_assignments")
-          .select("id,company_id,role").eq("consultant_id",own.id).eq("active",true);
+          .select("id,company_id,company_display_name,role").eq("consultant_id",own.id).eq("active",true);
         if (linksError) throw linksError;
         const ids = (links ?? []).map((a) => a.id);
-        const companyIds = (links ?? []).map((a) => a.company_id);
-        const [companiesResult, meetingsResult, plansResult] = await Promise.all([
-          companyIds.length ? supabase.from("companies").select("id,name").in("id",companyIds) : Promise.resolve({data: [],error:null}),
+        const [meetingsResult, plansResult] = await Promise.all([
           ids.length ? supabase.from("ac360_consulting_sessions").select("id,assignment_id,scheduled_at,status").in("assignment_id",ids).order("scheduled_at",{ascending:true}).limit(100) : Promise.resolve({data: [],error:null}),
           ids.length ? supabase.from("ac360_consulting_plans").select("id,assignment_id,title,status").in("assignment_id",ids).limit(100) : Promise.resolve({data: [],error:null}),
         ]);
-        const failure = companiesResult.error || meetingsResult.error || plansResult.error;
+        const failure = meetingsResult.error || plansResult.error;
         if (failure) throw failure;
         if (!mounted) return;
         setConsultant(own as Consultant);
         setAssignments((links ?? []) as Assignment[]);
-        setCompanies((companiesResult.data ?? []) as Company[]);
         setMeetings((meetingsResult.data ?? []) as Meeting[]);
         setPlans((plansResult.data ?? []) as Plan[]);
       } catch (e) {
@@ -55,7 +50,7 @@ function ConsultoriaCarteira() {
     void load();
     return () => { mounted = false; };
   }, []);
-  const companyName = (id: string) => companies.find((c) => c.id === id)?.name ?? "Empresa atribuída";
+  const companyName = (id: string) => assignments.find((a) => a.company_id === id)?.company_display_name ?? "Empresa atribuída";
   return <main className="min-h-screen bg-slate-50 px-4 py-8">
     <div className="mx-auto max-w-5xl space-y-6">
       <header className="rounded-2xl bg-slate-950 p-6 text-white">

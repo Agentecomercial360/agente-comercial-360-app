@@ -168,3 +168,25 @@ $successor$;
 reset role;
 
 \echo PASS: ephemeral PostgreSQL RLS contract: tenant reads, INSERT deny, inactive revocation, anonymous access, UPDATE isolation, closed assignment
+
+-- Only admins may list eligible e-commerce companies through the RPC.
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000001';
+do $directory$
+declare n integer;
+begin
+ select count(*) into n from public.ac360_admin_ecommerce_company_directory();
+ if n <> 2 then raise exception 'Expected 2 synthetic ecommerce companies, got %', n; end if;
+end
+$directory$;
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000002';
+do $directory$
+begin
+ begin
+  perform * from public.ac360_admin_ecommerce_company_directory();
+  raise exception 'SECURITY FAILURE: consultant accessed admin ecommerce directory';
+ exception when insufficient_privilege then null;
+ end;
+end
+$directory$;
+reset role;

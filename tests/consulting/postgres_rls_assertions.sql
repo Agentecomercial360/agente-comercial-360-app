@@ -21,7 +21,7 @@ select id,'Synthetic task' from public.ac360_consulting_plans;
 set role authenticated;
 set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000002';
 do $tests$
-declare own uuid; foreign_id uuid; n int;
+declare own uuid; n int;
 begin
  select id into own from public.ac360_consultant_assignments where company_display_name='Synthetic A';
  select count(*) into n from public.ac360_consultant_assignments;
@@ -32,14 +32,7 @@ begin
  if n<>1 then raise exception 'A plans: % (expected 1)',n; end if;
  select count(*) into n from public.ac360_consulting_tasks;
  if n<>1 then raise exception 'A tasks: % (expected 1)',n; end if;
- -- Distinct foreign ID is retrieved as a fixture constant, never through RLS.
- foreign_id := '00000000-0000-0000-0000-000000000000';
- begin
-  insert into public.ac360_consulting_plans(assignment_id,title) values (foreign_id,'Wrong client');
-  raise exception 'Unexpected successful cross-tenant insert';
- exception when foreign_key_violation then
-  null; -- Invalid fixture UUID; real second-assignment test below uses admin-seeded ID.
- end;
+
 end
 $tests$;
 

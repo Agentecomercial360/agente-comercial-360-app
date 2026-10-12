@@ -59,4 +59,6 @@ const assignmentRead = sql.match(/create policy assignments_read[\s\S]*?create p
 assert.match(assignmentRead, /active = true/, "Closed assignments must not remain visible to former consultants");
 assert.match(roster, /update\(\{ status: nextStatus \}\)/, "Administrator needs status-management operation");
 assert.match(roster, /nextStatus === "inactive"/, "Consultant deactivation must be explicit");
+assert.match(sql, /new\.active = false and new\.ended_at is null/, "Closing an assignment must record an end time");
+assert.match(sql, /if new\.active and not exists \(\s*select 1 from public\.ecommerce_accounts/, "Closed assignments must not require an existing ecommerce account");
 console.log("AC360 consulting SQL access contract checks passed");

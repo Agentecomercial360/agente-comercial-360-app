@@ -23,8 +23,11 @@ create table if not exists public.ac360_consultant_assignments (
 -- Only ecommerce tenants with a registered marketplace account can be assigned.
 -- Enforced server-side, not merely by the administrative dropdown.
 create or replace function public.ac360_validate_ecommerce_assignment()
-returns trigger language plpgsql set search_path = '' as $ac360$
+returns trigger language plpgsql security definer set search_path = '' as $ac360$
 begin
+  if not public.is_platform_admin() then
+    raise exception 'Only an active AC360 administrator may assign ecommerce clients' using errcode = '42501';
+  end if;
   if not exists (
     select 1 from public.ecommerce_accounts ea
     where ea.company_id = new.company_id

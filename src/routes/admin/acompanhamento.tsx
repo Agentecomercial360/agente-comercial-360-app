@@ -86,10 +86,11 @@ function AdminAcompanhamento() {
     setSaving(true);
     setError(null); setMessage(null);
     try {
-      const { error: updateError } = await supabase.from("ac360_consulting_sessions")
+      const { data: updatedMeeting, error: updateError } = await supabase.from("ac360_consulting_sessions")
         .update({ status: "completed", summary: meetingSummary.trim() })
-        .eq("id", meeting.id).eq("status", "scheduled");
+        .eq("id", meeting.id).eq("status", "scheduled").select("id");
       if (updateError) throw updateError;
+      if (updatedMeeting?.length !== 1) throw new Error("A reunião não foi alterada. Ela pode já ter sido concluída por outra pessoa.");
       setEditingMeetingId(null); setMeetingSummary("");
       await load();
       setMessage("Reunião concluída e resumo registrado.");
@@ -133,9 +134,10 @@ function AdminAcompanhamento() {
   async function setTaskStatus(task: Task, status: "pending" | "doing" | "done") {
     setSaving(true); setError(null); setMessage(null);
     try {
-      const { error: updateError } = await supabase.from("ac360_consulting_tasks")
-        .update({ status }).eq("id", task.id);
+      const { data: updatedTask, error: updateError } = await supabase.from("ac360_consulting_tasks")
+        .update({ status }).eq("id", task.id).eq("status", task.status).select("id");
       if (updateError) throw updateError;
+      if (updatedTask?.length !== 1) throw new Error("A tarefa não foi alterada. Seu status pode ter mudado; atualize os dados.");
       await load();
       setMessage("Progresso da tarefa atualizado.");
     } catch (e) {

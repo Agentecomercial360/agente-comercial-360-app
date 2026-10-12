@@ -242,7 +242,7 @@ function EcommerceOnboardingPage() {
     setError(null);
 
     try {
-      const { data, error: insertError } = await supabase
+      const { error: insertError } = await supabase
         .from("ecommerce_accounts")
         .insert({
           company_id: ctx.company_id,
@@ -256,8 +256,9 @@ function EcommerceOnboardingPage() {
 
       if (insertError) throw insertError;
 
+      // OAuth must start from a direct click. Opening its popup after the
+      // asynchronous insert would be blocked by Safari and other browsers.
       await loadState();
-      await handleConnect(String(data.id));
     } catch (e: any) {
       setError(e?.message || "Não foi possível criar a conta Mercado Livre.");
     } finally {
@@ -489,7 +490,7 @@ function EcommerceOnboardingPage() {
                     )}
                     {creatingAccount
                       ? "Criando conta…"
-                      : "Criar e autorizar Mercado Livre"}
+                      : "Criar conta e continuar"}
                   </button>
                 </div>
               </div>

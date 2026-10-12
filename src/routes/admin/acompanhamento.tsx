@@ -146,7 +146,7 @@ function AdminAcompanhamento() {
     } finally { setSaving(false); }
   }
 
-  return <AdminLayout><div className="mx-auto max-w-6xl space-y-6">
+  return <AdminLayout><div className="mx-auto w-full min-w-0 max-w-6xl space-y-6 overflow-x-hidden">
     <header><h1 className="text-2xl font-bold text-slate-900">Central de acompanhamento</h1>
       <p className="mt-1 text-sm text-slate-600">Reuniões, planos de ação e execução da carteira de consultoria.</p></header>
     {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
@@ -156,32 +156,32 @@ function AdminAcompanhamento() {
       <Kpi icon={<ClipboardCheck />} name="Planos de ação" value={plans.length} />
       <Kpi icon={<ListTodo />} name="Tarefas pendentes" value={tasks.filter((t) => t.status === "pending" || t.status === "doing").length} />
     </div>
-    <section className="rounded-xl border border-slate-200 bg-white p-5">
+    <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
       <label className="block text-sm font-medium text-slate-700">Carteira para novos registros
-        <select value={assignmentId} onChange={(e) => setAssignmentId(e.target.value)} className="mt-2 w-full rounded-lg border border-slate-300 p-2">
+        <select value={assignmentId} onChange={(e) => setAssignmentId(e.target.value)} className="mt-2 block w-full min-w-0 max-w-full rounded-lg border border-slate-300 p-2">
           <option value="">Selecione uma carteira ativa</option>
           {assignments.map((a) => <option key={a.id} value={a.id}>{owner(a.id)}</option>)}
         </select>
       </label>
     </section>
     <div className="grid gap-5 lg:grid-cols-2">
-      <form onSubmit={(e) => void createMeeting(e)} className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
+      <form onSubmit={(e) => void createMeeting(e)} className="space-y-3 min-w-0 rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
         <h2 className="font-bold">Agendar reunião</h2>
-        <label className="block text-sm">Data e horário<input required type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} className="mt-1 w-full rounded-lg border p-2"/></label>
-        <label className="block text-sm">Duração<select value={duration} onChange={(e) => setDuration(e.target.value)} className="mt-1 w-full rounded-lg border p-2">
+        <label className="block text-sm">Data e horário<input required type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} className="mt-1 block w-full min-w-0 max-w-full rounded-lg border p-2"/></label>
+        <label className="block text-sm">Duração<select value={duration} onChange={(e) => setDuration(e.target.value)} className="mt-1 block w-full min-w-0 max-w-full rounded-lg border p-2">
           <option value="30">30 minutos</option><option value="45">45 minutos</option><option value="60">60 minutos</option><option value="90">90 minutos</option>
         </select></label>
         <button disabled={!assignmentId || !date || saving || loading} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Registrar reunião</button>
       </form>
-      <form onSubmit={(e) => void createPlan(e)} className="space-y-3 rounded-xl border border-slate-200 bg-white p-5">
+      <form onSubmit={(e) => void createPlan(e)} className="space-y-3 min-w-0 rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
         <h2 className="font-bold">Criar plano de ação</h2>
-        <label className="block text-sm">Título<input required minLength={2} value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1 w-full rounded-lg border p-2"/></label>
-        <label className="block text-sm">Objetivo<textarea value={objective} onChange={(e) => setObjective(e.target.value)} className="mt-1 w-full rounded-lg border p-2" rows={2}/></label>
+        <label className="block text-sm">Título<input required minLength={2} value={title} onChange={(e) => setTitle(e.target.value)} className="mt-1 block w-full min-w-0 max-w-full rounded-lg border p-2"/></label>
+        <label className="block text-sm">Objetivo<textarea value={objective} onChange={(e) => setObjective(e.target.value)} className="mt-1 block w-full min-w-0 max-w-full rounded-lg border p-2" rows={2}/></label>
         <button disabled={!assignmentId || title.trim().length < 2 || saving || loading} className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Criar rascunho</button>
       </form>
     </div>
     <div className="grid gap-5 lg:grid-cols-2">
-      <section className="rounded-xl border border-slate-200 bg-white p-5"><h2 className="mb-4 font-bold">Próximas reuniões e histórico</h2>
+      <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 sm:p-5"><h2 className="mb-4 font-bold">Próximas reuniões e histórico</h2>
         {loading ? <p className="text-sm text-slate-500">Carregando…</p> : sessions.length ? <div className="space-y-3">{sessions.map((s) => <div key={s.id} className="border-b border-slate-100 pb-3 text-sm">
           <p className="font-semibold">{new Date(s.scheduled_at).toLocaleString("pt-BR")} · {s.duration_minutes} min</p>
           <p className="text-slate-600">{owner(s.assignment_id)}</p><p className="text-xs text-slate-500">Status: {s.status === "completed" ? "Concluída" : s.status === "cancelled" ? "Cancelada" : "Agendada"}</p>
@@ -196,30 +196,30 @@ function AdminAcompanhamento() {
           </div>}
         </div>)}</div> : <p className="text-sm text-slate-500">Nenhuma reunião registrada.</p>}
       </section>
-      <section className="rounded-xl border border-slate-200 bg-white p-5"><h2 className="mb-4 font-bold">Planos de ação</h2>
+      <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 sm:p-5"><h2 className="mb-4 font-bold">Planos de ação</h2>
         {loading ? <p className="text-sm text-slate-500">Carregando…</p> : plans.length ? <div className="space-y-3">{plans.map((p) => {
           const associated = tasks.filter((t) => t.plan_id === p.id);
           return <div key={p.id} className="border-b border-slate-100 pb-3 text-sm">
-            <p className="font-semibold">{p.title}</p><p className="text-xs text-slate-500">{owner(p.assignment_id)} · {p.status}</p>
+            <p className="font-semibold">{p.title}</p><p className="text-xs text-slate-500">{owner(p.assignment_id)} · {({ draft: "Rascunho", active: "Ativo", completed: "Concluído", cancelled: "Cancelado" } as Record<string, string>)[p.status] ?? p.status}</p>
             <p className="mt-1 text-slate-600">{associated.filter((t) => t.status === "done").length}/{associated.length} tarefas concluídas</p>
           </div>;
         })}</div> : <p className="text-sm text-slate-500">Nenhum plano registrado.</p>}
       </section>
     </div>
-    <section className="space-y-4 rounded-xl border border-slate-200 bg-white p-5">
+    <section className="space-y-4 min-w-0 rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
       <h2 className="text-lg font-bold">Tarefas dos planos de ação</h2>
-      <form onSubmit={(e) => void createTask(e)} className="grid gap-3 md:grid-cols-4">
+      <form onSubmit={(e) => void createTask(e)} className="grid min-w-0 gap-3 md:grid-cols-4">
         <label className="text-sm">Plano de ação
-          <select required value={selectedPlanId} onChange={(e) => setSelectedPlanId(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-2">
+          <select required value={selectedPlanId} onChange={(e) => setSelectedPlanId(e.target.value)} className="mt-1 block w-full min-w-0 max-w-full rounded-lg border border-slate-300 p-2">
             <option value="">Selecione um plano</option>
             {plans.filter((p) => p.status !== "cancelled" && p.status !== "completed").map((p) => <option key={p.id} value={p.id}>{p.title} — {owner(p.assignment_id)}</option>)}
           </select>
         </label>
         <label className="text-sm">Descrição da tarefa
-          <input required minLength={2} value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-2" />
+          <input required minLength={2} value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} className="mt-1 block w-full min-w-0 max-w-full rounded-lg border border-slate-300 p-2" />
         </label>
         <label className="text-sm">Prazo (opcional)
-          <input type="date" value={taskDue} onChange={(e) => setTaskDue(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-300 p-2" />
+          <input type="date" value={taskDue} onChange={(e) => setTaskDue(e.target.value)} className="mt-1 block w-full min-w-0 max-w-full rounded-lg border border-slate-300 p-2" />
         </label>
         <button disabled={saving || loading || !selectedPlanId || taskTitle.trim().length < 2} className="self-end rounded-lg bg-blue-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50">Adicionar tarefa</button>
       </form>
@@ -231,7 +231,7 @@ function AdminAcompanhamento() {
             return <div key={task.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
               <div>
                 <p className="text-sm font-semibold text-slate-900">{task.title}</p>
-                <p className="text-xs text-slate-500">{plan.title}{task.due_on ? ` · Prazo: ${new Date(task.due_on + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}</p>
+                <p className="text-xs text-slate-500">{plan.title} · {owner(plan.assignment_id)}{task.due_on ? ` · Prazo: ${new Date(task.due_on + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}</p>
               </div>
               <label className="text-xs text-slate-600">Status
                 <select disabled={saving} value={task.status} onChange={(e) => void setTaskStatus(task, e.target.value as "pending" | "doing" | "done")} className="ml-2 rounded-lg border border-slate-300 p-2">

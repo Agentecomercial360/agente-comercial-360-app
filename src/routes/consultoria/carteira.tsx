@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/lib/supabase";
-import { CalendarDays, ClipboardList, ShieldCheck } from "lucide-react";
+import { CalendarDays, ClipboardList, ShieldCheck, LogOut } from "lucide-react";
 
 export const Route = createFileRoute("/consultoria/carteira")({
   component: ConsultoriaCarteira,
@@ -13,6 +13,15 @@ type Meeting = { id: string; assignment_id: string; scheduled_at: string; status
 type Plan = { id: string; assignment_id: string; title: string; status: string };
 type Task = { id: string; plan_id: string; title: string; status: string; due_on: string | null };
 function ConsultoriaCarteira() {
+  const navigate = useNavigate();
+  const [signingOut, setSigningOut] = useState(false);
+  async function signOut() {
+    if (signingOut) return;
+    setSigningOut(true);
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) { setError("Não foi possível sair da conta. Tente novamente."); setSigningOut(false); return; }
+    navigate({ to: "/login" });
+  }
   const [consultant, setConsultant] = useState<Consultant | null>(null);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -76,12 +85,13 @@ function ConsultoriaCarteira() {
       setSavingTask(null);
     }
   }
-  return <main className="min-h-screen bg-slate-50 px-4 py-8">
-    <div className="mx-auto max-w-5xl space-y-6">
+  return <main className="min-h-screen w-full overflow-x-hidden bg-slate-50 px-3 py-6 sm:px-4 sm:py-8">
+    <div className="mx-auto min-w-0 max-w-5xl space-y-6">
       <header className="rounded-2xl bg-slate-950 p-6 text-white">
         <p className="text-xs font-semibold uppercase tracking-widest text-blue-300">AC360 Consultoria</p>
         <h1 className="mt-2 text-2xl font-bold">Minha carteira de clientes</h1>
         <p className="mt-2 text-sm text-slate-300">{consultant ? `Consultor: ${consultant.display_name}` : "Acompanhamento estratégico"}</p>
+        <button type="button" disabled={signingOut} onClick={() => void signOut()} className="mt-4 inline-flex items-center gap-2 rounded-lg border border-white/30 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"><LogOut className="h-4 w-4" />{signingOut ? "Saindo..." : "Sair e trocar usuário"}</button>
       </header>
       {loading && <p role="status" className="text-sm text-slate-600">Verificando suas permissões…</p>}
       {error && <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">{error}</div>}
@@ -114,7 +124,7 @@ function ConsultoriaCarteira() {
               if (!plan) return null;
               return <div key={task.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                 <div><p className="text-sm font-semibold">{task.title}</p>
-                  <p className="text-xs text-slate-500">{plan.title}{task.due_on ? ` · Prazo: ${new Date(task.due_on + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}</p>
+                  <p className="text-xs text-slate-500">{plan.title} · {companyName(assignments.find((a) => a.id === plan.assignment_id)?.company_id ?? "")}{task.due_on ? ` · Prazo: ${new Date(task.due_on + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}</p>
                 </div>
                 <select aria-label={`Situação: ${task.title}`} disabled={savingTask === task.id}
                   value={task.status}

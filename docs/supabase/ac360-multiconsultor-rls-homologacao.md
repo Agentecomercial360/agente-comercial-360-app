@@ -34,3 +34,21 @@ Registrar usuário autenticado, operação, tabela, UUID sintético da carteira,
 
 ## Limitações
 Os contratos em `tests/consulting` conferem padrões de código, **não** são prova de execução real de políticas PostgreSQL. Não usar tokens reais de vendedores, usuários reais ou `service_role` para simular acesso de consultores.
+
+## Smoke test de leitura (executável, sem gravações)
+Após migrar **somente um projeto separado** e criar as atribuições de teste, rode a partir da raiz do repositório:
+
+```bash
+AC360_RLS_TEST_ISOLATED=YES \
+AC360_RLS_TEST_URL=https://SEU-PROJETO-DE-TESTE.supabase.co \
+AC360_RLS_TEST_ANON_KEY=chave_publica_de_teste \
+AC360_RLS_TEST_A_EMAIL=consultor-a@example.test \
+AC360_RLS_TEST_A_PASSWORD=senha-de-teste \
+AC360_RLS_TEST_B_EMAIL=consultor-b@example.test \
+AC360_RLS_TEST_B_PASSWORD=senha-de-teste \
+AC360_RLS_TEST_A_ASSIGNMENT_ID=uuid-atribuicao-a \
+AC360_RLS_TEST_B_ASSIGNMENT_ID=uuid-atribuicao-b \
+node tests/consulting/rlsIsolationSmoke.mjs
+```
+
+O script se recusa a usar o hostname do projeto de produção e exige a confirmação `AC360_RLS_TEST_ISOLATED=YES`. Ele autentica ambos os consultores, testa leitura própria, bloqueio de leitura cruzada de vínculos/reuniões/planos e leitura anônima das cinco tabelas. É *somente leitura* e **não substitui** os testes dinâmicos de escrita, reatribuição, inativação e integridade restantes.

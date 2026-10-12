@@ -306,3 +306,33 @@ begin
  then raise exception 'SECURITY FAILURE: consultant assignment was closed'; end if;
 end
 $admin_update_verify$;
+
+
+-- An authenticated role without a valid user identity cannot access the admin RPC.
+set role authenticated;
+reset request.jwt.claim.sub;
+do $missing_identity$
+begin
+ begin
+  perform * from public.ac360_admin_ecommerce_company_directory();
+  raise exception 'SECURITY FAILURE: missing identity accessed directory';
+ exception when insufficient_privilege then null;
+ end;
+end
+$missing_identity$;
+reset role;
+
+-- Revocation is enforced on writes, not merely on reading the portfolio.
+set role authenticated;
+set request.jwt.claim.sub = '00000000-0000-4000-8000-000000000002';
+do $inactive_write_denial$
+declare affected integer;
+begin
+ update public.ac360_consulting_tasks
+ set status='done'
+ where title='Synthetic task';
+ get diagnostics affected=row_count;
+ if affected<>0 then raise exception 'SECURITY FAILURE: inactive consultant updated task'; end if;
+end
+$inactive_write_denial$;
+reset role;

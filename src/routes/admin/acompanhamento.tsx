@@ -70,10 +70,10 @@ function AdminAcompanhamento() {
     e.preventDefault(); setError(null); setMessage(null);
     if (!assignmentId || !date) return;
     setSaving(true);
-    const { error: insertError } = await supabase.from("ac360_consulting_sessions").insert({
+    const { data: createdMeeting, error: insertError } = await supabase.from("ac360_consulting_sessions").insert({
       assignment_id: assignmentId, scheduled_at: new Date(date).toISOString(), duration_minutes: Number(duration),
-    });
-    if (insertError) setError(insertError.message);
+    }).select("id");
+    if (insertError || createdMeeting?.length !== 1) setError(insertError?.message ?? "Não foi possível confirmar o registro da reunião.");
     else { setDate(""); setMessage("Reunião registrada."); await load(); }
     setSaving(false);
   }
@@ -103,10 +103,10 @@ function AdminAcompanhamento() {
     e.preventDefault(); setError(null); setMessage(null);
     if (!assignmentId || title.trim().length < 2) return;
     setSaving(true);
-    const { error: insertError } = await supabase.from("ac360_consulting_plans").insert({
+    const { data: createdPlan, error: insertError } = await supabase.from("ac360_consulting_plans").insert({
       assignment_id: assignmentId, title: title.trim(), objective: objective.trim() || null, status: "draft",
-    });
-    if (insertError) setError(insertError.message);
+    }).select("id");
+    if (insertError || createdPlan?.length !== 1) setError(insertError?.message ?? "Não foi possível confirmar a criação do plano.");
     else { setTitle(""); setObjective(""); setMessage("Plano de ação criado como rascunho."); await load(); }
     setSaving(false);
   }

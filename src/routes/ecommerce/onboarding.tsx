@@ -48,6 +48,12 @@ type AccountRow = {
   ml_user_id: string | null;
 };
 
+type IntegrationStatusRow = {
+  account_id: string | null;
+  integration_status: string | null;
+  is_token_valid: boolean | null;
+};
+
 type Stage = "company" | "account" | "authorization" | "sync" | "ready";
 
 function EcommerceOnboardingPage() {
@@ -56,6 +62,9 @@ function EcommerceOnboardingPage() {
   const [loading, setLoading] = useState(true);
   const [ctx, setCtx] = useState<AccessContext | null>(null);
   const [accounts, setAccounts] = useState<AccountRow[]>([]);
+  const [validIntegrationAccountIds, setValidIntegrationAccountIds] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [ordersCount, setOrdersCount] = useState(0);
 
   const [companyName, setCompanyName] = useState("");
@@ -102,30 +111,52 @@ function EcommerceOnboardingPage() {
 
     if (!nextCtx.company_id) {
       setAccounts([]);
+      setValidIntegrationAccountIds(new Set());
       setOrdersCount(0);
       setLoading(false);
       return;
     }
 
-    const [{ data: accountRows, error: accountError }, { count, error: ordersError }] =
-      await Promise.all([
-        supabase
-          .from("ecommerce_accounts")
-          .select("id,account_name,auth_status,is_active,last_sync_at,ml_user_id")
-          .eq("company_id", nextCtx.company_id)
-          .eq("marketplace", "mercado_livre")
-          .eq("is_active", true)
-          .order("created_at", { ascending: true }),
-        supabase
-          .from("ecommerce_orders")
-          .select("id", { count: "exact", head: true })
-          .eq("company_id", nextCtx.company_id),
-      ]);
+    const [
+      { data: accountRows, error: accountError },
+      { data: integrationRows, error: integrationError },
+      { count, error: ordersError },
+    ] = await Promise.all([
+      supabase
+        .from("ecommerce_accounts")
+        .select("id,account_name,auth_status,is_active,last_sync_at,ml_user_id")
+        .eq("company_id", nextCtx.company_id)
+        .eq("marketplace", "mercado_livre")
+        .eq("is_active", true)
+        .order("created_at", { ascending: true }),
+      supabase
+        .from("vw_ecommerce_integration_status")
+        .select("account_id,integration_status,is_token_valid")
+        .eq("company_id", nextCtx.company_id)
+        .eq("marketplace", "mercado_livre"),
+      supabase
+        .from("ecommerce_orders")
+        .select("id", { count: "exact", head: true })
+        .eq("company_id", nextCtx.company_id),
+    ]);
 
     if (accountError) setError(accountError.message);
+    if (integrationError) setError(integrationError.message);
     if (ordersError) console.warn("[onboarding orders count]", ordersError);
 
+    const validAccountIds = new Set(
+      ((integrationRows ?? []) as IntegrationStatusRow[])
+        .filter(
+          (integration) =>
+            integration.account_id &&
+            integration.integration_status === "connected" &&
+            integration.is_token_valid === true,
+        )
+        .map((integration) => String(integration.account_id)),
+    );
+
     setAccounts((accountRows ?? []) as AccountRow[]);
+    setValidIntegrationAccountIds(validAccountIds);
     setOrdersCount(count ?? 0);
     setLoading(false);
   }
@@ -147,16 +178,18 @@ function EcommerceOnboardingPage() {
     () =>
       accounts.find(
         (account) =>
-          account.auth_status === "connected" ||
-          Boolean(account.ml_user_id) ||
-          Boolean(account.last_sync_at),
+          account.auth_status === "connected" &&
+          validIntegrationAccountIds.has(account.id),
       ) ?? null,
-    [accounts],
+    [accounts, validIntegrationAccountIds],
   );
 
   const pendingAccount = useMemo(
-    () => accounts.find((account) => account.auth_status !== "connected") ?? null,
-    [accounts],
+    () =>
+      accounts.find(
+        (account) => !validIntegrationAccountIds.has(account.id),
+      ) ?? null,
+    [accounts, validIntegrationAccountIds],
   );
 
   const stage: Stage = useMemo(() => {

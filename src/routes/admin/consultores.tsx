@@ -21,6 +21,7 @@ type Assignment = {
   id: string;
   consultant_id: string;
   company_id: string;
+  company_display_name: string;
   role: "lead" | "support";
   active: boolean;
 };
@@ -45,7 +46,7 @@ function AdminConsultores() {
     setError(null);
     const [consultantsResult, assignmentsResult, companiesResult] = await Promise.all([
       supabase.from("ac360_consultants").select("id,user_id,display_name,email,status,capacity").order("display_name"),
-      supabase.from("ac360_consultant_assignments").select("id,consultant_id,company_id,role,active").eq("active", true),
+      supabase.from("ac360_consultant_assignments").select("id,consultant_id,company_id,company_display_name,role,active").eq("active", true),
       supabase.from("companies").select("id,name").order("name"),
     ]);
     if (consultantsResult.error || assignmentsResult.error || companiesResult.error) {
@@ -101,6 +102,7 @@ function AdminConsultores() {
     const { error: insertError } = await supabase.from("ac360_consultant_assignments").insert({
       consultant_id: consultantId,
       company_id: companyId,
+      company_display_name: companies.find((c) => c.id === companyId)?.name ?? "",
       role: "lead",
     });
     if (insertError) setError(insertError.message);
@@ -179,7 +181,7 @@ function AdminConsultores() {
               return <div key={c.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
                 <div><p className="font-semibold text-slate-900">{c.display_name}</p><p className="text-xs text-slate-500">{c.email || "Sem e-mail cadastrado"} · {c.status === "active" ? "Ativo" : "Inativo"}</p></div>
                 <div className="text-right"><p className="text-sm font-semibold">{assigned.length} / {c.capacity} empresas</p>
-                <p className="text-xs text-slate-500">{assigned.map((a) => companies.find((x) => x.id === a.company_id)?.name ?? a.company_id).join(", ") || "Sem empresas atribuídas"}</p></div>
+                <p className="text-xs text-slate-500">{assigned.map((a) => a.company_display_name).join(", ") || "Sem empresas atribuídas"}</p></div>
               </div>;
             })}
           </div>}

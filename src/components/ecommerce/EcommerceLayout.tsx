@@ -248,7 +248,13 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [signingOut, setSigningOut] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { activeAccountId, activeAccount } = useEcommerceActiveAccount();
+  const {
+    companyId,
+    accounts,
+    loading: accountsLoading,
+    activeAccountId,
+    activeAccount,
+  } = useEcommerceActiveAccount();
 
   const handleSignOut = useCallback(async () => {
     if (signingOut) return;
@@ -270,6 +276,33 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
   const [healthStatus, setHealthStatus] = useState<
     "healthy" | "attention" | "error" | "loading"
   >("loading");
+
+  useEffect(() => {
+    if (accountsLoading) return;
+
+    const connectedAccounts = accounts.filter((account) => {
+      const status = (account.auth_status ?? "").toLowerCase();
+      return (
+        status === "connected" ||
+        status === "authorized" ||
+        Boolean(account.ml_user_id) ||
+        Boolean(account.last_sync_at)
+      );
+    });
+
+    const hasCompletedInitialSync = connectedAccounts.some(
+      (account) => Boolean(account.last_sync_at),
+    );
+
+    if (
+      !companyId ||
+      accounts.length === 0 ||
+      connectedAccounts.length === 0 ||
+      !hasCompletedInitialSync
+    ) {
+      navigate({ to: "/ecommerce/onboarding" });
+    }
+  }, [accountsLoading, companyId, accounts, navigate]);
 
   useEffect(() => {
     setToday(
@@ -295,6 +328,11 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function loadHealth() {
+      if (!companyId) {
+        setHealthStatus("attention");
+        return;
+      }
+
       let query = supabase
         .from("ecommerce_marketplace_sync_state")
         .select("status,next_due_at")
@@ -343,10 +381,10 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
       window.removeEventListener("ac360-marketplace-synced", handler);
       window.removeEventListener("ac360-mercadolivre-auth-changed", handler);
     };
-  }, [activeAccountId]);
+  }, [companyId, activeAccountId]);
 
   useEffect(() => {
-    if (!activeAccountId || !activeAccount) return;
+    if (!companyId || !activeAccountId || !activeAccount) return;
     if (activeAccount.marketplace !== "mercado_livre") return;
 
     void Promise.allSettled([
@@ -368,17 +406,24 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
         }
       }
     });
-  }, [activeAccountId, activeAccount]);
+  }, [companyId, activeAccountId, activeAccount]);
 
   const handleRefresh = useCallback(async () => {
     if (isUpdating) return;
+    if (!companyId) {
+      toast.error("Empresa não identificada para a sincronização.");
+      return;
+    }
     if (!activeAccountId) {
       toast.error("Selecione uma conta Mercado Livre para sincronizar.");
       return;
     }
     setIsUpdating(true);
     try {
-      const result = await runSmartAccountSync(activeAccountId, { days: 1 });
+      const result = await runSmartAccountSync(activeAccountId, {
+        days: 1,
+        companyId,
+      });
       console.log("Resposta sync-account-smart:", result.raw);
       setLastUpdate(new Date().toISOString());
       window.dispatchEvent(new CustomEvent("mercadolivre-products-synced"));
@@ -394,7 +439,7 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
     } finally {
       setIsUpdating(false);
     }
-  }, [isUpdating, activeAccountId, activeAccount]);
+  }, [isUpdating, companyId, activeAccountId, activeAccount]);
 
   return (
     <div className="flex min-h-screen bg-background">

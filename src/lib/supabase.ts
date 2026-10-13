@@ -32,20 +32,29 @@ export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKe
 // Tratamento global de sessão expirada (JWT expired)
 // ---------------------------------------------------------------------------
 // Rotas públicas onde NÃO devemos redirecionar para /login automaticamente.
-const PUBLIC_PATHS = new Set<string>(["/", "/login", "/landing"]);
+const PUBLIC_PATHS = new Set<string>([
+  "/",
+  "/login",
+  "/landing",
+  "/accept-invite",
+  "/ecommerce/login",
+  "/ecommerce/recuperar-senha",
+  "/ecommerce/redefinir-senha",
+]);
 
 function isPublicPath(pathname: string): boolean {
-  if (PUBLIC_PATHS.has(pathname)) return true;
-  return false;
+  return PUBLIC_PATHS.has(pathname);
 }
 
 function redirectToLogin() {
   if (typeof window === "undefined") return;
   const path = window.location.pathname;
   if (isPublicPath(path)) return;
-  // Evita loop se já está navegando para /login
-  if (path === "/login") return;
-  window.location.replace("/login");
+
+  // Keep E-commerce users inside the E-commerce authentication flow.
+  const loginPath = path.startsWith("/ecommerce/") ? "/ecommerce/login" : "/login";
+  if (path === loginPath) return;
+  window.location.replace(loginPath);
 }
 
 function isJwtExpiredError(err: unknown): boolean {

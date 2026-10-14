@@ -1,9 +1,7 @@
+import { getAc360ApiUrl } from "@/lib/ac360-api";
 // Shared client for the Mercado Livre "sync-account-smart" endpoint.
 // POST { company_id, account_id, days } and returns a normalized result.
 import { supabase } from "@/lib/supabase";
-
-const SMART_SYNC_ENDPOINT =
-  "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/sync-account-smart";
 
 export type SmartSyncResult = {
   orders_found: number;
@@ -49,7 +47,7 @@ export async function runSmartAccountSync(
     throw new Error("Sessão não encontrada. Entre novamente no sistema.");
   }
 
-  const res = await fetch(SMART_SYNC_ENDPOINT, {
+  const res = await fetch(`${getAc360ApiUrl()}/api/mercadolivre/sync-account-smart`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

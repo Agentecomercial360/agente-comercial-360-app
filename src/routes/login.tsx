@@ -3,11 +3,9 @@ import { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, ShieldCheck } from "lucide-react";
 import { MessageCircle, Users, Sparkles } from "lucide-react";
 import acLogo from "@/assets/ac-logo.png";
-import loginHeroAsset from "@/assets/login-hero-v2.jpg.asset.json";
 import { supabase } from "@/lib/supabase";
 import { consumeAuthMessage } from "@/lib/use-module-guard";
 
-const loginHero = loginHeroAsset.url;
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
@@ -45,6 +43,30 @@ function LoginPage() {
         setErrorMsg(
           "E-mail ou senha inválidos. Verifique os dados e tente novamente."
         );
+        setLoading(false);
+        return;
+      }
+
+      // Isolated consulting preview uses its own roles, not the CRM entitlement.
+      if (import.meta.env.VITE_AC360_EXPECTED_SUPABASE_PROJECT_REF === "iiegcdekryjyrkxpxcmr") {
+        const { data: admin, error: adminError } = await supabase
+          .from("platform_admins").select("user_id")
+          .eq("user_id", signInData.user.id).eq("is_active", true).maybeSingle();
+        if (adminError) throw adminError;
+        if (admin) {
+          navigate({ to: "/admin/consultores" });
+          return;
+        }
+        const { data: consultant, error: consultantError } = await supabase
+          .from("ac360_consultants").select("id")
+          .eq("user_id", signInData.user.id).eq("status", "active").maybeSingle();
+        if (consultantError) throw consultantError;
+        if (consultant) {
+          navigate({ to: "/consultoria/carteira" });
+          return;
+        }
+        await supabase.auth.signOut();
+        setErrorMsg("Usuário sem acesso à homologação de consultoria.");
         setLoading(false);
         return;
       }
@@ -202,14 +224,7 @@ function LoginPage() {
           className="relative hidden overflow-hidden lg:block"
           style={{ background: "var(--gradient-brand)" }}
         >
-          <img
-            src={loginHero}
-            alt=""
-            aria-hidden
-            className="absolute inset-0 h-full w-full object-cover object-center opacity-40"
-            loading="eager"
-            decoding="async"
-          />
+          {/* Gradient background replaces an unavailable remote hero image. */}
           <div
             aria-hidden
             className="absolute inset-0"

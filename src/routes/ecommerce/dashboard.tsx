@@ -223,6 +223,11 @@ function DashboardContent() {
   useEffect(() => {
     let cancelled = false;
     async function load() {
+      if (!companyId) {
+        setOrders([]);
+        setLoading(false);
+        return;
+      }
       if (scope === "active" && !selectedAccountId) {
         setOrders([]);
         setLoading(false);
@@ -260,10 +265,14 @@ function DashboardContent() {
     return () => {
       cancelled = true;
     };
-  }, [period, scope, selectedAccountId, range.sinceISO, range.untilISO]);
+  }, [companyId, period, scope, selectedAccountId, range.sinceISO, range.untilISO]);
 
   // Fetch latest sync run for the selected account (or the most recent overall)
   const loadLatestRun = useCallback(async () => {
+    if (!companyId) {
+      setLatestRun(null);
+      return;
+    }
     try {
       let q = supabase
         .from("ecommerce_sync_runs")
@@ -281,7 +290,7 @@ function DashboardContent() {
     } catch {
       // silent
     }
-  }, [scope, selectedAccountId]);
+  }, [companyId, scope, selectedAccountId]);
 
   useEffect(() => {
     void loadLatestRun();

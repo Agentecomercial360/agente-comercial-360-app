@@ -26,6 +26,8 @@ import {
   HeartPulse,
   AlertTriangle,
   ShieldCheck,
+  MessageSquare,
+  LayoutGrid,
 
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
@@ -78,6 +80,8 @@ const navGroups = [
   {
     title: "Inteligência",
     items: [
+      { label: "Feed Inteligente", to: "/ecommerce/feed-inteligente", icon: LayoutGrid },
+      { label: "Studio de Imagens IA", to: "/ecommerce/chat-consultivo-ia", icon: MessageSquare },
       { label: "Saúde da Inteligência", to: "/ecommerce/saude-inteligencia", icon: HeartPulse },
       { label: "Diagnóstico Inteligente", to: "/ecommerce/radar-ia", icon: Radar },
       { label: "Assistente Estratégico", to: "/ecommerce/consultor-ia", icon: BrainCircuit },

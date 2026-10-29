@@ -280,26 +280,9 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (accountsLoading) return;
 
-    const connectedAccounts = accounts.filter((account) => {
-      const status = (account.auth_status ?? "").toLowerCase();
-      return (
-        status === "connected" ||
-        status === "authorized" ||
-        Boolean(account.ml_user_id) ||
-        Boolean(account.last_sync_at)
-      );
-    });
-
-    const hasCompletedInitialSync = connectedAccounts.some(
-      (account) => Boolean(account.last_sync_at),
-    );
-
-    if (
-      !companyId ||
-      accounts.length === 0 ||
-      connectedAccounts.length === 0 ||
-      !hasCompletedInitialSync
-    ) {
+    // Existing multi-account companies must be able to manage pending OAuth accounts.
+    // Only require onboarding when there is no company or no registered accounts.
+    if (!companyId || accounts.length === 0) {
       navigate({ to: "/ecommerce/onboarding" });
     }
   }, [accountsLoading, companyId, accounts, navigate]);
@@ -386,6 +369,7 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!companyId || !activeAccountId || !activeAccount) return;
     if (activeAccount.marketplace !== "mercado_livre") return;
+    if (activeAccount.auth_status !== "connected") return;
 
     void Promise.allSettled([
       autoSyncMarketplaceIntelligence({

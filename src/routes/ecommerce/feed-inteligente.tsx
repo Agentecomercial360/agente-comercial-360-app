@@ -37,6 +37,7 @@ import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   getIntelligentFeedPreview,
+  loadStagingHistoryFeed,
   IntelligentFeedError,
   type FeedItem,
   type FeedStatusKey,
@@ -1041,7 +1042,7 @@ function PriorityStrip({ entries }: { entries: PriorityEntry[] }) {
 }
 
 function FeedInteligente() {
-  const { companyId, activeAccountId, loading: accountsLoading } = useEcommerceActiveAccount();
+  const { companyId, activeAccountId, isActiveConnected, loading: accountsLoading } = useEcommerceActiveAccount();
   const [data, setData] = useState<IntelligentFeedPreview | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorKind, setErrorKind] = useState<"auth" | "unavailable" | null>(null);
@@ -1064,12 +1065,19 @@ function FeedInteligente() {
     setErrorKind(null);
     try {
       // SOMENTE LEITURA: apenas GET /intelligent-feed/preview.
-      const preview = await getIntelligentFeedPreview({
-        companyId,
-        accountId: activeAccountId,
-        limit: FEED_FETCH_LIMIT,
-        signal: controller.signal,
-      });
+      const preview = isActiveConnected
+        ? await getIntelligentFeedPreview({
+            companyId,
+            accountId: activeAccountId,
+            limit: FEED_FETCH_LIMIT,
+            signal: controller.signal,
+          })
+        : await loadStagingHistoryFeed(
+            companyId,
+            activeAccountId,
+            FEED_FETCH_LIMIT,
+            controller.signal,
+          );
       if (controller.signal.aborted) return;
       setData(preview);
     } catch (error) {
@@ -1086,7 +1094,7 @@ function FeedInteligente() {
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
-  }, [companyId, activeAccountId, accountsLoading]);
+  }, [companyId, activeAccountId, isActiveConnected, accountsLoading]);
 
   useEffect(() => {
     void load();

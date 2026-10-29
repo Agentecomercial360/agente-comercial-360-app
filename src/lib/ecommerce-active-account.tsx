@@ -41,7 +41,6 @@ export function isAccountConnected(a: EcommerceAccount | null | undefined): bool
   if (!a) return false;
   const s = (a.auth_status ?? "").toLowerCase();
   if (CONNECTED_VALUES.has(s)) return true;
-  if (a.is_active && (a.ml_user_id || a.last_sync_at)) return true;
   return false;
 }
 

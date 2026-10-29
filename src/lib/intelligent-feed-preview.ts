@@ -1,4 +1,5 @@
 import { createAc360ApiUrl, getAc360AccessToken } from "@/lib/ac360-api";
+import { supabase } from "@/lib/supabase";
 
 /**
  * Feed Inteligente da Operação — camada de leitura.
@@ -9,7 +10,6 @@ import { createAc360ApiUrl, getAc360AccessToken } from "@/lib/ac360-api";
  * O token JWT nunca é logado nem exposto.
  */
 
-const DEFAULT_API_BASE_URL = "https://ac360-mercadolivre-api-production.up.railway.app";
 
 export type FeedStatusKey =
   | "critical"
@@ -349,6 +349,84 @@ export function normalizeIntelligentFeedPreview(payload: unknown): IntelligentFe
   };
 }
 
+/**
+ * Contingency for a staging backend that has not yet been upgraded to the
+ * historic import schema. Queries remain within the current authenticated
+ * tenant RLS, never access another company or call the marketplace.
+ */
+async function loadStagingHistoryFeed(
+  companyId: string,
+  accountId: string,
+  limit: number,
+  signal?: AbortSignal,
+): Promise<IntelligentFeedPreview> {
+  const safeLimit = Math.max(1, Math.min(Number(limit) || 20, 100));
+  const [listingsResult, ordersResult] = await Promise.all([
+    supabase.from("ecommerce_listings")
+      .select("id,product_id,ml_item_id,title,status,price,external_sku,updated_at", { count: "exact" })
+      .eq("company_id", companyId)
+      .eq("account_id", accountId)
+      .order("updated_at", { ascending: false })
+      .range(0, 999)
+      .abortSignal(signal ?? new AbortController().signal),
+    supabase.from("ecommerce_orders")
+      .select("id,total_amount", { count: "exact" })
+      .eq("company_id", companyId)
+      .eq("account_id", accountId)
+      .range(0, 999)
+      .abortSignal(signal ?? new AbortController().signal),
+  ]);
+  if (listingsResult.error || ordersResult.error) {
+    throw new IntelligentFeedError(
+      "A leitura dos dados históricos da conta não pôde ser concluída.",
+      "unavailable",
+    );
+  }
+  const listings = listingsResult.data ?? [];
+  const orders = ordersResult.data ?? [];
+  const linkedProducts = new Set(listings.map((listing) => listing.product_id).filter(Boolean));
+  const revenue = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
+  const raw = {
+    mode: "historical_database_read_only",
+    period_label: "Histórico importado — sem atualização em tempo real",
+    write_allowed: false,
+    write_executed: false,
+    external_marketplace_called: false,
+    external_ai_called: false,
+    summary: {
+      listings_checked: listingsResult.count ?? listings.length,
+      orders_checked: ordersResult.count ?? orders.length,
+      products_checked: linkedProducts.size,
+      revenue_available: orders.length > 0,
+      feed_items_returned: Math.min(safeLimit, listings.length),
+      items_with_image: 0,
+      costs_pending: true,
+    },
+    items: listings.slice(0, safeLimit).map((listing) => ({
+      id: listing.id,
+      listing_id: listing.ml_item_id || listing.id,
+      title: listing.title,
+      sku: listing.external_sku,
+      status: "neutral",
+      status_label: listing.status === "active" ? "Anúncio ativo" : (listing.status || "Estado histórico"),
+      metrics: { revenue: null, sales: null, visits: null, cost: null, ads: null },
+      diagnostic: null,
+      recommended_action: null,
+      image_url: null,
+      has_image: false,
+      badges: ["Histórico importado"],
+    })),
+    filters: [],
+    warnings: [
+      "Visualização histórica de contingência: os anúncios não foram atualizados pelo Mercado Livre.",
+      "Sem CMV confirmado; não calcular lucro real ou desempenho por anúncio a partir desta leitura.",
+      "Receita total histórica no banco: R$ " + revenue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ".",
+    ],
+    recommendations: [],
+  };
+  return normalizeIntelligentFeedPreview(raw);
+}
+
 export async function getIntelligentFeedPreview({
   companyId,
   accountId,
@@ -390,10 +468,7 @@ export async function getIntelligentFeedPreview({
     if (requestError instanceof DOMException && requestError.name === "AbortError") {
       throw requestError;
     }
-    throw new IntelligentFeedError(
-      "Não foi possível carregar o Feed Inteligente agora. Tente novamente em instantes.",
-      "unavailable",
-    );
+    return loadStagingHistoryFeed(companyId, accountId, limit, signal);
   }
 
   const text = await response.text();
@@ -412,12 +487,11 @@ export async function getIntelligentFeedPreview({
         response.status,
       );
     }
-    throw new IntelligentFeedError(
-      "Não foi possível carregar o Feed Inteligente agora. Tente novamente em instantes.",
-      "unavailable",
-      response.status,
-    );
+    return loadStagingHistoryFeed(companyId, accountId, limit, signal);
   }
 
+  if ((payload as { success?: boolean } | null)?.success === false) {
+    return loadStagingHistoryFeed(companyId, accountId, limit, signal);
+  }
   return normalizeIntelligentFeedPreview(payload);
 }

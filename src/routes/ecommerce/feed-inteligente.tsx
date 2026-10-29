@@ -77,7 +77,7 @@ const FEED_DISPLAY_LIMIT = 20;
 const HEADER_BADGES = [
   { label: "Somente leitura", icon: Lock },
   { label: "Sem ações automáticas", icon: ShieldCheck },
-  { label: "Dados reais conectados", icon: Database },
+  { label: "Dados históricos do banco", icon: Database },
   { label: "IA externa não chamada", icon: BrainCircuit },
 ];
 

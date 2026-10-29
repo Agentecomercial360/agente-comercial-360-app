@@ -480,12 +480,13 @@ export async function getIntelligentFeedPreview({
   }
 
   if (!response.ok) {
-    if (response.status === 401 || response.status === 403) {
-      throw new IntelligentFeedError(
-        "Sessão expirada ou sem permissão. Faça login novamente.",
-        response.status === 401 ? "unauthenticated" : "forbidden",
-        response.status,
-      );
+    if (response.status === 401) {
+      throw new IntelligentFeedError("Sessão expirada. Faça login novamente.", "unauthenticated", 401);
+    }
+    // Older preview API restricts access to its original pilot. The fallback
+    // is protected by Supabase RLS and can safely serve the current tenant.
+    if (response.status === 403) {
+      return loadStagingHistoryFeed(companyId, accountId, limit, signal);
     }
     return loadStagingHistoryFeed(companyId, accountId, limit, signal);
   }

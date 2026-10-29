@@ -406,6 +406,10 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
       toast.error("Selecione uma conta Mercado Livre para sincronizar.");
       return;
     }
+    if (activeAccount?.auth_status !== "connected") {
+      toast.error("Esta conta aguarda reautorização do Mercado Livre. A sincronização não foi iniciada.");
+      return;
+    }
     setIsUpdating(true);
     try {
       const result = await runSmartAccountSync(activeAccountId, {

@@ -354,7 +354,7 @@ export function normalizeIntelligentFeedPreview(payload: unknown): IntelligentFe
  * historic import schema. Queries remain within the current authenticated
  * tenant RLS, never access another company or call the marketplace.
  */
-async function loadStagingHistoryFeed(
+export async function loadStagingHistoryFeed(
   companyId: string,
   accountId: string,
   limit: number,

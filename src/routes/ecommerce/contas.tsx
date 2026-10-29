@@ -73,17 +73,10 @@ const CONNECTED_VALUES = new Set([
 ]);
 
 function isConnected(account: AccountRow, integration?: IntegrationRow): boolean {
-  const a = (account.auth_status ?? "").toLowerCase();
-  const i = (integration?.integration_status ?? "").toLowerCase();
-  if (CONNECTED_VALUES.has(a) || CONNECTED_VALUES.has(i)) return true;
-  // Fallback: linked integration with a successful sync record
-  if (integration && (integration.last_sync_at || integration.external_user_id)) {
-    return true;
-  }
-  if (account.is_active && (account.ml_user_id || account.last_sync_at)) {
-    return true;
-  }
-  return false;
+  const accountStatus = (account.auth_status ?? "").toLowerCase();
+  const integrationStatus = (integration?.integration_status ?? "").toLowerCase();
+  // Historical marketplace IDs and previous sync dates alone are not OAuth authorization.
+  return CONNECTED_VALUES.has(accountStatus) && CONNECTED_VALUES.has(integrationStatus);
 }
 
 function formatDateTime(iso: string | null): string {

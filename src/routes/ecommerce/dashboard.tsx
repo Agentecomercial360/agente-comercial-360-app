@@ -406,7 +406,7 @@ function DashboardContent() {
   const hasRun = !!latestRun;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-5">
       {/* Identidade AC360: cabeçalho consultivo do módulo piloto */}
       <header className="flex flex-col gap-4 rounded-[24px] border border-slate-200/70 bg-white px-5 py-5 shadow-[0_16px_40px_-34px_rgba(7,27,69,0.4)] sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -486,11 +486,6 @@ function DashboardContent() {
         </SegmentedGroup>
       </section>
 
-      <MarketplaceSyncHealth
-        companyId={companyId}
-        accountId={scope === "active" ? selectedAccountId : null}
-      />
-
       {errorMsg && (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {errorMsg}
@@ -505,6 +500,24 @@ function DashboardContent() {
           </div>
         </div>
       )}
+
+      {/* KPIs compactos inspirados em dashboards SaaS: primeiro uma leitura imediata. */}
+      <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {[
+          { label: "Faturamento bruto", value: brl.format(totals.gross), color: "bg-[#0F9D92]", icon: "R$" },
+          { label: "Pedidos no período", value: num.format(totals.count), color: "bg-[#0A2F65]", icon: "#" },
+          { label: "Ticket médio", value: brl.format(totals.ticket), color: "bg-[#2563EB]", icon: "↗" },
+          { label: "Pedidos sem CMV", value: num.format(totals.pending), color: "bg-[#F97316]", icon: "!" },
+        ].map((kpi) => (
+          <div key={kpi.label} className="flex min-w-0 items-center gap-3 rounded-[20px] border border-slate-200/80 bg-white px-4 py-4 shadow-[0_10px_28px_-22px_rgba(7,27,69,.55)]">
+            <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-sm font-bold text-white ${kpi.color}`}>{kpi.icon}</span>
+            <div className="min-w-0">
+              <p className="truncate text-[11px] font-medium text-slate-500">{kpi.label}</p>
+              <p className="mt-0.5 truncate text-lg font-extrabold tabular-nums tracking-tight text-[#071B3D]">{loading ? "—" : kpi.value}</p>
+            </div>
+          </div>
+        ))}
+      </section>
 
       {/* Hero executivo premium */}
       <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#071B45] via-[#0B3B8E] to-[#1E5EFF] p-5 shadow-[0_30px_70px_-42px_rgba(7,27,69,.9)] sm:p-6">
@@ -588,14 +601,6 @@ function DashboardContent() {
       </section>
 
       
-      {/* Indicadores complementares ao painel executivo restaurado */}
-      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Metric label="Taxas Mercado Livre" value={brl.format(totals.fees)} loading={loading} />
-        <Metric label="Frete vendedor" value={brl.format(totals.shipping)} loading={loading} />
-        <Metric label="Pedidos sem CMV" value={num.format(totals.pending)} loading={loading} tone={totals.pending > 0 ? "warn" : "muted"} />
-        <Metric label="Pedidos com lucro confiável" value={num.format(totals.high)} loading={loading} tone={totals.high > 0 ? "default" : "muted"} />
-      </section>
-
       {/* Leitura consultiva baseada exclusivamente nos indicadores calculados no período. */}
       <section className="overflow-hidden rounded-[24px] border border-blue-100 bg-gradient-to-r from-[#F5FAFF] to-white p-5 shadow-sm sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -625,6 +630,21 @@ function DashboardContent() {
           </div>
         </div>
       </section>
+
+      {/* Monitorização técnica fora da abertura comercial; continua disponível para auditoria. */}
+      <details className="group rounded-[22px] border border-slate-200 bg-white shadow-sm">
+        <summary className="flex cursor-pointer items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-[#071B3D] marker:content-none">
+          <span className="flex items-center gap-2"><BarChart3 className="h-4 w-4 text-[#0F9D92]" /> Saúde da Inteligência · Monitorização técnica</span>
+          <span className="text-xs font-medium text-slate-500 group-open:hidden">Expandir detalhes</span>
+          <span className="hidden text-xs font-medium text-slate-500 group-open:inline">Ocultar detalhes</span>
+        </summary>
+        <div className="border-t border-slate-100 p-3">
+          <MarketplaceSyncHealth
+            companyId={companyId}
+            accountId={scope === "active" ? selectedAccountId : null}
+          />
+        </div>
+      </details>
 
       {/* Comparativo por conta */}
       <section className="rounded-xl border border-border bg-card overflow-hidden">

@@ -56,6 +56,8 @@ export type FeedSummary = {
   feedItemsReturned: number | null;
   itemsWithImage: number | null;
   costsPending: boolean | null;
+  approvedGrossHistory?: number | null;
+  approvedOrdersHistory?: number | null;
 };
 
 export type FeedFilter = {
@@ -339,6 +341,8 @@ export function normalizeIntelligentFeedPreview(payload: unknown): IntelligentFe
         pick(summaryRecord, ["items_with_image", "with_image", "images_available"]),
       ),
       costsPending: toBool(pick(summaryRecord, ["costs_pending"])),
+      approvedGrossHistory: toNumber(pick(summaryRecord, ["approved_gross_history"])),
+      approvedOrdersHistory: toNumber(pick(summaryRecord, ["approved_orders_history"])),
     },
     items,
     filters,
@@ -378,6 +382,19 @@ export async function loadStagingHistoryFeed(
     );
   }
   const listings = listingsData ?? [];
+  // Aggregated in the database under the signed-in user's RLS policies.
+  // Only approved, paid, non-cancelled orders are included in this view.
+  const { data: approvedRows, error: approvedError } = await supabase
+    .from("ecommerce_listing_historical_sales_v1")
+    .select("listing_id,approved_orders,approved_units,approved_item_gross_revenue")
+    .eq("company_id", companyId)
+    .eq("account_id", accountId)
+    .limit(1000);
+  // Preserve the catalogue even if the financial view is temporarily unavailable.
+  const approved = approvedError ? [] : (approvedRows ?? []);
+  const approvedByListing = new Map(approved.map((entry) => [entry.listing_id, entry]));
+  const approvedOrderTotal = approved.reduce((sum, row) => sum + (Number(row.approved_orders) || 0), 0);
+  const approvedGrossTotal = approved.reduce((sum, row) => sum + (Number(row.approved_item_gross_revenue) || 0), 0);
   const linkedProducts = new Set(listings.map((listing) => listing.product_id).filter(Boolean));
   // In the historical feed, prioritize cards with preserved images without
   // presenting this order as a business priority or live performance ranking.
@@ -393,9 +410,11 @@ export async function loadStagingHistoryFeed(
     external_ai_called: false,
     summary: {
       listings_checked: listingsCount ?? listings.length,
-      orders_checked: null,
+      orders_checked: approvedError ? null : approvedOrderTotal,
+      approved_orders_history: approvedError ? null : approvedOrderTotal,
+      approved_gross_history: approvedError ? null : approvedGrossTotal,
       products_checked: linkedProducts.size,
-      revenue_available: false,
+      revenue_available: !approvedError && approved.length > 0,
       feed_items_returned: Math.min(safeLimit, listings.length),
       items_with_image: listings.filter((item) => Boolean(item.image_url || item.thumbnail_url)).length,
       costs_pending: true,
@@ -407,18 +426,20 @@ export async function loadStagingHistoryFeed(
       sku: listing.external_sku,
       status: "neutral",
       status_label: listing.status === "active" ? "Anúncio ativo" : (listing.status || "Estado histórico"),
-      metrics: { revenue: null, sales: null, visits: null, cost: null, ads: null },
+      metrics: { revenue: approvedByListing.has(listing.id) ? Number(approvedByListing.get(listing.id)?.approved_item_gross_revenue) : null,
+        sales: approvedByListing.has(listing.id) ? Number(approvedByListing.get(listing.id)?.approved_orders) : null,
+        visits: null, cost: null, ads: null },
       diagnostic: null,
       recommended_action: null,
       image_url: listing.image_url || listing.thumbnail_url || null,
       has_image: Boolean(listing.image_url || listing.thumbnail_url),
-      badges: ["Histórico importado"],
+      badges: approvedByListing.has(listing.id) ? ["Pedidos aprovados no histórico", "Receita bruta"] : ["Histórico importado"],
     })),
     filters: [],
     warnings: [
       "Visualização histórica de contingência: os anúncios não foram atualizados pelo Mercado Livre.",
       "Sem CMV confirmado; não calcular lucro real ou desempenho por anúncio a partir desta leitura.",
-      "Receita indisponível nesta visualização; consulte Custos e Margem para o histórico financeiro.",
+      approvedError ? "Vínculos financeiros indisponíveis nesta leitura." : "Valores brutos de itens aprovados: não representam lucro líquido, nem incluem todos os pedidos ou devoluções.",
     ],
     recommendations: [],
   };

@@ -361,31 +361,24 @@ export async function loadStagingHistoryFeed(
   signal?: AbortSignal,
 ): Promise<IntelligentFeedPreview> {
   const safeLimit = Math.max(1, Math.min(Number(limit) || 20, 100));
-  const [listingsResult, ordersResult] = await Promise.all([
-    supabase.from("ecommerce_listings")
+  // Use the same single-table source as Produtos e Anúncios. A missing
+  // orders endpoint must not prevent displaying already imported listings.
+  const { data: listingsData, count: listingsCount, error: listingsError } =
+    await supabase.from("ecommerce_listings")
       .select("id,product_id,ml_item_id,title,status,price,external_sku,updated_at", { count: "exact" })
       .eq("company_id", companyId)
       .eq("account_id", accountId)
       .order("updated_at", { ascending: false })
-      .range(0, 999)
-      .abortSignal(signal ?? new AbortController().signal),
-    supabase.from("ecommerce_orders")
-      .select("id,total_amount", { count: "exact" })
-      .eq("company_id", companyId)
-      .eq("account_id", accountId)
-      .range(0, 999)
-      .abortSignal(signal ?? new AbortController().signal),
-  ]);
-  if (listingsResult.error || ordersResult.error) {
+      .limit(1000);
+  if (listingsError) {
     throw new IntelligentFeedError(
-      "A leitura dos dados históricos da conta não pôde ser concluída.",
+      "Falha ao ler anúncios históricos: " + listingsError.message,
       "unavailable",
+      listingsError.code ? 400 : null,
     );
   }
-  const listings = listingsResult.data ?? [];
-  const orders = ordersResult.data ?? [];
+  const listings = listingsData ?? [];
   const linkedProducts = new Set(listings.map((listing) => listing.product_id).filter(Boolean));
-  const revenue = orders.reduce((sum, order) => sum + (Number(order.total_amount) || 0), 0);
   const raw = {
     mode: "historical_database_read_only",
     period_label: "Histórico importado — sem atualização em tempo real",
@@ -394,10 +387,10 @@ export async function loadStagingHistoryFeed(
     external_marketplace_called: false,
     external_ai_called: false,
     summary: {
-      listings_checked: listingsResult.count ?? listings.length,
-      orders_checked: ordersResult.count ?? orders.length,
+      listings_checked: listingsCount ?? listings.length,
+      orders_checked: null,
       products_checked: linkedProducts.size,
-      revenue_available: orders.length > 0,
+      revenue_available: false,
       feed_items_returned: Math.min(safeLimit, listings.length),
       items_with_image: 0,
       costs_pending: true,
@@ -420,7 +413,7 @@ export async function loadStagingHistoryFeed(
     warnings: [
       "Visualização histórica de contingência: os anúncios não foram atualizados pelo Mercado Livre.",
       "Sem CMV confirmado; não calcular lucro real ou desempenho por anúncio a partir desta leitura.",
-      "Receita total histórica no banco: R$ " + revenue.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ".",
+      "Receita indisponível nesta visualização; consulte Custos e Margem para o histórico financeiro.",
     ],
     recommendations: [],
   };

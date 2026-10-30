@@ -499,6 +499,88 @@ function DashboardContent() {
         </div>
       )}
 
+      {/* Hero executivo premium */}
+      <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#071B45] via-[#0B3B8E] to-[#1E5EFF] p-5 shadow-[0_30px_70px_-42px_rgba(7,27,69,.9)] sm:p-6">
+        <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/[0.10] blur-2xl" />
+        <div aria-hidden className="pointer-events-none absolute bottom-[-90px] left-[22%] h-56 w-56 rounded-full bg-cyan-300/[0.10] blur-3xl" />
+
+        <div className="relative grid gap-5 lg:grid-cols-[0.88fr_1.12fr] lg:items-stretch">
+          <div className="flex min-w-0 flex-col justify-between rounded-[22px] border border-white/[0.10] bg-white/[0.04] p-5 backdrop-blur-sm">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.07] px-3 py-1.5 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-white/70">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#F5C842]" />
+                Resumo executivo · {PERIODS.find((p) => p.key === period)?.label}
+              </div>
+
+              <p className="mt-7 text-[11px] font-medium uppercase tracking-[0.14em] text-white/50">
+                Faturamento bruto
+              </p>
+              {loading ? (
+                <Skeleton className="mt-3 h-12 w-52 bg-white/15" />
+              ) : (
+                <div className="mt-2 font-display text-[42px] font-bold tracking-[-0.045em] text-white sm:text-[50px]">
+                  {brl.format(totals.gross)}
+                </div>
+              )}
+              <p className="mt-2 max-w-sm text-[12px] leading-relaxed text-white/58">
+                Faturamento registrado no período e nas contas selecionadas. Verifique a data da última sincronização.
+              </p>
+            </div>
+
+            <div className="mt-8 grid grid-cols-3 gap-2">
+              {[
+                ["Pedidos", num.format(totals.count)],
+                ["Ticket", brl.format(totals.ticket)],
+                ["Resultado", brl.format(totals.netParcial)],
+              ].map(([label, value]) => (
+                <div
+                  key={label}
+                  className="min-w-0 rounded-2xl border border-white/[0.10] bg-white/[0.07] p-3 transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.10]"
+                >
+                  <p className="text-[8.5px] font-semibold uppercase tracking-[0.12em] text-white/42">
+                    {label}
+                  </p>
+                  <p className="mt-1.5 truncate text-[13px] font-semibold text-white" title={value}>
+                    {loading ? "—" : value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[22px] border border-white/70 bg-white p-4 shadow-[0_28px_60px_-36px_rgba(7,27,69,.65)] sm:p-5">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-400">
+                  Evolução
+                </p>
+                <h2 className="mt-1 text-sm font-semibold text-[#0A1F44]">Faturamento por dia</h2>
+              </div>
+              <span className="rounded-full bg-[#EEF4FF] px-2.5 py-1 text-[9.5px] font-semibold text-[#1E5EFF]">
+                {PERIODS.find((p) => p.key === period)?.label}
+              </span>
+            </div>
+
+            {loading ? (
+              <Skeleton className="h-[220px] w-full rounded-xl" />
+            ) : byDay.length === 0 || byDay.every((d) => d.gross === 0) ? (
+              <div className="flex h-[220px] items-center justify-center rounded-2xl bg-[#F7F9FC] text-center">
+                <div>
+                  <BarChart3 className="mx-auto h-5 w-5 text-slate-300" />
+                  <p className="mt-2 text-[11px] font-medium text-slate-500">Sem faturamento no período</p>
+                  <p className="mt-1 text-[10px] text-slate-400">O gráfico será preenchido após a sincronização de pedidos.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="-mx-2">
+                <RevenueByDayChart data={byDay} />
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      
       {/* Unified Metric Grid */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <Metric
@@ -536,28 +618,6 @@ function DashboardContent() {
           tone={totals.high > 0 ? "default" : "muted"}
         />
       </section>
-
-      {/* Chart */}
-      <section className="rounded-xl bg-card p-5 shadow-sm ring-1 ring-border/40">
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Faturamento por dia</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Soma diária de faturamento bruto no período selecionado.
-            </p>
-          </div>
-        </div>
-        {loading ? (
-          <Skeleton className="h-[260px] w-full rounded-lg" />
-        ) : byDay.length === 0 || byDay.every((d) => d.gross === 0) ? (
-          <div className="py-16 text-center text-sm text-muted-foreground">
-            Sem pedidos no período.
-          </div>
-        ) : (
-          <RevenueByDayChart data={byDay} />
-        )}
-      </section>
-
 
       {/* Comparativo por conta */}
       <section className="rounded-xl border border-border bg-card overflow-hidden">

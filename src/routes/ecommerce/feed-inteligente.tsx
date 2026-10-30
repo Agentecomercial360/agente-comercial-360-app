@@ -1333,40 +1333,82 @@ function FeedInteligenteContent() {
             {/* Coluna principal */}
             <div className="space-y-5">
               {!loading && !errorKind && data?.mode === "historical_database_read_only" && commercialLeaders.length > 0 && (
-                <Card className="rounded-[24px] border border-blue-100 bg-white p-5 shadow-sm">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <BarChart3 className="h-4 w-4 text-blue-600" />
-                        <h2 className="text-sm font-semibold text-[#0A1F44]">Destaques comerciais comprovados</h2>
+                <Card className="overflow-hidden rounded-[26px] border border-blue-100 bg-white p-0 shadow-[0_18px_42px_-28px_rgba(10,31,68,0.35)]">
+                  <div className="bg-gradient-to-r from-[#071A3D] via-[#12336E] to-[#1E5EFF] px-5 py-5 text-white sm:px-6">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2 text-blue-200">
+                          <BarChart3 className="h-4 w-4" />
+                          <span className="text-[10px] font-bold uppercase tracking-[0.16em]">Inteligência comercial · AC360</span>
+                        </div>
+                        <h2 className="mt-2 font-display text-xl font-bold tracking-tight">Destaques comerciais comprovados</h2>
+                        <p className="mt-1 text-xs text-blue-100">Top 5 por receita bruta histórica · Apenas {items.length} anúncios carregados</p>
                       </div>
-                      <p className="mt-1 text-xs text-slate-500">
-                        Maior receita bruta de itens entre os {items.length} anúncios carregados neste Feed
+                      <span className="rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white">Dados aprovados · Amostra</span>
+                    </div>
+                    <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-3">
+                      <div className="rounded-2xl border border-white/15 bg-white/10 p-3">
+                        <p className="text-[10px] text-blue-100">Receita bruta do Top 5</p>
+                        <p className="mt-1 text-lg font-bold tabular-nums">{formatCurrency(commercialLeaders.reduce((sum, item) => sum + (item.metrics.revenue ?? 0), 0))}</p>
+                      </div>
+                      <div className="rounded-2xl border border-white/15 bg-white/10 p-3">
+                        <p className="text-[10px] text-blue-100">Pedidos vinculados do Top 5</p>
+                        <p className="mt-1 text-lg font-bold tabular-nums">{formatCount(commercialLeaders.reduce((sum, item) => sum + (item.metrics.sales ?? 0), 0))}</p>
+                      </div>
+                      <div className="col-span-2 rounded-2xl border border-white/15 bg-white/10 p-3 sm:col-span-1">
+                        <p className="text-[10px] text-blue-100">Líder de receita da amostra</p>
+                        <p className="mt-1 truncate text-sm font-bold" title={commercialLeaders[0].title}>{commercialLeaders[0].title}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2 p-4 sm:p-5">
+                    {commercialLeaders.map((item, index) => {
+                      const leaderRevenue = commercialLeaders[0].metrics.revenue ?? 0;
+                      const relativeWidth = leaderRevenue > 0 ? Math.max(3, ((item.metrics.revenue ?? 0) / leaderRevenue) * 100) : 0;
+                      const medalStyles = [
+                        "bg-amber-100 text-amber-800 ring-amber-200",
+                        "bg-slate-200 text-slate-700 ring-slate-300",
+                        "bg-orange-100 text-orange-800 ring-orange-200",
+                      ];
+                      return (
+                        <div key={stableItemKey(item)} className={`flex items-center gap-3 rounded-2xl border p-3 transition-colors hover:bg-blue-50/40 ${index === 0 ? "border-amber-200 bg-amber-50/40" : "border-slate-100 bg-white"}`}>
+                          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-sm font-extrabold ring-1 ${medalStyles[index] ?? "bg-blue-50 text-blue-700 ring-blue-100"}`}>
+                            {index + 1}º
+                          </span>
+                          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-slate-100 bg-slate-50">
+                            {item.imageUrl ? (
+                              <img src={item.imageUrl} alt="" loading="lazy" className="h-full w-full object-contain" referrerPolicy="no-referrer" />
+                            ) : (
+                              <Package className="m-auto mt-3 h-5 w-5 text-slate-300" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-xs font-semibold text-[#0A1F44]" title={item.title}>{item.title}</p>
+                            <div className="mt-1 flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-slate-500">
+                              <span>{formatCount(item.metrics.sales)} pedidos aprovados</span>
+                              <span>· Receita bruta histórica</span>
+                            </div>
+                            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                              <div className={`h-full rounded-full ${index === 0 ? "bg-amber-400" : "bg-blue-500"}`} style={{ width: `${relativeWidth}%` }} />
+                            </div>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="text-[13px] font-extrabold tabular-nums text-[#0A1F44]">{formatCurrency(item.metrics.revenue)}</p>
+                            <span className="text-[10px] font-medium text-emerald-700">Confirmado</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <div className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+                      <p className="flex items-center gap-2 text-xs font-semibold text-[#0A2E9E]"><ShieldCheck className="h-4 w-4" /> Leitura do consultor</p>
+                      <p className="mt-1.5 text-xs leading-relaxed text-slate-600">
+                        Estes anúncios têm receita histórica atribuída a pedidos pagos e aprovados. Antes de priorizar investimento em Ads ou alterações de preço, valide CMV, frete, taxas e reembolsos para apurar a margem.
+                      </p>
+                      <p className="mt-2 text-[11px] text-slate-500">
+                        Classificação restrita à amostra carregada; não representa o ranking completo da operação nem comprova crescimento ou lucro.
                       </p>
                     </div>
-                    <span className="rounded-full bg-blue-50 px-3 py-1 text-[11px] font-medium text-blue-700">
-                      Histórico aprovado · Amostra
-                    </span>
                   </div>
-                  <div className="mt-4 divide-y divide-slate-100">
-                    {commercialLeaders.map((item, index) => (
-                      <div key={stableItemKey(item)} className="flex items-center gap-3 py-3">
-                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600">
-                          {index + 1}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[12px] font-semibold text-[#0A1F44]">{item.title}</p>
-                          <p className="text-[11px] text-slate-500">{formatCount(item.metrics.sales)} pedidos aprovados vinculados</p>
-                        </div>
-                        <span className="shrink-0 text-[13px] font-semibold tabular-nums text-[#0A1F44]">
-                          {formatCurrency(item.metrics.revenue)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="mt-2 text-[11px] leading-relaxed text-slate-500">
-                    Esta classificação não representa o catálogo inteiro, crescimento, margem ou lucro. Reembolsos e custos ainda precisam de conciliação.
-                  </p>
                 </Card>
               )}
 

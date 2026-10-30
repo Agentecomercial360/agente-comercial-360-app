@@ -314,7 +314,7 @@ function consultiveDiagnostic(item: FeedItem): string {
       ? `Este produto registrou ${parts.join(" e ")}, mas ainda não possui custo real cadastrado.`
       : "Este produto ainda não possui custo real cadastrado.";
   }
-  return item.diagnostic ?? "Sem diagnóstico disponível para este anúncio.";
+  return item.diagnostic ?? "Anúncio identificado no histórico. Ainda faltam métricas comerciais para avaliar seu desempenho.";
 }
 
 function consultiveAction(item: FeedItem): string {
@@ -324,7 +324,7 @@ function consultiveAction(item: FeedItem): string {
       ? `Cadastrar o custo real do SKU ${sku} antes de avaliar margem, lucro, preço ou expansão de Ads.`
       : "Cadastrar o custo real deste anúncio antes de avaliar margem, lucro, preço ou expansão de Ads.";
   }
-  return item.recommendedAction ?? "Nenhuma ação recomendada no momento.";
+  return item.recommendedAction ?? "Vincule vendas e custos confirmados para receber recomendações comerciais específicas.";
 }
 
 /** O que a ação libera. ROAS só é citado quando existem dados reais de Ads. */
@@ -1257,8 +1257,9 @@ function FeedInteligenteContent() {
             />
             <KpiCard
               icon={ShoppingCart}
-              label="Pedidos analisados"
-              value={loading ? "—" : formatCount(summary?.ordersChecked)}
+              label="Pedidos com análise no Feed"
+              value={loading ? "Carregando" : (summary?.ordersChecked == null ? "Aguardando dados" : formatCount(summary.ordersChecked))}
+              hint={summary?.ordersChecked == null ? "Histórico de pedidos não incluído nesta leitura" : undefined}
               accent="bg-violet-50 text-violet-600"
             />
             <KpiCard
@@ -1269,9 +1270,9 @@ function FeedInteligenteContent() {
             />
             <KpiCard
               icon={Wallet}
-              label="Receita"
-              value={summary?.revenueAvailable ? "Disponível" : "Indisponível"}
-              hint="Status da apuração de receita"
+              label="Receita por anúncio"
+              value={summary?.revenueAvailable ? "Disponível" : "Aguardando dados"}
+              hint="Sem atribuição de receita a estes anúncios"
               accent="bg-emerald-50 text-emerald-600"
             />
           </div>
@@ -1325,7 +1326,7 @@ function FeedInteligenteContent() {
                 </div>
                 <span className="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full bg-emerald-50 px-3 text-[11px] font-semibold text-emerald-700">
                   <Database className="h-3 w-3 shrink-0" />
-                  Dados reais conectados
+                  Dados históricos preservados
                 </span>
               </div>
 
@@ -1388,7 +1389,7 @@ function FeedInteligenteContent() {
                           </span>
                           <div className="min-w-0">
                             <p className="truncate text-[12px] font-semibold leading-tight text-[#0A1F44]">
-                              {item.sku ?? "SKU não informado"}
+                              {item.sku ? `SKU ${item.sku}` : "SKU não cadastrado no histórico"}
                             </p>
                             <p className="flex items-center gap-1.5 text-[11px] leading-tight text-slate-400">
                               <span>Mercado Livre</span>
@@ -1574,12 +1575,14 @@ function FeedInteligenteContent() {
                     label="Itens com imagem no feed"
                     value={loading ? "—" : formatCount(itemsWithImage)}
                   />
+                  <ContextRow label="Anúncios no catálogo" value={loading ? "—" : formatCount(summary?.listingsChecked)} />
+                  <ContextRow label="Dados comerciais" value={summary?.ordersChecked == null ? "Pendentes" : "Parciais"} />
                   <ContextRow
-                    label="Receita"
-                    value={summary?.revenueAvailable ? "Disponível" : "Indisponível"}
+                    label="Receita por anúncio"
+                    value={summary?.revenueAvailable ? "Disponível" : "Não apurada"}
                     tone={revenueTone}
                   />
-                  <ContextRow label="Modo" value={data?.mode ?? "Somente leitura"} />
+                  <ContextRow label="Fonte dos dados" value={data?.mode === "historical_database_read_only" ? "Histórico importado" : (data?.mode ?? "Somente leitura")} />
                 </div>
               </Card>
 

@@ -1042,6 +1042,14 @@ function PriorityStrip({ entries }: { entries: PriorityEntry[] }) {
 }
 
 function FeedInteligente() {
+  return (
+    <EcommerceLayout>
+      <FeedInteligenteContent />
+    </>
+  );
+}
+
+function FeedInteligenteContent() {
   const { companyId, activeAccountId, isActiveConnected, loading: accountsLoading } = useEcommerceActiveAccount();
   const [data, setData] = useState<IntelligentFeedPreview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -1177,7 +1185,7 @@ function FeedInteligente() {
   const revenueTone = summary?.revenueAvailable ? "positive" : "pending";
 
   return (
-    <EcommerceLayout>
+    <>
       <div className="-m-4 bg-white p-4 sm:-m-6 sm:p-6">
         <div className="space-y-6">
           {/* Cabeçalho */}

@@ -26,6 +26,8 @@ import {
   HeartPulse,
   AlertTriangle,
   ShieldCheck,
+  MessageSquare,
+  LayoutGrid,
 
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
@@ -78,6 +80,8 @@ const navGroups = [
   {
     title: "Inteligência",
     items: [
+      { label: "Feed Inteligente", to: "/ecommerce/feed-inteligente", icon: LayoutGrid },
+      { label: "Studio de Imagens IA", to: "/ecommerce/chat-consultivo-ia", icon: MessageSquare },
       { label: "Saúde da Inteligência", to: "/ecommerce/saude-inteligencia", icon: HeartPulse },
       { label: "Diagnóstico Inteligente", to: "/ecommerce/radar-ia", icon: Radar },
       { label: "Assistente Estratégico", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
@@ -280,26 +284,9 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (accountsLoading) return;
 
-    const connectedAccounts = accounts.filter((account) => {
-      const status = (account.auth_status ?? "").toLowerCase();
-      return (
-        status === "connected" ||
-        status === "authorized" ||
-        Boolean(account.ml_user_id) ||
-        Boolean(account.last_sync_at)
-      );
-    });
-
-    const hasCompletedInitialSync = connectedAccounts.some(
-      (account) => Boolean(account.last_sync_at),
-    );
-
-    if (
-      !companyId ||
-      accounts.length === 0 ||
-      connectedAccounts.length === 0 ||
-      !hasCompletedInitialSync
-    ) {
+    // Existing multi-account companies must be able to manage pending OAuth accounts.
+    // Only require onboarding when there is no company or no registered accounts.
+    if (!companyId || accounts.length === 0) {
       navigate({ to: "/ecommerce/onboarding" });
     }
   }, [accountsLoading, companyId, accounts, navigate]);
@@ -386,6 +373,7 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!companyId || !activeAccountId || !activeAccount) return;
     if (activeAccount.marketplace !== "mercado_livre") return;
+    if (activeAccount.auth_status !== "connected") return;
 
     void Promise.allSettled([
       autoSyncMarketplaceIntelligence({
@@ -416,6 +404,10 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
     }
     if (!activeAccountId) {
       toast.error("Selecione uma conta Mercado Livre para sincronizar.");
+      return;
+    }
+    if (activeAccount?.auth_status !== "connected") {
+      toast.error("Esta conta aguarda reautorização do Mercado Livre. A sincronização não foi iniciada.");
       return;
     }
     setIsUpdating(true);

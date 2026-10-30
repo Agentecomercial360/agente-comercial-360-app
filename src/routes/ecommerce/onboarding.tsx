@@ -547,6 +547,23 @@ function EcommerceOnboardingPage() {
                     ? "Aguardando Mercado Livre…"
                     : "Autorizar Mercado Livre"}
                 </button>
+
+                {accounts.length > 1 ? (
+                  <div className="mt-5 space-y-3">
+                    <p className="text-sm leading-6 text-slate-600">
+                      Encontramos {accounts.length} contas cadastradas nesta empresa.
+                      Você pode acessar o painel e consultar essas contas antes de autorizar
+                      cada integração. Contas pendentes ainda não sincronizam dados novos.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => navigate({ to: "/ecommerce/contas" })}
+                      className="inline-flex w-full items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-800 transition hover:bg-blue-100"
+                    >
+                      Ir para o painel e visualizar minhas contas
+                    </button>
+                  </div>
+                ) : null}
               </div>
             ) : null}
 
@@ -597,7 +614,7 @@ function EcommerceOnboardingPage() {
                   onClick={() => navigate({ to: "/ecommerce/dashboard" })}
                   className="mt-3 text-xs font-semibold text-slate-500 hover:text-slate-800"
                 >
-                  Ir ao dashboard e deixar o scheduler continuar automaticamente
+                  Ir ao dashboard enquanto a sincronização é preparada
                 </button>
               </div>
             ) : null}
@@ -617,7 +634,7 @@ function EcommerceOnboardingPage() {
                   {ordersCount > 0
                     ? `Encontramos ${ordersCount.toLocaleString("pt-BR")} pedido(s) na operação.`
                     : "Sua conta foi sincronizada e ainda não há pedidos no período inicial."}
-                  {" "}O scheduler 24/7 continuará atualizando seus dados automaticamente.
+                  {" "}A sincronização automática dependerá de sua configuração e ativação.
                 </p>
 
                 <button

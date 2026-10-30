@@ -91,6 +91,12 @@ function IntelligenceHealthContent() {
 
   const load = useCallback(
     async (manual = false) => {
+      if (!companyId) {
+        setRows([]);
+        setLoading(false);
+        setReloading(false);
+        return;
+      }
       if (manual) setReloading(true);
       else setLoading(true);
       setError(null);
@@ -120,7 +126,7 @@ function IntelligenceHealthContent() {
       setLoading(false);
       setReloading(false);
     },
-    [activeAccountId],
+    [companyId, activeAccountId],
   );
 
   useEffect(() => {

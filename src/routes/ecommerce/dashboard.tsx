@@ -223,6 +223,11 @@ function DashboardContent() {
   useEffect(() => {
     let cancelled = false;
     async function load() {
+      if (!companyId) {
+        setOrders([]);
+        setLoading(false);
+        return;
+      }
       if (scope === "active" && !selectedAccountId) {
         setOrders([]);
         setLoading(false);
@@ -260,10 +265,14 @@ function DashboardContent() {
     return () => {
       cancelled = true;
     };
-  }, [period, scope, selectedAccountId, range.sinceISO, range.untilISO]);
+  }, [companyId, period, scope, selectedAccountId, range.sinceISO, range.untilISO]);
 
   // Fetch latest sync run for the selected account (or the most recent overall)
   const loadLatestRun = useCallback(async () => {
+    if (!companyId) {
+      setLatestRun(null);
+      return;
+    }
     try {
       let q = supabase
         .from("ecommerce_sync_runs")
@@ -281,7 +290,7 @@ function DashboardContent() {
     } catch {
       // silent
     }
-  }, [scope, selectedAccountId]);
+  }, [companyId, scope, selectedAccountId]);
 
   useEffect(() => {
     void loadLatestRun();
@@ -397,9 +406,16 @@ function DashboardContent() {
   const hasRun = !!latestRun;
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <header className="space-y-3">
+    <div className="space-y-5">
+      {/* Identidade AC360: cabeçalho consultivo do módulo piloto */}
+      <header className="flex flex-col gap-2.5 rounded-[20px] border border-slate-200/70 bg-white px-5 py-4 shadow-[0_12px_35px_-30px_rgba(7,27,69,0.4)] sm:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#0F9D92]">
+            <span className="h-2 w-2 rounded-full bg-[#0F9D92]" />
+            AC360 · Intelligence Workspace
+          </div>
+          <span className="rounded-full border border-blue-100 bg-[#EFF6FF] px-3 py-1 text-[10px] font-semibold text-[#175CD3]">Visão executiva</span>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
             <BarChart3 className="h-3.5 w-3.5" />
@@ -412,36 +428,26 @@ function DashboardContent() {
             onOpen={() => setSyncPanelOpen(true)}
           />
         </div>
-        <h1 className="font-display text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
-          Dashboard E-commerce · {scopeLabel}
+        <h1 className="font-display text-2xl md:text-[27px] font-bold tracking-tight text-[#071B3D]">
+          Visão Geral da Operação
         </h1>
         <p className="text-sm text-muted-foreground max-w-3xl">
-          Faturamento, pedidos, taxas e resultado operacional conhecido dos pedidos sincronizados do Mercado Livre.
+          {scopeLabel} · indicadores comerciais por período, qualidade dos dados e próximos pontos de atenção.
         </p>
       </header>
 
-      {/* CMV Action Banner */}
+      {/* Aviso financeiro compacto e acionável; nenhuma métrica é alterada. */}
       {totals.pending > 0 && (
-        <div className="flex flex-col md:flex-row md:items-center gap-4 rounded-xl border border-amber-500/25 bg-amber-50/60 px-5 py-4">
-          <div className="flex items-start gap-3 flex-1 min-w-0">
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-500/15 text-amber-700">
-              <AlertTriangle className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-amber-900">CMV não informado pela API do Mercado Livre</p>
-              <p className="text-[13px] leading-relaxed text-amber-900/80">
-                Existem <span className="font-semibold">{num.format(totals.pending)}</span> pedidos sem CMV cadastrado.
-                Isso não bloqueia o AC360: faturamento, taxas, frete, Ads e demais análises continuam válidos.
-                O CMV é opcional e serve para transformar o resultado operacional conhecido em lucro líquido real.
-              </p>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700"><AlertTriangle className="h-4 w-4" /></span>
+            <div>
+              <p className="text-[12px] font-bold text-amber-900">{num.format(totals.pending)} pedidos aguardam CMV para apurar lucro confiável</p>
+              <p className="text-[11px] leading-relaxed text-amber-800">Os resultados sem CMV são parciais; faturamento não é lucro.</p>
             </div>
           </div>
-          <Link
-            to="/ecommerce/custos-margem"
-            className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-amber-600 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
-          >
-            Adicionar CMV (opcional)
-            <ArrowRight className="h-3.5 w-3.5" />
+          <Link to="/ecommerce/custos-margem" className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3 py-2 text-[11px] font-semibold text-white hover:bg-amber-700">
+            Revisar custos <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
       )}
@@ -470,11 +476,6 @@ function DashboardContent() {
         </SegmentedGroup>
       </section>
 
-      <MarketplaceSyncHealth
-        companyId={companyId}
-        accountId={scope === "active" ? selectedAccountId : null}
-      />
-
       {errorMsg && (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {errorMsg}
@@ -490,65 +491,151 @@ function DashboardContent() {
         </div>
       )}
 
-      {/* Unified Metric Grid */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <Metric
-          label="Faturamento bruto"
-          value={brl.format(totals.gross)}
-          loading={loading}
-          highlight
-          tone="blue"
-        />
-        <Metric label="Total de pedidos" value={num.format(totals.count)} loading={loading} tone="slate" />
-        <Metric label="Ticket médio" value={brl.format(totals.ticket)} loading={loading} tone="emerald" />
-        <Metric
-          label="Resultado operacional conhecido"
-          value={brl.format(totals.netParcial)}
-          sublabel="Antes do CMV quando ele não foi informado"
-          loading={loading}
-          tone="green"
-        />
-        <Metric
-          label="Taxas Mercado Livre"
-          value={brl.format(totals.fees)}
-          loading={loading}
-        />
-        <Metric label="Frete vendedor" value={brl.format(totals.shipping)} loading={loading} />
-        <Metric
-          label="Pedidos sem CMV"
-          value={num.format(totals.pending)}
-          loading={loading}
-          tone={totals.pending > 0 ? "warn" : "muted"}
-        />
-        <Metric
-          label="Pedidos com lucro confiável"
-          value={num.format(totals.high)}
-          loading={loading}
-          tone={totals.high > 0 ? "default" : "muted"}
-        />
+      {/* KPIs compactos inspirados em dashboards SaaS: primeiro uma leitura imediata. */}
+      <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        {[
+          { label: "Faturamento bruto", value: brl.format(totals.gross), color: "bg-[#0F9D92]", icon: "R$" },
+          { label: "Pedidos no período", value: num.format(totals.count), color: "bg-[#0A2F65]", icon: "#" },
+          { label: "Ticket médio", value: brl.format(totals.ticket), color: "bg-[#2563EB]", icon: "↗" },
+          { label: "Pedidos sem CMV", value: num.format(totals.pending), color: "bg-[#F97316]", icon: "!" },
+        ].map((kpi) => (
+          <div key={kpi.label} className="flex min-w-0 items-center gap-3 rounded-[20px] border border-slate-200/80 bg-white px-4 py-4 shadow-[0_10px_28px_-22px_rgba(7,27,69,.55)]">
+            <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-sm font-bold text-white ${kpi.color}`}>{kpi.icon}</span>
+            <div className="min-w-0">
+              <p className="truncate text-[11px] font-medium text-slate-500">{kpi.label}</p>
+              <p className="mt-0.5 truncate text-lg font-extrabold tabular-nums tracking-tight text-[#071B3D]">{loading ? "—" : kpi.value}</p>
+            </div>
+          </div>
+        ))}
       </section>
 
-      {/* Chart */}
-      <section className="rounded-xl bg-card p-5 shadow-sm ring-1 ring-border/40">
-        <div className="mb-4 flex flex-wrap items-start justify-between gap-2">
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Faturamento por dia</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Soma diária de faturamento bruto no período selecionado.
-            </p>
+      {/* Hero executivo premium */}
+      <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#071B45] via-[#0B3B8E] to-[#1E5EFF] p-5 shadow-[0_30px_70px_-42px_rgba(7,27,69,.9)] sm:p-6">
+        <div aria-hidden className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rounded-full bg-white/[0.10] blur-2xl" />
+        <div aria-hidden className="pointer-events-none absolute bottom-[-90px] left-[22%] h-56 w-56 rounded-full bg-cyan-300/[0.10] blur-3xl" />
+
+        <div className="relative grid gap-5 lg:grid-cols-[0.88fr_1.12fr] lg:items-stretch">
+          <div className="flex min-w-0 flex-col justify-between rounded-[22px] border border-white/[0.10] bg-white/[0.04] p-5 backdrop-blur-sm">
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.12] bg-white/[0.07] px-3 py-1.5 text-[9.5px] font-semibold uppercase tracking-[0.16em] text-white/70">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#F5C842]" />
+                Resumo executivo · {PERIODS.find((p) => p.key === period)?.label}
+              </div>
+
+              <p className="mt-7 text-[11px] font-medium uppercase tracking-[0.14em] text-white/50">
+                Faturamento bruto
+              </p>
+              {loading ? (
+                <Skeleton className="mt-3 h-12 w-52 bg-white/15" />
+              ) : (
+                <div className="mt-2 font-display text-[42px] font-bold tracking-[-0.045em] text-white sm:text-[50px]">
+                  {brl.format(totals.gross)}
+                </div>
+              )}
+              <p className="mt-2 max-w-sm text-[12px] leading-relaxed text-white/58">
+                Faturamento registrado no período e nas contas selecionadas. Verifique a data da última sincronização.
+              </p>
+            </div>
+
+            <div className="mt-8 grid grid-cols-3 gap-2">
+              {[
+                ["Pedidos", num.format(totals.count)],
+                ["Ticket", brl.format(totals.ticket)],
+                ["Resultado", brl.format(totals.netParcial)],
+              ].map(([label, value]) => (
+                <div
+                  key={label}
+                  className="min-w-0 rounded-2xl border border-white/[0.10] bg-white/[0.07] p-3 transition duration-200 hover:-translate-y-0.5 hover:bg-white/[0.10]"
+                >
+                  <p className="text-[8.5px] font-semibold uppercase tracking-[0.12em] text-white/42">
+                    {label}
+                  </p>
+                  <p className="mt-1.5 truncate text-[13px] font-semibold text-white" title={value}>
+                    {loading ? "—" : value}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[22px] border border-white/70 bg-white p-4 shadow-[0_28px_60px_-36px_rgba(7,27,69,.65)] sm:p-5">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-400">
+                  Evolução
+                </p>
+                <h2 className="mt-1 text-sm font-semibold text-[#0A1F44]">Faturamento por dia</h2>
+              </div>
+              <span className="rounded-full bg-[#EEF4FF] px-2.5 py-1 text-[9.5px] font-semibold text-[#1E5EFF]">
+                {PERIODS.find((p) => p.key === period)?.label}
+              </span>
+            </div>
+
+            {loading ? (
+              <Skeleton className="h-[220px] w-full rounded-xl" />
+            ) : byDay.length === 0 || byDay.every((d) => d.gross === 0) ? (
+              <div className="flex h-[220px] items-center justify-center rounded-2xl bg-[#F7F9FC] text-center">
+                <div>
+                  <BarChart3 className="mx-auto h-5 w-5 text-slate-300" />
+                  <p className="mt-2 text-[11px] font-medium text-slate-500">Sem faturamento no período</p>
+                  <p className="mt-1 text-[10px] text-slate-400">O gráfico será preenchido após a sincronização de pedidos.</p>
+                </div>
+              </div>
+            ) : (
+              <div className="-mx-2">
+                <RevenueByDayChart data={byDay} />
+              </div>
+            )}
           </div>
         </div>
-        {loading ? (
-          <Skeleton className="h-[260px] w-full rounded-lg" />
-        ) : byDay.length === 0 || byDay.every((d) => d.gross === 0) ? (
-          <div className="py-16 text-center text-sm text-muted-foreground">
-            Sem pedidos no período.
-          </div>
-        ) : (
-          <RevenueByDayChart data={byDay} />
-        )}
       </section>
 
+      
+      {/* Centro de consultoria: evidência, limitação e ação fundamentada. */}
+      <section className="overflow-hidden rounded-[24px] border border-blue-100 bg-white shadow-[0_14px_36px_-30px_rgba(7,27,69,.4)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 bg-gradient-to-r from-[#F0F8FF] to-white px-5 py-4">
+          <div>
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-[#0F9D92]">AC360 · Centro de Inteligência Consultiva</p>
+            <h2 className="mt-1 text-base font-bold text-[#071B3D]">Diagnóstico e próxima decisão</h2>
+          </div>
+          <span className="rounded-full border border-blue-100 bg-white px-3 py-1 text-[10px] font-semibold text-[#175CD3]">
+            {PERIODS.find((p) => p.key === period)?.label} · {scope === "active" ? "Conta ativa" : "Todas as contas"}
+          </span>
+        </div>
+        <div className="grid gap-3 p-4 lg:grid-cols-[1fr_1fr_1.1fr]">
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
+            <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-emerald-700"><CheckCircle2 className="h-4 w-4" /> Evidência</p>
+            <p className="mt-2 text-base font-extrabold text-[#071B3D]">{loading ? "A consultar..." : totals.count > 0 ? `${num.format(totals.count)} pedidos registrados` : "Sem pedidos registrados"}</p>
+            <p className="mt-2 text-xs leading-relaxed text-slate-600">Faturamento bruto: {loading ? "—" : brl.format(totals.gross)} no período e escopo selecionados.</p>
+          </div>
+          <div className="rounded-2xl border border-amber-100 bg-amber-50/45 p-4">
+            <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-amber-700"><AlertTriangle className="h-4 w-4" /> Limitação financeira</p>
+            <p className="mt-2 text-base font-extrabold text-[#071B3D]">{loading ? "A consultar..." : totals.pending > 0 ? `${num.format(totals.pending)} pedidos sem CMV` : "CMV sem pendências identificadas"}</p>
+            <p className="mt-2 text-xs leading-relaxed text-slate-600">Não classificar o resultado operacional conhecido como lucro líquido sem reconciliar custos e devoluções.</p>
+          </div>
+          <div className="rounded-2xl border border-blue-100 bg-[#F2F7FF] p-4">
+            <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-blue-700"><ArrowRight className="h-4 w-4" /> Próxima ação</p>
+            <p className="mt-2 text-base font-extrabold text-[#071B3D]">{loading ? "Aguardando dados" : totals.pending > 0 ? "Revisar custos dos pedidos" : totals.count === 0 ? "Conferir período e conexão" : "Acompanhar a evolução"}</p>
+            <p className="mt-2 text-xs leading-relaxed text-slate-600">Recomendação orientada pela cobertura dos dados, sem atribuir tendências ou margens não verificadas.</p>
+            {totals.pending > 0 && <Link to="/ecommerce/custos-margem" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline">Ir para Custos e Margem <ArrowRight className="h-3 w-3" /></Link>}
+          </div>
+        </div>
+      </section>
+
+      {/* Monitorização técnica fora da abertura comercial; continua disponível para auditoria. */}
+      <details className="group rounded-[22px] border border-slate-200 bg-white shadow-sm">
+        <summary className="flex cursor-pointer items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-[#071B3D] marker:content-none">
+          <span className="flex items-center gap-2"><BarChart3 className="h-4 w-4 text-[#0F9D92]" /> Saúde da Inteligência · Monitorização técnica</span>
+          <span className="text-xs font-medium text-slate-500 group-open:hidden">Expandir detalhes</span>
+          <span className="hidden text-xs font-medium text-slate-500 group-open:inline">Ocultar detalhes</span>
+        </summary>
+        <div className="border-t border-slate-100 p-3">
+          <MarketplaceSyncHealth
+            companyId={companyId}
+            accountId={scope === "active" ? selectedAccountId : null}
+          />
+        </div>
+      </details>
 
       {/* Comparativo por conta */}
       <section className="rounded-xl border border-border bg-card overflow-hidden">

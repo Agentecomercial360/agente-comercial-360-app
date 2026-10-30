@@ -572,7 +572,7 @@ function FeedProductCover({
   );
 }
 
-type PriorityTag = "Sem custo" | "Com vendas" | "Sem imagem" | "Ads" | "Atenção";
+type PriorityTag = "Sem custo" | "Com vendas" | "Sem imagem" | "Ads" | "Atenção" | "Destaque visual";
 
 type PriorityEntry = { item: FeedItem; tag: PriorityTag; rank: number };
 
@@ -580,6 +580,7 @@ const PRIORITY_RING: Record<PriorityTag, string> = {
   "Sem custo": "ring-amber-400",
   "Com vendas": "ring-emerald-500",
   "Sem imagem": "ring-slate-300",
+  "Destaque visual": "ring-sky-400",
   Ads: "ring-[#1E5EFF]",
   Atenção: "ring-rose-500",
 };
@@ -588,6 +589,7 @@ const PRIORITY_DOT: Record<PriorityTag, string> = {
   "Sem custo": "bg-amber-400",
   "Com vendas": "bg-emerald-500",
   "Sem imagem": "bg-slate-300",
+  "Destaque visual": "bg-sky-400",
   Ads: "bg-[#1E5EFF]",
   Atenção: "bg-rose-500",
 };
@@ -640,6 +642,7 @@ function classifyPriority(item: FeedItem): { tag: PriorityTag; rank: number } | 
   if (item.status === "critical" || item.status === "attention") {
     return { tag: "Atenção", rank: 5 };
   }
+  if (item.hasImage || item.imageUrl) return { tag: "Destaque visual", rank: 6 };
   return null;
 }
 
@@ -991,7 +994,9 @@ function PriorityStrip({ entries }: { entries: PriorityEntry[] }) {
             <Target className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
           </span>
           <h2 className="font-display text-sm font-semibold tracking-tight text-[#0A1F44]">
-            Produtos que merecem atenção agora
+            {entries.every((entry) => entry.tag === "Destaque visual")
+              ? "Destaques visuais do histórico"
+              : "Produtos que merecem atenção agora"}
           </h2>
         </div>
         <div className="flex items-center gap-2">

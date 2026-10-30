@@ -1045,7 +1045,7 @@ function FeedInteligente() {
   return (
     <EcommerceLayout>
       <FeedInteligenteContent />
-    </>
+    </EcommerceLayout>
   );
 }
 
@@ -1647,6 +1647,6 @@ function FeedInteligenteContent() {
           </div>
         </div>
       </div>
-    </EcommerceLayout>
+    </>
   );
 }

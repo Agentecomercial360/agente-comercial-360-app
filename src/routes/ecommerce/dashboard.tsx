@@ -407,8 +407,15 @@ function DashboardContent() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <header className="space-y-3">
+      {/* Identidade AC360: cabeçalho consultivo do módulo piloto */}
+      <header className="flex flex-col gap-4 rounded-[24px] border border-slate-200/70 bg-white px-5 py-5 shadow-[0_16px_40px_-34px_rgba(7,27,69,0.4)] sm:px-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.16em] text-[#0F9D92]">
+            <span className="h-2 w-2 rounded-full bg-[#0F9D92]" />
+            AC360 · Intelligence Workspace
+          </div>
+          <span className="rounded-full border border-blue-100 bg-[#EFF6FF] px-3 py-1 text-[10px] font-semibold text-[#175CD3]">Visão executiva</span>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-blue-700">
             <BarChart3 className="h-3.5 w-3.5" />
@@ -421,11 +428,11 @@ function DashboardContent() {
             onOpen={() => setSyncPanelOpen(true)}
           />
         </div>
-        <h1 className="font-display text-2xl md:text-3xl font-semibold tracking-tight text-foreground">
-          Dashboard E-commerce · {scopeLabel}
+        <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight text-[#071B3D]">
+          Visão Geral da Operação
         </h1>
         <p className="text-sm text-muted-foreground max-w-3xl">
-          Faturamento, pedidos, taxas e resultado operacional conhecido dos pedidos sincronizados do Mercado Livre.
+          {scopeLabel} · indicadores comerciais por período, qualidade dos dados e próximos pontos de atenção.
         </p>
       </header>
 
@@ -587,6 +594,36 @@ function DashboardContent() {
         <Metric label="Frete vendedor" value={brl.format(totals.shipping)} loading={loading} />
         <Metric label="Pedidos sem CMV" value={num.format(totals.pending)} loading={loading} tone={totals.pending > 0 ? "warn" : "muted"} />
         <Metric label="Pedidos com lucro confiável" value={num.format(totals.high)} loading={loading} tone={totals.high > 0 ? "default" : "muted"} />
+      </section>
+
+      {/* Leitura consultiva baseada exclusivamente nos indicadores calculados no período. */}
+      <section className="overflow-hidden rounded-[24px] border border-blue-100 bg-gradient-to-r from-[#F5FAFF] to-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#0F9D92]">AC360 · Inteligência consultiva</p>
+            <h2 className="mt-1 text-base font-bold text-[#071B3D]">Leitura executiva do período</h2>
+          </div>
+          <span className="rounded-full border border-blue-100 bg-white px-3 py-1 text-[10px] font-semibold text-blue-700">
+            {PERIODS.find((p) => p.key === period)?.label} · {scope === "active" ? "Conta ativa" : "Todas as contas"}
+          </span>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="rounded-2xl border border-slate-100 bg-white p-4">
+            <p className="text-[11px] font-semibold text-slate-500">Atividade comercial</p>
+            <p className="mt-1 text-sm font-bold text-[#071B3D]">{loading ? "Analisando..." : totals.count > 0 ? `${num.format(totals.count)} pedidos no período` : "Sem pedidos no período"}</p>
+            <p className="mt-2 text-xs leading-relaxed text-slate-500">Leitura restrita aos pedidos registrados na base e ao filtro selecionado.</p>
+          </div>
+          <div className="rounded-2xl border border-slate-100 bg-white p-4">
+            <p className="text-[11px] font-semibold text-slate-500">Qualidade financeira</p>
+            <p className="mt-1 text-sm font-bold text-[#071B3D]">{loading ? "Analisando..." : totals.pending > 0 ? `${num.format(totals.pending)} pedidos sem CMV` : "Sem pendências de CMV identificadas"}</p>
+            <p className="mt-2 text-xs leading-relaxed text-slate-500">Não interpretar o resultado operacional conhecido como lucro líquido sem custos confiáveis.</p>
+          </div>
+          <div className="rounded-2xl border border-slate-100 bg-white p-4">
+            <p className="text-[11px] font-semibold text-slate-500">Próxima ação recomendada</p>
+            <p className="mt-1 text-sm font-bold text-[#071B3D]">{loading ? "Aguardando dados" : totals.pending > 0 ? "Revisar custos dos pedidos" : totals.count === 0 ? "Verificar período e sincronização" : "Monitorar evolução de vendas"}</p>
+            <p className="mt-2 text-xs leading-relaxed text-slate-500">Recomendação baseada na cobertura dos dados, sem inferir crescimento ou lucro.</p>
+          </div>
+        </div>
       </section>
 
       {/* Comparativo por conta */}

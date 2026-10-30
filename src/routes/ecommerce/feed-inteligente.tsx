@@ -1046,6 +1046,7 @@ function FeedInteligente() {
   const [data, setData] = useState<IntelligentFeedPreview | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorKind, setErrorKind] = useState<"auth" | "unavailable" | null>(null);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
   const abortRef = useRef<AbortController | null>(null);
@@ -1063,6 +1064,7 @@ function FeedInteligente() {
     }
     setLoading(true);
     setErrorKind(null);
+    setErrorDetail(null);
     try {
       // SOMENTE LEITURA: apenas GET /intelligent-feed/preview.
       const preview = isActiveConnected
@@ -1082,6 +1084,7 @@ function FeedInteligente() {
       setData(preview);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
+      setErrorDetail(error instanceof Error ? error.message : "Erro desconhecido de leitura.");
       setData(null);
       if (
         error instanceof IntelligentFeedError &&
@@ -1337,7 +1340,7 @@ function FeedInteligente() {
                   icon={WifiOff}
                   tone="warning"
                   title="Não foi possível carregar o Feed Inteligente agora. Tente novamente em instantes."
-                  description="O backend do AC360 não respondeu a esta consulta de leitura."
+                  description={errorDetail ?? "Não foi possível ler os dados históricos da conta."}
                   onRetry={() => void load()}
                 />
               )}

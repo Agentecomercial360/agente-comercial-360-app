@@ -1411,12 +1411,12 @@ function FeedInteligenteContent() {
                         <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 px-5">
                           <Metric
                             icon={ShoppingCart}
-                            label="vendas"
+                            label={data?.mode === "historical_database_read_only" ? "pedidos aprovados" : "vendas"}
                             value={formatCount(item.metrics.sales)}
                           />
                           <Metric
                             icon={Wallet}
-                            label="receita"
+                            label={data?.mode === "historical_database_read_only" ? "receita bruta" : "receita"}
                             value={formatCurrency(item.metrics.revenue)}
                           />
                           <Metric

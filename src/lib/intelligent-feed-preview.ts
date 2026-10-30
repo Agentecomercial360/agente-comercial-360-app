@@ -365,7 +365,7 @@ export async function loadStagingHistoryFeed(
   // orders endpoint must not prevent displaying already imported listings.
   const { data: listingsData, count: listingsCount, error: listingsError } =
     await supabase.from("ecommerce_listings")
-      .select("id,product_id,ml_item_id,title,status,price,external_sku,updated_at", { count: "exact" })
+      .select("id,product_id,ml_item_id,title,status,price,external_sku,updated_at,image_url,thumbnail_url", { count: "exact" })
       .eq("company_id", companyId)
       .eq("account_id", accountId)
       .order("updated_at", { ascending: false })
@@ -392,7 +392,7 @@ export async function loadStagingHistoryFeed(
       products_checked: linkedProducts.size,
       revenue_available: false,
       feed_items_returned: Math.min(safeLimit, listings.length),
-      items_with_image: 0,
+      items_with_image: listings.filter((item) => Boolean(item.image_url || item.thumbnail_url)).length,
       costs_pending: true,
     },
     items: listings.slice(0, safeLimit).map((listing) => ({
@@ -405,8 +405,8 @@ export async function loadStagingHistoryFeed(
       metrics: { revenue: null, sales: null, visits: null, cost: null, ads: null },
       diagnostic: null,
       recommended_action: null,
-      image_url: null,
-      has_image: false,
+      image_url: listing.image_url || listing.thumbnail_url || null,
+      has_image: Boolean(listing.image_url || listing.thumbnail_url),
       badges: ["Histórico importado"],
     })),
     filters: [],

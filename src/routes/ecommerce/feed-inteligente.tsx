@@ -300,6 +300,11 @@ function agingLine(item: FeedItem): string | null {
 
 /** Diagnóstico consultivo baseado só em vendas, receita e status de custo reais. */
 function consultiveDiagnostic(item: FeedItem): string {
+  if (item.badges.includes("Pedidos aprovados no histórico")) {
+    const orders = item.metrics.sales ?? 0;
+    const gross = item.metrics.revenue;
+    return `Há ${formatCount(orders)} ${orders === 1 ? "pedido aprovado vinculado" : "pedidos aprovados vinculados"}${typeof gross === "number" ? ` e ${formatCurrency(gross)} de receita bruta de itens` : ""} no histórico. Isso confirma atividade comercial, mas não comprova crescimento recente, conversão ou rentabilidade.`;
+  }
   if (isMissingCost(item)) {
     const sales = item.metrics.sales;
     const revenue = item.metrics.revenue;
@@ -318,13 +323,16 @@ function consultiveDiagnostic(item: FeedItem): string {
 }
 
 function consultiveAction(item: FeedItem): string {
+  if (item.badges.includes("Pedidos aprovados no histórico")) {
+    return "Validar o CMV, taxas e frete deste anúncio e reconciliar possíveis reembolsos. Só depois avaliar margem e decidir se vale investir mais em divulgação.";
+  }
   if (isMissingCost(item)) {
     const sku = friendlySku(item);
     return sku
       ? `Cadastrar o custo real do SKU ${sku} antes de avaliar margem, lucro, preço ou expansão de Ads.`
       : "Cadastrar o custo real deste anúncio antes de avaliar margem, lucro, preço ou expansão de Ads.";
   }
-  return item.recommendedAction ?? "Vincule vendas e custos confirmados para receber recomendações comerciais específicas.";
+  return item.recommendedAction ?? "Sem venda aprovada atribuída a este anúncio na base importada. Verifique os identificadores dos pedidos e a cobertura histórica antes de avaliar desempenho ou investir em Ads.";
 }
 
 /** O que a ação libera. ROAS só é citado quando existem dados reais de Ads. */
@@ -1450,6 +1458,17 @@ function FeedInteligenteContent() {
                           </div>
                         )}
 
+                        {/* A origem e a cobertura dos dados são tão importantes quanto a recomendação. */}
+                        {data?.mode === "historical_database_read_only" && (
+                          <div className="mt-3 flex items-center gap-2 px-5">
+                            <ShieldCheck className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+                            <span className="text-[11px] font-medium text-slate-500">
+                              {item.badges.includes("Pedidos aprovados no histórico")
+                                ? "Evidência: pedidos aprovados vinculados · Análise parcial"
+                                : "Sem pedidos atribuídos · Cobertura histórica não conclusiva"}
+                            </span>
+                          </div>
+                        )}
                         {/* Diagnóstico + ação */}
                         <div className="mt-4 space-y-2.5 px-5">
                           <div className="rounded-[18px] bg-slate-50 px-4 py-3">

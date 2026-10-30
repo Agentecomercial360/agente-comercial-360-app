@@ -379,6 +379,11 @@ export async function loadStagingHistoryFeed(
   }
   const listings = listingsData ?? [];
   const linkedProducts = new Set(listings.map((listing) => listing.product_id).filter(Boolean));
+  // In the historical feed, prioritize cards with preserved images without
+  // presenting this order as a business priority or live performance ranking.
+  const displayListings = [...listings].sort((a, b) =>
+    Number(Boolean(b.image_url || b.thumbnail_url)) - Number(Boolean(a.image_url || a.thumbnail_url))
+  );
   const raw = {
     mode: "historical_database_read_only",
     period_label: "Histórico importado — sem atualização em tempo real",
@@ -395,7 +400,7 @@ export async function loadStagingHistoryFeed(
       items_with_image: listings.filter((item) => Boolean(item.image_url || item.thumbnail_url)).length,
       costs_pending: true,
     },
-    items: listings.slice(0, safeLimit).map((listing) => ({
+    items: displayListings.slice(0, safeLimit).map((listing) => ({
       id: listing.id,
       listing_id: listing.ml_item_id || listing.id,
       title: listing.title,

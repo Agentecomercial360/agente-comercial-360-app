@@ -581,42 +581,12 @@ function DashboardContent() {
       </section>
 
       
-      {/* Unified Metric Grid */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <Metric
-          label="Faturamento bruto"
-          value={brl.format(totals.gross)}
-          loading={loading}
-          highlight
-          tone="blue"
-        />
-        <Metric label="Total de pedidos" value={num.format(totals.count)} loading={loading} tone="slate" />
-        <Metric label="Ticket médio" value={brl.format(totals.ticket)} loading={loading} tone="emerald" />
-        <Metric
-          label="Resultado operacional conhecido"
-          value={brl.format(totals.netParcial)}
-          sublabel="Antes do CMV quando ele não foi informado"
-          loading={loading}
-          tone="green"
-        />
-        <Metric
-          label="Taxas Mercado Livre"
-          value={brl.format(totals.fees)}
-          loading={loading}
-        />
+      {/* Indicadores complementares ao painel executivo restaurado */}
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Metric label="Taxas Mercado Livre" value={brl.format(totals.fees)} loading={loading} />
         <Metric label="Frete vendedor" value={brl.format(totals.shipping)} loading={loading} />
-        <Metric
-          label="Pedidos sem CMV"
-          value={num.format(totals.pending)}
-          loading={loading}
-          tone={totals.pending > 0 ? "warn" : "muted"}
-        />
-        <Metric
-          label="Pedidos com lucro confiável"
-          value={num.format(totals.high)}
-          loading={loading}
-          tone={totals.high > 0 ? "default" : "muted"}
-        />
+        <Metric label="Pedidos sem CMV" value={num.format(totals.pending)} loading={loading} tone={totals.pending > 0 ? "warn" : "muted"} />
+        <Metric label="Pedidos com lucro confiável" value={num.format(totals.high)} loading={loading} tone={totals.high > 0 ? "default" : "muted"} />
       </section>
 
       {/* Comparativo por conta */}

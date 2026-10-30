@@ -1257,9 +1257,9 @@ function FeedInteligenteContent() {
             />
             <KpiCard
               icon={ShoppingCart}
-              label="Pedidos com análise no Feed"
+              label={data?.mode === "historical_database_read_only" ? "Pedidos aprovados vinculados" : "Pedidos com análise no Feed"}
               value={loading ? "Carregando" : (summary?.ordersChecked == null ? "Aguardando dados" : formatCount(summary.ordersChecked))}
-              hint={summary?.ordersChecked == null ? "Histórico de pedidos não incluído nesta leitura" : undefined}
+              hint={data?.mode === "historical_database_read_only" ? "Pedidos pagos e aprovados, sem cancelamentos" : (summary?.ordersChecked == null ? "Histórico não incluído nesta leitura" : undefined)}
               accent="bg-violet-50 text-violet-600"
             />
             <KpiCard
@@ -1270,9 +1270,9 @@ function FeedInteligenteContent() {
             />
             <KpiCard
               icon={Wallet}
-              label="Receita por anúncio"
-              value={summary?.revenueAvailable ? "Disponível" : "Aguardando dados"}
-              hint="Sem atribuição de receita a estes anúncios"
+              label={data?.mode === "historical_database_read_only" ? "Receita bruta vinculada" : "Receita por anúncio"}
+              value={summary?.approvedGrossHistory != null ? formatCurrency(summary.approvedGrossHistory) : (summary?.revenueAvailable ? "Disponível" : "Aguardando dados")}
+              hint="Itens pagos e aprovados; não representa lucro"
               accent="bg-emerald-50 text-emerald-600"
             />
           </div>
@@ -1576,10 +1576,10 @@ function FeedInteligenteContent() {
                     value={loading ? "—" : formatCount(itemsWithImage)}
                   />
                   <ContextRow label="Anúncios no catálogo" value={loading ? "—" : formatCount(summary?.listingsChecked)} />
-                  <ContextRow label="Dados comerciais" value={summary?.ordersChecked == null ? "Pendentes" : "Parciais"} />
+                  <ContextRow label="Dados comerciais" value={summary?.ordersChecked == null ? "Pendentes" : "Parciais (histórico)"} />
                   <ContextRow
-                    label="Receita por anúncio"
-                    value={summary?.revenueAvailable ? "Disponível" : "Não apurada"}
+                    label="Receita bruta vinculada"
+                    value={summary?.approvedGrossHistory != null ? formatCurrency(summary.approvedGrossHistory) : "Não apurada"}
                     tone={revenueTone}
                   />
                   <ContextRow label="Fonte dos dados" value={data?.mode === "historical_database_read_only" ? "Histórico importado" : (data?.mode ?? "Somente leitura")} />

@@ -28,3 +28,5 @@ jobs:
           node-version: "22"
       - name: Run pure readiness regression tests
         run: node --experimental-strip-types --test tests/ecommerce-sync-readiness.test.mjs
+      - name: Run verified-profit KPI regression tests
+        run: node --experimental-strip-types --test tests/ecommerce-profit-readiness.test.mjs

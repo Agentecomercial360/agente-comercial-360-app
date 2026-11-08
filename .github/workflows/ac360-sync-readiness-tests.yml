@@ -34,3 +34,15 @@ jobs:
         run: node --experimental-strip-types --test tests/ecommerce-historical-period.test.mjs
       - name: Run historical cost preview isolation tests
         run: node --experimental-strip-types --test tests/historical-cost-preview.test.mjs
+
+  frontend-build:
+    name: Vite build smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+      - name: Compile frontend
+        run: bun run build

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { isVerifiedProfitOrder, summarizeVerifiedProfit } from "../src/lib/ecommerce-profit-readiness.ts";
+import { isVerifiedProfitOrder, marketplaceFeeForDisplay, summarizeVerifiedProfit } from "../src/lib/ecommerce-profit-readiness.ts";
 
 const base = {
   net_profit: 45,
@@ -50,4 +50,11 @@ test("genuine verified zero and losses remain visible", () => {
     { ...base, net_profit: 0 },
     { ...base, net_profit: -30 },
   ]).verifiedProfit, -30);
+});
+
+test("Mercado Livre fee aliases are never charged twice", () => {
+  assert.equal(marketplaceFeeForDisplay({marketplace_fee:10,mercadolivre_fee:10}),10);
+  assert.equal(marketplaceFeeForDisplay({marketplace_fee:0,mercadolivre_fee:12}),0);
+  assert.equal(marketplaceFeeForDisplay({marketplace_fee:null,mercadolivre_fee:12}),12);
+  assert.equal(marketplaceFeeForDisplay({marketplace_fee:null,mercadolivre_fee:null}),null);
 });

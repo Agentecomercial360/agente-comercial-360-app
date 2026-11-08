@@ -103,22 +103,6 @@ function n(v: number | null | undefined): number {
   return Number.isFinite(x) ? x : 0;
 }
 
-function startOfPeriod(period: PeriodKey): Date {
-  const d = new Date();
-  d.setHours(0, 0, 0, 0);
-  if (period === "today") return d;
-  const days = period === "7d" ? 6 : 29;
-  d.setDate(d.getDate() - days);
-  return d;
-}
-
-function dayKey(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-
 function fmtDayLabel(key: string): string {
   const [y, m, d] = key.split("-").map(Number);
   const dt = new Date(y, (m ?? 1) - 1, d ?? 1);
@@ -146,11 +130,6 @@ function fmtDateTime(iso: string | null): string {
   }
 }
 
-const KNOWN_ACCOUNTS: { id: string; name: string }[] = [
-  { id: "d2a28e18-e5d0-40e0-82cc-0bc0c0bcd8f4", name: "Mercado Livre - Nightled" },
-  { id: "6e7cd9a7-a298-4652-8e5e-1813aa748599", name: "Mercado Livre - Alltele" },
-];
-
 function DashboardEcommerce() {
   return (
     <EcommerceLayout>
@@ -177,32 +156,29 @@ function DashboardContent() {
 
   useEffect(() => {
     let cancelled = false;
+    setCompanyAccounts([]);
+    if (!companyId) return;
     (async () => {
       const { data, error } = await supabase
         .from("ecommerce_accounts")
-        .select("id, company_id, account_name, marketplace, auth_status, is_active, nickname")
+        .select("id, account_name, nickname")
         .eq("company_id", companyId)
         .eq("marketplace", "mercado_livre")
-        .eq("auth_status", "connected")
         .eq("is_active", true);
-      if (cancelled) return;
-      if (error) return;
+      if (cancelled || error) return;
       setCompanyAccounts(
-        (data ?? []).map((a: any) => ({
+        (data ?? []).map((a) => ({
           id: a.id,
           account_name: a.account_name,
           nickname: a.nickname,
         })),
       );
     })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    return () => { cancelled = true; };
+  }, [companyId]);
 
   const accountNameById = useMemo(() => {
     const m = new Map<string, string>();
-    KNOWN_ACCOUNTS.forEach((k) => m.set(k.id, k.name));
     companyAccounts.forEach((a) => {
       if (a.id) m.set(a.id, a.account_name || a.nickname || m.get(a.id) || "Conta sem nome");
     });
@@ -236,22 +212,38 @@ function DashboardContent() {
       setLoading(true);
       setErrorMsg(null);
       try {
-        let q = supabase
-          .from("ecommerce_orders")
-          .select(
-            "id, account_id, order_date, total_amount, mercadolivre_fee, marketplace_fee, seller_shipping_cost, product_cost_total, net_profit, profit_confidence, order_status, payment_status, buyer_city, buyer_state",
-          )
-          .eq("company_id", companyId)
-          .gte("order_date", range.sinceISO)
-          .lte("order_date", range.untilISO)
-          .order("order_date", { ascending: false })
-          .limit(5000);
-        if (scope === "active" && selectedAccountId) {
-          q = q.eq("account_id", selectedAccountId);
+        // Paginate explicitly. A fixed .limit(5000) silently under-reported
+        // busy operations. Never show truncated totals as complete figures.
+        const pageSize = 1000;
+        const maxPages = 50;
+        const loaded: Order[] = [];
+        let completed = false;
+        for (let page = 0; page < maxPages; page++) {
+          if (cancelled) return;
+          let q = supabase
+            .from("ecommerce_orders")
+            .select(
+              "id, account_id, order_date, total_amount, mercadolivre_fee, marketplace_fee, seller_shipping_cost, product_cost_total, net_profit, profit_confidence, order_status, payment_status, buyer_city, buyer_state",
+            )
+            .eq("company_id", companyId)
+            .gte("order_date", range.sinceISO)
+            .lte("order_date", range.untilISO)
+            .order("order_date", { ascending: false })
+            .order("id", { ascending: false })
+            .range(page * pageSize, (page + 1) * pageSize - 1);
+          if (scope === "active" && selectedAccountId) q = q.eq("account_id", selectedAccountId);
+          const { data, error } = await q;
+          if (error) throw error;
+          if (cancelled) return;
+          const pageRows = (data as Order[]) ?? [];
+          loaded.push(...pageRows);
+          if (pageRows.length < pageSize) {
+            completed = true;
+            break;
+          }
         }
-        const { data, error } = await q;
-        if (error) throw error;
-        if (!cancelled) setOrders((data as Order[]) ?? []);
+        if (!completed) throw new Error("Volume de pedidos acima de 50 mil neste período. Para evitar indicadores incompletos, os totais não foram exibidos. Utilize um período menor ou o relatório agregado.");
+        if (!cancelled) setOrders(loaded);
       } catch (e) {
         if (!cancelled) {
           setErrorMsg(e instanceof Error ? e.message : "Erro ao carregar pedidos");
@@ -339,24 +331,25 @@ function DashboardContent() {
 
   const byDay = useMemo(() => {
     const map = new Map<string, { gross: number; count: number }>();
-    const start = startOfPeriod(period);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    for (let d = new Date(start); d.getTime() <= today.getTime(); d.setDate(d.getDate() + 1)) {
-      map.set(dayKey(d), { gross: 0, count: 0 });
+    // Match the exact same America/Sao_Paulo day boundaries used by the DB query.
+    // Brazil has remained at UTC-03 without DST since 2019.
+    const start = new Date(`${range.spStartDate}T12:00:00Z`);
+    const end = new Date(`${range.spEndDate}T12:00:00Z`);
+    for (let d = new Date(start); d.getTime() <= end.getTime(); d.setUTCDate(d.getUTCDate() + 1)) {
+      map.set(d.toISOString().slice(0, 10), { gross: 0, count: 0 });
     }
     for (const o of activeOrders) {
       if (!o.order_date) continue;
-      const k = dayKey(new Date(o.order_date));
-      const cur = map.get(k) ?? { gross: 0, count: 0 };
+      const k = new Date(new Date(o.order_date).getTime() - 3 * 3600 * 1000).toISOString().slice(0, 10);
+      const cur = map.get(k);
+      if (!cur) continue;
       cur.gross += n(o.total_amount);
       cur.count += 1;
-      map.set(k, cur);
     }
     return Array.from(map.entries())
       .sort((a, b) => (a[0] < b[0] ? -1 : 1))
       .map(([key, v]) => ({ key, label: fmtDayLabel(key), ...v }));
-  }, [activeOrders, period]);
+  }, [activeOrders, range.spStartDate, range.spEndDate]);
 
   const byAccount = useMemo(() => {
     const map = new Map<

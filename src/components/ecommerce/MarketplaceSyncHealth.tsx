@@ -178,7 +178,7 @@ export function MarketplaceSyncHealth({ companyId, accountId }: Props) {
             Sincronização automática do Marketplace
           </h2>
           <p className="mt-1 text-xs text-slate-500">
-            O AC360 monitora autenticação, Ads, competição, Radar e conciliação financeira. O scheduler 24/7 verifica as contas a cada 15 minutos e pausa coletas quando a autenticação expira.
+            Acompanhe os estados de autenticação, Ads, competição, Radar e conciliação financeira. O agendamento automático ainda precisa ser ativado neste ambiente de homologação.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">

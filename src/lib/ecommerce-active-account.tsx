@@ -23,6 +23,8 @@ export type EcommerceAccount = {
   external_account_code: string | null;
   is_active: boolean | null;
   last_sync_at: string | null;
+  initial_sync_completed_at?: string | null;
+  sync_status?: string | null;
 };
 
 const CONNECTED_VALUES = new Set([
@@ -41,7 +43,6 @@ export function isAccountConnected(a: EcommerceAccount | null | undefined): bool
   if (!a) return false;
   const s = (a.auth_status ?? "").toLowerCase();
   if (CONNECTED_VALUES.has(s)) return true;
-  if (a.is_active && (a.ml_user_id || a.last_sync_at)) return true;
   return false;
 }
 
@@ -117,7 +118,7 @@ export function EcommerceActiveAccountProvider({ children }: { children: ReactNo
       const { data, error } = await supabase
         .from("ecommerce_accounts")
         .select(
-          "id, account_name, nickname, marketplace, auth_status, ml_user_id, external_account_id, external_account_code, is_active, last_sync_at",
+          "id, account_name, nickname, marketplace, auth_status, ml_user_id, external_account_id, external_account_code, is_active, last_sync_at, initial_sync_completed_at, sync_status",
         )
         .eq("company_id", currentCompanyId)
         .eq("is_active", true)

@@ -1,3 +1,4 @@
+import { getAc360ApiUrl } from "@/lib/ac360-api";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -54,9 +55,6 @@ export const Route = createFileRoute("/ecommerce/concorrencia")({
     ],
   }),
 });
-
-const SYNC_ITEM_ENDPOINT =
-  "https://ac360-mercadolivre-api-production.up.railway.app/api/mercadolivre/competition/sync-item";
 
 type Listing = {
   id: string;
@@ -583,7 +581,7 @@ function ConcorrenciaInner() {
     }
     setLoading(true);
     try {
-      const res = await fetch(SYNC_ITEM_ENDPOINT, {
+      const res = await fetch(`${getAc360ApiUrl()}/api/mercadolivre/competition/sync-item`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({

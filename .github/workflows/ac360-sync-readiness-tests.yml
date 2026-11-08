@@ -1,0 +1,30 @@
+name: AC360 Marketplace Readiness Tests
+
+# Synthetic tests only. Does not use secrets, customers, Supabase, or Mercado Livre APIs.
+on:
+  push:
+    branches:
+      - feature/ac360-multiconsultor
+  pull_request:
+    branches:
+      - feature/ac360-multiconsultor
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ac360-sync-readiness-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  marketplace-readiness:
+    name: OAuth and initial-import states
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run pure readiness regression tests
+        run: node --experimental-strip-types --test tests/ecommerce-sync-readiness.test.mjs

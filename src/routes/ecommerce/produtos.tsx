@@ -184,18 +184,21 @@ function InteligenciaProdutosInner() {
   }
 
   useEffect(() => {
-    if (!selectedAccountId) setLoading(false);
-  }, [selectedAccountId]);
-
-
-  useEffect(() => {
-    if (selectedAccountId) void loadData(selectedAccountId);
+    if (loadingAccounts) return;
+    if (!companyId || !selectedAccountId) {
+      setLoading(false);
+      setListings([]);
+      setProducts([]);
+      setError(!companyId ? "Não foi possível identificar a empresa ativa. Atualize a página ou faça login novamente." : null);
+      return;
+    }
+    void loadData(selectedAccountId);
     const onProductsSynced = () => {
-      if (selectedAccountId) void loadData(selectedAccountId);
+      void loadData(selectedAccountId);
     };
     window.addEventListener("mercadolivre-products-synced", onProductsSynced);
     return () => window.removeEventListener("mercadolivre-products-synced", onProductsSynced);
-  }, [selectedAccountId]);
+  }, [loadingAccounts, companyId, selectedAccountId]);
 
   async function handleSync() {
     if (syncing || !selectedAccountId) return;

@@ -1,7 +1,5 @@
+import { getAc360ApiUrl } from "@/lib/ac360-api";
 import { supabase } from "@/lib/supabase";
-
-const ML_API_BASE =
-  "https://ac360-mercadolivre-api-production.up.railway.app";
 
 type OAuthStartOptions = {
   companyId: string;
@@ -109,7 +107,7 @@ export async function startMercadoLivreOAuth({
     });
 
     const response = await fetch(
-      `${ML_API_BASE}/api/mercadolivre/auth-url?${query.toString()}`,
+      `${getAc360ApiUrl()}/api/mercadolivre/auth-url?${query.toString()}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,

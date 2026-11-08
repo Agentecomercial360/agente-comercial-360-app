@@ -33,5 +33,52 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      - name: Multi-consultant RLS policy contract
+        run: node tests/consulting/consultingRlsContract.test.mjs
+
+      - name: Validate Supabase smoke preflight
+        run: |
+          node --check tests/consulting/rlsIsolationSmoke.mjs
+          if node tests/consulting/rlsIsolationSmoke.mjs > /tmp/ac360-guard.log 2>&1; then
+            echo 'Unexpected smoke success without isolated credentials'
+            exit 1
+          fi
+          grep -q 'Missing AC360_RLS_TEST_URL' /tmp/ac360-guard.log
+
       - name: Build application
         run: bun run build
+
+  rls-postgres:
+    name: Isolated PostgreSQL RLS
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testing_only
+          POSTGRES_DB: ac360_rls_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ac360_rls_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGUSER: postgres
+      PGPASSWORD: testing_only
+      PGDATABASE: ac360_rls_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Seed disposable database
+        run: psql -v ON_ERROR_STOP=1 -f tests/consulting/postgres_bootstrap.sql
+      - name: Apply candidate consulting schema
+        run: psql -v ON_ERROR_STOP=1 -f docs/supabase/ac360-multiconsultor-v1.sql
+      - name: Execute isolated RLS assertions
+        run: psql -v ON_ERROR_STOP=1 -f tests/consulting/postgres_rls_assertions.sql

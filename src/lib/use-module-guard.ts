@@ -45,6 +45,25 @@ export function useModuleGuard(required: ModuleKey) {
           return;
         }
 
+        // Dedicated AC360 consulting preview uses platform_admins directly.
+        // Never apply this branch to production or ordinary module access.
+        if (required === "admin" && import.meta.env.VITE_AC360_EXPECTED_SUPABASE_PROJECT_REF === "iiegcdekryjyrkxpxcmr") {
+          const { data: userResult, error: userError } = await supabase.auth.getUser();
+          if (userError || !userResult.user) {
+            if (!cancelled) navigate({ to: "/login" });
+            return;
+          }
+          const { data: admin, error: adminError } = await supabase.from("platform_admins")
+            .select("user_id").eq("user_id", userResult.user.id).eq("is_active", true).maybeSingle();
+          if (cancelled) return;
+          if (adminError || !admin) {
+            navigate({ to: "/login" });
+            return;
+          }
+          setAllowed(true);
+          return;
+        }
+
         const { data: ctx, error } = await supabase
           .from("vw_user_access_context")
           .select(

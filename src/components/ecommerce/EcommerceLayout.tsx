@@ -26,6 +26,8 @@ import {
   HeartPulse,
   AlertTriangle,
   ShieldCheck,
+  MessageSquare,
+  LayoutGrid,
 
 } from "lucide-react";
 import { type ReactNode, useState, useEffect, useCallback } from "react";
@@ -38,6 +40,7 @@ import {
   EcommerceActiveAccountProvider,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
+import { getMarketplaceReadiness } from "@/lib/ecommerce-sync-readiness";
 import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
 import { autoSyncMarketplaceIntelligence } from "@/lib/ml-marketplace-intelligence";
 
@@ -78,6 +81,8 @@ const navGroups = [
   {
     title: "Inteligência",
     items: [
+      { label: "Feed Inteligente", to: "/ecommerce/feed-inteligente", icon: LayoutGrid },
+      { label: "Studio de Imagens IA", to: "/ecommerce/chat-consultivo-ia", icon: MessageSquare },
       { label: "Saúde da Inteligência", to: "/ecommerce/saude-inteligencia", icon: HeartPulse },
       { label: "Diagnóstico Inteligente", to: "/ecommerce/radar-ia", icon: Radar },
       { label: "Assistente Estratégico", to: "/ecommerce/consultor-ia", icon: BrainCircuit },
@@ -226,19 +231,35 @@ function ActiveAccountSelector() {
         </select>
         <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
       </div>
-      {activeAccount && (
-        isActiveConnected ? (
-          <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-            <CheckCircle2 className="h-3 w-3" />
-            Conectada
+      {activeAccount && (() => {
+        const stage = getMarketplaceReadiness({
+          isAuthorized: isActiveConnected,
+          syncStatus: activeAccount.sync_status,
+          initialSyncCompletedAt: activeAccount.initial_sync_completed_at,
+        }).kind;
+        const config = {
+          authorization_pending: { label: "Aguardando conexão", style: "border-amber-200 bg-amber-50 text-amber-700" },
+          initial_pending: { label: "Autorizada · importar", style: "border-amber-200 bg-amber-50 text-amber-700" },
+          running: { label: "Importando dados", style: "border-blue-200 bg-blue-50 text-blue-700" },
+          failed: { label: "Falha na importação", style: "border-rose-200 bg-rose-50 text-rose-700" },
+          imported: { label: "Importação concluída", style: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+        }[stage];
+        return (
+          <span
+            className={`hidden sm:inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${config.style}`}
+            title={stage === "imported"
+              ? "A primeira importação foi concluída. Não significa que os dados estejam atualizados agora."
+              : stage === "initial_pending"
+                ? "A conta foi autorizada no Mercado Livre, mas ainda não concluiu a primeira importação."
+                : stage === "failed"
+                  ? "A última tentativa de importação falhou. Verifique a sincronização."
+                  : undefined}
+          >
+            {stage === "imported" ? <CheckCircle2 className="h-3 w-3" /> : <Link2 className="h-3 w-3" />}
+            {config.label}
           </span>
-        ) : (
-          <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-            <Link2 className="h-3 w-3" />
-            Aguardando conexão
-          </span>
-        )
-      )}
+        );
+      })()}
     </div>
   );
 }
@@ -280,26 +301,9 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (accountsLoading) return;
 
-    const connectedAccounts = accounts.filter((account) => {
-      const status = (account.auth_status ?? "").toLowerCase();
-      return (
-        status === "connected" ||
-        status === "authorized" ||
-        Boolean(account.ml_user_id) ||
-        Boolean(account.last_sync_at)
-      );
-    });
-
-    const hasCompletedInitialSync = connectedAccounts.some(
-      (account) => Boolean(account.last_sync_at),
-    );
-
-    if (
-      !companyId ||
-      accounts.length === 0 ||
-      connectedAccounts.length === 0 ||
-      !hasCompletedInitialSync
-    ) {
+    // Existing multi-account companies must be able to manage pending OAuth accounts.
+    // Only require onboarding when there is no company or no registered accounts.
+    if (!companyId || accounts.length === 0) {
       navigate({ to: "/ecommerce/onboarding" });
     }
   }, [accountsLoading, companyId, accounts, navigate]);
@@ -386,6 +390,7 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!companyId || !activeAccountId || !activeAccount) return;
     if (activeAccount.marketplace !== "mercado_livre") return;
+    if (activeAccount.auth_status !== "connected") return;
 
     void Promise.allSettled([
       autoSyncMarketplaceIntelligence({
@@ -416,6 +421,10 @@ function EcommerceLayoutInner({ children }: { children: ReactNode }) {
     }
     if (!activeAccountId) {
       toast.error("Selecione uma conta Mercado Livre para sincronizar.");
+      return;
+    }
+    if (activeAccount?.auth_status !== "connected") {
+      toast.error("Esta conta aguarda reautorização do Mercado Livre. A sincronização não foi iniciada.");
       return;
     }
     setIsUpdating(true);

@@ -1,3 +1,4 @@
+import { getAc360ApiUrl } from "@/lib/ac360-api";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
@@ -7,8 +8,6 @@ import { supabase } from "@/lib/supabase";
 export const Route = createFileRoute("/ecommerce/debug/competition-api")({
   component: DebugCompetitionApiRoute,
 });
-
-const API_BASE = "https://ac360-mercadolivre-api-production.up.railway.app";
 
 type SessionState = "checking" | "authenticated" | "missing";
 
@@ -520,7 +519,7 @@ function DebugCompetitionApiPage() {
       company_id: companyId,
       account_id: accountId,
     });
-    return `${API_BASE}/api/mercadolivre/competition/history?${params.toString()}`;
+    return `${getAc360ApiUrl()}/api/mercadolivre/competition/history?${params.toString()}`;
   }, [accountId, companyId, hasConsistentContext]);
 
   const canRunTest = sessionState === "authenticated" && hasConsistentContext && !!historyUrl;
@@ -750,7 +749,7 @@ function DebugCompetitionApiPage() {
         min_margin_percent: marginNumber,
         notes: toStringOrNull(notes),
       };
-      const res = await authedFetch(`${API_BASE}/api/mercadolivre/competition/watchlist`, {
+      const res = await authedFetch(`${getAc360ApiUrl()}/api/mercadolivre/competition/watchlist`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -812,7 +811,7 @@ function DebugCompetitionApiPage() {
     try {
       const params = new URLSearchParams({ company_id: companyId, account_id: accountId });
       const res = await authedFetch(
-        `${API_BASE}/api/mercadolivre/competition/watchlist?${params.toString()}`,
+        `${getAc360ApiUrl()}/api/mercadolivre/competition/watchlist?${params.toString()}`,
         { method: "GET", headers: { Accept: "application/json" } },
       );
       if (!res) {
@@ -982,7 +981,7 @@ function DebugCompetitionApiPage() {
     setAnalysisResult(null);
     const started = performance.now();
     try {
-      const res = await authedFetch(`${API_BASE}/api/mercadolivre/competition/manual-analysis`, {
+      const res = await authedFetch(`${getAc360ApiUrl()}/api/mercadolivre/competition/manual-analysis`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1041,7 +1040,7 @@ function DebugCompetitionApiPage() {
       const params = new URLSearchParams({ company_id: companyId, account_id: accountId });
       if (watchlistId) params.set("watchlist_id", watchlistId);
       const res = await authedFetch(
-        `${API_BASE}/api/mercadolivre/competition/history?${params.toString()}`,
+        `${getAc360ApiUrl()}/api/mercadolivre/competition/history?${params.toString()}`,
         { method: "GET", headers: { Accept: "application/json" } },
       );
       if (!res) {

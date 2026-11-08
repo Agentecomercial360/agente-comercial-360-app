@@ -266,7 +266,9 @@ function CentralAcoesInner() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    if (!activeAccountId) {
+    if (loadingAccount) return;
+    if (!companyId || !activeAccountId) {
+      setError(!companyId ? "Não foi possível identificar a empresa ativa. Atualize a página ou faça login novamente." : null);
       setListings([]);
       setProducts([]);
       setOrderItems([]);
@@ -354,7 +356,7 @@ function CentralAcoesInner() {
     return () => {
       cancelled = true;
     };
-  }, [activeAccountId]);
+  }, [activeAccountId, companyId, loadingAccount]);
 
   const productById = useMemo(() => {
     const m = new Map<string, Product>();

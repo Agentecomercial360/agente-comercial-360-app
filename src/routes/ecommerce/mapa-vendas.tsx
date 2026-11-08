@@ -166,9 +166,17 @@ function MapaVendasContent() {
   const [productQuery, setProductQuery] = useState("");
 
   useEffect(() => {
+    if (accLoading) return;
+    if (!companyId) {
+      setOrders([]);
+      setItems([]);
+      setLoading(false);
+      setError("Não foi possível identificar a empresa ativa. Atualize a página ou faça login novamente.");
+      return;
+    }
     void load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeAccountId, period]);
+  }, [accLoading, companyId, activeAccountId, period]);
 
   const range = useMemo(() => getPeriodRange(period), [period]);
 

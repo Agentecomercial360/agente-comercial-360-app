@@ -40,6 +40,7 @@ import {
   EcommerceActiveAccountProvider,
   useEcommerceActiveAccount,
 } from "@/lib/ecommerce-active-account";
+import { getMarketplaceReadiness } from "@/lib/ecommerce-sync-readiness";
 import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
 import { autoSyncMarketplaceIntelligence } from "@/lib/ml-marketplace-intelligence";
 
@@ -231,15 +232,11 @@ function ActiveAccountSelector() {
         <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
       </div>
       {activeAccount && (() => {
-        const stage = !isActiveConnected
-          ? "authorization_pending"
-          : activeAccount.sync_status === "running"
-            ? "running"
-            : activeAccount.sync_status === "failed"
-              ? "failed"
-              : activeAccount.initial_sync_completed_at
-                ? "imported"
-                : "initial_pending";
+        const stage = getMarketplaceReadiness({
+          isAuthorized: isActiveConnected,
+          syncStatus: activeAccount.sync_status,
+          initialSyncCompletedAt: activeAccount.initial_sync_completed_at,
+        }).kind;
         const config = {
           authorization_pending: { label: "Aguardando conexão", style: "border-amber-200 bg-amber-50 text-amber-700" },
           initial_pending: { label: "Autorizada · importar", style: "border-amber-200 bg-amber-50 text-amber-700" },

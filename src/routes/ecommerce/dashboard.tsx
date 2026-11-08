@@ -580,7 +580,7 @@ function DashboardContent() {
                 <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-400">
                   Evolução
                 </p>
-                <h2 className="mt-1 text-sm font-semibold text-[#0A1F44]">Faturamento por dia</h2>
+                <h2 className="mt-1 text-sm font-semibold text-[#0A1F44]">{period === "180d" ? "Faturamento por mês" : "Faturamento por dia"}</h2>
               </div>
               <span className="rounded-full bg-[#EEF4FF] px-2.5 py-1 text-[9.5px] font-semibold text-[#1E5EFF]">
                 {PERIODS.find((p) => p.key === period)?.label}
@@ -589,12 +589,17 @@ function DashboardContent() {
 
             {loading ? (
               <Skeleton className="h-[220px] w-full rounded-xl" />
+            ) : errorMsg ? (
+              <div className="flex h-[220px] items-center justify-center rounded-2xl bg-[#F7F9FC] text-center text-xs text-amber-800">Não foi possível carregar o histórico deste período.</div>
             ) : byDay.length === 0 || byDay.every((d) => d.gross === 0) ? (
               <div className="flex h-[220px] items-center justify-center rounded-2xl bg-[#F7F9FC] text-center">
                 <div>
                   <BarChart3 className="mx-auto h-5 w-5 text-slate-300" />
                   <p className="mt-2 text-[11px] font-medium text-slate-500">Sem faturamento no período</p>
-                  <p className="mt-1 text-[10px] text-slate-400">O gráfico será preenchido após a sincronização de pedidos.</p>
+                  <p className="mt-1 text-[10px] text-slate-400">Não há valores registrados neste intervalo; isso não indica falha de sincronização.</p>
+                  {period !== "180d" && (
+                    <button type="button" onClick={() => setPeriod("180d")} className="mt-3 rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-blue-700 hover:bg-blue-50">Ver histórico de 180 dias</button>
+                  )}
                 </div>
               </div>
             ) : (

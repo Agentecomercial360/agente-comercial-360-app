@@ -134,6 +134,7 @@ export function HistoricalCostDiagnostic({
               <p className="mt-2 text-[10px] text-amber-800/80">Um pedido pode ter mais de uma pendência. Nenhum valor foi recalculado ou aprovado.</p>
             </div>
           )}
+        </div>
       ) : null}
     </section>
   );

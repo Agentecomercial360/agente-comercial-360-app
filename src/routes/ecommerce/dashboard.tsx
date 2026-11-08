@@ -45,7 +45,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { MarketplaceSyncHealth } from "@/components/ecommerce/MarketplaceSyncHealth";
 import { HistoricalCostDiagnostic } from "@/components/ecommerce/HistoricalCostDiagnostic";
-import { isVerifiedProfitOrder, summarizeVerifiedProfit } from "@/lib/ecommerce-profit-readiness";
+import { isVerifiedProfitOrder, marketplaceFeeForDisplay, summarizeVerifiedProfit } from "@/lib/ecommerce-profit-readiness";
 
 export const Route = createFileRoute("/ecommerce/dashboard")({
   component: DashboardEcommerce,
@@ -312,7 +312,7 @@ function DashboardContent() {
     let pending = 0;
     let high = 0;
     for (const o of activeOrders) {
-      fees += n(o.mercadolivre_fee) + n(o.marketplace_fee);
+      fees += n(marketplaceFeeForDisplay(o));
       shipping += n(o.seller_shipping_cost);
       if (!isVerifiedProfitOrder(o)) pending += 1;
       if (isVerifiedProfitOrder(o)) high += 1;
@@ -367,7 +367,7 @@ function DashboardContent() {
         { id, count: 0, gross: 0, fees: 0, shipping: 0, net: 0, verified: 0, pending: 0 };
       cur.count += 1;
       cur.gross += n(o.total_amount);
-      cur.fees += n(o.mercadolivre_fee) + n(o.marketplace_fee);
+      cur.fees += n(marketplaceFeeForDisplay(o));
       cur.shipping += n(o.seller_shipping_cost);
       if (isVerifiedProfitOrder(o)) {
         cur.net += o.net_profit as number;

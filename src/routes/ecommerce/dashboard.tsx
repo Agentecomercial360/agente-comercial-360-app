@@ -44,6 +44,7 @@ import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { MarketplaceSyncHealth } from "@/components/ecommerce/MarketplaceSyncHealth";
+import { HistoricalCostDiagnostic } from "@/components/ecommerce/HistoricalCostDiagnostic";
 import { isVerifiedProfitOrder, summarizeVerifiedProfit } from "@/lib/ecommerce-profit-readiness";
 
 export const Route = createFileRoute("/ecommerce/dashboard")({
@@ -450,6 +451,15 @@ function DashboardContent() {
             Revisar custos <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
+      )}
+
+      {scope === "active" && (
+        <HistoricalCostDiagnostic
+          companyId={companyId ?? null}
+          accountId={selectedAccountId}
+          since={range.sinceISO}
+          until={range.untilISO}
+        />
       )}
 
       {/* Filtros */}

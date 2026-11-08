@@ -1063,7 +1063,9 @@ function FeedInteligente() {
 }
 
 function FeedInteligenteContent() {
-  const { companyId, activeAccountId, isActiveConnected, loading: accountsLoading } = useEcommerceActiveAccount();
+  const { companyId, activeAccountId, activeAccount, isActiveConnected, loading: accountsLoading } = useEcommerceActiveAccount();
+  const initialImportComplete = Boolean(activeAccount?.initial_sync_completed_at);
+  const initialImportPending = isActiveConnected && !initialImportComplete;
   const [data, setData] = useState<IntelligentFeedPreview | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorKind, setErrorKind] = useState<"auth" | "unavailable" | null>(null);
@@ -1088,7 +1090,7 @@ function FeedInteligenteContent() {
     setErrorDetail(null);
     try {
       // SOMENTE LEITURA: apenas GET /intelligent-feed/preview.
-      const preview = isActiveConnected
+      const preview = isActiveConnected && initialImportComplete
         ? await getIntelligentFeedPreview({
             companyId,
             accountId: activeAccountId,
@@ -1118,7 +1120,7 @@ function FeedInteligenteContent() {
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
-  }, [companyId, activeAccountId, isActiveConnected, accountsLoading]);
+  }, [companyId, activeAccountId, isActiveConnected, initialImportComplete, accountsLoading]);
 
   useEffect(() => {
     void load();
@@ -1267,6 +1269,25 @@ function FeedInteligenteContent() {
               ))}
             </div>
           </div>
+
+          {initialImportPending && (
+            <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-950" role="status">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+              <div>
+                <p className="text-[12px] font-bold">Conta autorizada, importação inicial pendente</p>
+                <p className="mt-1 text-xs leading-relaxed text-amber-900/80">
+                  A autorização do Mercado Livre não confirma que anúncios e pedidos tenham sido importados.
+                  Este Feed apresenta apenas o histórico disponível no banco de dados; nenhuma sincronização foi iniciada nesta página.
+                </p>
+              </div>
+            </div>
+          )}
+          {isActiveConnected && activeAccount?.sync_status === "failed" && (
+            <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-900" role="status">
+              <AlertOctagon className="mt-0.5 h-4 w-4 shrink-0" />
+              <p className="text-xs leading-relaxed"><strong>Última importação falhou.</strong> Os dados anteriores podem estar disponíveis, mas a atualização não foi concluída. Verifique o estado de sincronização antes de tomar decisões.</p>
+            </div>
+          )}
 
           {/* KPIs executivos */}
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

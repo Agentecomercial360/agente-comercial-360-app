@@ -44,6 +44,7 @@ import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { MarketplaceSyncHealth } from "@/components/ecommerce/MarketplaceSyncHealth";
+import { isVerifiedProfitOrder, summarizeVerifiedProfit } from "@/lib/ecommerce-profit-readiness";
 
 export const Route = createFileRoute("/ecommerce/dashboard")({
   component: DashboardEcommerce,
@@ -63,6 +64,9 @@ type Order = {
   product_cost_total: number | null;
   net_profit: number | null;
   profit_confidence: string | null;
+  financial_review_required: boolean | null;
+  has_refund: boolean | null;
+  has_chargeback: boolean | null;
   order_status: string | null;
   payment_status: string | null;
   buyer_city: string | null;
@@ -223,7 +227,7 @@ function DashboardContent() {
           let q = supabase
             .from("ecommerce_orders")
             .select(
-              "id, account_id, order_date, total_amount, mercadolivre_fee, marketplace_fee, seller_shipping_cost, product_cost_total, net_profit, profit_confidence, order_status, payment_status, buyer_city, buyer_state",
+              "id, account_id, order_date, total_amount, mercadolivre_fee, marketplace_fee, seller_shipping_cost, product_cost_total, net_profit, profit_confidence, financial_review_required, has_refund, has_chargeback, order_status, payment_status, buyer_city, buyer_state",
             )
             .eq("company_id", companyId)
             .gte("order_date", range.sinceISO)
@@ -303,15 +307,14 @@ function DashboardContent() {
     const base = aggregateOrderMetrics(activeOrders);
     let fees = 0;
     let shipping = 0;
-    let netParcial = 0;
+    const verified = summarizeVerifiedProfit(activeOrders);
     let pending = 0;
     let high = 0;
     for (const o of activeOrders) {
       fees += n(o.mercadolivre_fee) + n(o.marketplace_fee);
       shipping += n(o.seller_shipping_cost);
-      netParcial += n(o.net_profit);
-      if ((o.profit_confidence ?? "").toLowerCase() === "pending_cost") pending += 1;
-      if ((o.profit_confidence ?? "").toLowerCase() === "high") high += 1;
+      if (!isVerifiedProfitOrder(o)) pending += 1;
+      if (isVerifiedProfitOrder(o)) high += 1;
     }
     return {
       gross: base.totalRevenue,
@@ -323,7 +326,7 @@ function DashboardContent() {
       cancelledCount: orders.length - activeOrders.length,
       fees,
       shipping,
-      netParcial,
+      netParcial: verified.verifiedProfit,
       pending,
       high,
     };
@@ -354,19 +357,23 @@ function DashboardContent() {
   const byAccount = useMemo(() => {
     const map = new Map<
       string,
-      { id: string; count: number; gross: number; fees: number; shipping: number; net: number; pending: number }
+      { id: string; count: number; gross: number; fees: number; shipping: number; net: number; verified: number; pending: number }
     >();
     for (const o of activeOrders) {
       const id = o.account_id ?? "—";
       const cur =
         map.get(id) ??
-        { id, count: 0, gross: 0, fees: 0, shipping: 0, net: 0, pending: 0 };
+        { id, count: 0, gross: 0, fees: 0, shipping: 0, net: 0, verified: 0, pending: 0 };
       cur.count += 1;
       cur.gross += n(o.total_amount);
       cur.fees += n(o.mercadolivre_fee) + n(o.marketplace_fee);
       cur.shipping += n(o.seller_shipping_cost);
-      cur.net += n(o.net_profit);
-      if ((o.profit_confidence ?? "").toLowerCase() === "pending_cost") cur.pending += 1;
+      if (isVerifiedProfitOrder(o)) {
+        cur.net += o.net_profit as number;
+        cur.verified += 1;
+      } else {
+        cur.pending += 1;
+      }
       map.set(id, cur);
     }
     return Array.from(map.values()).sort((a, b) => b.gross - a.gross);
@@ -526,7 +533,7 @@ function DashboardContent() {
                 </div>
               )}
               <p className="mt-2 max-w-sm text-[12px] leading-relaxed text-white/58">
-                Faturamento registrado no período e nas contas selecionadas. Verifique a data da última sincronização.
+                Faturamento registrado no período e nas contas selecionadas. Lucro verificado considera apenas pedidos com custos completos e sem revisão financeira.
               </p>
             </div>
 
@@ -534,7 +541,7 @@ function DashboardContent() {
               {[
                 ["Pedidos", num.format(totals.count)],
                 ["Ticket", brl.format(totals.ticket)],
-                ["Resultado", brl.format(totals.netParcial)],
+                ["Lucro verificado", totals.netParcial === null ? "—" : brl.format(totals.netParcial)],
               ].map(([label, value]) => (
                 <div
                   key={label}
@@ -657,7 +664,7 @@ function DashboardContent() {
                   <th className="text-right px-4 py-2.5 font-medium">Faturamento</th>
                   <th className="text-right px-4 py-2.5 font-medium">Taxas ML</th>
                   <th className="text-right px-4 py-2.5 font-medium">Frete vendedor</th>
-                  <th className="text-right px-4 py-2.5 font-medium">Resultado parcial</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Lucro verificado</th>
                   <th className="text-right px-5 py-2.5 font-medium">Pend. custo</th>
                 </tr>
               </thead>
@@ -686,7 +693,7 @@ function DashboardContent() {
                       {brl.format(a.shipping)}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums font-semibold text-foreground">
-                      {brl.format(a.net)}
+                      {a.verified > 0 ? brl.format(a.net) : "—"}
                     </td>
                     <td className="px-5 py-3 text-right tabular-nums">
                       {a.pending > 0 ? (

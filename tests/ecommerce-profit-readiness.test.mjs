@@ -4,6 +4,7 @@ import { isVerifiedProfitOrder, marketplaceFeeForDisplay, summarizeVerifiedProfi
 
 const base = {
   net_profit: 45,
+  product_cost_total: 20,
   profit_confidence: "high",
   financial_review_required: false,
   has_refund: false,
@@ -20,6 +21,9 @@ test("only verified profit is eligible", () => {
     { has_chargeback: true },
     { net_profit: null },
     { net_profit: Number.NaN },
+    { product_cost_total: null },
+    { product_cost_total: Number.NaN },
+    { product_cost_total: -1 },
   ]) {
     assert.equal(isVerifiedProfitOrder({ ...base, ...wrong }), false);
   }
@@ -44,6 +48,9 @@ test("zero verified orders renders unavailable, not R$ 0", () => {
     unavailableOrders: 1,
     verifiedProfit: null,
   });
+});
+test("explicit zero CMV remains allowed if verified by accounting", () => {
+  assert.equal(isVerifiedProfitOrder({ ...base, product_cost_total: 0 }), true);
 });
 test("genuine verified zero and losses remain visible", () => {
   assert.equal(summarizeVerifiedProfit([

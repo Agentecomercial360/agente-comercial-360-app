@@ -27,6 +27,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import {
   aggregateOrderMetrics,
+  aggregateMonthlyOrderPoints,
   getPeriodRange,
   isCancelled,
   type PeriodKey as SharedPeriodKey,
@@ -88,12 +89,13 @@ type SyncRun = {
   created_at: string | null;
 };
 
-type PeriodKey = "today" | "7d" | "30d";
+type PeriodKey = SharedPeriodKey;
 
 const PERIODS: { key: PeriodKey; label: string }[] = [
   { key: "today", label: "Hoje" },
   { key: "7d", label: "7 dias" },
   { key: "30d", label: "30 dias" },
+  { key: "180d", label: "180 dias" },
 ];
 
 const brl = new Intl.NumberFormat("pt-BR", {
@@ -354,6 +356,10 @@ function DashboardContent() {
       .sort((a, b) => (a[0] < b[0] ? -1 : 1))
       .map(([key, v]) => ({ key, label: fmtDayLabel(key), ...v }));
   }, [activeOrders, range.spStartDate, range.spEndDate]);
+  const revenueChartPoints = useMemo(
+    () => period === "180d" ? aggregateMonthlyOrderPoints(byDay) : byDay,
+    [period, byDay],
+  );
 
   const byAccount = useMemo(() => {
     const map = new Map<
@@ -593,7 +599,7 @@ function DashboardContent() {
               </div>
             ) : (
               <div className="-mx-2">
-                <RevenueByDayChart data={byDay} />
+                <RevenueByDayChart data={revenueChartPoints} />
               </div>
             )}
           </div>

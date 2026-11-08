@@ -1,6 +1,7 @@
 /** Prevent unpriced or financially disputed orders from becoming "profit" KPIs. */
 export type ProfitReadinessOrder = {
   net_profit: number | null;
+  product_cost_total?: number | null;
   profit_confidence: string | null;
   financial_review_required?: boolean | null;
   has_refund?: boolean | null;
@@ -13,6 +14,9 @@ export function isVerifiedProfitOrder(order: ProfitReadinessOrder): boolean {
     order.financial_review_required !== true &&
     order.has_refund !== true &&
     order.has_chargeback !== true &&
+    typeof order.product_cost_total === "number" &&
+    Number.isFinite(order.product_cost_total) &&
+    order.product_cost_total >= 0 &&
     typeof order.net_profit === "number" &&
     Number.isFinite(order.net_profit)
   );

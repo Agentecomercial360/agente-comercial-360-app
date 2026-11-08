@@ -2,14 +2,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { createAc360ApiUrl, getAc360AccessToken } from "@/lib/ac360-api";
-
-type PreviewResponse = {
-  success: boolean;
-  profit_approved: boolean;
-  write_operations_executed: boolean;
-  summary: { orders_checked: number; estimated_only: number; blocked: number };
-  pagination: { page: number; page_size: number; has_more: boolean; next_page: number | null; scope: string };
-};
+import { assertHistoricalCostPreviewPage, type HistoricalCostPreviewPage } from "@/lib/historical-cost-preview";
 
 type Status = {
   checked: number;
@@ -65,16 +58,8 @@ export function HistoricalCostDiagnostic({
             throw new Error(errorByStatus[response.status] ??
               "Não foi possível consultar a simulação financeira.");
           }
-          const data = (await response.json()) as PreviewResponse;
-          if (!data.success || data.write_operations_executed !== false ||
-              data.profit_approved !== false ||
-              data.pagination?.scope !== "page_only" || data.pagination.page !== page ||
-              !Number.isSafeInteger(data.summary?.orders_checked) ||
-              !Number.isSafeInteger(data.summary?.estimated_only) ||
-              !Number.isSafeInteger(data.summary?.blocked) ||
-              data.summary.orders_checked !== data.summary.estimated_only + data.summary.blocked) {
-            throw new Error("A API retornou dados financeiros inconsistentes.");
-          }
+          const data = (await response.json()) as HistoricalCostPreviewPage;
+          assertHistoricalCostPreviewPage(data, { companyId, accountId, since, until, page });
           aggregate = {
             checked: aggregate.checked + data.summary.orders_checked,
             estimatedOnly: aggregate.estimatedOnly + data.summary.estimated_only,

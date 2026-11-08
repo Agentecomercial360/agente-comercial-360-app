@@ -54,11 +54,17 @@ export function HistoricalCostDiagnostic({
             signal: abort.signal,
             headers: { Authorization: `Bearer ${token}` },
           });
-          if (!response.ok) throw new Error(
-            response.status === 404
-              ? "Diagnóstico ainda não disponível na API deste ambiente."
-              : "Não foi possível consultar a simulação financeira."
-          );
+          if (!response.ok) {
+            const errorByStatus: Record<number, string> = {
+              400: "O período ou os identificadores enviados não são válidos.",
+              401: "A sessão expirou. Entre novamente para acessar o diagnóstico.",
+              403: "Esta conta não possui permissão para consultar o diagnóstico financeiro.",
+              404: "A conta ativa ou o diagnóstico não está disponível neste ambiente.",
+              422: "A análise excedeu o limite seguro de registros. Selecione um período menor.",
+            };
+            throw new Error(errorByStatus[response.status] ??
+              "Não foi possível consultar a simulação financeira.");
+          }
           const data = (await response.json()) as PreviewResponse;
           if (!data.success || data.write_operations_executed !== false ||
               data.profit_approved !== false ||

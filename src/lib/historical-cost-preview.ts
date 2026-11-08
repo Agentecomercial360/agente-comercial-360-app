@@ -7,6 +7,13 @@ export type HistoricalCostPreviewPage = {
   profit_approved: boolean;
   write_operations_executed: boolean;
   summary: { orders_checked: number; estimated_only: number; blocked: number };
+  candidates: {
+    order_id: string;
+    company_id: string;
+    account_id: string;
+    status: "estimated_only" | "blocked";
+    reasons: string[];
+  }[];
   pagination: {
     page: number;
     page_size: number;
@@ -40,10 +47,55 @@ export function assertHistoricalCostPreviewPage(
       !Number.isSafeInteger(data.summary?.blocked) || data.summary.blocked < 0 ||
       data.summary.orders_checked > data.pagination.page_size ||
       data.summary.orders_checked !== data.summary.estimated_only + data.summary.blocked ||
+      !Array.isArray(data.candidates) ||
+      data.candidates.length !== data.summary.orders_checked ||
+      data.candidates.some(candidate =>
+        !candidate || typeof candidate.order_id !== "string" || !candidate.order_id ||
+        candidate.company_id !== scope.companyId || candidate.account_id !== scope.accountId ||
+        !["estimated_only", "blocked"].includes(candidate.status) ||
+        !Array.isArray(candidate.reasons) ||
+        candidate.reasons.some(reason => typeof reason !== "string") ||
+        (candidate.status === "estimated_only" && candidate.reasons.length !== 0) ||
+        (candidate.status === "blocked" && candidate.reasons.length === 0)
+      ) ||
+      data.candidates.filter(candidate => candidate.status === "estimated_only").length !== data.summary.estimated_only ||
+      data.candidates.filter(candidate => candidate.status === "blocked").length !== data.summary.blocked ||
       (data.pagination.has_more &&
         (data.pagination.next_page !== scope.page + 1 ||
           data.summary.orders_checked !== data.pagination.page_size)) ||
       (!data.pagination.has_more && data.pagination.next_page !== null)) {
     throw new Error("A API retornou dados financeiros inconsistentes ou fora da conta e período selecionados.");
   }
+}
+
+/** Counts blocked orders by cause (one order can have multiple causes). */
+export const FINANCIAL_BLOCK_REASON_LABELS = {
+  product_cost_not_found: "Sem custo histórico cadastrado",
+  financial_review_or_refund: "Devolução, cancelamento ou revisão financeira",
+  missing_financial_components: "Taxas ou dados financeiros incompletos",
+  ambiguous_cost: "Custos históricos conflitantes",
+  invalid_quantity: "Quantidade de item inválida",
+  missing_items: "Pedido sem itens vinculados",
+  missing_order_date: "Data de venda ausente",
+  missing_tenant_scope: "Escopo de conta inválido",
+} as const;
+
+export type HistoricalBlockReason = { reason: string; label: string; orders: number };
+
+export function summarizeHistoricalBlockedReasons(
+  candidates: HistoricalCostPreviewPage["candidates"],
+): HistoricalBlockReason[] {
+  const counts = new Map<string, number>();
+  for (const candidate of candidates) {
+    if (candidate.status !== "blocked") continue;
+    for (const reason of new Set(candidate.reasons)) {
+      counts.set(reason, (counts.get(reason) ?? 0) + 1);
+    }
+  }
+  return Array.from(counts, ([reason, orders]) => ({
+    reason,
+    label: FINANCIAL_BLOCK_REASON_LABELS[reason as keyof typeof FINANCIAL_BLOCK_REASON_LABELS] ??
+      "Outra pendência financeira",
+    orders,
+  })).sort((a, b) => b.orders - a.orders || a.label.localeCompare(b.label));
 }

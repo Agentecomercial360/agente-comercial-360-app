@@ -230,19 +230,39 @@ function ActiveAccountSelector() {
         </select>
         <ChevronDown className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
       </div>
-      {activeAccount && (
-        isActiveConnected ? (
-          <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700">
-            <CheckCircle2 className="h-3 w-3" />
-            Conectada
+      {activeAccount && (() => {
+        const stage = !isActiveConnected
+          ? "authorization_pending"
+          : activeAccount.sync_status === "running"
+            ? "running"
+            : activeAccount.sync_status === "failed"
+              ? "failed"
+              : activeAccount.initial_sync_completed_at
+                ? "imported"
+                : "initial_pending";
+        const config = {
+          authorization_pending: { label: "Aguardando conexão", style: "border-amber-200 bg-amber-50 text-amber-700" },
+          initial_pending: { label: "Autorizada · importar", style: "border-amber-200 bg-amber-50 text-amber-700" },
+          running: { label: "Importando dados", style: "border-blue-200 bg-blue-50 text-blue-700" },
+          failed: { label: "Falha na importação", style: "border-rose-200 bg-rose-50 text-rose-700" },
+          imported: { label: "Importação concluída", style: "border-emerald-200 bg-emerald-50 text-emerald-700" },
+        }[stage];
+        return (
+          <span
+            className={`hidden sm:inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold ${config.style}`}
+            title={stage === "imported"
+              ? "A primeira importação foi concluída. Não significa que os dados estejam atualizados agora."
+              : stage === "initial_pending"
+                ? "A conta foi autorizada no Mercado Livre, mas ainda não concluiu a primeira importação."
+                : stage === "failed"
+                  ? "A última tentativa de importação falhou. Verifique a sincronização."
+                  : undefined}
+          >
+            {stage === "imported" ? <CheckCircle2 className="h-3 w-3" /> : <Link2 className="h-3 w-3" />}
+            {config.label}
           </span>
-        ) : (
-          <span className="hidden sm:inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-            <Link2 className="h-3 w-3" />
-            Aguardando conexão
-          </span>
-        )
-      )}
+        );
+      })()}
     </div>
   );
 }

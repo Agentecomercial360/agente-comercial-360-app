@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { createAc360ApiUrl, getAc360AccessToken } from "@/lib/ac360-api";
-import { assertHistoricalCostPreviewPage, type HistoricalCostPreviewPage } from "@/lib/historical-cost-preview";
+import { assertHistoricalCostPreviewPage, summarizeHistoricalBlockedReasons, type HistoricalBlockReason, type HistoricalCostPreviewPage } from "@/lib/historical-cost-preview";
 
 type Status = {
   checked: number;
   estimatedOnly: number;
   blocked: number;
+  reasons: HistoricalBlockReason[];
 };
 
 export function HistoricalCostDiagnostic({
@@ -36,7 +37,7 @@ export function HistoricalCostDiagnostic({
         const token = await getAc360AccessToken();
         if (!token) throw new Error("Faça login para consultar o diagnóstico financeiro.");
         let page = 1;
-        let aggregate: Status = { checked: 0, estimatedOnly: 0, blocked: 0 };
+        let aggregate: Status = { checked: 0, estimatedOnly: 0, blocked: 0, reasons: [] };
         // Never report incomplete totals as if they cover the whole operation.
         const MAX_PAGES = 100;
         for (let i = 0; i < MAX_PAGES; i += 1) {
@@ -60,10 +61,16 @@ export function HistoricalCostDiagnostic({
           }
           const data = (await response.json()) as HistoricalCostPreviewPage;
           assertHistoricalCostPreviewPage(data, { companyId, accountId, since, until, page });
+          const merged = new Map(aggregate.reasons.map(item => [item.reason, item]));
+          for (const reason of summarizeHistoricalBlockedReasons(data.candidates)) {
+            const previous = merged.get(reason.reason);
+            merged.set(reason.reason, { ...reason, orders: (previous?.orders ?? 0) + reason.orders });
+          }
           aggregate = {
             checked: aggregate.checked + data.summary.orders_checked,
             estimatedOnly: aggregate.estimatedOnly + data.summary.estimated_only,
             blocked: aggregate.blocked + data.summary.blocked,
+            reasons: [...merged.values()].sort((a, b) => b.orders - a.orders),
           };
           if (!data.pagination.has_more) {
             if (!abort.signal.aborted) setState({ loading: false, result: aggregate, error: null });
@@ -108,11 +115,25 @@ export function HistoricalCostDiagnostic({
           <AlertTriangle className="h-4 w-4 shrink-0" /> {state.error} O lucro verificado continua separado deste diagnóstico.
         </p>
       ) : state.result ? (
-        <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="mt-4 space-y-3">
+          <div className="grid grid-cols-3 gap-2">
           <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] text-slate-500">Pedidos analisados</p><p className="mt-1 text-lg font-bold tabular-nums">{state.result.checked.toLocaleString("pt-BR")}</p></div>
           <div className="rounded-xl bg-emerald-50 p-3"><p className="text-[10px] text-emerald-800">Com estimativa possível</p><p className="mt-1 flex items-center gap-1 text-lg font-bold tabular-nums text-emerald-900"><CheckCircle2 className="h-4 w-4" />{state.result.estimatedOnly.toLocaleString("pt-BR")}</p></div>
           <div className="rounded-xl bg-amber-50 p-3"><p className="text-[10px] text-amber-800">Bloqueados para revisão</p><p className="mt-1 text-lg font-bold tabular-nums text-amber-900">{state.result.blocked.toLocaleString("pt-BR")}</p></div>
-        </div>
+          </div>
+          {state.result.reasons.length > 0 && (
+            <div className="rounded-xl border border-amber-100 bg-amber-50/50 px-3 py-3">
+              <p className="text-xs font-semibold text-amber-900">Principais motivos para revisão</p>
+              <div className="mt-2 space-y-1.5">
+                {state.result.reasons.slice(0, 4).map(reason => (
+                  <div key={reason.reason} className="flex items-start justify-between gap-2 text-[11px] text-amber-900">
+                    <span>{reason.label}</span><span className="shrink-0 font-semibold tabular-nums">{reason.orders.toLocaleString("pt-BR")} pedidos</span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-2 text-[10px] text-amber-800/80">Um pedido pode ter mais de uma pendência. Nenhum valor foi recalculado ou aprovado.</p>
+            </div>
+          )}
       ) : null}
     </section>
   );

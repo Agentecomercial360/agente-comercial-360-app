@@ -32,3 +32,5 @@ jobs:
         run: node --experimental-strip-types --test tests/ecommerce-profit-readiness.test.mjs
       - name: Run historical date-range and monthly-chart tests
         run: node --experimental-strip-types --test tests/ecommerce-historical-period.test.mjs
+      - name: Run historical cost preview isolation tests
+        run: node --experimental-strip-types --test tests/historical-cost-preview.test.mjs

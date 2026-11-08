@@ -36,3 +36,13 @@ export function summarizeVerifiedProfit(orders: ProfitReadinessOrder[]): {
     verifiedProfit: verifiedOrders > 0 ? profit : null,
   };
 }
+
+
+/** Marketplace aliases refer to one Mercado Livre fee; never add them. */
+export function marketplaceFeeForDisplay(order: {
+  marketplace_fee?: number | null;
+  mercadolivre_fee?: number | null;
+}): number | null {
+  const fee = order.marketplace_fee ?? order.mercadolivre_fee;
+  return typeof fee === "number" && Number.isFinite(fee) ? fee : null;
+}

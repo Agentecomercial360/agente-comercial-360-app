@@ -17,7 +17,7 @@
 // São Paulo é UTC-3 permanente desde 2019 (sem horário de verão).
 const SP_OFFSET_HOURS = -3;
 
-export type PeriodKey = "today" | "7d" | "30d";
+export type PeriodKey = "today" | "7d" | "30d" | "180d";
 
 export type PeriodRange = {
   key: PeriodKey;
@@ -53,7 +53,7 @@ function pad(n: number) {
 
 export function getPeriodRange(period: PeriodKey, now: Date = new Date()): PeriodRange {
   const { Y, M, D } = spNowParts(now);
-  const daysBack = period === "today" ? 0 : period === "7d" ? 6 : 29;
+  const daysBack = period === "today" ? 0 : period === "7d" ? 6 : period === "30d" ? 29 : 179;
   // Início do dia em SP (00:00 SP = 03:00 UTC).
   const startUtcMs = Date.UTC(Y, M, D - daysBack, -SP_OFFSET_HOURS, 0, 0, 0);
   // Fim do dia em SP (23:59:59.999 SP = 02:59:59.999 UTC do dia seguinte).
@@ -67,7 +67,7 @@ export function getPeriodRange(period: PeriodKey, now: Date = new Date()): Perio
       ? "Hoje"
       : period === "7d"
         ? "Últimos 7 dias"
-        : "Últimos 30 dias";
+        : period === "30d" ? "Últimos 30 dias" : "Últimos 180 dias";
   return {
     key: period,
     sinceISO: startDate.toISOString(),
@@ -142,4 +142,30 @@ export function aggregateOrderMetrics(rows: OrderMetricRow[]): OrderMetrics {
     ticket: totalOrders > 0 ? totalRevenue / totalOrders : 0,
     cancelledCount,
   };
+}
+
+/** Group long-range chart points by São Paulo calendar month, not fixed 30-day buckets. */
+export function aggregateMonthlyOrderPoints(
+  days: { key: string; gross: number; count: number }[],
+): { key: string; label: string; gross: number; count: number }[] {
+  const grouped = new Map<string, { gross: number; count: number }>();
+  for (const day of days) {
+    const month = day.key.slice(0, 7);
+    const current = grouped.get(month) ?? { gross: 0, count: 0 };
+    current.gross += day.gross;
+    current.count += day.count;
+    grouped.set(month, current);
+  }
+  return Array.from(grouped, ([key, value]) => {
+    const [year, month] = key.split("-").map(Number);
+    return {
+      key,
+      label: new Date(Date.UTC(year, month - 1, 1)).toLocaleDateString("pt-BR", {
+        month: "short",
+        year: "2-digit",
+        timeZone: "UTC",
+      }),
+      ...value,
+    };
+  }).sort((a, b) => a.key.localeCompare(b.key));
 }

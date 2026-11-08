@@ -443,8 +443,8 @@ function DashboardContent() {
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700"><AlertTriangle className="h-4 w-4" /></span>
             <div>
-              <p className="text-[12px] font-bold text-amber-900">{num.format(totals.pending)} pedidos aguardam CMV para apurar lucro confiável</p>
-              <p className="text-[11px] leading-relaxed text-amber-800">Os resultados sem CMV são parciais; faturamento não é lucro.</p>
+              <p className="text-[12px] font-bold text-amber-900">{num.format(totals.pending)} pedidos ainda não têm lucro verificado</p>
+              <p className="text-[11px] leading-relaxed text-amber-800">Os pedidos podem ter custo ausente, devolução ou revisão financeira; faturamento não é lucro.</p>
             </div>
           </div>
           <Link to="/ecommerce/custos-margem" className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3 py-2 text-[11px] font-semibold text-white hover:bg-amber-700">
@@ -507,7 +507,7 @@ function DashboardContent() {
           { label: "Faturamento bruto", value: brl.format(totals.gross), color: "bg-[#0F9D92]", icon: "R$" },
           { label: "Pedidos no período", value: num.format(totals.count), color: "bg-[#0A2F65]", icon: "#" },
           { label: "Ticket médio", value: brl.format(totals.ticket), color: "bg-[#2563EB]", icon: "↗" },
-          { label: "Pedidos sem CMV", value: num.format(totals.pending), color: "bg-[#F97316]", icon: "!" },
+          { label: "Lucro não verificado", value: num.format(totals.pending), color: "bg-[#F97316]", icon: "!" },
         ].map((kpi) => (
           <div key={kpi.label} className="flex min-w-0 items-center gap-3 rounded-[20px] border border-slate-200/80 bg-white px-4 py-4 shadow-[0_10px_28px_-22px_rgba(7,27,69,.55)]">
             <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-sm font-bold text-white ${kpi.color}`}>{kpi.icon}</span>
@@ -620,12 +620,12 @@ function DashboardContent() {
           </div>
           <div className="rounded-2xl border border-amber-100 bg-amber-50/45 p-4">
             <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-amber-700"><AlertTriangle className="h-4 w-4" /> Limitação financeira</p>
-            <p className="mt-2 text-base font-extrabold text-[#071B3D]">{loading ? "A consultar..." : totals.pending > 0 ? `${num.format(totals.pending)} pedidos sem CMV` : "CMV sem pendências identificadas"}</p>
+            <p className="mt-2 text-base font-extrabold text-[#071B3D]">{loading ? "A consultar..." : errorMsg ? "Dados indisponíveis" : totals.pending > 0 ? `${num.format(totals.pending)} pedidos com lucro não verificado` : "Sem pendências de lucro identificadas"}</p>
             <p className="mt-2 text-xs leading-relaxed text-slate-600">Não classificar o resultado operacional conhecido como lucro líquido sem reconciliar custos e devoluções.</p>
           </div>
           <div className="rounded-2xl border border-blue-100 bg-[#F2F7FF] p-4">
             <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-blue-700"><ArrowRight className="h-4 w-4" /> Próxima ação</p>
-            <p className="mt-2 text-base font-extrabold text-[#071B3D]">{loading ? "Aguardando dados" : totals.pending > 0 ? "Revisar custos dos pedidos" : totals.count === 0 ? "Conferir período e conexão" : "Acompanhar a evolução"}</p>
+            <p className="mt-2 text-base font-extrabold text-[#071B3D]">{loading ? "Aguardando dados" : errorMsg ? "Verificar conexão e carregamento" : totals.pending > 0 ? "Revisar custos e pendências" : totals.count === 0 ? "Conferir período e conexão" : "Acompanhar a evolução"}</p>
             <p className="mt-2 text-xs leading-relaxed text-slate-600">Recomendação orientada pela cobertura dos dados, sem atribuir tendências ou margens não verificadas.</p>
             {totals.pending > 0 && <Link to="/ecommerce/custos-margem" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline">Ir para Custos e Margem <ArrowRight className="h-3 w-3" /></Link>}
           </div>

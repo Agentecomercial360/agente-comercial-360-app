@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import { useEcommerceActiveAccount } from "@/lib/ecommerce-active-account";
+import { getMarketplaceReadiness } from "@/lib/ecommerce-sync-readiness";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -1064,8 +1065,12 @@ function FeedInteligente() {
 
 function FeedInteligenteContent() {
   const { companyId, activeAccountId, activeAccount, isActiveConnected, loading: accountsLoading } = useEcommerceActiveAccount();
-  const initialImportComplete = Boolean(activeAccount?.initial_sync_completed_at);
-  const initialImportPending = isActiveConnected && !initialImportComplete;
+  const readiness = getMarketplaceReadiness({
+    isAuthorized: isActiveConnected,
+    syncStatus: activeAccount?.sync_status,
+    initialSyncCompletedAt: activeAccount?.initial_sync_completed_at,
+  });
+  const initialImportPending = isActiveConnected && !readiness.initialImportComplete;
   const [data, setData] = useState<IntelligentFeedPreview | null>(null);
   const [loading, setLoading] = useState(true);
   const [errorKind, setErrorKind] = useState<"auth" | "unavailable" | null>(null);
@@ -1090,7 +1095,7 @@ function FeedInteligenteContent() {
     setErrorDetail(null);
     try {
       // SOMENTE LEITURA: apenas GET /intelligent-feed/preview.
-      const preview = isActiveConnected && initialImportComplete
+      const preview = readiness.canUseImportedFeed
         ? await getIntelligentFeedPreview({
             companyId,
             accountId: activeAccountId,
@@ -1120,7 +1125,7 @@ function FeedInteligenteContent() {
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
-  }, [companyId, activeAccountId, isActiveConnected, initialImportComplete, accountsLoading]);
+  }, [companyId, activeAccountId, readiness.canUseImportedFeed, accountsLoading]);
 
   useEffect(() => {
     void load();
@@ -1270,7 +1275,19 @@ function FeedInteligenteContent() {
             </div>
           </div>
 
-          {initialImportPending && (
+          {readiness.kind === "running" && !readiness.initialImportComplete && (
+            <div className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-blue-950" role="status">
+              <RefreshCw className="mt-0.5 h-4 w-4 shrink-0 text-blue-700" />
+              <div>
+                <p className="text-[12px] font-bold">Importação inicial em andamento</p>
+                <p className="mt-1 text-xs leading-relaxed text-blue-900/80">
+                  A conta está autorizada, mas os dados ainda não foram confirmados como completos.
+                  Este Feed apresenta apenas informações históricas disponíveis até à conclusão da importação.
+                </p>
+              </div>
+            </div>
+          )}
+          {initialImportPending && readiness.kind === "initial_pending" && (
             <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-950" role="status">
               <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
               <div>
@@ -1282,7 +1299,7 @@ function FeedInteligenteContent() {
               </div>
             </div>
           )}
-          {isActiveConnected && activeAccount?.sync_status === "failed" && (
+          {readiness.kind === "failed" && (
             <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-rose-900" role="status">
               <AlertOctagon className="mt-0.5 h-4 w-4 shrink-0" />
               <p className="text-xs leading-relaxed"><strong>Última importação falhou.</strong> Os dados anteriores podem estar disponíveis, mas a atualização não foi concluída. Verifique o estado de sincronização antes de tomar decisões.</p>

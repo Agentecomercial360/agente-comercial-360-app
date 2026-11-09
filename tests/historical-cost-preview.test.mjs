@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { assertHistoricalCostPreviewPage, summarizeHistoricalBlockedReasons, accumulateHistoricalPreviewPage, emptyHistoricalPreviewAggregate } from "../src/lib/historical-cost-preview.ts";
+import { assertHistoricalCostPreviewPage, summarizeHistoricalBlockedReasons, accumulateHistoricalPreviewPage, emptyHistoricalPreviewAggregate, formatHistoricalPreviewReceipt } from "../src/lib/historical-cost-preview.ts";
 
 const scope = {
   companyId: "company-one", accountId: "account-one",
@@ -109,4 +109,20 @@ test("rejects repeated order IDs across different pages before displaying totals
   };
   assertHistoricalCostPreviewPage(second, { ...scope, page: 2 });
   assert.throws(() => accumulateHistoricalPreviewPage(first, second), /repetiu pedidos/);
+});
+
+test("shareable pilot receipt includes only summary, reasons and date range", () => {
+  const receipt = formatHistoricalPreviewReceipt({
+    checked: 566, estimatedOnly: 0, blocked: 566,
+    reasons: [{ reason: "product_cost_not_found", label: "Sem custo histórico cadastrado", orders: 566 }],
+    since: scope.since, until: scope.until,
+  });
+  assert.match(receipt, /Pedidos analisados: 566/);
+  assert.match(receipt, /Bloqueados: 566/);
+  assert.match(receipt, /Sem custo histórico cadastrado: 566/);
+  assert.match(receipt, /Lucro não aprovado/);
+  assert.ok(receipt.includes("\n"), "result must contain line breaks");
+  assert.equal(receipt.includes(scope.companyId), false);
+  assert.equal(receipt.includes(scope.accountId), false);
+  assert.equal(receipt.includes(valid.candidates[0].order_id), false);
 });

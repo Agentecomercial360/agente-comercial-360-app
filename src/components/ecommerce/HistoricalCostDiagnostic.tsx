@@ -12,10 +12,11 @@ type Status = {
 };
 
 export function HistoricalCostDiagnostic({
-  companyId, accountId, since, until,
+  companyId, accountId, accountName, since, until,
 }: {
   companyId: string | null;
   accountId: string | null;
+  accountName?: string | null;
   since: string;
   until: string;
 }) {
@@ -106,7 +107,7 @@ export function HistoricalCostDiagnostic({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-slate-500">AC360 · Diagnóstico financeiro</p>
-          <h2 className="mt-1 text-sm font-bold text-[#071B3D]">Cobertura de custos históricos</h2>
+          <h2 className="mt-1 text-sm font-bold text-[#071B3D]">Cobertura de custos históricos{accountName ? ` · ${accountName}` : ""}</h2>
           <p className="mt-1 text-xs text-slate-500">Simulação somente leitura da conta e período selecionados. Inclui pedidos cancelados e devolvidos para revisão, por isso a quantidade pode diferir dos pedidos válidos para faturamento. Não representa lucro realizado.</p>
         </div>
         <Link to="/ecommerce/custos-margem" className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline">
@@ -121,6 +122,9 @@ export function HistoricalCostDiagnostic({
         </p>
       ) : state.result ? (
         <div className="mt-4 space-y-3">
+          {state.result.checked === 0 && (
+            <p className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs text-blue-800">Nenhum pedido encontrado nesta conta e período. Confira a conta selecionada e o intervalo de datas antes de concluir que há falha na sincronização.</p>
+          )}
           <div className="grid grid-cols-3 gap-2">
           <div className="rounded-xl bg-slate-50 p-3"><p className="text-[10px] text-slate-500">Pedidos analisados</p><p className="mt-1 text-lg font-bold tabular-nums">{state.result.checked.toLocaleString("pt-BR")}</p></div>
           <div className="rounded-xl bg-emerald-50 p-3"><p className="text-[10px] text-emerald-800">Com estimativa possível</p><p className="mt-1 flex items-center gap-1 text-lg font-bold tabular-nums text-emerald-900"><CheckCircle2 className="h-4 w-4" />{state.result.estimatedOnly.toLocaleString("pt-BR")}</p></div>

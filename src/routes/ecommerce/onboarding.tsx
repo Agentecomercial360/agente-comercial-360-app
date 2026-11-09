@@ -45,6 +45,7 @@ type AccountRow = {
   auth_status: string | null;
   is_active: boolean;
   last_sync_at: string | null;
+  initial_sync_completed_at: string | null;
   ml_user_id: string | null;
 };
 
@@ -66,6 +67,7 @@ function EcommerceOnboardingPage() {
     () => new Set(),
   );
   const [ordersCount, setOrdersCount] = useState(0);
+  const [selectedOAuthAccountId, setSelectedOAuthAccountId] = useState<string | null>(null);
 
   const [companyName, setCompanyName] = useState("");
   const [ownerName, setOwnerName] = useState("");
@@ -124,7 +126,7 @@ function EcommerceOnboardingPage() {
     ] = await Promise.all([
       supabase
         .from("ecommerce_accounts")
-        .select("id,account_name,auth_status,is_active,last_sync_at,ml_user_id")
+        .select("id,account_name,auth_status,is_active,last_sync_at,initial_sync_completed_at,ml_user_id")
         .eq("company_id", nextCtx.company_id)
         .eq("marketplace", "mercado_livre")
         .eq("is_active", true)
@@ -193,22 +195,20 @@ function EcommerceOnboardingPage() {
     [accounts, validIntegrationAccountIds],
   );
 
-  const pendingAccount = useMemo(
-    () =>
-      accounts.find(
-        (account) => !validIntegrationAccountIds.has(account.id),
-      ) ?? null,
+  const pendingAccounts = useMemo(
+    () => accounts.filter((account) => !validIntegrationAccountIds.has(account.id)),
     [accounts, validIntegrationAccountIds],
   );
+  const pendingAccount = pendingAccounts.find((account) => account.id === selectedOAuthAccountId) ?? pendingAccounts[0] ?? null;
 
   const stage: Stage = useMemo(() => {
     if (!ctx?.company_id) return "company";
     if (accounts.length === 0) return "account";
     if (!connectedAccount) return "authorization";
     // Orders from another account cannot prove that this account was synced.
-    if (!connectedAccount.last_sync_at) return "sync";
+    if (!connectedAccount.initial_sync_completed_at) return "sync";
     return "ready";
-  }, [ctx?.company_id, accounts.length, connectedAccount, ordersCount]);
+  }, [ctx?.company_id, accounts.length, connectedAccount]);
 
   async function handleCreateCompany() {
     const name = companyName.trim();
@@ -315,7 +315,7 @@ function EcommerceOnboardingPage() {
     } catch (e: any) {
       setError(
         e?.message ||
-          "A sincronização inicial não terminou agora. O scheduler 24/7 continuará tentando automaticamente.",
+          "A sincronização inicial não terminou agora. Verifique a conexão e o status antes de tentar novamente.",
       );
     } finally {
       setSyncingId(null);
@@ -523,6 +523,25 @@ function EcommerceOnboardingPage() {
                   centered
                 />
 
+                {pendingAccounts.length > 1 && (
+                  <div className="mt-6 text-left">
+                    <label htmlFor="oauth-marketplace-account" className="mb-2 block text-sm font-semibold text-slate-700">Escolha a conta que deseja autorizar</label>
+                    <select
+                      id="oauth-marketplace-account"
+                      value={pendingAccount.id}
+                      onChange={(event) => setSelectedOAuthAccountId(event.target.value)}
+                      disabled={connectingId !== null}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900"
+                    >
+                      {pendingAccounts.map((account) => (
+                        <option key={account.id} value={account.id}>
+                          {account.account_name || "Conta Mercado Livre"}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-2 text-xs text-slate-500">Somente a conta escolhida será enviada ao Mercado Livre para autorização.</p>
+                  </div>
+                )}
                 <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
                   <div className="font-semibold text-amber-900">
                     {pendingAccount.account_name || "Conta Mercado Livre"}

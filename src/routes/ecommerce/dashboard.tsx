@@ -463,6 +463,7 @@ function DashboardContent() {
         <HistoricalCostDiagnostic
           companyId={companyId ?? null}
           accountId={selectedAccountId}
+          accountName={selectedAccountName}
           since={range.sinceISO}
           until={range.untilISO}
         />
@@ -495,6 +496,12 @@ function DashboardContent() {
       {errorMsg && (
         <div className="rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
           {errorMsg}
+        </div>
+      )}
+      {scope === "active" && selectedAccountId && !loading && !errorMsg && orders.length === 0 && (
+        <div className="rounded-xl border border-blue-100 bg-blue-50/80 px-4 py-3 text-xs leading-relaxed text-blue-900">
+          Nenhum pedido encontrado para <strong>{selectedAccountName || "a conta selecionada"}</strong> neste período.
+          Confira se escolheu a conta correta no seletor de contas. O histórico de outra conta não deve aparecer aqui.
         </div>
       )}
       {accountMissing && (

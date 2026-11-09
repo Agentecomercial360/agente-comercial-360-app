@@ -158,5 +158,5 @@ export function formatHistoricalPreviewReceipt({
     ...(reasons.length ? reasons.map(reason =>
       `- ${reason.label}: ${reason.orders}`) : ["- Nenhuma pendência apontada"]),
     "Somente leitura. Lucro não aprovado. Sem IDs, dados pessoais ou tokens.",
-  ].join("\\n");
+  ].join("\n");
 }

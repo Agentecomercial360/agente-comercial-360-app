@@ -92,7 +92,7 @@ export function HistoricalCostDiagnostic({
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.13em] text-slate-500">AC360 · Diagnóstico financeiro</p>
           <h2 className="mt-1 text-sm font-bold text-[#071B3D]">Cobertura de custos históricos</h2>
-          <p className="mt-1 text-xs text-slate-500">Simulação somente leitura da conta ativa e do período selecionado; não representa lucro realizado.</p>
+          <p className="mt-1 text-xs text-slate-500">Simulação somente leitura da conta e período selecionados. Inclui pedidos cancelados e devolvidos para revisão, por isso a quantidade pode diferir dos pedidos válidos para faturamento. Não representa lucro realizado.</p>
         </div>
         <Link to="/ecommerce/custos-margem" className="inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline">
           Revisar custos <ChevronRight className="h-3.5 w-3.5" />

@@ -49,6 +49,7 @@ export function assertHistoricalCostPreviewPage(
       data.summary.orders_checked !== data.summary.estimated_only + data.summary.blocked ||
       !Array.isArray(data.candidates) ||
       data.candidates.length !== data.summary.orders_checked ||
+      new Set(data.candidates.map(candidate => candidate?.order_id)).size !== data.candidates.length ||
       data.candidates.some(candidate =>
         !candidate || typeof candidate.order_id !== "string" || !candidate.order_id ||
         candidate.company_id !== scope.companyId || candidate.account_id !== scope.accountId ||
@@ -98,4 +99,44 @@ export function summarizeHistoricalBlockedReasons(
       "Outra pendência financeira",
     orders,
   })).sort((a, b) => b.orders - a.orders || a.label.localeCompare(b.label));
+}
+
+/** Aggregate a complete multi-page preview without counting repeated orders. */
+export type HistoricalPreviewAggregate = {
+  checked: number;
+  estimatedOnly: number;
+  blocked: number;
+  reasons: HistoricalBlockReason[];
+  orderIds: Set<string>;
+};
+export function emptyHistoricalPreviewAggregate(): HistoricalPreviewAggregate {
+  return { checked: 0, estimatedOnly: 0, blocked: 0, reasons: [], orderIds: new Set<string>() };
+}
+export function accumulateHistoricalPreviewPage(
+  current: HistoricalPreviewAggregate,
+  page: HistoricalCostPreviewPage,
+): HistoricalPreviewAggregate {
+  for (const candidate of page.candidates) {
+    if (current.orderIds.has(candidate.order_id)) {
+      throw new Error("A API repetiu pedidos entre páginas. Os totais não foram publicados.");
+    }
+  }
+  const orderIds = new Set(current.orderIds);
+  for (const candidate of page.candidates) orderIds.add(candidate.order_id);
+  const reasonsByCode = new Map(current.reasons.map(item => [item.reason, item]));
+  for (const reason of summarizeHistoricalBlockedReasons(page.candidates)) {
+    const previous = reasonsByCode.get(reason.reason);
+    reasonsByCode.set(reason.reason, {
+      ...reason,
+      orders: (previous?.orders ?? 0) + reason.orders,
+    });
+  }
+  return {
+    checked: current.checked + page.summary.orders_checked,
+    estimatedOnly: current.estimatedOnly + page.summary.estimated_only,
+    blocked: current.blocked + page.summary.blocked,
+    reasons: [...reasonsByCode.values()].sort((a, b) =>
+      b.orders - a.orders || a.label.localeCompare(b.label)),
+    orderIds,
+  };
 }

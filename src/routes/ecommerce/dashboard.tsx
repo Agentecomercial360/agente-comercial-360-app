@@ -23,6 +23,7 @@ import {
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
   useEcommerceActiveAccount,
+  isAccountConnected,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
 import {
@@ -442,6 +443,25 @@ function DashboardContent() {
           {scopeLabel} · indicadores comerciais por período, qualidade dos dados e próximos pontos de atenção.
         </p>
       </header>
+
+      {scope === "active" && activeAccount && (
+        !isAccountConnected(activeAccount) ? (
+          <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">
+            <p className="font-bold">Conta do Mercado Livre desconectada: {selectedAccountName || "conta selecionada"}</p>
+            <p className="mt-1">
+              {activeAccount.initial_sync_completed_at
+                ? "Existe uma importação inicial concluída anteriormente, mas a conta não está autorizada para novas sincronizações."
+                : "A importação inicial não está confirmada. Pedidos antigos eventualmente armazenados não comprovam uma sincronização concluída."}
+              {" "}Conecte novamente a conta no fluxo de autorização antes de tentar atualizar os dados.
+            </p>
+          </div>
+        ) : !activeAccount.initial_sync_completed_at ? (
+          <div role="status" className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs leading-relaxed text-blue-900">
+            <p className="font-bold">Importação inicial ainda não confirmada: {selectedAccountName || "conta selecionada"}</p>
+            <p className="mt-1">A autorização do Mercado Livre não significa que os pedidos já foram importados. Confirme a conclusão da importação inicial antes de tratar o histórico como atualizado.</p>
+          </div>
+        ) : null
+      )}
 
       {/* Aviso financeiro compacto e acionável; nenhuma métrica é alterada. */}
       {totals.pending > 0 && (

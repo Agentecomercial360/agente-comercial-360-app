@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { createAc360ApiUrl, getAc360AccessToken } from "@/lib/ac360-api";
-import { assertHistoricalCostPreviewPage, summarizeHistoricalBlockedReasons, type HistoricalBlockReason, type HistoricalCostPreviewPage } from "@/lib/historical-cost-preview";
+import { assertHistoricalCostPreviewPage, accumulateHistoricalPreviewPage, emptyHistoricalPreviewAggregate, type HistoricalBlockReason, type HistoricalCostPreviewPage } from "@/lib/historical-cost-preview";
 
 type Status = {
   checked: number;
@@ -37,7 +37,7 @@ export function HistoricalCostDiagnostic({
         const token = await getAc360AccessToken();
         if (!token) throw new Error("Faça login para consultar o diagnóstico financeiro.");
         let page = 1;
-        let aggregate: Status = { checked: 0, estimatedOnly: 0, blocked: 0, reasons: [] };
+        let aggregate = emptyHistoricalPreviewAggregate();
         // Never report incomplete totals as if they cover the whole operation.
         const MAX_PAGES = 100;
         for (let i = 0; i < MAX_PAGES; i += 1) {
@@ -61,19 +61,9 @@ export function HistoricalCostDiagnostic({
           }
           const data = (await response.json()) as HistoricalCostPreviewPage;
           assertHistoricalCostPreviewPage(data, { companyId, accountId, since, until, page });
-          const merged = new Map(aggregate.reasons.map(item => [item.reason, item]));
-          for (const reason of summarizeHistoricalBlockedReasons(data.candidates)) {
-            const previous = merged.get(reason.reason);
-            merged.set(reason.reason, { ...reason, orders: (previous?.orders ?? 0) + reason.orders });
-          }
-          aggregate = {
-            checked: aggregate.checked + data.summary.orders_checked,
-            estimatedOnly: aggregate.estimatedOnly + data.summary.estimated_only,
-            blocked: aggregate.blocked + data.summary.blocked,
-            reasons: [...merged.values()].sort((a, b) => b.orders - a.orders),
-          };
+          aggregate = accumulateHistoricalPreviewPage(aggregate, data);
           if (!data.pagination.has_more) {
-            if (!abort.signal.aborted) setState({ loading: false, result: aggregate, error: null });
+            if (!abort.signal.aborted) setState({ loading: false, result: { checked: aggregate.checked, estimatedOnly: aggregate.estimatedOnly, blocked: aggregate.blocked, reasons: aggregate.reasons }, error: null });
             return;
           }
           if (data.pagination.next_page !== page + 1) {

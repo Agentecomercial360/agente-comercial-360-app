@@ -105,7 +105,7 @@ test("validates Robomix-sized 566 order preview across six disjoint pages", () =
 test("rejects repeated order IDs across different pages before displaying totals", () => {
   const first = accumulateHistoricalPreviewPage(emptyHistoricalPreviewAggregate(), valid);
   const second = {
-    ...valid, pagination: { ...valid.pagination, page: 2 },
+    ...valid, pagination: { ...valid.pagination, page: 2, next_page: 3 },
   };
   assertHistoricalCostPreviewPage(second, { ...scope, page: 2 });
   assert.throws(() => accumulateHistoricalPreviewPage(first, second), /repetiu pedidos/);

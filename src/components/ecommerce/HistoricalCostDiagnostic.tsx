@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle2, ChevronRight, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ChevronRight, ClipboardCopy, Loader2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { createAc360ApiUrl, getAc360AccessToken } from "@/lib/ac360-api";
-import { assertHistoricalCostPreviewPage, accumulateHistoricalPreviewPage, emptyHistoricalPreviewAggregate, type HistoricalBlockReason, type HistoricalCostPreviewPage } from "@/lib/historical-cost-preview";
+import { assertHistoricalCostPreviewPage, accumulateHistoricalPreviewPage, emptyHistoricalPreviewAggregate, formatHistoricalPreviewReceipt, type HistoricalBlockReason, type HistoricalCostPreviewPage } from "@/lib/historical-cost-preview";
 
 type Status = {
   checked: number;
@@ -24,9 +24,11 @@ export function HistoricalCostDiagnostic({
     result: Status | null;
     error: string | null;
   }>({ loading: false, result: null, error: null });
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const abort = new AbortController();
+    setCopyMessage(null);
     if (!companyId || !accountId) {
       setState({ loading: false, result: null, error: null });
       return () => abort.abort();
@@ -85,6 +87,19 @@ export function HistoricalCostDiagnostic({
     return () => abort.abort();
   }, [companyId, accountId, since, until]);
 
+  const copyReceipt = async () => {
+    if (!state.result || state.loading || state.error) return;
+    const receipt = formatHistoricalPreviewReceipt({
+      ...state.result, since, until,
+    });
+    try {
+      await navigator.clipboard.writeText(receipt);
+      setCopyMessage("Resumo copiado. Compartilhe apenas este texto para validar o piloto.");
+    } catch {
+      setCopyMessage("Não foi possível copiar automaticamente. Selecione o resumo e copie manualmente.");
+    }
+  };
+
   if (!companyId || !accountId) return null;
   return (
     <section className="rounded-[20px] border border-slate-200 bg-white p-4 sm:p-5" aria-label="Diagnóstico de custos históricos">
@@ -124,6 +139,13 @@ export function HistoricalCostDiagnostic({
               <p className="mt-2 text-[10px] text-amber-800/80">Um pedido pode ter mais de uma pendência. Nenhum valor foi recalculado ou aprovado.</p>
             </div>
           )}
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => void copyReceipt()} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50">
+              <ClipboardCopy className="h-3.5 w-3.5" /> Copiar resumo da homologação
+            </button>
+            <span className="text-[10px] text-slate-500">Sem tokens, dados pessoais ou IDs de pedidos.</span>
+          </div>
+          {copyMessage && <p role="status" className="text-xs text-slate-600">{copyMessage}</p>}
         </div>
       ) : null}
     </section>

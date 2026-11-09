@@ -185,30 +185,23 @@ function EcommerceOnboardingPage() {
     };
   }, []);
 
-  const connectedAccount = useMemo(
-    () =>
-      accounts.find(
-        (account) =>
-          account.auth_status === "connected" &&
-          validIntegrationAccountIds.has(account.id),
-      ) ?? null,
-    [accounts, validIntegrationAccountIds],
-  );
-
-  const pendingAccounts = useMemo(
-    () => accounts.filter((account) => !validIntegrationAccountIds.has(account.id)),
-    [accounts, validIntegrationAccountIds],
-  );
-  const pendingAccount = pendingAccounts.find((account) => account.id === selectedOAuthAccountId) ?? pendingAccounts[0] ?? null;
+  // Every onboarding step refers to the selected account, never the first
+  // connected account in another marketplace integration.
+  const selectedAccount =
+    accounts.find((account) => account.id === selectedOAuthAccountId) ?? accounts[0] ?? null;
+  const selectedConnected = !!selectedAccount &&
+    selectedAccount.auth_status === "connected" &&
+    validIntegrationAccountIds.has(selectedAccount.id);
+  const connectedAccount = selectedConnected ? selectedAccount : null;
+  const pendingAccount = selectedConnected ? null : selectedAccount;
 
   const stage: Stage = useMemo(() => {
     if (!ctx?.company_id) return "company";
-    if (accounts.length === 0) return "account";
-    if (!connectedAccount) return "authorization";
-    // Orders from another account cannot prove that this account was synced.
-    if (!connectedAccount.initial_sync_completed_at) return "sync";
+    if (!selectedAccount) return "account";
+    if (!selectedConnected) return "authorization";
+    if (!selectedAccount.initial_sync_completed_at) return "sync";
     return "ready";
-  }, [ctx?.company_id, accounts.length, connectedAccount]);
+  }, [ctx?.company_id, selectedAccount, selectedConnected]);
 
   async function handleCreateCompany() {
     const name = companyName.trim();
@@ -435,6 +428,32 @@ function EcommerceOnboardingPage() {
               </div>
             ) : null}
 
+            {!error && accounts.length > 1 && (
+              <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50/60 px-4 py-4">
+                <label htmlFor="onboarding-account" className="mb-2 block text-sm font-semibold text-blue-950">
+                  Qual conta Mercado Livre deseja configurar?
+                </label>
+                <select
+                  id="onboarding-account"
+                  value={selectedAccount?.id ?? ""}
+                  onChange={(event) => {
+                    setSelectedOAuthAccountId(event.target.value);
+                    setSyncMessage(null);
+                    setError(null);
+                  }}
+                  disabled={connectingId !== null || syncingId !== null}
+                  className="w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-slate-900"
+                >
+                  {accounts.map((account) => (
+                    <option key={account.id} value={account.id}>{account.account_name || "Conta sem nome"}</option>
+                  ))}
+                </select>
+                <p className="mt-2 text-xs text-slate-600">
+                  Autorização, importação e progresso serão relativos somente à conta escolhida.
+                </p>
+              </div>
+            )}
+
             {!error && stage === "company" ? (
               <div className="mx-auto max-w-xl">
                 <StepHeading
@@ -523,25 +542,6 @@ function EcommerceOnboardingPage() {
                   centered
                 />
 
-                {pendingAccounts.length > 1 && (
-                  <div className="mt-6 text-left">
-                    <label htmlFor="oauth-marketplace-account" className="mb-2 block text-sm font-semibold text-slate-700">Escolha a conta que deseja autorizar</label>
-                    <select
-                      id="oauth-marketplace-account"
-                      value={pendingAccount.id}
-                      onChange={(event) => setSelectedOAuthAccountId(event.target.value)}
-                      disabled={connectingId !== null}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm text-slate-900"
-                    >
-                      {pendingAccounts.map((account) => (
-                        <option key={account.id} value={account.id}>
-                          {account.account_name || "Conta Mercado Livre"}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="mt-2 text-xs text-slate-500">Somente a conta escolhida será enviada ao Mercado Livre para autorização.</p>
-                  </div>
-                )}
                 <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
                   <div className="font-semibold text-amber-900">
                     {pendingAccount.account_name || "Conta Mercado Livre"}
@@ -650,9 +650,8 @@ function EcommerceOnboardingPage() {
                   Seu AC360 está pronto
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {ordersCount > 0
-                    ? `Encontramos ${ordersCount.toLocaleString("pt-BR")} pedido(s) na operação.`
-                    : "Sua conta foi sincronizada e ainda não há pedidos no período inicial."}
+                  A importação inicial da conta {selectedAccount?.account_name || "selecionada"} está registrada como concluída.
+                  Os dados de outras contas não são utilizados para confirmar esta etapa.
                   {" "}A sincronização automática dependerá de sua configuração e ativação.
                 </p>
 

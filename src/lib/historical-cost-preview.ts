@@ -140,3 +140,23 @@ export function accumulateHistoricalPreviewPage(
     orderIds,
   };
 }
+
+/** Shareable pilot evidence; excludes credentials, tenant IDs and order identifiers. */
+export function formatHistoricalPreviewReceipt({
+  checked, estimatedOnly, blocked, reasons, since, until,
+}: Pick<HistoricalPreviewAggregate, "checked" | "estimatedOnly" | "blocked" | "reasons"> & {
+  since: string;
+  until: string;
+}): string {
+  return [
+    "AC360 | Comprovante de homologação do diagnóstico financeiro",
+    `Período UTC: ${since} até ${until}`,
+    `Pedidos analisados: ${checked}`,
+    `Estimativa possível (não é lucro aprovado): ${estimatedOnly}`,
+    `Bloqueados: ${blocked}`,
+    "Principais motivos (um pedido pode ter mais de um):",
+    ...(reasons.length ? reasons.map(reason =>
+      `- ${reason.label}: ${reason.orders}`) : ["- Nenhuma pendência apontada"]),
+    "Somente leitura. Lucro não aprovado. Sem IDs, dados pessoais ou tokens.",
+  ].join("\\n");
+}

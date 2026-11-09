@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { assertHistoricalCostPreviewPage, summarizeHistoricalBlockedReasons } from "../src/lib/historical-cost-preview.ts";
+import { assertHistoricalCostPreviewPage, summarizeHistoricalBlockedReasons, accumulateHistoricalPreviewPage, emptyHistoricalPreviewAggregate } from "../src/lib/historical-cost-preview.ts";
 
 const scope = {
   companyId: "company-one", accountId: "account-one",
@@ -67,4 +67,46 @@ test("blocked reasons are deduplicated per order and can be totaled across pages
     ["product_cost_not_found", 2],
     ["financial_review_or_refund", 1],
   ]);
+});
+
+test("rejects repeated order IDs within one page", () => {
+  const duplicate = { ...valid, candidates: valid.candidates.map((c, i) =>
+    i === 1 ? { ...c, order_id: valid.candidates[0].order_id } : c) };
+  assert.throws(() => assertHistoricalCostPreviewPage(duplicate, scope), /inconsistentes/);
+});
+
+test("validates Robomix-sized 566 order preview across six disjoint pages", () => {
+  let current = emptyHistoricalPreviewAggregate();
+  for (let page = 1; page <= 6; page += 1) {
+    const count = page === 6 ? 66 : 100;
+    const candidatePage = {
+      ...valid,
+      summary: { orders_checked: count, estimated_only: 0, blocked: count },
+      candidates: Array.from({ length: count }, (_, i) => ({
+        order_id: `order-${(page - 1) * 100 + i}`,
+        company_id: scope.companyId, account_id: scope.accountId,
+        status: "blocked", reasons: ["product_cost_not_found"],
+      })),
+      pagination: {
+        ...valid.pagination, page, has_more: page !== 6,
+        next_page: page === 6 ? null : page + 1,
+      },
+    };
+    assert.doesNotThrow(() => assertHistoricalCostPreviewPage(candidatePage, { ...scope, page }));
+    current = accumulateHistoricalPreviewPage(current, candidatePage);
+  }
+  assert.equal(current.checked, 566);
+  assert.equal(current.estimatedOnly, 0);
+  assert.equal(current.blocked, 566);
+  assert.equal(current.orderIds.size, 566);
+  assert.equal(current.reasons.find(x => x.reason === "product_cost_not_found")?.orders, 566);
+});
+
+test("rejects repeated order IDs across different pages before displaying totals", () => {
+  const first = accumulateHistoricalPreviewPage(emptyHistoricalPreviewAggregate(), valid);
+  const second = {
+    ...valid, pagination: { ...valid.pagination, page: 2 },
+  };
+  assertHistoricalCostPreviewPage(second, { ...scope, page: 2 });
+  assert.throws(() => accumulateHistoricalPreviewPage(first, second), /repetiu pedidos/);
 });

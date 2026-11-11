@@ -1,5 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import { getMarketplaceReadiness } from "../src/lib/ecommerce-sync-readiness.ts";
 
 const scenarios = [
@@ -25,4 +28,14 @@ for (const [name, isAuthorized, syncStatus, initialSyncCompletedAt, kind, canUse
 test("last_sync_at does not substitute for initial_sync_completed_at", () => {
   const account = { isAuthorized: true, syncStatus: "succeeded", lastSyncAt: "2026-10-29T18:47:19Z" };
   assert.equal(getMarketplaceReadiness(account).canUseImportedFeed, false);
+});
+
+test("onboarding selects newly created account and verifies first import by account", () => {
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+  const source = fs.readFileSync(path.join(root, "src/routes/ecommerce/onboarding.tsx"), "utf8");
+  assert.match(source, /setSelectedOAuthAccountId\(newAccount\.id\)/);
+  assert.match(source, /\.select\("initial_sync_completed_at"\)\s*\.eq\("company_id", ctx\.company_id\)\s*\.eq\("id", accountId\)/);
+  assert.match(source, /completedAccount\?\.initial_sync_completed_at/);
+  assert.match(source, /importação inicial desta conta ainda não foi confirmada/);
+  assert.doesNotMatch(source, /if \(!connectedAccount\.last_sync_at\)/);
 });

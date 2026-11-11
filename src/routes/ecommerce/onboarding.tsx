@@ -245,7 +245,7 @@ function EcommerceOnboardingPage() {
     setError(null);
 
     try {
-      const { error: insertError } = await supabase
+      const { data: newAccount, error: insertError } = await supabase
         .from("ecommerce_accounts")
         .insert({
           company_id: ctx.company_id,
@@ -259,8 +259,9 @@ function EcommerceOnboardingPage() {
 
       if (insertError) throw insertError;
 
-      // OAuth must start from a direct click. Opening its popup after the
-      // asynchronous insert would be blocked by Safari and other browsers.
+      // Keep onboarding bound to the account that was just created.
+      // OAuth must start from a separate, direct click to avoid popup blockers.
+      setSelectedOAuthAccountId(newAccount.id);
       await loadState();
     } catch (e: any) {
       setError(e?.message || "Não foi possível criar a conta Mercado Livre.");
@@ -301,9 +302,28 @@ function EcommerceOnboardingPage() {
         days: 30,
       });
 
-      setSyncMessage(
-        `Primeira sincronização concluída: ${result.orders_found} pedido(s), ${result.items_linked} item(ns) e ${result.products_created} produto(s) processados.`,
-      );
+      // A successful API response is not proof that this specific account
+      // completed its initial import. Verify its persisted completion marker.
+      const { data: completedAccount, error: completionError } = await supabase
+        .from("ecommerce_accounts")
+        .select("initial_sync_completed_at")
+        .eq("company_id", ctx.company_id)
+        .eq("id", accountId)
+        .single();
+
+      if (completionError) {
+        setSyncMessage(
+          "A solicitação foi processada, mas não foi possível confirmar o término da importação. Consulte novamente o estado da conta.",
+        );
+      } else if (completedAccount?.initial_sync_completed_at) {
+        setSyncMessage(
+          `Primeira sincronização concluída: ${result.orders_found} pedido(s), ${result.items_linked} item(ns) e ${result.products_created} produto(s) processados.`,
+        );
+      } else {
+        setSyncMessage(
+          "A sincronização processou dados, mas a importação inicial desta conta ainda não foi confirmada. Verifique o progresso antes de considerar a configuração concluída.",
+        );
+      }
       await loadState();
     } catch (e: any) {
       setError(

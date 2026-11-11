@@ -45,6 +45,7 @@ type AccountRow = {
   auth_status: string | null;
   is_active: boolean;
   last_sync_at: string | null;
+  initial_sync_completed_at: string | null;
   ml_user_id: string | null;
 };
 
@@ -66,6 +67,7 @@ function EcommerceOnboardingPage() {
     () => new Set(),
   );
   const [ordersCount, setOrdersCount] = useState(0);
+  const [selectedOAuthAccountId, setSelectedOAuthAccountId] = useState<string | null>(null);
 
   const [companyName, setCompanyName] = useState("");
   const [ownerName, setOwnerName] = useState("");
@@ -124,7 +126,7 @@ function EcommerceOnboardingPage() {
     ] = await Promise.all([
       supabase
         .from("ecommerce_accounts")
-        .select("id,account_name,auth_status,is_active,last_sync_at,ml_user_id")
+        .select("id,account_name,auth_status,is_active,last_sync_at,initial_sync_completed_at,ml_user_id")
         .eq("company_id", nextCtx.company_id)
         .eq("marketplace", "mercado_livre")
         .eq("is_active", true)
@@ -183,32 +185,23 @@ function EcommerceOnboardingPage() {
     };
   }, []);
 
-  const connectedAccount = useMemo(
-    () =>
-      accounts.find(
-        (account) =>
-          account.auth_status === "connected" &&
-          validIntegrationAccountIds.has(account.id),
-      ) ?? null,
-    [accounts, validIntegrationAccountIds],
-  );
-
-  const pendingAccount = useMemo(
-    () =>
-      accounts.find(
-        (account) => !validIntegrationAccountIds.has(account.id),
-      ) ?? null,
-    [accounts, validIntegrationAccountIds],
-  );
+  // Every onboarding step refers to the selected account, never the first
+  // connected account in another marketplace integration.
+  const selectedAccount =
+    accounts.find((account) => account.id === selectedOAuthAccountId) ?? accounts[0] ?? null;
+  const selectedConnected = !!selectedAccount &&
+    selectedAccount.auth_status === "connected" &&
+    validIntegrationAccountIds.has(selectedAccount.id);
+  const connectedAccount = selectedConnected ? selectedAccount : null;
+  const pendingAccount = selectedConnected ? null : selectedAccount;
 
   const stage: Stage = useMemo(() => {
     if (!ctx?.company_id) return "company";
-    if (accounts.length === 0) return "account";
-    if (!connectedAccount) return "authorization";
-    // Orders from another account cannot prove that this account was synced.
-    if (!connectedAccount.last_sync_at) return "sync";
+    if (!selectedAccount) return "account";
+    if (!selectedConnected) return "authorization";
+    if (!selectedAccount.initial_sync_completed_at) return "sync";
     return "ready";
-  }, [ctx?.company_id, accounts.length, connectedAccount, ordersCount]);
+  }, [ctx?.company_id, selectedAccount, selectedConnected]);
 
   async function handleCreateCompany() {
     const name = companyName.trim();
@@ -252,7 +245,7 @@ function EcommerceOnboardingPage() {
     setError(null);
 
     try {
-      const { error: insertError } = await supabase
+      const { data: newAccount, error: insertError } = await supabase
         .from("ecommerce_accounts")
         .insert({
           company_id: ctx.company_id,
@@ -266,8 +259,9 @@ function EcommerceOnboardingPage() {
 
       if (insertError) throw insertError;
 
-      // OAuth must start from a direct click. Opening its popup after the
-      // asynchronous insert would be blocked by Safari and other browsers.
+      // Keep onboarding bound to the account that was just created.
+      // OAuth must start from a separate, direct click to avoid popup blockers.
+      setSelectedOAuthAccountId(newAccount.id);
       await loadState();
     } catch (e: any) {
       setError(e?.message || "Não foi possível criar a conta Mercado Livre.");
@@ -308,14 +302,33 @@ function EcommerceOnboardingPage() {
         days: 30,
       });
 
-      setSyncMessage(
-        `Primeira sincronização concluída: ${result.orders_found} pedido(s), ${result.items_linked} item(ns) e ${result.products_created} produto(s) processados.`,
-      );
+      // A successful API response is not proof that this specific account
+      // completed its initial import. Verify its persisted completion marker.
+      const { data: completedAccount, error: completionError } = await supabase
+        .from("ecommerce_accounts")
+        .select("initial_sync_completed_at")
+        .eq("company_id", ctx.company_id)
+        .eq("id", accountId)
+        .single();
+
+      if (completionError) {
+        setSyncMessage(
+          "A solicitação foi processada, mas não foi possível confirmar o término da importação. Consulte novamente o estado da conta.",
+        );
+      } else if (completedAccount?.initial_sync_completed_at) {
+        setSyncMessage(
+          `Primeira sincronização concluída: ${result.orders_found} pedido(s), ${result.items_linked} item(ns) e ${result.products_created} produto(s) processados.`,
+        );
+      } else {
+        setSyncMessage(
+          "A sincronização processou dados, mas a importação inicial desta conta ainda não foi confirmada. Verifique o progresso antes de considerar a configuração concluída.",
+        );
+      }
       await loadState();
     } catch (e: any) {
       setError(
         e?.message ||
-          "A sincronização inicial não terminou agora. O scheduler 24/7 continuará tentando automaticamente.",
+          "A sincronização inicial não terminou agora. Verifique a conexão e o status antes de tentar novamente.",
       );
     } finally {
       setSyncingId(null);
@@ -434,6 +447,32 @@ function EcommerceOnboardingPage() {
                 </button>
               </div>
             ) : null}
+
+            {!error && accounts.length > 1 && (
+              <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50/60 px-4 py-4">
+                <label htmlFor="onboarding-account" className="mb-2 block text-sm font-semibold text-blue-950">
+                  Qual conta Mercado Livre deseja configurar?
+                </label>
+                <select
+                  id="onboarding-account"
+                  value={selectedAccount?.id ?? ""}
+                  onChange={(event) => {
+                    setSelectedOAuthAccountId(event.target.value);
+                    setSyncMessage(null);
+                    setError(null);
+                  }}
+                  disabled={connectingId !== null || syncingId !== null}
+                  className="w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-slate-900"
+                >
+                  {accounts.map((account) => (
+                    <option key={account.id} value={account.id}>{account.account_name || "Conta sem nome"}</option>
+                  ))}
+                </select>
+                <p className="mt-2 text-xs text-slate-600">
+                  Autorização, importação e progresso serão relativos somente à conta escolhida.
+                </p>
+              </div>
+            )}
 
             {!error && stage === "company" ? (
               <div className="mx-auto max-w-xl">
@@ -631,9 +670,8 @@ function EcommerceOnboardingPage() {
                   Seu AC360 está pronto
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  {ordersCount > 0
-                    ? `Encontramos ${ordersCount.toLocaleString("pt-BR")} pedido(s) na operação.`
-                    : "Sua conta foi sincronizada e ainda não há pedidos no período inicial."}
+                  A importação inicial da conta {selectedAccount?.account_name || "selecionada"} está registrada como concluída.
+                  Os dados de outras contas não são utilizados para confirmar esta etapa.
                   {" "}A sincronização automática dependerá de sua configuração e ativação.
                 </p>
 

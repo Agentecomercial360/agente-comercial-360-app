@@ -23,10 +23,12 @@ import {
 import { EcommerceLayout } from "@/components/ecommerce/EcommerceLayout";
 import {
   useEcommerceActiveAccount,
+  isAccountConnected,
 } from "@/lib/ecommerce-active-account";
 import { supabase } from "@/lib/supabase";
 import {
   aggregateOrderMetrics,
+  aggregateMonthlyOrderPoints,
   getPeriodRange,
   isCancelled,
   type PeriodKey as SharedPeriodKey,
@@ -44,6 +46,8 @@ import { runSmartAccountSync, formatSmartSyncMessage } from "@/lib/ml-sync";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { MarketplaceSyncHealth } from "@/components/ecommerce/MarketplaceSyncHealth";
+import { HistoricalCostDiagnostic } from "@/components/ecommerce/HistoricalCostDiagnostic";
+import { isVerifiedProfitOrder, marketplaceFeeForDisplay, summarizeVerifiedProfit } from "@/lib/ecommerce-profit-readiness";
 
 export const Route = createFileRoute("/ecommerce/dashboard")({
   component: DashboardEcommerce,
@@ -63,6 +67,9 @@ type Order = {
   product_cost_total: number | null;
   net_profit: number | null;
   profit_confidence: string | null;
+  financial_review_required: boolean | null;
+  has_refund: boolean | null;
+  has_chargeback: boolean | null;
   order_status: string | null;
   payment_status: string | null;
   buyer_city: string | null;
@@ -83,12 +90,13 @@ type SyncRun = {
   created_at: string | null;
 };
 
-type PeriodKey = "today" | "7d" | "30d";
+type PeriodKey = SharedPeriodKey;
 
 const PERIODS: { key: PeriodKey; label: string }[] = [
   { key: "today", label: "Hoje" },
   { key: "7d", label: "7 dias" },
   { key: "30d", label: "30 dias" },
+  { key: "180d", label: "180 dias" },
 ];
 
 const brl = new Intl.NumberFormat("pt-BR", {
@@ -223,7 +231,7 @@ function DashboardContent() {
           let q = supabase
             .from("ecommerce_orders")
             .select(
-              "id, account_id, order_date, total_amount, mercadolivre_fee, marketplace_fee, seller_shipping_cost, product_cost_total, net_profit, profit_confidence, order_status, payment_status, buyer_city, buyer_state",
+              "id, account_id, order_date, total_amount, mercadolivre_fee, marketplace_fee, seller_shipping_cost, product_cost_total, net_profit, profit_confidence, financial_review_required, has_refund, has_chargeback, order_status, payment_status, buyer_city, buyer_state",
             )
             .eq("company_id", companyId)
             .gte("order_date", range.sinceISO)
@@ -303,15 +311,14 @@ function DashboardContent() {
     const base = aggregateOrderMetrics(activeOrders);
     let fees = 0;
     let shipping = 0;
-    let netParcial = 0;
+    const verified = summarizeVerifiedProfit(activeOrders);
     let pending = 0;
     let high = 0;
     for (const o of activeOrders) {
-      fees += n(o.mercadolivre_fee) + n(o.marketplace_fee);
+      fees += n(marketplaceFeeForDisplay(o));
       shipping += n(o.seller_shipping_cost);
-      netParcial += n(o.net_profit);
-      if ((o.profit_confidence ?? "").toLowerCase() === "pending_cost") pending += 1;
-      if ((o.profit_confidence ?? "").toLowerCase() === "high") high += 1;
+      if (!isVerifiedProfitOrder(o)) pending += 1;
+      if (isVerifiedProfitOrder(o)) high += 1;
     }
     return {
       gross: base.totalRevenue,
@@ -323,7 +330,7 @@ function DashboardContent() {
       cancelledCount: orders.length - activeOrders.length,
       fees,
       shipping,
-      netParcial,
+      netParcial: verified.verifiedProfit,
       pending,
       high,
     };
@@ -350,23 +357,31 @@ function DashboardContent() {
       .sort((a, b) => (a[0] < b[0] ? -1 : 1))
       .map(([key, v]) => ({ key, label: fmtDayLabel(key), ...v }));
   }, [activeOrders, range.spStartDate, range.spEndDate]);
+  const revenueChartPoints = useMemo(
+    () => period === "180d" ? aggregateMonthlyOrderPoints(byDay) : byDay,
+    [period, byDay],
+  );
 
   const byAccount = useMemo(() => {
     const map = new Map<
       string,
-      { id: string; count: number; gross: number; fees: number; shipping: number; net: number; pending: number }
+      { id: string; count: number; gross: number; fees: number; shipping: number; net: number; verified: number; pending: number }
     >();
     for (const o of activeOrders) {
       const id = o.account_id ?? "—";
       const cur =
         map.get(id) ??
-        { id, count: 0, gross: 0, fees: 0, shipping: 0, net: 0, pending: 0 };
+        { id, count: 0, gross: 0, fees: 0, shipping: 0, net: 0, verified: 0, pending: 0 };
       cur.count += 1;
       cur.gross += n(o.total_amount);
-      cur.fees += n(o.mercadolivre_fee) + n(o.marketplace_fee);
+      cur.fees += n(marketplaceFeeForDisplay(o));
       cur.shipping += n(o.seller_shipping_cost);
-      cur.net += n(o.net_profit);
-      if ((o.profit_confidence ?? "").toLowerCase() === "pending_cost") cur.pending += 1;
+      if (isVerifiedProfitOrder(o)) {
+        cur.net += o.net_profit as number;
+        cur.verified += 1;
+      } else {
+        cur.pending += 1;
+      }
       map.set(id, cur);
     }
     return Array.from(map.values()).sort((a, b) => b.gross - a.gross);
@@ -429,20 +444,49 @@ function DashboardContent() {
         </p>
       </header>
 
+      {scope === "active" && activeAccount && (
+        !isAccountConnected(activeAccount) ? (
+          <div role="status" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-relaxed text-amber-900">
+            <p className="font-bold">Conta do Mercado Livre desconectada: {selectedAccountName || "conta selecionada"}</p>
+            <p className="mt-1">
+              {activeAccount.initial_sync_completed_at
+                ? "Existe uma importação inicial concluída anteriormente, mas a conta não está autorizada para novas sincronizações."
+                : "A importação inicial não está confirmada. Pedidos antigos eventualmente armazenados não comprovam uma sincronização concluída."}
+              {" "}Conecte novamente a conta no fluxo de autorização antes de tentar atualizar os dados.
+            </p>
+          </div>
+        ) : !activeAccount.initial_sync_completed_at ? (
+          <div role="status" className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-xs leading-relaxed text-blue-900">
+            <p className="font-bold">Importação inicial ainda não confirmada: {selectedAccountName || "conta selecionada"}</p>
+            <p className="mt-1">A autorização do Mercado Livre não significa que os pedidos já foram importados. Confirme a conclusão da importação inicial antes de tratar o histórico como atualizado.</p>
+          </div>
+        ) : null
+      )}
+
       {/* Aviso financeiro compacto e acionável; nenhuma métrica é alterada. */}
       {totals.pending > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700"><AlertTriangle className="h-4 w-4" /></span>
             <div>
-              <p className="text-[12px] font-bold text-amber-900">{num.format(totals.pending)} pedidos aguardam CMV para apurar lucro confiável</p>
-              <p className="text-[11px] leading-relaxed text-amber-800">Os resultados sem CMV são parciais; faturamento não é lucro.</p>
+              <p className="text-[12px] font-bold text-amber-900">{num.format(totals.pending)} pedidos ainda não têm lucro verificado</p>
+              <p className="text-[11px] leading-relaxed text-amber-800">Os pedidos podem ter custo ausente, devolução ou revisão financeira; faturamento não é lucro.</p>
             </div>
           </div>
           <Link to="/ecommerce/custos-margem" className="inline-flex items-center gap-1.5 rounded-xl bg-amber-600 px-3 py-2 text-[11px] font-semibold text-white hover:bg-amber-700">
             Revisar custos <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
+      )}
+
+      {scope === "active" && (
+        <HistoricalCostDiagnostic
+          companyId={companyId ?? null}
+          accountId={selectedAccountId}
+          accountName={selectedAccountName}
+          since={range.sinceISO}
+          until={range.untilISO}
+        />
       )}
 
       {/* Filtros */}
@@ -474,6 +518,12 @@ function DashboardContent() {
           {errorMsg}
         </div>
       )}
+      {scope === "active" && selectedAccountId && !loading && !errorMsg && orders.length === 0 && (
+        <div className="rounded-xl border border-blue-100 bg-blue-50/80 px-4 py-3 text-xs leading-relaxed text-blue-900">
+          Nenhum pedido encontrado para <strong>{selectedAccountName || "a conta selecionada"}</strong> neste período.
+          Confira se escolheu a conta correta no seletor de contas. O histórico de outra conta não deve aparecer aqui.
+        </div>
+      )}
       {accountMissing && (
         <div className="flex items-start gap-3 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
           <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-rose-700" />
@@ -490,7 +540,7 @@ function DashboardContent() {
           { label: "Faturamento bruto", value: brl.format(totals.gross), color: "bg-[#0F9D92]", icon: "R$" },
           { label: "Pedidos no período", value: num.format(totals.count), color: "bg-[#0A2F65]", icon: "#" },
           { label: "Ticket médio", value: brl.format(totals.ticket), color: "bg-[#2563EB]", icon: "↗" },
-          { label: "Pedidos sem CMV", value: num.format(totals.pending), color: "bg-[#F97316]", icon: "!" },
+          { label: "Lucro não verificado", value: num.format(totals.pending), color: "bg-[#F97316]", icon: "!" },
         ].map((kpi) => (
           <div key={kpi.label} className="flex min-w-0 items-center gap-3 rounded-[20px] border border-slate-200/80 bg-white px-4 py-4 shadow-[0_10px_28px_-22px_rgba(7,27,69,.55)]">
             <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-sm font-bold text-white ${kpi.color}`}>{kpi.icon}</span>
@@ -526,7 +576,7 @@ function DashboardContent() {
                 </div>
               )}
               <p className="mt-2 max-w-sm text-[12px] leading-relaxed text-white/58">
-                Faturamento registrado no período e nas contas selecionadas. Verifique a data da última sincronização.
+                Faturamento registrado no período e nas contas selecionadas. Lucro verificado considera apenas pedidos com custos completos e sem revisão financeira.
               </p>
             </div>
 
@@ -534,7 +584,7 @@ function DashboardContent() {
               {[
                 ["Pedidos", num.format(totals.count)],
                 ["Ticket", brl.format(totals.ticket)],
-                ["Resultado", brl.format(totals.netParcial)],
+                ["Lucro verificado", totals.netParcial === null ? "—" : brl.format(totals.netParcial)],
               ].map(([label, value]) => (
                 <div
                   key={label}
@@ -557,7 +607,7 @@ function DashboardContent() {
                 <p className="text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-400">
                   Evolução
                 </p>
-                <h2 className="mt-1 text-sm font-semibold text-[#0A1F44]">Faturamento por dia</h2>
+                <h2 className="mt-1 text-sm font-semibold text-[#0A1F44]">{period === "180d" ? "Faturamento por mês" : "Faturamento por dia"}</h2>
               </div>
               <span className="rounded-full bg-[#EEF4FF] px-2.5 py-1 text-[9.5px] font-semibold text-[#1E5EFF]">
                 {PERIODS.find((p) => p.key === period)?.label}
@@ -566,17 +616,22 @@ function DashboardContent() {
 
             {loading ? (
               <Skeleton className="h-[220px] w-full rounded-xl" />
+            ) : errorMsg ? (
+              <div className="flex h-[220px] items-center justify-center rounded-2xl bg-[#F7F9FC] text-center text-xs text-amber-800">Não foi possível carregar o histórico deste período.</div>
             ) : byDay.length === 0 || byDay.every((d) => d.gross === 0) ? (
               <div className="flex h-[220px] items-center justify-center rounded-2xl bg-[#F7F9FC] text-center">
                 <div>
                   <BarChart3 className="mx-auto h-5 w-5 text-slate-300" />
                   <p className="mt-2 text-[11px] font-medium text-slate-500">Sem faturamento no período</p>
-                  <p className="mt-1 text-[10px] text-slate-400">O gráfico será preenchido após a sincronização de pedidos.</p>
+                  <p className="mt-1 text-[10px] text-slate-400">Não há valores registrados neste intervalo; isso não indica falha de sincronização.</p>
+                  {period !== "180d" && (
+                    <button type="button" onClick={() => setPeriod("180d")} className="mt-3 rounded-lg border border-blue-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-blue-700 hover:bg-blue-50">Ver histórico de 180 dias</button>
+                  )}
                 </div>
               </div>
             ) : (
               <div className="-mx-2">
-                <RevenueByDayChart data={byDay} />
+                <RevenueByDayChart data={revenueChartPoints} />
               </div>
             )}
           </div>
@@ -603,12 +658,12 @@ function DashboardContent() {
           </div>
           <div className="rounded-2xl border border-amber-100 bg-amber-50/45 p-4">
             <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-amber-700"><AlertTriangle className="h-4 w-4" /> Limitação financeira</p>
-            <p className="mt-2 text-base font-extrabold text-[#071B3D]">{loading ? "A consultar..." : totals.pending > 0 ? `${num.format(totals.pending)} pedidos sem CMV` : "CMV sem pendências identificadas"}</p>
+            <p className="mt-2 text-base font-extrabold text-[#071B3D]">{loading ? "A consultar..." : errorMsg ? "Dados indisponíveis" : totals.pending > 0 ? `${num.format(totals.pending)} pedidos com lucro não verificado` : "Sem pendências de lucro identificadas"}</p>
             <p className="mt-2 text-xs leading-relaxed text-slate-600">Não classificar o resultado operacional conhecido como lucro líquido sem reconciliar custos e devoluções.</p>
           </div>
           <div className="rounded-2xl border border-blue-100 bg-[#F2F7FF] p-4">
             <p className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-blue-700"><ArrowRight className="h-4 w-4" /> Próxima ação</p>
-            <p className="mt-2 text-base font-extrabold text-[#071B3D]">{loading ? "Aguardando dados" : totals.pending > 0 ? "Revisar custos dos pedidos" : totals.count === 0 ? "Conferir período e conexão" : "Acompanhar a evolução"}</p>
+            <p className="mt-2 text-base font-extrabold text-[#071B3D]">{loading ? "Aguardando dados" : errorMsg ? "Verificar conexão e carregamento" : totals.pending > 0 ? "Revisar custos e pendências" : totals.count === 0 ? "Conferir período e conexão" : "Acompanhar a evolução"}</p>
             <p className="mt-2 text-xs leading-relaxed text-slate-600">Recomendação orientada pela cobertura dos dados, sem atribuir tendências ou margens não verificadas.</p>
             {totals.pending > 0 && <Link to="/ecommerce/custos-margem" className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-blue-700 hover:underline">Ir para Custos e Margem <ArrowRight className="h-3 w-3" /></Link>}
           </div>
@@ -657,7 +712,7 @@ function DashboardContent() {
                   <th className="text-right px-4 py-2.5 font-medium">Faturamento</th>
                   <th className="text-right px-4 py-2.5 font-medium">Taxas ML</th>
                   <th className="text-right px-4 py-2.5 font-medium">Frete vendedor</th>
-                  <th className="text-right px-4 py-2.5 font-medium">Resultado parcial</th>
+                  <th className="text-right px-4 py-2.5 font-medium">Lucro verificado</th>
                   <th className="text-right px-5 py-2.5 font-medium">Pend. custo</th>
                 </tr>
               </thead>
@@ -686,7 +741,7 @@ function DashboardContent() {
                       {brl.format(a.shipping)}
                     </td>
                     <td className="px-4 py-3 text-right tabular-nums font-semibold text-foreground">
-                      {brl.format(a.net)}
+                      {a.verified > 0 ? brl.format(a.net) : "—"}
                     </td>
                     <td className="px-5 py-3 text-right tabular-nums">
                       {a.pending > 0 ? (

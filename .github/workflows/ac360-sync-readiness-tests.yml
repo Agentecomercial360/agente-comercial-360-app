@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - feature/ac360-multiconsultor
+      - fix/ecommerce-dashboard-verified-profit-20261108
 
 permissions:
   contents: read
@@ -28,3 +29,21 @@ jobs:
           node-version: "22"
       - name: Run pure readiness regression tests
         run: node --experimental-strip-types --test tests/ecommerce-sync-readiness.test.mjs
+      - name: Run verified-profit KPI regression tests
+        run: node --experimental-strip-types --test tests/ecommerce-profit-readiness.test.mjs
+      - name: Run historical date-range and monthly-chart tests
+        run: node --experimental-strip-types --test tests/ecommerce-historical-period.test.mjs
+      - name: Run historical cost preview isolation tests
+        run: node --experimental-strip-types --test tests/historical-cost-preview.test.mjs
+
+  frontend-build:
+    name: Vite build smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install locked dependencies
+        run: bun install --frozen-lockfile
+      - name: Compile frontend
+        run: bun run build

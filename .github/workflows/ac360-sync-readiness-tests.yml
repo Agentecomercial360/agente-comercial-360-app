@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - feature/ac360-multiconsultor
+      - fix/ecommerce-dashboard-verified-profit-20261108
 
 permissions:
   contents: read
